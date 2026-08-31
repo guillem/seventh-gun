@@ -369,7 +369,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
       const color = rng.pick(palette[r.theme]);
       lights.push({
         x: lx, z: lz, y: r.outdoor ? 5 : 3.9,
-        color, intensity: 0.9 + rng.float() * 0.4, radius: 9 + rng.float() * 5, roomId: r.id,
+        color, intensity: 1.3 + rng.float() * 0.5, radius: 8 + rng.float() * 4, roomId: r.id,
       });
     }
   }

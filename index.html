@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0709" />
+  <title>SEVENTH GUN</title>
+  <style>
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --accent: #ffc850;
+      --blood: #c22a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #050305;
+      font-family: 'Courier New', monospace;
+      color: #d8d4c8;
+      touch-action: none;
+      -webkit-user-select: none; user-select: none;
+      overscroll-behavior: none;
+    }
+    #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+    #minimap {
+      position: fixed; right: calc(12px + var(--safe-right)); top: calc(12px + var(--safe-top));
+      border: 2px solid #3a3f36; z-index: 6; pointer-events: none;
+      image-rendering: pixelated;
+    }
+
+    #screens { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+    .screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; pointer-events: auto;
+      background: radial-gradient(ellipse at center, rgba(20,8,10,0.88) 0%, rgba(5,3,5,0.97) 75%);
+    }
+    .hidden { display: none !important; }
+
+    .title-art { text-align: center; }
+    .title-art h1 {
+      font-size: clamp(42px, 9vw, 96px);
+      letter-spacing: 0.08em;
+      color: #e8e4c8;
+      text-shadow: 0 0 24px rgba(255, 90, 40, 0.55), 0 2px 0 #000;
+      line-height: 0.9;
+    }
+    .title-art h1 .accent { color: var(--blood); margin-left: 0.22em; }
+    .subtitle { color: #8a8578; font-style: italic; margin-top: 10px; font-size: clamp(12px, 2vw, 16px); }
+
+    .panel {
+      background: linear-gradient(180deg, #2c302a 0%, #191c17 100%);
+      border: 2px solid #565b50;
+      border-radius: 8px;
+      padding: 22px 26px;
+      display: flex; flex-direction: column; gap: 12px;
+      min-width: min(430px, calc(100vw - 40px));
+      box-shadow: 0 12px 60px rgba(0,0,0,0.8);
+    }
+    .panel h2 { text-align: center; letter-spacing: 0.2em; color: #e8e4c8; }
+    .panel.win { border-color: #7ac878; }
+    .gameover { font-size: 44px; color: var(--blood); letter-spacing: 0.15em; text-shadow: 0 0 18px rgba(200,40,40,0.6); }
+    .won { font-size: 34px; color: #9ff09a; margin: 6px 0 10px; letter-spacing: 0.1em; }
+    .stats { color: #9aa08e; font-size: 13px; text-align: center; }
+
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .row label { font-size: 12px; color: #9aa08e; letter-spacing: 0.15em; min-width: 90px; text-align: right; }
+    input[type="text"], #seed-input {
+      background: #11130f; border: 1px solid #565b50; color: #ffe9a0;
+      font-family: inherit; font-size: 16px; padding: 8px 10px; border-radius: 4px;
+      flex: 1; min-width: 120px;
+    }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+
+    button {
+      font-family: inherit; cursor: pointer;
+      background: #33372f; color: #e8e4c8;
+      border: 2px solid #6a7062; border-radius: 5px;
+      padding: 10px 18px; font-size: 15px; letter-spacing: 0.08em;
+      transition: background 0.1s, transform 0.05s;
+    }
+    button:hover { background: #454a3f; }
+    button:active { transform: translateY(1px); }
+    button.big { font-size: 20px; padding: 14px 22px; background: #4a2820; border-color: #a05040; color: #ffd9c0; }
+    button.big:hover { background: #63321f; }
+    button.small { padding: 7px 12px; font-size: 13px; }
+    button.diff.active { background: #63321f; border-color: var(--accent); color: var(--accent); }
+    .diff-row { display: flex; gap: 6px; flex: 1; }
+    .hints { color: #6e7264; font-size: 11.5px; text-align: center; line-height: 1.7; }
+    .volume-row {
+      position: absolute; bottom: calc(16px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; align-items: center; pointer-events: auto;
+    }
+
+    #map-overlay { background: rgba(4,3,4,0.92); }
+    #fullmap-canvas { border: 2px solid #3a3f36; max-width: 92vw; max-height: 80vh; }
+    .map-hint { color: #6e7264; font-size: 13px; margin-top: 10px; }
+
+    #toast { position: fixed; z-index: 30; }
+
+    #touch-ui { position: fixed; inset: 0; z-index: 15; pointer-events: none; }
+    #stick-zone {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 45%;
+      pointer-events: auto;
+    }
+    #stick-base {
+      position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px;
+      border-radius: 50%; border: 2px solid rgba(220,220,200,0.35);
+      background: rgba(20,22,18,0.25); pointer-events: none;
+    }
+    #stick-nub {
+      position: absolute; left: 50%; top: 50%; width: 48px; height: 48px;
+      margin: -24px 0 0 -24px; border-radius: 50%;
+      background: rgba(220,220,200,0.45); border: 2px solid rgba(255,255,255,0.5);
+    }
+    .touch-buttons {
+      position: absolute; right: calc(14px + var(--safe-right)); bottom: calc(120px + var(--safe-bottom));
+      display: grid; grid-template-columns: 64px 64px; gap: 10px;
+      pointer-events: auto;
+    }
+    .tbtn {
+      width: 64px; height: 64px; min-width: 44px; min-height: 44px;
+      border-radius: 50%; font-size: 13px; font-weight: bold;
+      background: rgba(30,32,28,0.7); border: 2px solid #6a7062; color: #e8e4c8;
+      pointer-events: auto;
+    }
+    .tbtn.fire {
+      grid-column: span 2; width: 138px; border-radius: 40px;
+      background: rgba(80,24,16,0.8); border-color: #c05040; color: #ffd9c0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
