@@ -17,7 +17,7 @@ test.describe('desktop', () => {
     const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => Record<string, unknown> } }).__GAME__.state());
     expect(state.hp).toBe(100);
     expect(state.gun).toBe(1);
-    expect(state.owned[0]).toBe(true);
+    expect((state.owned as boolean[])[0]).toBe(true);
   });
 
   test('WASD walks the way you look (W forward, A/D strafe)', async ({ page }) => {
@@ -75,7 +75,7 @@ test.describe('desktop', () => {
     await page.evaluate(() => (window as unknown as { __GAME__: { step: (n: number) => void } }).__GAME__.step(10));
     const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => Record<string, unknown> } }).__GAME__.state());
     expect(state.gun).toBe(2);
-    expect(state.owned[1]).toBe(true);
+    expect((state.owned as boolean[])[1]).toBe(true);
     expect((state.ammo as { shells: number }).shells).toBeGreaterThanOrEqual(12);
   });
 
@@ -95,7 +95,7 @@ test.describe('desktop', () => {
       const G = (window as unknown as { __GAME__: { teleport: (x: number, z: number) => void; step: (n: number) => void } }).__GAME__;
       G.teleport(m.x, m.z);
       G.step(10);
-    }, med);
+    }, med as { kind: string; x: number; z: number });
     const hpAfter = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { hp: number } } }).__GAME__.state().hp);
     expect(hpAfter).toBeGreaterThan(hpBefore);
   });
@@ -125,7 +125,7 @@ test.describe('desktop', () => {
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     // grab the seventh (breaks the seal), enter arena, clear it
     await page.evaluate(() => {
-      const G = (window as unknown as { __GAME__: { warpTo: (t: string) => void; step: (n: number) => void } }).__GAME__;
+      const G = (window as unknown as { __GAME__: { warpTo: (t: string) => void; step: (n: number) => void; clearArena: () => void } }).__GAME__;
       G.warpTo('gun7');
       G.step(10);
       G.warpTo('arena');

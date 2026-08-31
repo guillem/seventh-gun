@@ -378,7 +378,10 @@ export class Game {
   snapshotDataUrl(): string {
     const sim = this.sim;
     if (!sim) return '';
-    // drive a full frame manually: rAF may be throttled in automation tabs
+    // drive a full frame manually: rAF may be throttled in automation tabs.
+    // Clamp the apparent frame gap so short-lived FX (muzzle flashes) survive
+    // to be composited.
+    this.lastTime = performance.now() - 16;
     this.tick(performance.now());
     const c = document.createElement('canvas');
     c.width = this.renderer.domElement.width;
@@ -512,11 +515,16 @@ export class Game {
       snapshot: () => this.snapshotDataUrl(),
       debugInfo: () => ({
         rigs: this.renderer.enemyRigInfo.slice(0, 8),
+        muzzle: this.renderer.muzzleState,
         updateCount: this.renderer.enemyUpdateCount,
         simEnemies: this.sim ? this.sim.enemies.slice(0, 5).map(e => ({ id: e.id, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dead: e.dead })) : [],
         playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2) },
       }),
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
+      setTouch: (v: boolean) => {
+        this.input.isTouch = v;
+        this.screens.showTouch(v && this.isPlayingLike);
+      },
       warps: () => {
         const sim = this.sim;
         if (!sim) return {};

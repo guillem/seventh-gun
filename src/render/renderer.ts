@@ -123,7 +123,7 @@ export class GameRenderer {
   private updateMuzzleSprite(color: number, size: number): void {
     if (!this.viewModel) return;
     if (this.muzzleSprite) {
-      this.vmHolder.remove(this.muzzleSprite);
+      this.muzzleSprite.removeFromParent();
       this.muzzleSprite = null;
     }
     const mat = new THREE.SpriteMaterial({
@@ -137,9 +137,21 @@ export class GameRenderer {
     this.muzzleLife = 0.085;
   }
 
+  get muzzleState(): { alive: boolean; attached: boolean; opacity: number; gunVisible: boolean } {
+    const s = this.muzzleSprite;
+    return {
+      alive: this.muzzleLife > 0,
+      attached: !!s && !!s.parent,
+      opacity: s ? (s.material as THREE.SpriteMaterial).opacity : -1,
+      gunVisible: !!this.viewModel && this.viewModel.group.parent === this.vmHolder,
+    };
+  }
+
   fireVisual(gunId: number, yaw: number, pitch: number, px: number, pz: number): void {
     const sizes = [0.5, 1.6, 0.8, 0.7, 1.1, 0.9, 1.8];
     const colors = [0xffe2a0, 0xffc23a, 0xffd28a, 0xb8ff7a, 0x9aff5a, 0x9ff4ff, 0xb44dff];
+    // make sure the flash attaches to the gun actually firing (switch this frame?)
+    this.setGun(gunId);
     this.updateMuzzleSprite(colors[gunId - 1], sizes[gunId - 1]);
     // world light at the muzzle, pointing away from camera
     const dx = -Math.sin(yaw) * Math.cos(pitch);
