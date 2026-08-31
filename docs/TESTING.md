@@ -28,8 +28,10 @@ Covered: boot to title, start run, WASD walking (camera-relative), fire +
 ammo decrease, dry-fire no-spam, gun pickup grants gun + stack, medikit
 heals, death lockout then title with Retry Seed / New Maze, win copy
 "GAME OVER / You won", difficulty economy (same layout, different counts),
-seed reproducibility (map hash), Tab map open/close with fog of war, E opens
-a door, mobile touch HUD with ≥44px FIRE button, FIRE latches and unlatches.
+seed reproducibility (map hash), killed enemies upright when a seed is
+replayed (rig-reuse regression, checks rig `rotX` via `debugInfo`), Tab map
+open/close with fog of war, E opens a door, mobile touch HUD with ≥44px
+FIRE button, FIRE latches and unlatches.
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production

@@ -583,13 +583,14 @@ export class EnemyRenderer {
     this.rigs.clear();
   }
 
-  rigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number }[] {
-    const out: { id: number; visible: boolean; x: number; z: number; scale: number }[] = [];
+  rigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
+    const out: { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] = [];
     for (const [id, rig] of this.rigs) {
       out.push({
         id, visible: rig.group.visible,
         x: +rig.group.position.x.toFixed(1), z: +rig.group.position.z.toFixed(1),
         scale: rig.group.scale.x,
+        rotX: +rig.group.rotation.x.toFixed(2),
       });
     }
     return out;
