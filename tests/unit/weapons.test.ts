@@ -2,6 +2,8 @@
 // ladder must climb. Tests drive the sim directly with crafted geometry.
 import { describe, it, expect } from 'vitest';
 import { Sim, emptyInput } from '../../src/sim/sim';
+import type { EnemyEnt } from '../../src/sim/sim';
+import type { SimEvent } from '../../src/sim/types';
 import { WEAPONS, weapon } from '../../src/sim/weapons';
 import { ENEMIES } from '../../src/sim/enemyTypes';
 import { hasLineOfSight } from '../../src/sim/physics';
@@ -151,5 +153,64 @@ describe('weapon personalities', () => {
     for (const w of WEAPONS.slice(1)) {
       expect(w.spawnAmmo, `${w.name} spawn stack`).toBeGreaterThanOrEqual(minimums[w.id]);
     }
+  });
+});
+
+/** Frozen wisp (flying enemy) at x/z — its body hovers at hoverY, not the floor. */
+function wispAt(sim: Sim, x: number, z: number, hp = 1000): void {
+  sim.enemies.push({
+    id: 9000 + sim.enemies.length,
+    type: 'wisp',
+    def: { ...ENEMIES.wisp, sightRange: 0, hearRange: 0, wakeRadius: 0, speed: 0 },
+    x, z, yaw: 0,
+    hp, maxHp: hp,
+    speed: 0,
+    accuracy: 0,
+    state: 'idle', timer: 0, attackCd: 99, burstLeft: 0, burstTimer: 0,
+    path: null, pathIndex: 0, pathTimer: 0, noLosTime: 0,
+    awakened: false, dead: false, deathTime: 0, animPhase: 0,
+    rng: { float: () => 0.5, range: (a, b) => (a + b) / 2, int: () => 0, rangeInt: (a) => a, chance: () => false, pick: (arr) => arr[0], state: () => [0, 0, 0, 0], setState: () => {} },
+  });
+}
+
+/** Pitch that aims the eye (1.7) at height h over horizontal distance d. */
+function aimPitchAt(h: number, d: number): number {
+  return Math.atan2(h - 1.7, d);
+}
+
+describe('flying enemy hitboxes track the visible body', () => {
+  const D = 5; // wisp placed 5 units ahead (start room clearance, same as other tests)
+  const bodyY = ENEMIES.wisp.hoverY + ENEMIES.wisp.height * 0.5;
+
+  function wispSim(): { sim: Sim; wisp: EnemyEnt } {
+    const sim = freshSim();
+    sim.player.yaw = 0;
+    wispAt(sim, sim.player.x, sim.player.z - D);
+    return { sim, wisp: sim.enemies[sim.enemies.length - 1] };
+  }
+
+  it('hitscan aimed at the hovering body hits', () => {
+    const { sim, wisp } = wispSim();
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: aimPitchAt(bodyY, D) }));
+    expect(wisp.hp, 'shot at the visible body must connect').toBe(wisp.maxHp - WEAPONS[0].damage);
+    const hit = sim.takeEvents().find((ev): ev is Extract<SimEvent, { t: 'hitEnemy' }> => ev.t === 'hitEnemy');
+    expect(hit, 'hit puff must spawn on the body, not near the floor').toBeTruthy();
+    expect(hit?.y).toBeGreaterThanOrEqual(ENEMIES.wisp.hoverY);
+  });
+
+  it('aiming under the body (the old floor band) no longer connects', () => {
+    const { sim, wisp } = wispSim();
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);
+    // old hitbox lived at y in (0.1, height+0.15) — aim through the middle of it
+    sim.step(input({ fire: true, pitch: aimPitchAt(0.65, D) }));
+    expect(wisp.hp, 'floor-level ghost hitbox must be gone').toBe(wisp.maxHp);
+  });
+
+  it('spiker nail aimed at the body connects in flight', () => {
+    const { sim, wisp } = wispSim();
+    sim.giveGun(4);
+    for (let i = 0; i < 40; i++) sim.step(input({ fire: i === 0, pitch: aimPitchAt(bodyY, D) }));
+    expect(wisp.hp, 'nail through the hovering body must connect').toBeLessThan(wisp.maxHp);
   });
 });

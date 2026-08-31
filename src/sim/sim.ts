@@ -368,7 +368,8 @@ export class Sim {
       const r = e.def.radius + 0.12;
       if (d2 > r * r) continue;
       const yAt = oy + dirY * t;
-      if (yAt < 0.1 || yAt > e.def.height + 0.15) continue;
+      const base = e.def.flying ? e.def.hoverY : 0;
+      if (yAt < base + 0.1 || yAt > base + e.def.height + 0.15) continue;
       hits.push({ e, t });
     }
     hits.sort((a, b) => a.t - b.t);
@@ -398,7 +399,7 @@ export class Sim {
     if (e.dead) return;
     e.hp -= damage;
     this.events.push({
-      t: 'hitEnemy', x: e.x, y: e.def.height * 0.6, z: e.z,
+      t: 'hitEnemy', x: e.x, y: (e.def.flying ? e.def.hoverY : 0) + e.def.height * 0.6, z: e.z,
       killed: e.hp <= 0, type: e.type,
     });
     if (e.hp <= 0) {
@@ -440,7 +441,8 @@ export class Sim {
             if (e.dead) continue;
             const dx = e.x - nx, dz = e.z - nz;
             const rr = e.def.radius + p.radius;
-            if (dx * dx + dz * dz < rr * rr && ny > 0.1 && ny < e.def.height + p.radius) {
+            const base = e.def.flying ? e.def.hoverY : 0;
+            if (dx * dx + dz * dz < rr * rr && ny > base + 0.1 && ny < base + e.def.height + p.radius) {
               impacted = true;
               if (p.splashRadius <= 0) this.damageEnemy(e, p.damage, 0);
               break;
