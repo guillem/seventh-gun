@@ -466,6 +466,15 @@ export class Game {
           if (!e.dead && sim.enemyRoomId(e) === sim.map.arenaRoomId) { e.hp = 1; sim.damageEnemy(e, 10, 0); }
         }
       },
+      killSome: (n = 1) => {
+        const sim = this.sim;
+        if (!sim) return;
+        let k = 0;
+        for (const e of sim.enemies) {
+          if (k >= n) break;
+          if (!e.dead) { e.hp = 1; sim.damageEnemy(e, 10, 0); k++; }
+        }
+      },
       hurt: (n: number) => {
         const sim = this.sim;
         if (sim) sim.damagePlayer(n, sim.player.x + 1, sim.player.z);

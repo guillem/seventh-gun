@@ -1,8 +1,9 @@
 # STATUS
 
-Updated: 2026-08-31 — **initial version DONE and shipped to main.**
+Updated: 2026-08-31 — first maintenance bugfix: sideways enemies on map
+replay (PR #1, branch `fix/enemy-rigs-reused-sideways`).
 
-## State: initial version complete
+## State: initial version complete + bugfix #1
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -30,6 +31,14 @@ New Maze. Desktop + phone viewports verified.
 
 ## Bugfix history worth remembering
 
+- Enemies appeared sideways / half sunk in the floor on the *second* play
+  of a map: `EnemyRenderer` rigs are keyed by enemy id, and ids restart at 0
+  for every generated map, so `setRun`'s id-diff reused the previous run's
+  rigs — complete with the death animation's fallen-over `rotation.x`,
+  faded shadow and blackened eyes (never reset on the alive path). Fix:
+  `setRun` now disposes all rigs (like pickups already did) so every run
+  builds fresh ones. E2E regression: kill 3, replay seed, assert every rig
+  `rotX == 0` (verified to fail pre-fix).
 - Floor rendered the sky (culled back faces) → up-facing winding +
   DoubleSide insurance.
 - Doors/decals/seal were 90° off → per-axis slab dims, decal facings from

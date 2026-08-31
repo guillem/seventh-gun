@@ -176,6 +176,29 @@ test.describe('desktop', () => {
     expect(hashes[1]).not.toBe(hashes[2]);
   });
 
+  // regression: enemy rigs are keyed by id and ids restart at 0 on every map,
+  // so a new run must not reuse the previous run's rigs — enemies killed last
+  // run used to come back sideways (death-pose rotation never reset).
+  test('killed enemies stand upright when the same seed is replayed', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+    // kill enemies 0-2 and wait for the death fall to tilt their rigs
+    await page.evaluate(() => (window as unknown as { __GAME__: { killSome: (n: number) => void } }).__GAME__.killSome(3));
+    await page.waitForFunction(() => {
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
+      const fallen = rigs.filter(r => [0, 1, 2].includes(r.id));
+      return fallen.length === 3 && fallen.every(r => Math.abs(r.rotX) > 1);
+    });
+    // replay the same seed: every rig must be upright again
+    await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+    await page.waitForTimeout(300);
+    const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs);
+    expect(rigs.length).toBeGreaterThan(3);
+    for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
+  });
+
   test('full map opens on Tab, shows fog of war and player marker, pauses combat', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-map'));

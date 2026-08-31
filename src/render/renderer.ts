@@ -93,6 +93,10 @@ export class GameRenderer {
       this.world.dispose();
     }
     this.fx.clearTransient();
+    // enemy ids restart at 0 for every generated map, so syncStart's id diff
+    // alone would reuse the previous run's rigs — complete with death poses
+    // (fallen over, sunk, faded shadows). A new run gets fresh rigs.
+    this.enemies.dispose();
     this.enemies.syncStart(sim.enemies);
     this.pickups.dispose();
     this.pickups.syncStart(sim.pickups);
@@ -244,7 +248,7 @@ export class GameRenderer {
     this.render();
   }
 
-  get enemyRigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number }[] {
+  get enemyRigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
     return this.enemies.rigInfo();
   }
 
