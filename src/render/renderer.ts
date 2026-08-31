@@ -4,7 +4,6 @@
 import * as THREE from 'three';
 import { CELL, WALL_H } from '../sim/types';
 import type { Sim } from '../sim/sim';
-import type { SimEvent } from '../sim/types';
 import { buildWorld } from './world';
 import { EnemyRenderer } from './enemies';
 import { PickupRenderer } from './pickups';
@@ -12,11 +11,6 @@ import { FxRenderer } from './fx';
 import { buildViewModel, type ViewModel } from './viewmodels';
 import { getTextures } from './textures';
 import { hasLineOfSight } from '../sim/physics';
-import { roomAt } from '../sim/physics';
-
-export interface RenderHooks {
-  onEvent: (e: SimEvent) => void;
-}
 
 export class GameRenderer {
   renderer: THREE.WebGLRenderer;
@@ -33,7 +27,6 @@ export class GameRenderer {
   private vmHolder = new THREE.Group();
   private currentGun = 0;
   private viewBob = 0;
-  private gunLight: THREE.PointLight;
   private torch: THREE.PointLight;
   private muzzleSprite: THREE.Sprite | null = null;
   private muzzleLife = 0;
@@ -57,8 +50,6 @@ export class GameRenderer {
     this.scene.add(hemi);
     this.torch = new THREE.PointLight(0xffd9a0, 26, 14, 1.8);
     this.scene.add(this.torch);
-    this.gunLight = new THREE.PointLight(0xffc23a, 0, 18, 2);
-    this.scene.add(this.gunLight);
 
     // viewmodel pass lights
     this.vmScene.add(new THREE.AmbientLight(0x777168, 1.1));
@@ -159,7 +150,7 @@ export class GameRenderer {
     this.fx.muzzleFlashWorld(px + dx * 1.4, 1.6, pz + dz * 1.4, sizes[gunId - 1] * 0.8, colors[gunId - 1]);
   }
 
-  update(dt: number, sim: Sim, inputMoving: boolean, hooks: RenderHooks): void {
+  update(dt: number, sim: Sim, inputMoving: boolean): void {
     const p = sim.player;
     // camera
     this.camera.position.set(p.x, 1.7, p.z);
@@ -268,27 +259,9 @@ export class GameRenderer {
     this.renderer.render(this.vmScene, this.vmCamera);
   }
 
-  // camera helpers for screenshots/debug posing
+  // camera helper for screenshots/debug posing
   poseCamera(x: number, y: number, z: number, yaw: number, pitch: number): void {
     this.camera.position.set(x, y, z);
     this.camera.rotation.set(pitch, yaw, 0);
-  }
-
-  arenaCenter(sim: Sim): { x: number; z: number } {
-    const room = sim.map.rooms[sim.map.arenaRoomId];
-    return { x: room.cx, z: room.cz };
-  }
-
-  roomCenter(sim: Sim, roomId: number): { x: number; z: number } {
-    const room = sim.map.rooms[roomId] ?? sim.map.rooms[0];
-    return { x: room.cx, z: room.cz };
-  }
-
-  cellToWorld(cx: number, cz: number): { x: number; z: number } {
-    return { x: (cx + 0.5) * CELL, z: (cz + 0.5) * CELL };
-  }
-
-  currentRoomId(sim: Sim): number {
-    return roomAt(sim.map, sim.player.x, sim.player.z);
   }
 }

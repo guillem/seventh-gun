@@ -2,7 +2,7 @@
 // per-vertex light, decal planes, doors, the arena seal, sky dome.
 import * as THREE from 'three';
 import { CELL, CEIL_H, WALL_H } from '../sim/types';
-import type { GameMap, Room, Theme, DoorDef } from '../sim/types';
+import type { GameMap, Room, Theme } from '../sim/types';
 import { getTextures } from './textures';
 
 interface QuadMesh {
@@ -272,10 +272,4 @@ export function buildWorld(map: GameMap): {
     sealMesh,
     dispose: () => { for (const g of disposables) g.dispose(); },
   };
-}
-
-export function updateDoorMesh(mesh: THREE.Mesh, door: { offset: number }, def: DoorDef): void {
-  const h = WALL_H * 0.72;
-  mesh.position.y = h / 2 + door.offset * (h + 0.2);
-  void def;
 }

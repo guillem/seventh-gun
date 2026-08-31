@@ -93,8 +93,6 @@ export class FxRenderer {
     this.addEffect(m, 0.05, (_t, k) => { mat.opacity = k; });
   }
 
-  nailStreak(): void { /* nails are their own meshes; nothing here */ }
-
   explosion(x: number, y: number, z: number, radius: number): void {
     const group = new THREE.Group();
     group.position.set(x, y, z);

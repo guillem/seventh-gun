@@ -302,7 +302,7 @@ export class Game {
     const moving = Math.abs(sim.player.x - (this.lastPx ?? sim.player.x)) + Math.abs(sim.player.z - (this.lastPz ?? sim.player.z)) > 0.001;
     this.lastPx = sim.player.x; this.lastPz = sim.player.z;
 
-    this.renderer.update(dtReal, sim, moving, { onEvent: () => { /* handled centrally */ } });
+    this.renderer.update(dtReal, sim, moving);
     this.hud.draw(sim, { fullMapOpen: this.phase === 'map', paused: this.phase === 'paused' });
     if (this.miniCanvas && this.phase !== 'title') {
       this.hud.drawMinimap(sim, 0, false);

@@ -4,6 +4,16 @@ A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js, static
 build, no backend. Everything procedural (canvas textures, mesh factories,
 WebAudio synth). No paid assets, no copied levels.
 
+Repo: https://github.com/guillem/seventh-gun (default branch `main`).
+
+## Workflow
+
+- **Branch + PR for all development from now on** (the initial one-shot went
+  straight to `main`). Use `gh` to open PRs, verify the Netlify Deploy
+  Preview URL, then merge.
+- Commits: conventional-ish (`feat:`, `fix:`, `test:`, `docs:`), meaningful units.
+- Keep `docs/STATUS.md` current — it is how a later agent (or you) resumes.
+
 ## Run
 
 ```bash
@@ -20,9 +30,10 @@ npm test             # vitest unit suite (sim: mapgen sweep, weapons, determinis
 npm run test:e2e     # playwright (desktop chromium + mobile chromium projects)
 ```
 
-E2E expects `dist/` to exist (`npm run build` first). Playwright config runs the
-build+preview itself via `webServer`. Debug API (`window.__GAME__`) only exists
-when the page is loaded with `?e2e=1`.
+E2E builds and serves `dist/` itself via the `webServer` config. Debug API
+(`window.__GAME__`) only exists when the page is loaded with `?e2e=1`.
+Never drive pointer lock with synthetic mousemove — it is flaky; use the
+debug API.
 
 ## Layout
 
@@ -33,18 +44,16 @@ when the page is loaded with `?e2e=1`.
 - `src/ui/` — HUD, screens, map overlay.
 - `src/app/` — Game orchestrator, input (desktop+touch), debug API.
 - `docs/` — ARCHITECTURE / DECISIONS / ROADMAP / TESTING / STATUS / GAME-DESIGN.
-  Keep STATUS.md current; it is how a later agent resumes.
 
 ## Conventions
 
-- Commits: conventional-ish (`feat:`, `fix:`, `test:`, `docs:`), meaningful units.
-- After the first playable slice, feature branches + PRs via `gh`.
 - Balance numbers live in `src/sim/weapons.ts`, `src/sim/enemyTypes.ts`,
   `src/sim/difficulty.ts` and are mirrored in `docs/GAME-DESIGN.md`.
 - Generator changes must bump `GEN_VERSION` in `src/sim/types.ts` (seed
-  reproducibility is version-scoped).
+  reproducibility is version-scoped) and keep the 300-seed sweep green.
 
 ## Deploy
 
 Netlify, `netlify.toml` at root: build `npm run build`, publish `dist`.
-Deploy previews are the thing to verify before merging.
+Treat Deploy Preview URLs as the thing to verify before merge. Production
+URL is the Netlify site for this repo.

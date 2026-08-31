@@ -1,14 +1,14 @@
 # ROADMAP
 
 ## M1 — foundation (done)
-- Repo scaffold, Vite+TS+Three, netlify config, docs skeleton.
+- Repo scaffold, Vite+TS+Three, netlify config, docs.
 - Deterministic sim: seeded mapgen (spine+spurs+arena+seal+key vault),
   7 weapons, 5 enemy types, AI (sight/hearing/proximity, doors block LOS),
   projectiles/splash, pickups, win/lose, difficulty table.
 - Unit tests: 300-seed mapgen sweep, weapon personalities, determinism,
   architecture guards.
 
-## M2 — playable slice
+## M2 — playable slice (done)
 - Renderer: procedural textures (4 themes), merged world mesh with baked
   vertex light, doors, seal, decorations, sky.
 - Enemy meshes with walk/attack/pain/death animation + blob shadows.
@@ -16,8 +16,19 @@
 - Title/pause/death/victory screens; pointer lock; WASD; E; wheel/1-7.
 - Synth audio: per-gun SFX, enemy voices, stings, ambient drone.
 
-## M3 — polish + ship
-- Viewmodel quality pass (7 distinct silhouettes, muzzle FX, crosshair
-  clearance verified by screenshot).
+## M3 — polish + ship (done — initial version)
+- Viewmodel pass: 7 silhouettes, muzzle FX, crosshair clearance verified.
 - Touch controls + portrait FOV; mobile Playwright project.
-- E2E suite green; balance sweep; visual review; docs current; Netlify.
+- E2E green; visual review (AI-vision + pixel metrics); bugfix pass
+  (floor winding, door slab axis, decal facings, seal axis); docs.
+- First version pushed to `main` at github.com/guillem/seventh-gun.
+
+## Next (ideas, not committed)
+
+- Human playtest on Normal against the 20–30 min target; tune from
+  `docs/GAME-DESIGN.md` numbers.
+- Perf pass on phones during the arena wave (pixel ratio / draw calls).
+- Netlify site + deploy previews wired to the repo; CI on GitHub Actions
+  running `npm test` + `npm run test:e2e` per PR.
+- Cosmetic depth: per-theme ambience layers, more decoration variety,
+  intermission text between gun finds.

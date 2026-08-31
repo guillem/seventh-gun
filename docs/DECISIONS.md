@@ -32,5 +32,6 @@ Unspecified things got decided; this is the record.
   economy scales. Normal is reference.
 - **Netlify**: `netlify.toml`, publish `dist/`, deploy previews verified before
   merge via Netlify CLI once the owner enables the site.
-- **No remote yet**: repo is local until the owner wires GitHub/Netlify; use
-  `gh` for PRs after the first playable slice.
+- **Remote**: github.com/guillem/seventh-gun. The initial one-shot version
+  went to `main`; all further development is branches + PRs via `gh`, with
+  the Netlify deploy preview verified before merge.

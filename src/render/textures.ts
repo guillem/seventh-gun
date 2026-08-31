@@ -692,8 +692,6 @@ export interface TextureLib {
   flash: THREE.Texture;
   glow: THREE.Texture;
   skins: Record<'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant', THREE.Texture>;
-  gunmetal: THREE.Texture;
-  wood: THREE.Texture;
 }
 
 let cached: TextureLib | null = null;
@@ -739,8 +737,6 @@ export function getTextures(): TextureLib {
       wisp: toTexture(skinWisp()),
       hierophant: toTexture(skinHierophant()),
     },
-    gunmetal: toTexture(wallIndustrial()), // reuse tinted
-    wood: toTexture(ceilingDark('#4a3520')),
   };
   return cached;
 }
