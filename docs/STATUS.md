@@ -11,6 +11,11 @@ New Maze. Desktop + phone viewports verified.
 
 - Repo: https://github.com/guillem/seventh-gun (`main`). From now on:
   branches + PRs (`gh`), Netlify deploy preview verified before merge.
+- Netlify: LIVE at https://seventh-gun.netlify.app — repo linked, deployment
+  current (bundle hash matches local HEAD 1dc2629), verified in a real
+  browser: boots to title, UI start works, HUD/minimap render, `?seed=`
+  pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
+  Local folder linked via `netlify link` (`.netlify/` is gitignored).
 - Suites: `npm test` 32/32, `npm run test:e2e` 24 passed (+2 mobile-only
   skips), `tsc --noEmit` clean, `vite build` clean.
 
