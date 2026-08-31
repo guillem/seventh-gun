@@ -5,7 +5,7 @@ export const GRID_W = 88;
 export const GRID_H = 88;
 export const WALL_H = 6;
 export const CEIL_H = 4.2;
-export const GEN_VERSION = 3;
+export const GEN_VERSION = 4;
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export type Theme = 'industrial' | 'organic' | 'stone' | 'tech';

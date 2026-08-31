@@ -1,6 +1,6 @@
 # STATUS
 
-Updated: 2026-08-31 — initial one-shot build complete, all suites green.
+Updated: 2026-08-31 — geometry bugfix pass (floor/doors/decals/seal), all suites green.
 
 ## State: playable end-to-end
 
@@ -25,6 +25,25 @@ GAME OVER / You won. Death: 2s lockout → title with Retry Seed / New Maze.
     present with distinct magnitudes (idle-vs-fire diff: 36–60k px);
     crawler silhouette spans floor-to-body (legs fixed); hierophant glow;
     door rune ring; gun-pedestal rim; mobile portrait HUD + FIRE button.
+
+## Bugfix pass (post first playtest)
+
+- Floor was rendering the sky dome (back-face culled quads): winding now
+  faces up and floors/ceilings use DoubleSide as insurance. Pixel-verified:
+  floor band mean lum 30.6 / stdev 25.8 (sky would be ~10 / ~0).
+- Doors were rotated 90° (slab spanned along travel instead of across):
+  swapped per-axis box dims. Frontal view now reads 34.5k rune-orange px
+  (edge-on sliver before).
+- Wall decorations were perpendicular fins: all four facing angles were 90°
+  off; plane normal now equals (-dx,-dz) of the solid neighbor. Head-on
+  checks: skull 26.9k bone px, rune 21.3k green px, lamp 2.1k warm px
+  (edge-on would be ~0).
+- Arena seal hardcoded the wrong axis; now derived from the matched arena
+  edge. Verified spanning the corridor from both sides (724/991 px spread).
+- GEN_VERSION bumped 3→4 (decor facings + seal axis are layout data).
+- Spawn-safety LOS in mapgen replaced a 0.5u line sampler with exact grid
+  DDA (a diagonal could clip a wall corner the sampler skipped; caught by
+  the 300-seed sweep on the new version).
 
 ## Known limitations / next steps
 

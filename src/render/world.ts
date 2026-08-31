@@ -110,15 +110,15 @@ export function buildWorld(map: GameMap): {
       const z0 = cz * CELL, z1 = z0 + CELL;
       const amb = themeAmbient[theme];
 
-      // floor
+      // floor (winding faces UP: cross((b-a),(c-b)) = +Y)
       {
         const m = bucket(`floor:${theme}`);
         const c00 = bakeColor(map.lights, x0, 0, z0, amb, outdoor);
         const c10 = bakeColor(map.lights, x1, 0, z0, amb, outdoor);
         const c11 = bakeColor(map.lights, x1, 0, z1, amb, outdoor);
         const c01 = bakeColor(map.lights, x0, 0, z1, amb, outdoor);
-        pushQuad(m, V(x0, 0, z0), V(x1, 0, z0), V(x1, 0, z1), V(x0, 0, z1),
-          V(0, 1, 0), 1, 1, [c00, c10, c11, c01]);
+        pushQuad(m, V(x0, 0, z1), V(x1, 0, z1), V(x1, 0, z0), V(x0, 0, z0),
+          V(0, 1, 0), 1, 1, [c01, c11, c10, c00]);
       }
       // ceiling (indoor only)
       if (!outdoor) {
@@ -174,7 +174,12 @@ export function buildWorld(map: GameMap): {
       : type === 'ceil' ? tex.ceilings[theme]
         : tex.walls[theme];
     const wallRepeat = type === 'wall' ? 1 : 1;
-    const mat = new THREE.MeshBasicMaterial({ map: texture, vertexColors: true, fog: true });
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture, vertexColors: true, fog: true,
+      // floors/ceilings are single-sided quads seen from one side; DoubleSide
+      // removes any chance of a culled surface showing the sky through it
+      side: type === 'wall' ? THREE.FrontSide : THREE.DoubleSide,
+    });
     void wallRepeat;
     const mesh = new THREE.Mesh(geo, mat);
     mesh.frustumCulled = true;
@@ -207,10 +212,12 @@ export function buildWorld(map: GameMap): {
   // doors (slabs that slide up)
   const doorMeshes = new Map<number, THREE.Mesh>();
   for (const d of map.doors) {
+    // axis = corridor travel direction: the slab must SPAN the doorway's
+    // 3 cells (across travel) and be thin ALONG travel
     const geo = new THREE.BoxGeometry(
-      d.axis === 'x' ? CELL * 3 : 0.5,
-      WALL_H * 0.72,
       d.axis === 'x' ? 0.5 : CELL * 3,
+      WALL_H * 0.72,
+      d.axis === 'x' ? CELL * 3 : 0.5,
     );
     disposables.push(geo);
     const mat = new THREE.MeshLambertMaterial({ map: tex.door, emissive: new THREE.Color(0x2a1000) });

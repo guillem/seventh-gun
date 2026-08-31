@@ -339,18 +339,23 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
 
   // ---- seal (arena barrier) ----
   const sealCells: [number, number][] = [];
+  let sealAxis: 'x' | 'z' = 'z';
   {
     const cx = arenaRoom.x + (arenaRoom.w >> 1), cz = arenaRoom.z + (arenaRoom.h >> 1);
-    const edges: [number, number][] = [[cx, arenaRoom.z - 1], [cx, arenaRoom.z + arenaRoom.h], [arenaRoom.x - 1, cz], [arenaRoom.x + arenaRoom.w, cz]];
-    for (const [x, z] of edges) {
-      if (grid[key(x, z)] === 1) { sealCells.push([x, z]); break; }
+    // [cell, axis] — axis is the corridor travel direction through that edge
+    const edges: [number, number, 'x' | 'z'][] = [
+      [cx, arenaRoom.z - 1, 'z'], [cx, arenaRoom.z + arenaRoom.h, 'z'],
+      [arenaRoom.x - 1, cz, 'x'], [arenaRoom.x + arenaRoom.w, cz, 'x'],
+    ];
+    for (const [x, z, ax] of edges) {
+      if (grid[key(x, z)] === 1) { sealCells.push([x, z]); sealAxis = ax; break; }
     }
   }
   const sealCenter = sealCells[0] ?? [arenaRoom.x, arenaRoom.z];
   const seal: SealDef = {
     cells: sealCells,
     x: cellToWorld(sealCenter[0]), z: cellToWorld(sealCenter[1]),
-    axis: 'z',
+    axis: sealAxis,
   };
 
   // ---- lights ----
@@ -388,9 +393,10 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
       if (decors.filter(d => Math.abs(d.x - r.cx) < r.w).length >= n) break;
       const x = r.x + rng.int(r.w), z = r.z + rng.int(r.h);
       if (grid[key(x, z)] !== 1) continue;
-      // find a solid neighbor to mount on
+      // find a solid neighbor to mount on; face back toward the floor cell.
+      // plane normal (sin θ, 0, cos θ) must equal (-dx, 0, -dz)
       const dirs: [number, number, number][] = [
-        [1, 0, Math.PI], [-1, 0, 0], [0, 1, -Math.PI / 2], [0, -1, Math.PI / 2],
+        [1, 0, -Math.PI / 2], [-1, 0, Math.PI / 2], [0, 1, Math.PI], [0, -1, 0],
       ];
       const shuffled = dirs.slice().sort(() => rng.float() - 0.5);
       for (const [dx, dz, face] of shuffled) {
@@ -502,12 +508,33 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
   for (const d of doors) for (const [x, z] of d.cells) blockedCells.add(key(x, z));
   for (const [x, z] of seal.cells) blockedCells.add(key(x, z));
   const losBlocked = (x0: number, z0: number, x1: number, z1: number): boolean => {
-    const steps = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.5);
-    for (let i = 1; i < steps; i++) {
-      const t = i / steps;
-      const x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
-      const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL);
-      if (grid[key(cx, cz)] === 0 || blockedCells.has(key(cx, cz))) return true;
+    // exact grid DDA (matches physics.hasLineOfSight; a coarse line sampler
+    // can step over a clipped wall corner on diagonals)
+    const dx = x1 - x0, dz = z1 - z0;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.001) return false;
+    const dirX = dx / dist, dirZ = dz / dist;
+    const solid = (cx: number, cz: number) =>
+      cx < 0 || cz < 0 || cx >= GRID_W || cz >= GRID_H ||
+      grid[key(cx, cz)] === 0 || blockedCells.has(key(cx, cz));
+    let cx = Math.floor(x0 / CELL), cz = Math.floor(z0 / CELL);
+    if (solid(cx, cz)) return true;
+    const stepX = dirX > 0 ? 1 : -1;
+    const stepZ = dirZ > 0 ? 1 : -1;
+    const tDx = dirX !== 0 ? Math.abs(CELL / dirX) : Infinity;
+    const tDz = dirZ !== 0 ? Math.abs(CELL / dirZ) : Infinity;
+    let tMaxX = dirX !== 0
+      ? (dirX > 0 ? (cx + 1) * CELL - x0 : x0 - cx * CELL) / Math.abs(dirX)
+      : Infinity;
+    let tMaxZ = dirZ !== 0
+      ? (dirZ > 0 ? (cz + 1) * CELL - z0 : z0 - cz * CELL) / Math.abs(dirZ)
+      : Infinity;
+    for (let i = 0; i < 512; i++) {
+      let t: number;
+      if (tMaxX < tMaxZ) { t = tMaxX; tMaxX += tDx; cx += stepX; }
+      else { t = tMaxZ; tMaxZ += tDz; cz += stepZ; }
+      if (t > dist) return false;
+      if (solid(cx, cz)) return true;
     }
     return false;
   };

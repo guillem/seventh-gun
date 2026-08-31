@@ -531,6 +531,7 @@ export class Game {
         return {
           doors: sim.map.doors.map(d => ({ id: d.id, x: d.x, z: d.z, axis: d.axis, locked: d.locked })),
           pickups: sim.pickups.filter(p => !p.taken).map(p => ({ kind: p.kind, gun: p.gun ?? null, x: p.x, z: p.z })),
+          decors: sim.map.decors.map(dc => ({ kind: dc.kind, x: dc.x, z: dc.z, y: dc.y, facing: dc.facing })),
           seal: { x: sim.map.seal.x, z: sim.map.seal.z },
         };
       },
