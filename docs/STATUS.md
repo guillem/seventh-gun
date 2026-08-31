@@ -1,9 +1,10 @@
 # STATUS
 
-Updated: 2026-08-31 — first maintenance bugfix: sideways enemies on map
-replay (PR #1, branch `fix/enemy-rigs-reused-sideways`).
+Updated: 2026-08-31 — bugfix #2: flying enemies (wisps) carried a floor-level
+hitbox, making them nearly unhittable with direct-fire weapons (PR #2, branch
+`fix/wisp-hitbox-height`).
 
-## State: initial version complete + bugfix #1
+## State: initial version complete + bugfixes #1–2
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -17,7 +18,7 @@ New Maze. Desktop + phone viewports verified.
   browser: boots to title, UI start works, HUD/minimap render, `?seed=`
   pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
   Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites: `npm test` 32/32, `npm run test:e2e` 24 passed (+2 mobile-only
+- Suites: `npm test` 35/35, `npm run test:e2e` 26 passed (+2 mobile-only
   skips), `tsc --noEmit` clean, `vite build` clean.
 
 ## Verified this session (final pass)
@@ -31,6 +32,15 @@ New Maze. Desktop + phone viewports verified.
 
 ## Bugfix history worth remembering
 
+- Wisps (flying enemies) were almost unhittable with anything but splash
+  weapons: enemies have no y in the sim, and both player-damage checks
+  (hitscan gate and projectile gate in `sim.ts`) put every enemy's hittable
+  band at y 0.1..height+pad — at the floor — while the wisp's body renders
+  (and shoots from) `hoverY = 2.3`. Aiming at the visible body passed ~1–2u
+  above the hitbox; grenades "worked" because splash measures horizontal
+  distance only. Fix: offset both vertical gates (and the `hitEnemy` FX y)
+  by `hoverY` for `flying` defs. Unit regression: hitscan/nail through the
+  body height must connect, through the old floor band must not.
 - Enemies appeared sideways / half sunk in the floor on the *second* play
   of a map: `EnemyRenderer` rigs are keyed by enemy id, and ids restart at 0
   for every generated map, so `setRun`'s id-diff reused the previous run's
@@ -49,8 +59,6 @@ New Maze. Desktop + phone viewports verified.
 
 ## Open / next
 
-- Netlify site not yet wired by the owner; when it is, verify deploy
-  previews and treat them as the pre-merge gate.
 - Balance is first-pass from the economy tests; needs a human Normal run
   against the 20–30 min target, then tune `src/sim/{weapons,enemyTypes,
   difficulty}.ts` (mirror in GAME-DESIGN.md).
