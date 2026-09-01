@@ -46,5 +46,13 @@ test.describe('editor', () => {
     expect(state.phase).toBe('playing');
     expect(state.kind).toBe('map');
     expect(state.gun).toBe(1);
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await expect(page.getByRole('button', { name: 'BACK TO EDITOR' })).toBeVisible();
+    await page.getByRole('button', { name: 'BACK TO EDITOR' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'editing';
+    });
+    await expect(page.locator('#editor-heading')).toHaveText('EDITOR');
   });
 });

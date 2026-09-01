@@ -194,8 +194,10 @@ export class Game {
     this.input.setCallbacks({
       onPointerLockChange: () => {
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
-          // Esc or click-out releases the lock -> pause
-          this.togglePause();
+          // First Esc is consumed by the browser to exit pointer lock (no keydown).
+          // Playtest returns to the editor; maze pauses.
+          if (this.fromEditor) this.returnToEditor();
+          else this.togglePause();
         }
       },
       onPauseToggle: () => {
