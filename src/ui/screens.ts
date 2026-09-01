@@ -68,6 +68,13 @@ export class Screens {
   private winCopyBtn!: HTMLButtonElement;
   private winCopyRow!: HTMLDivElement;
   private deathCopyBtn!: HTMLButtonElement;
+  private deathSaveBtn!: HTMLButtonElement;
+  private deathEditorBtn!: HTMLButtonElement;
+  private pauseSaveBtn!: HTMLButtonElement;
+  private pauseEditorBtn!: HTMLButtonElement;
+  private pauseMapRow!: HTMLDivElement;
+  private winSaveBtn!: HTMLButtonElement;
+  private winEditorBtn!: HTMLButtonElement;
 
   onSettingsChanged: ((s: Settings) => void) | null = null;
 
@@ -103,13 +110,16 @@ export class Screens {
           </div>
           <button id="start-btn" class="big">ENTER THE MAZE</button>
           <div class="row">
-            <button id="campaign-btn" class="big">CAMPAIGN</button>
             <button id="maplog-btn" class="big">MAP LOG</button>
+            <button id="campaign-btn" class="big">CAMPAIGN</button>
+            <button id="editor-btn" class="big">EDITOR</button>
           </div>
           <div class="row hidden" id="death-row">
             <button id="retry-btn">RETRY SEED</button>
             <button id="new-maze-btn">NEW MAZE</button>
             <button id="death-copy" class="hidden">COPY LINK</button>
+            <button id="death-save" class="hidden">SAVE TO LIBRARY</button>
+            <button id="death-editor" class="hidden">BACK TO EDITOR</button>
           </div>
           <div class="hints">
             WASD move · mouse look · click fire · E use · 1-7 / wheel guns · TAB map · ESC pause<br/>
@@ -138,6 +148,10 @@ export class Screens {
             <button id="p-new">NEW MAZE</button>
             <button id="p-quit">QUIT TO TITLE</button>
           </div>
+          <div class="row hidden" id="p-map-row">
+            <button id="p-save">SAVE TO LIBRARY</button>
+            <button id="p-editor" class="hidden">BACK TO EDITOR</button>
+          </div>
           <div class="hints">TAB map · E use doors · the key opens the vault, never the arena</div>
         </div>
       </div>
@@ -154,6 +168,8 @@ export class Screens {
           </div>
           <div class="row hidden" id="win-copy-row">
             <button id="win-copy">COPY LINK</button>
+            <button id="win-save">SAVE TO LIBRARY</button>
+            <button id="win-editor" class="hidden">BACK TO EDITOR</button>
           </div>
         </div>
       </div>
@@ -248,6 +264,13 @@ export class Screens {
     this.winCopyBtn = this.victory.querySelector('#win-copy')!;
     this.winCopyRow = this.victory.querySelector('#win-copy-row')!;
     this.deathCopyBtn = this.title.querySelector('#death-copy')!;
+    this.deathSaveBtn = this.title.querySelector('#death-save')!;
+    this.deathEditorBtn = this.title.querySelector('#death-editor')!;
+    this.pauseSaveBtn = this.pause.querySelector('#p-save')!;
+    this.pauseEditorBtn = this.pause.querySelector('#p-editor')!;
+    this.pauseMapRow = this.pause.querySelector('#p-map-row')!;
+    this.winSaveBtn = this.victory.querySelector('#win-save')!;
+    this.winEditorBtn = this.victory.querySelector('#win-editor')!;
     this.mapCanvas = this.miniCanvas;
 
     // difficulty selectors (title + pause share logic)
@@ -366,6 +389,7 @@ export class Screens {
     mute: () => void;
     openMapLog: () => void;
     openCampaign: () => void;
+    openEditor?: () => void;
   }): void {
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
@@ -375,8 +399,15 @@ export class Screens {
       .addEventListener('click', handlers.openMapLog);
     (this.title.querySelector('#campaign-btn') as HTMLButtonElement)
       .addEventListener('click', handlers.openCampaign);
+    const ed = this.title.querySelector('#editor-btn') as HTMLButtonElement | null;
+    if (ed && handlers.openEditor) ed.addEventListener('click', handlers.openEditor);
     const vs = this.title.querySelector('#volume-slider') as HTMLInputElement;
     vs.addEventListener('input', () => handlers.volume(Number(vs.value) / 100));
+  }
+
+  bindEditor(handler: () => void): void {
+    const ed = this.title.querySelector('#editor-btn') as HTMLButtonElement | null;
+    if (ed) ed.addEventListener('click', handler);
   }
 
   bindMapLog(handlers: {
@@ -501,6 +532,18 @@ export class Screens {
     this.winCopyBtn.addEventListener('click', handler);
   }
 
+  bindSaveLibrary(handler: () => void): void {
+    this.deathSaveBtn.addEventListener('click', handler);
+    this.pauseSaveBtn.addEventListener('click', handler);
+    this.winSaveBtn.addEventListener('click', handler);
+  }
+
+  bindBackToEditor(handler: () => void): void {
+    this.deathEditorBtn.addEventListener('click', handler);
+    this.pauseEditorBtn.addEventListener('click', handler);
+    this.winEditorBtn.addEventListener('click', handler);
+  }
+
   setRunKind(kind: 'maze' | 'map' | 'campaign'): void {
     const authored = kind === 'map' || kind === 'campaign';
     this.retryBtn.textContent = authored ? 'RETRY MAP' : 'RETRY SEED';
@@ -510,7 +553,15 @@ export class Screens {
     this.winRetryBtn.textContent = authored ? 'RETRY MAP' : 'SAME SEED AGAIN';
     this.winNewBtn.textContent = kind === 'map' ? 'TITLE' : kind === 'campaign' ? 'TITLE' : 'NEW MAZE';
     this.deathCopyBtn.classList.toggle('hidden', kind !== 'map');
+    this.deathSaveBtn.classList.toggle('hidden', kind !== 'map');
     this.winCopyRow.classList.toggle('hidden', kind !== 'map');
+    this.pauseMapRow.classList.toggle('hidden', kind !== 'map');
+  }
+
+  setPlaytestMode(on: boolean): void {
+    this.pauseEditorBtn.classList.toggle('hidden', !on);
+    this.winEditorBtn.classList.toggle('hidden', !on);
+    this.deathEditorBtn.classList.toggle('hidden', !on);
   }
 
   showCampaign(show: boolean, opts?: { canContinue?: boolean; nextTitle?: string }): void {

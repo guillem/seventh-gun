@@ -18,13 +18,17 @@ app (Game, input, debug API)
   the sim so the unit tests actually cover it.
 - `Game` (app layer) owns the loop: gather input → `sim.step(input)` (0..n
   times per frame with an accumulator) → drain events → update render/audio/ui.
-- Persistence (settings, map log, campaign continue) lives in the app/ui
-  layers — never in `src/sim/`. Map history is `src/app/mapLog.ts`
-  (`seventh-gun.maplog`). Campaign continue is `src/app/campaignProgress.ts`
-  (`seventh-gun.campaign`). Share URL parse/deflate/clipboard is
-  `src/app/mapShare.ts`. The binary codec itself is pure and lives in
-  `src/sim/mapcodec.ts`. Authored campaign maps live in `src/campaign/`
-  (JSON DSL → `compileDsl` → baked `MapBlueprint` / `GameMap`).
+- Persistence (settings, map log, campaign continue, editor library) lives
+  in the app/ui layers — never in `src/sim/`. Map history is
+  `src/app/mapLog.ts` (`seventh-gun.maplog`). Campaign continue is
+  `src/app/campaignProgress.ts` (`seventh-gun.campaign`). User maps are
+  `src/editor/library.ts` (`seventh-gun.mymaps`). Share URL
+  parse/deflate/clipboard is `src/app/mapShare.ts`. The binary codec
+  itself is pure and lives in `src/sim/mapcodec.ts`. Authored campaign
+  maps live in `src/campaign/` (JSON DSL → `compileDsl` → baked
+  `MapBlueprint` / `GameMap`). The editor model (`src/editor/model.ts`)
+  is also pure and authors a `MapBlueprint`; the canvas/DOM lives in
+  `src/editor/view.ts`.
 
 ## Determinism
 
@@ -65,5 +69,6 @@ hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
 ## Debug/E2E
 
 `?e2e=1` exposes `window.__GAME__` (state, teleport, give, fire, pose for
-screenshots, scripted input). Tests never drive pointer lock with synthetic
-mouse moves.
+screenshots, scripted input, `startMap`, `startCampaign`, `loadBlueprint`).
+Tests never
+drive pointer lock with synthetic mouse moves.

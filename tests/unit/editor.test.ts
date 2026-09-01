@@ -1,0 +1,161 @@
+import { describe, it, expect } from 'vitest';
+import { compileBlueprint, stripCosmetics, validateBlueprint } from '../../src/sim/blueprint';
+import { decodeBlueprint, encodeBlueprint } from '../../src/sim/mapcodec';
+import {
+  EditorDoc,
+  corridorLegsBetween,
+  economyWarning,
+  emptyBlueprint,
+  validateEditor,
+} from '../../src/editor/model';
+import {
+  MYMAPS_CAP,
+  MYMAPS_KEY,
+  loadLibrary,
+  parseLibraryEntry,
+  upsertLibrary,
+  filenameFromTitle,
+  type LibraryStorage,
+} from '../../src/editor/library';
+
+function memoryStorage(initial?: Record<string, string>): LibraryStorage & { data: Record<string, string> } {
+  const data: Record<string, string> = { ...initial };
+  return {
+    data,
+    getItem: (k) => (k in data ? data[k] : null),
+    setItem: (k, v) => { data[k] = v; },
+  };
+}
+
+function stampTiny(doc: EditorDoc): void {
+  doc.setTitle('TIN HALL');
+  doc.setCosmeticSeed(1001);
+  doc.setSealBreak({ type: 'gun', gun: 2 });
+  doc.stampRoom({ x: 4, z: 20, w: 7, h: 7, kind: 'start', theme: 'industrial' });
+  doc.stampRoom({ x: 16, z: 18, w: 9, h: 9, kind: 'spine', theme: 'organic' });
+  doc.stampRoom({ x: 32, z: 20, w: 7, h: 7, kind: 'antechamber', theme: 'tech' });
+  doc.stampRoom({ x: 46, z: 16, w: 13, h: 12, kind: 'arena', theme: 'tech' });
+  doc.linkRooms(0, 1);
+  doc.linkRooms(1, 2);
+  doc.linkRooms(2, 3);
+  doc.stampDoor(11, 23, 'x', false);
+  expect(doc.stampPickup({ kind: 'gun', gun: 2, x: 35, z: 23 })).toBe(true);
+  expect(doc.stampPickup({ kind: 'medikit', x: 19, z: 22 })).toBe(true);
+  expect(doc.stampEnemy('husk', 20, 22, 0.5)).toBe(true);
+  expect(doc.stampEnemy('slab', 52, 22, 1.2)).toBe(true);
+}
+
+describe('editor model', () => {
+  it('stamp rooms + link + gun + enemies compiles, encodes, decodes, validates', () => {
+    const doc = new EditorDoc();
+    stampTiny(doc);
+    const { errors, warnings } = doc.validate();
+    expect(errors, errors.join(' | ')).toEqual([]);
+    expect(warnings.length).toBe(0);
+
+    const map = doc.compile();
+    expect(map.rooms).toHaveLength(4);
+    expect(map.rooms.some(r => r.kind === 'start')).toBe(true);
+    expect(map.rooms.some(r => r.kind === 'arena')).toBe(true);
+    expect(map.rooms.some(r => r.kind === 'antechamber')).toBe(true);
+    expect(map.pickups.some(p => p.kind === 'gun' && p.gun === 2)).toBe(true);
+    expect(map.enemies).toHaveLength(2);
+    expect(doc.bp.corridors.length).toBeGreaterThan(0);
+    expect(map.seal.cells.length).toBeGreaterThan(0);
+
+    const code = doc.encode();
+    expect(code.startsWith('SGMAP.v1.')).toBe(true);
+    const decoded = decodeBlueprint(code);
+    expect(validateBlueprint(decoded)).toEqual([]);
+    const again = compileBlueprint(decoded);
+    expect([...again.grid]).toEqual([...map.grid]);
+    expect(again.rooms.map(r => [r.id, r.kind, r.x, r.z, r.w, r.h]))
+      .toEqual(map.rooms.map(r => [r.id, r.kind, r.x, r.z, r.w, r.h]));
+    expect(again.pickups.map(p => [p.kind, p.gun, p.x, p.z]))
+      .toEqual(map.pickups.map(p => [p.kind, p.gun, p.x, p.z]));
+    expect(again.enemies.map(e => [e.type, e.x, e.z]))
+      .toEqual(map.enemies.map(e => [e.type, e.x, e.z]));
+    expect(again.sealBreak).toEqual({ type: 'gun', gun: 2 });
+
+    const round = compileBlueprint(decodeBlueprint(encodeBlueprint(stripCosmetics(doc.bp))));
+    expect([...round.grid]).toEqual([...map.grid]);
+  });
+
+  it('click-two-rooms corridor matches L-link legs', () => {
+    const doc = new EditorDoc();
+    const a = doc.stampRoom({ x: 4, z: 20, w: 7, h: 7, kind: 'start' })!;
+    const b = doc.stampRoom({ x: 20, z: 20, w: 7, h: 7, kind: 'spine' })!;
+    const legs = corridorLegsBetween(a, b);
+    const added = doc.applyCorridorClicks(7, 23, 23, 23);
+    expect(added.length).toBeGreaterThan(0);
+    expect(doc.bp.corridors).toEqual(legs);
+  });
+
+  it('refuses to erase the only start once other rooms exist', () => {
+    const doc = new EditorDoc();
+    doc.stampRoom({ x: 4, z: 20, w: 7, h: 7, kind: 'start' });
+    doc.stampRoom({ x: 16, z: 20, w: 7, h: 7, kind: 'spine' });
+    expect(doc.eraseAt(6, 22)).toBe('blocked-start');
+    expect(doc.bp.rooms.filter(r => r.kind === 'start')).toHaveLength(1);
+    expect(doc.eraseAt(18, 22)).toBe('room');
+    expect(doc.eraseAt(6, 22)).toBe('room');
+  });
+
+  it('economy warning does not become a blocking error', () => {
+    const doc = new EditorDoc();
+    stampTiny(doc);
+    for (let i = 0; i < 20; i++) {
+      doc.stampEnemy('hierophant', 48 + (i % 8), 18 + ((i / 8) | 0));
+    }
+    const { errors, warnings } = validateEditor(doc.bp);
+    expect(warnings.some(w => /economy/i.test(w))).toBe(true);
+    expect(errors.some(e => /economy/i.test(e))).toBe(false);
+    expect(economyWarning(emptyBlueprint())).toBeNull();
+  });
+});
+
+describe('map library', () => {
+  it('upserts newest-first and replaces the same id', () => {
+    const storage = memoryStorage();
+    upsertLibrary({ id: 'm1', title: 'A', code: 'SGMAP.v1.aaa', savedAt: 1 }, storage);
+    upsertLibrary({ id: 'm2', title: 'B', code: 'SGMAP.v1.bbb', savedAt: 2 }, storage);
+    const once = loadLibrary(storage);
+    expect(once[0].id).toBe('m2');
+    upsertLibrary({ id: 'm1', title: 'A2', code: 'SGMAP.v1.ccc', savedAt: 3 }, storage);
+    const again = loadLibrary(storage);
+    expect(again).toHaveLength(2);
+    expect(again[0]).toMatchObject({ id: 'm1', title: 'A2', code: 'SGMAP.v1.ccc' });
+  });
+
+  it('caps at 40 and drops the oldest', () => {
+    const storage = memoryStorage();
+    for (let i = 0; i < MYMAPS_CAP + 3; i++) {
+      upsertLibrary({ id: `m${i}`, title: `t${i}`, code: `SGMAP.v1.${i}`, savedAt: i }, storage);
+    }
+    const list = loadLibrary(storage);
+    expect(list).toHaveLength(MYMAPS_CAP);
+    expect(list[0].id).toBe(`m${MYMAPS_CAP + 2}`);
+    expect(list.some(e => e.id === 'm0')).toBe(false);
+    expect(storage.data[MYMAPS_KEY]).toBeTruthy();
+  });
+
+  it('parses missing title and ignores junk', () => {
+    expect(parseLibraryEntry({ id: 'm', code: 'SGMAP.v1.x' })?.title).toBe('UNTITLED');
+    expect(parseLibraryEntry({ title: 'nope' })).toBeNull();
+    const storage = memoryStorage({ [MYMAPS_KEY]: 'nope' });
+    expect(loadLibrary(storage)).toEqual([]);
+  });
+
+  it('fails soft on quota errors', () => {
+    const storage: LibraryStorage = {
+      getItem: () => '[]',
+      setItem: () => { throw new Error('quota'); },
+    };
+    expect(() => upsertLibrary({ title: 'Z', code: 'SGMAP.v1.z' }, storage)).not.toThrow();
+  });
+
+  it('builds a .sgmap filename from the title', () => {
+    expect(filenameFromTitle('TIN HALL')).toBe('tin-hall.sgmap');
+    expect(filenameFromTitle('')).toBe('untitled.sgmap');
+  });
+});

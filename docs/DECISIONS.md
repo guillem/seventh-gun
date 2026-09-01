@@ -39,8 +39,8 @@ Unspecified things got decided; this is the record.
   stays seed-based. localStorage key `seventh-gun.maplog`, cap 200, fail
   soft. Record `{ seed, difficulty, startedAt, genVersion, outcome?,
   durationSec?, kills? }`. Persistence in `src/app/mapLog.ts`, never sim.
-  Campaign and `#m=` runs are not logged. Loader ignores unknown fields
-  so later `kind` can be added.
+  Campaign, editor playtest, and `#m=` runs are not logged. Loader
+  ignores unknown fields so later `kind` can be added.
 - **Authored maps**: compact `SGMAP.v1.` binary, shared as `#m=` (hash, not
   query). `#m=` wins if `?seed=` is also present. Share URLs strip
   lights/decors; decoder regenerates from `cosmeticSeed`. Campaign files
@@ -59,3 +59,9 @@ Unspecified things got decided; this is the record.
   map 7 is campaign victory (“THE SEVENTH IS SILENT”), not maze GAME OVER.
   Cosmetics are baked into the shipped blueprints. Campaign runs are not
   written to the map log.
+- **Editor**: authors a `MapBlueprint` (rooms + 3-wide corridor rects +
+  entities), never a raw bitmap. Title **EDITOR** / `?edit=1`. PLAYTEST
+  uses `Sim.fromMap` (pistol loadout unless all-guns toggle). Esc from
+  playtest returns to the editor; TITLE abandons. Library key
+  `seventh-gun.mymaps`, cap 40. Share via `#m=` / `SGMAP.v1.` / `.sgmap`.
+  No backend.
