@@ -16,8 +16,10 @@ New Maze. Desktop + phone viewports verified.
   browser: boots to title, UI start works, HUD/minimap render, `?seed=`
   pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
   Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites: `npm test` (unit + map log), `npm run test:e2e` (desktop + mobile),
-  `tsc --noEmit` clean, `vite build` clean.
+- Suites this PR: `npm test` 42/42 (was 35; +7 map log), `npm run test:e2e`
+  28 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
+  Browser-checked: title MAP LOG under ENTER THE MAZE, quit records QUIT,
+  PLAY starts the same seed; 390×844 title panel still fits.
 
 ## Verified this session (final pass)
 
