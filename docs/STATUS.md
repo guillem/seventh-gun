@@ -20,6 +20,10 @@ New Maze. Desktop + phone viewports verified.
   28 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
   Browser-checked: title MAP LOG under ENTER THE MAZE, quit records QUIT,
   PLAY starts the same seed; 390×844 title panel still fits.
+- Deploy Preview (PR #3): https://deploy-preview-3--seventh-gun.netlify.app
+  — verified in a real browser: title has MAP LOG, quit records QUIT,
+  PLAY starts `preview-log`, mobile 390×844 panel fits. Production URL
+  is unchanged until this merges.
 
 ## Verified this session (final pass)
 
