@@ -132,6 +132,16 @@ describe('campaign maps', () => {
     expect(retry.hasKey).toBe(false);
   });
 
+  it('each map can be completed from its incoming loadout', () => {
+    for (const m of CAMPAIGN) {
+      const sim = Sim.fromMap(m.map, 'normal', {
+        loadout: snapshotLoadout(m.incomingLoadout),
+        rngKey: `play:${m.id}`,
+      });
+      playUntilWon(sim);
+    }
+  });
+
   it('key does not persist between maps', () => {
     const m6 = CAMPAIGN[5];
     const sim6 = Sim.fromMap(m6.map, 'normal', { loadout: m6.incomingLoadout, rngKey: 'k6' });

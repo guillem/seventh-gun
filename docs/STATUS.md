@@ -16,6 +16,13 @@ New Maze. Desktop + phone viewports verified.
   current. Local folder linked via `netlify link` (`.netlify/` is gitignored).
 - Maze `generateMap` is unchanged (`GEN_VERSION` still 4). Do not bump it
   for campaign work.
+- Suites this PR: `npm test` 64/64 (was 54; +10 campaign), `npm run test:e2e`
+  45 passed (+3 mobile-only skips), `tsc --noEmit` clean. Existing maze and
+  `#m=` e2e stay green. Mobile FIRE ≥44px; 390×844 title panel still fits
+  with CAMPAIGN + MAP LOG in one `.row`.
+- Each map was played via `?e2e=1` + `startCampaign(n)` (walk, warp
+  ante/arena, `completeMap`): guns award in order, map 6 is key-only,
+  map 7 shows THE SEVENTH IS SILENT.
 
 ## Campaign (PR 3)
 
