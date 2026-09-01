@@ -275,20 +275,20 @@ test.describe('mobile', () => {
     await page.goto(BASE);
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
     const panel = page.locator('#title-screen .panel');
-    const box = await panel.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width).toBeLessThanOrEqual(390);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(390 + 1);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+    const panelBox = await panel.boundingBox();
+    expect(panelBox).not.toBeNull();
+    expect(panelBox!.width).toBeLessThanOrEqual(390);
+    expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(390 + 1);
+    expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(844);
     await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await expect(page.locator('#btn-fire')).toBeVisible();
     await expect(page.locator('#btn-use')).toBeVisible();
     await expect(page.locator('#btn-map')).toBeVisible();
     const fire = page.locator('#btn-fire');
-    const box = await fire.boundingBox();
-    expect(box).not.toBeNull();
-    expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(44);
+    const fireBox = await fire.boundingBox();
+    expect(fireBox).not.toBeNull();
+    expect(Math.min(fireBox!.width, fireBox!.height)).toBeGreaterThanOrEqual(44);
   });
 
   test('FIRE button fires and unlatches on release', async ({ page }) => {
