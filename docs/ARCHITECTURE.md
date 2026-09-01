@@ -18,10 +18,13 @@ app (Game, input, debug API)
   the sim so the unit tests actually cover it.
 - `Game` (app layer) owns the loop: gather input → `sim.step(input)` (0..n
   times per frame with an accumulator) → drain events → update render/audio/ui.
-- Persistence (settings, map log) lives in the app/ui layers — never in
-  `src/sim/`. Map history is `src/app/mapLog.ts` (`seventh-gun.maplog`).
-  Share URL parse/deflate/clipboard is `src/app/mapShare.ts`. The binary
-  codec itself is pure and lives in `src/sim/mapcodec.ts`.
+- Persistence (settings, map log, campaign continue) lives in the app/ui
+  layers — never in `src/sim/`. Map history is `src/app/mapLog.ts`
+  (`seventh-gun.maplog`). Campaign continue is `src/app/campaignProgress.ts`
+  (`seventh-gun.campaign`). Share URL parse/deflate/clipboard is
+  `src/app/mapShare.ts`. The binary codec itself is pure and lives in
+  `src/sim/mapcodec.ts`. Authored campaign maps live in `src/campaign/`
+  (JSON DSL → `compileDsl` → baked `MapBlueprint` / `GameMap`).
 
 ## Determinism
 

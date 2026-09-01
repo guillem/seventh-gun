@@ -77,3 +77,23 @@ only the economy changes (unit-tested).
 Normal targets ~20–30 min: ~17 rooms, ~65 enemies + 14-arena wave,
 medikit ≈ 0.75/room, ammo ≈ 1.15 boxes/room. Economy test guarantees
 available damage ≥ 2.2× total enemy HP across a 300-seed sweep.
+
+## Campaign (seven maps)
+
+One authored campaign. Difficulty scales combat numbers only (same as
+`Sim.fromMap`), not enemy counts or ammo amounts. Incoming loadout is the
+retry snapshot; HP = 100 at each map start; the key does not persist.
+
+| Map | Title | Enter with | Unseal / new gun |
+|---|---|---|---|
+| 1 | THE FOUNDRY | pistol | shotgun |
+| 2 | THE GULLET | 1–2 | chaingun |
+| 3 | THE CATACOMBS | 1–3 | spiker |
+| 4 | THE PIT | 1–4 | bile launcher |
+| 5 | THE SPIRE | 1–5 | sunlance |
+| 6 | THE WARD | 1–6 | Bone Key (no new gun) |
+| 7 | THE SANCTUM | 1–6 | The Seventh |
+
+Campaign economy: incoming reference ammo + this map's pickups ≥ 2.2×
+total enemy HP on Normal, counting owned guns plus the gun this map awards
+(map 6: guns 1–6 only).

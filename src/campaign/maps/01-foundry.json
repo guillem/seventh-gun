@@ -1,0 +1,57 @@
+{
+  "id": "01-foundry",
+  "title": "THE FOUNDRY",
+  "subtitle": "steel remembers the screaming",
+  "themeDefault": "industrial",
+  "cosmeticSeed": 1001,
+  "sealBreak": { "type": "gun", "gun": 2 },
+  "sealBreakMessage": "RIPJAW CHAMBERS — the foundry gate dies.",
+  "intermission": [
+    "The shotgun still smokes.",
+    "Deeper, the walls begin to sweat.",
+    "Something in the pipes is breathing."
+  ],
+  "incomingGuns": [1],
+  "incomingAmmo": { "bullets": 70 },
+  "rooms": [
+    { "id": "start", "x": 6, "z": 40, "w": 7, "h": 7, "kind": "start" },
+    { "id": "press", "x": 20, "z": 38, "w": 9, "h": 8, "kind": "spine" },
+    { "id": "mill", "x": 36, "z": 38, "w": 8, "h": 7, "kind": "spine" },
+    { "id": "cache", "x": 36, "z": 24, "w": 6, "h": 6, "kind": "spur" },
+    { "id": "slag", "x": 51, "z": 36, "w": 9, "h": 9, "kind": "spine" },
+    { "id": "ante", "x": 67, "z": 38, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
+    { "id": "arena", "x": 64, "z": 20, "w": 13, "h": 12, "kind": "arena", "theme": "tech" }
+  ],
+  "links": [
+    { "from": "start", "to": "press" },
+    { "from": "press", "to": "mill" },
+    { "from": "mill", "to": "cache" },
+    { "from": "mill", "to": "slag" },
+    { "from": "slag", "to": "ante" },
+    { "from": "ante", "to": "arena" }
+  ],
+  "doors": [{ "room": "press" }],
+  "guns": [{ "gun": 2, "room": "ante" }],
+  "pickups": [
+    { "kind": "medikit", "room": "press" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "press" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "mill" },
+    { "kind": "medikit", "room": "cache" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "cache" },
+    { "kind": "medikit", "room": "slag" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "slag" },
+    { "kind": "ammo", "ammoType": "shells", "room": "ante" },
+    { "kind": "medikit", "room": "ante" }
+  ],
+  "enemies": [
+    { "type": "husk", "room": "press", "n": 4 },
+    { "type": "husk", "room": "mill", "n": 3 },
+    { "type": "crawler", "room": "mill", "n": 1 },
+    { "type": "husk", "room": "cache", "n": 2 },
+    { "type": "husk", "room": "slag", "n": 4 },
+    { "type": "crawler", "room": "slag", "n": 2 },
+    { "type": "slab", "room": "arena", "n": 1 },
+    { "type": "husk", "room": "arena", "n": 3 },
+    { "type": "crawler", "room": "arena", "n": 2 }
+  ]
+}

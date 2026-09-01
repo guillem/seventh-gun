@@ -1,0 +1,70 @@
+{
+  "id": "04-pit",
+  "title": "THE PIT",
+  "subtitle": "the floor is a mouth",
+  "themeDefault": "industrial",
+  "cosmeticSeed": 4004,
+  "sealBreak": { "type": "gun", "gun": 5 },
+  "sealBreakMessage": "BILE ARMS — the pit lid cracks.",
+  "intermission": [
+    "Acid hisses on the steel.",
+    "Above you, a spine of stone and light.",
+    "Do not look up for long."
+  ],
+  "incomingGuns": [1, 2, 3, 4],
+  "incomingAmmo": { "bullets": 70, "shells": 10, "nails": 70 },
+  "rooms": [
+    { "id": "start", "x": 6, "z": 36, "w": 7, "h": 7, "kind": "start" },
+    { "id": "hopper", "x": 20, "z": 34, "w": 8, "h": 8, "kind": "spine" },
+    { "id": "yard", "x": 36, "z": 32, "w": 11, "h": 10, "kind": "spine", "theme": "organic", "outdoor": true },
+    { "id": "gutter", "x": 36, "z": 18, "w": 7, "h": 7, "kind": "spur", "theme": "organic" },
+    { "id": "vat", "x": 54, "z": 34, "w": 8, "h": 8, "kind": "spine" },
+    { "id": "sump", "x": 54, "z": 48, "w": 8, "h": 7, "kind": "spine", "theme": "organic" },
+    { "id": "grate", "x": 68, "z": 48, "w": 7, "h": 7, "kind": "spine" },
+    { "id": "ante", "x": 68, "z": 34, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
+    { "id": "arena", "x": 66, "z": 16, "w": 14, "h": 12, "kind": "arena", "theme": "tech" }
+  ],
+  "links": [
+    { "from": "start", "to": "hopper" },
+    { "from": "hopper", "to": "yard" },
+    { "from": "yard", "to": "gutter" },
+    { "from": "yard", "to": "vat" },
+    { "from": "vat", "to": "sump" },
+    { "from": "sump", "to": "grate" },
+    { "from": "grate", "to": "ante" },
+    { "from": "ante", "to": "arena" }
+  ],
+  "doors": [{ "room": "hopper" }, { "room": "vat" }],
+  "guns": [{ "gun": 5, "room": "ante" }],
+  "pickups": [
+    { "kind": "medikit", "room": "hopper" },
+    { "kind": "ammo", "ammoType": "nails", "room": "hopper" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "yard" },
+    { "kind": "medikit", "room": "gutter" },
+    { "kind": "ammo", "ammoType": "shells", "room": "gutter" },
+    { "kind": "ammo", "ammoType": "nails", "room": "vat" },
+    { "kind": "medikit", "room": "vat" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "sump" },
+    { "kind": "medikit", "room": "sump" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "ante" },
+    { "kind": "ammo", "ammoType": "nails", "room": "grate" },
+    { "kind": "medikit", "room": "ante" }
+  ],
+  "enemies": [
+    { "type": "husk", "room": "hopper", "n": 3 },
+    { "type": "crawler", "room": "hopper", "n": 2 },
+    { "type": "husk", "room": "yard", "n": 4 },
+    { "type": "wisp", "room": "yard", "n": 2 },
+    { "type": "crawler", "room": "gutter", "n": 3 },
+    { "type": "slab", "room": "vat", "n": 1 },
+    { "type": "husk", "room": "vat", "n": 3 },
+    { "type": "crawler", "room": "sump", "n": 3 },
+    { "type": "wisp", "room": "sump", "n": 2 },
+    { "type": "husk", "room": "grate", "n": 2 },
+    { "type": "crawler", "room": "grate", "n": 2 },
+    { "type": "slab", "room": "arena", "n": 2 },
+    { "type": "wisp", "room": "arena", "n": 2 },
+    { "type": "husk", "room": "arena", "n": 3 },
+    { "type": "crawler", "room": "arena", "n": 2 }
+  ]
+}

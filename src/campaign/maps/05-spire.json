@@ -1,0 +1,72 @@
+{
+  "id": "05-spire",
+  "title": "THE SPIRE",
+  "subtitle": "stairs that do not end",
+  "themeDefault": "stone",
+  "cosmeticSeed": 5005,
+  "sealBreak": { "type": "gun", "gun": 6 },
+  "sealBreakMessage": "SUNLANCE IGNITES — the spire unseals.",
+  "intermission": [
+    "The beam leaves a white scar on your eye.",
+    "Below, a ward of humming glass.",
+    "They built a lock out of a prayer."
+  ],
+  "incomingGuns": [1, 2, 3, 4, 5],
+  "incomingAmmo": { "bullets": 60, "shells": 10, "nails": 50, "grenades": 8 },
+  "rooms": [
+    { "id": "start", "x": 36, "z": 6, "w": 7, "h": 6, "kind": "start" },
+    { "id": "step", "x": 34, "z": 18, "w": 8, "h": 7, "kind": "spine" },
+    { "id": "landing", "x": 34, "z": 32, "w": 9, "h": 8, "kind": "spine" },
+    { "id": "alcove", "x": 50, "z": 32, "w": 6, "h": 6, "kind": "spur", "theme": "tech" },
+    { "id": "shaft", "x": 32, "z": 48, "w": 7, "h": 10, "kind": "spine", "theme": "tech" },
+    { "id": "choir", "x": 46, "z": 50, "w": 10, "h": 8, "kind": "spine", "theme": "tech" },
+    { "id": "watch", "x": 18, "z": 50, "w": 7, "h": 7, "kind": "spine" },
+    { "id": "ante", "x": 46, "z": 66, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
+    { "id": "arena", "x": 26, "z": 64, "w": 14, "h": 13, "kind": "arena", "theme": "tech" }
+  ],
+  "links": [
+    { "from": "start", "to": "step" },
+    { "from": "step", "to": "landing" },
+    { "from": "landing", "to": "alcove" },
+    { "from": "landing", "to": "shaft" },
+    { "from": "shaft", "to": "choir" },
+    { "from": "shaft", "to": "watch" },
+    { "from": "choir", "to": "ante" },
+    { "from": "ante", "to": "arena" }
+  ],
+  "doors": [{ "room": "step" }, { "room": "shaft" }],
+  "guns": [{ "gun": 6, "room": "ante" }],
+  "pickups": [
+    { "kind": "medikit", "room": "step" },
+    { "kind": "ammo", "ammoType": "nails", "room": "step" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "landing" },
+    { "kind": "medikit", "room": "landing" },
+    { "kind": "ammo", "ammoType": "shells", "room": "alcove" },
+    { "kind": "medikit", "room": "alcove" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "shaft" },
+    { "kind": "ammo", "ammoType": "nails", "room": "choir" },
+    { "kind": "medikit", "room": "choir" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "watch" },
+    { "kind": "medikit", "room": "watch" },
+    { "kind": "ammo", "ammoType": "cores", "room": "ante" },
+    { "kind": "medikit", "room": "ante" }
+  ],
+  "enemies": [
+    { "type": "husk", "room": "step", "n": 3 },
+    { "type": "wisp", "room": "step", "n": 1 },
+    { "type": "husk", "room": "landing", "n": 3 },
+    { "type": "crawler", "room": "landing", "n": 2 },
+    { "type": "wisp", "room": "alcove", "n": 2 },
+    { "type": "husk", "room": "shaft", "n": 4 },
+    { "type": "wisp", "room": "shaft", "n": 2 },
+    { "type": "hierophant", "room": "choir", "n": 1 },
+    { "type": "wisp", "room": "choir", "n": 2 },
+    { "type": "husk", "room": "choir", "n": 3 },
+    { "type": "crawler", "room": "watch", "n": 3 },
+    { "type": "slab", "room": "watch", "n": 1 },
+    { "type": "slab", "room": "arena", "n": 2 },
+    { "type": "wisp", "room": "arena", "n": 3 },
+    { "type": "husk", "room": "arena", "n": 3 },
+    { "type": "crawler", "room": "arena", "n": 3 }
+  ]
+}

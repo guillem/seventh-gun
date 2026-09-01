@@ -34,6 +34,10 @@ export class Screens {
   private victory!: HTMLDivElement;
   private mapLog!: HTMLDivElement;
   private mapLogList!: HTMLDivElement;
+  private campaign!: HTMLDivElement;
+  private campaignContinueBtn!: HTMLButtonElement;
+  private intermission!: HTMLDivElement;
+  private campaignWin!: HTMLDivElement;
   private deathNote!: HTMLDivElement;
   private mapOverlay!: HTMLDivElement;
   private mapLogEntries: MapLogEntry[] = [];
@@ -99,6 +103,7 @@ export class Screens {
           </div>
           <button id="start-btn" class="big">ENTER THE MAZE</button>
           <div class="row">
+            <button id="campaign-btn" class="big">CAMPAIGN</button>
             <button id="maplog-btn" class="big">MAP LOG</button>
           </div>
           <div class="row hidden" id="death-row">
@@ -181,9 +186,49 @@ export class Screens {
         </div>
       </div>
     `);
+    this.campaign = this.el(`
+      <div class="screen hidden" id="campaign-screen">
+        <div class="panel" id="campaign-panel">
+          <h2>CAMPAIGN</h2>
+          <div class="hints">Seven maps. The guns stay with you.</div>
+          <div class="row">
+            <label>SKILL</label>
+            <div class="diff-row" id="c-diff-row"></div>
+          </div>
+          <button id="campaign-begin" class="big">BEGIN</button>
+          <div class="row hidden" id="campaign-continue-row">
+            <button id="campaign-continue" class="big">CONTINUE</button>
+          </div>
+          <button id="campaign-back" class="big">BACK</button>
+        </div>
+      </div>
+    `);
+    this.intermission = this.el(`
+      <div class="screen hidden" id="intermission-screen">
+        <div class="panel win">
+          <h2 id="intermission-title">THE FOUNDRY</h2>
+          <div class="flavor" id="intermission-flavor"></div>
+          <button id="intermission-continue" class="big">CONTINUE</button>
+        </div>
+      </div>
+    `);
+    this.campaignWin = this.el(`
+      <div class="screen hidden" id="campaign-win-screen">
+        <div class="panel win">
+          <h2 class="gameover" id="campaign-win-title">THE SEVENTH IS SILENT</h2>
+          <div class="won" id="campaign-win-body">You ended it.</div>
+          <div class="stats" id="campaign-win-stats"></div>
+          <button id="campaign-win-title-btn" class="big">TITLE</button>
+        </div>
+      </div>
+    `);
     this.toast = this.el(`<div id="toast" class="hidden"></div>`);
 
-    this.root.append(this.title, this.pause, this.victory, this.mapLog, this.mapOverlay, this.touch, this.toast);
+    this.root.append(
+      this.title, this.pause, this.victory, this.mapLog, this.campaign,
+      this.intermission, this.campaignWin, this.mapOverlay, this.touch, this.toast,
+    );
+    this.campaignContinueBtn = this.campaign.querySelector('#campaign-continue')!;
     this.mapLogList = this.mapLog.querySelector('#maplog-list')!;
 
     // wire refs
@@ -209,6 +254,7 @@ export class Screens {
     const diffHosts: [string, HTMLDivElement][] = [
       ['diff-row', this.title.querySelector('#diff-row') as HTMLDivElement],
       ['p-diff-row', this.pause.querySelector('#p-diff-row') as HTMLDivElement],
+      ['c-diff-row', this.campaign.querySelector('#c-diff-row') as HTMLDivElement],
     ];
     for (const [hostId, host] of diffHosts) {
       for (const d of DIFFICULTY_ORDER) {
@@ -242,12 +288,20 @@ export class Screens {
 
   showTitle(show: boolean): void {
     this.title.classList.toggle('hidden', !show);
-    if (!show) this.mapLog.classList.add('hidden');
+    if (!show) {
+      this.mapLog.classList.add('hidden');
+      this.campaign.classList.add('hidden');
+    }
+    if (show) {
+      this.intermission.classList.add('hidden');
+      this.campaignWin.classList.add('hidden');
+    }
   }
 
   showMapLog(show: boolean, entries: MapLogEntry[] = []): void {
     if (show) {
       this.title.classList.add('hidden');
+      this.campaign.classList.add('hidden');
       this.mapLog.classList.remove('hidden');
       this.renderMapLog(entries);
     } else {
@@ -311,6 +365,7 @@ export class Screens {
     volume: (v: number) => void;
     mute: () => void;
     openMapLog: () => void;
+    openCampaign: () => void;
   }): void {
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
@@ -318,6 +373,8 @@ export class Screens {
     this.muteBtn.addEventListener('click', handlers.mute);
     (this.title.querySelector('#maplog-btn') as HTMLButtonElement)
       .addEventListener('click', handlers.openMapLog);
+    (this.title.querySelector('#campaign-btn') as HTMLButtonElement)
+      .addEventListener('click', handlers.openCampaign);
     const vs = this.title.querySelector('#volume-slider') as HTMLInputElement;
     vs.addEventListener('input', () => handlers.volume(Number(vs.value) / 100));
   }
@@ -444,16 +501,77 @@ export class Screens {
     this.winCopyBtn.addEventListener('click', handler);
   }
 
-  setRunKind(kind: 'maze' | 'map'): void {
-    const map = kind === 'map';
-    this.retryBtn.textContent = map ? 'RETRY MAP' : 'RETRY SEED';
-    this.newMazeBtn.textContent = map ? 'TITLE' : 'NEW MAZE';
-    this.pauseRetryBtn.textContent = map ? 'RETRY MAP' : 'RESTART SEED';
-    this.pauseNewBtn.classList.toggle('hidden', map);
-    this.winRetryBtn.textContent = map ? 'RETRY MAP' : 'SAME SEED AGAIN';
-    this.winNewBtn.textContent = map ? 'TITLE' : 'NEW MAZE';
-    this.deathCopyBtn.classList.toggle('hidden', !map);
-    this.winCopyRow.classList.toggle('hidden', !map);
+  setRunKind(kind: 'maze' | 'map' | 'campaign'): void {
+    const authored = kind === 'map' || kind === 'campaign';
+    this.retryBtn.textContent = authored ? 'RETRY MAP' : 'RETRY SEED';
+    this.newMazeBtn.textContent = kind === 'map' ? 'TITLE' : kind === 'campaign' ? 'QUIT TO TITLE' : 'NEW MAZE';
+    this.pauseRetryBtn.textContent = authored ? 'RETRY MAP' : 'RESTART SEED';
+    this.pauseNewBtn.classList.toggle('hidden', authored);
+    this.winRetryBtn.textContent = authored ? 'RETRY MAP' : 'SAME SEED AGAIN';
+    this.winNewBtn.textContent = kind === 'map' ? 'TITLE' : kind === 'campaign' ? 'TITLE' : 'NEW MAZE';
+    this.deathCopyBtn.classList.toggle('hidden', kind !== 'map');
+    this.winCopyRow.classList.toggle('hidden', kind !== 'map');
+  }
+
+  showCampaign(show: boolean, opts?: { canContinue?: boolean; nextTitle?: string }): void {
+    if (show) {
+      this.title.classList.add('hidden');
+      this.mapLog.classList.add('hidden');
+      this.campaign.classList.remove('hidden');
+      const row = this.campaign.querySelector('#campaign-continue-row') as HTMLDivElement;
+      row.classList.toggle('hidden', !opts?.canContinue);
+      if (opts?.canContinue && opts.nextTitle) {
+        this.campaignContinueBtn.textContent = `CONTINUE — ${opts.nextTitle}`;
+      } else {
+        this.campaignContinueBtn.textContent = 'CONTINUE';
+      }
+    } else {
+      this.campaign.classList.add('hidden');
+    }
+  }
+
+  isCampaignOpen(): boolean {
+    return !this.campaign.classList.contains('hidden');
+  }
+
+  bindCampaign(handlers: { begin: () => void; continue: () => void; back: () => void }): void {
+    this.campaign.querySelector('#campaign-begin')!.addEventListener('click', handlers.begin);
+    this.campaignContinueBtn.addEventListener('click', handlers.continue);
+    this.campaign.querySelector('#campaign-back')!.addEventListener('click', handlers.back);
+  }
+
+  showIntermission(show: boolean, title = '', lines: string[] = []): void {
+    this.intermission.classList.toggle('hidden', !show);
+    if (show) {
+      (this.intermission.querySelector('#intermission-title') as HTMLElement).textContent = title;
+      const flavor = this.intermission.querySelector('#intermission-flavor') as HTMLElement;
+      flavor.replaceChildren();
+      for (const line of lines) {
+        const p = document.createElement('div');
+        p.textContent = line;
+        flavor.appendChild(p);
+      }
+    }
+  }
+
+  bindIntermission(handler: () => void): void {
+    this.intermission.querySelector('#intermission-continue')!.addEventListener('click', handler);
+  }
+
+  showCampaignWin(show: boolean, opts?: { title?: string; body?: string; stats?: string }): void {
+    this.campaignWin.classList.toggle('hidden', !show);
+    if (show) {
+      (this.campaignWin.querySelector('#campaign-win-title') as HTMLElement)
+        .textContent = opts?.title ?? 'THE SEVENTH IS SILENT';
+      (this.campaignWin.querySelector('#campaign-win-body') as HTMLElement)
+        .textContent = opts?.body ?? 'You ended it.';
+      (this.campaignWin.querySelector('#campaign-win-stats') as HTMLElement)
+        .textContent = opts?.stats ?? '';
+    }
+  }
+
+  bindCampaignWin(handler: () => void): void {
+    this.campaignWin.querySelector('#campaign-win-title-btn')!.addEventListener('click', handler);
   }
 
   bindMapClose(handler: () => void): void {

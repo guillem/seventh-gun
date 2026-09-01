@@ -17,6 +17,8 @@ seal on the finale arena. Clear the arena to win.
   race a friend. **MAP LOG** on the title screen remembers seeds you already
   played (time, skill, won/died/quit) so you can replay without writing
   the code down. Stored in this browser only.
+- **CAMPAIGN** is seven authored maps. The guns stay with you; HP resets
+  each map. Progress is saved in this browser (`CONTINUE` from map 2 on).
 - Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
   if you don't.
 
@@ -52,6 +54,7 @@ URL tricks: `?seed=anything` pre-fills a maze seed; `#m=SGMAP.v1.…` loads an
 authored map (hash, not query; wins over `?seed=`); `?e2e=1` exposes the
 `window.__GAME__` debug API used by the test suite (not present in normal
 play). `#m=` maps offer RETRY MAP / TITLE / COPY LINK instead of a new maze.
+Campaign debug: `startCampaign(n)`, `completeMap()`, `campaign`.
 
 ## Under the hood
 
