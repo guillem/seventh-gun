@@ -26,8 +26,13 @@
 ## Map log (PR 1)
 
 Title-screen **MAP LOG**: localStorage history of maze seeds already played.
-See `docs/STATUS.md`. Campaign / editor / authored-map codec are later PRs
-(`docs/brainstorm/grok-plan.md` PRs 2–4).
+See `docs/STATUS.md`.
+
+## Authored map codec (PR 2)
+
+Blueprint format, `compileBlueprint`, `Sim.fromMap`, `#m=` URL loader,
+cosmetic regen. Campaign / editor are later PRs (`docs/brainstorm/grok-plan.md`
+PRs 3–4).
 
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from

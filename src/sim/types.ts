@@ -6,12 +6,23 @@ export const GRID_H = 88;
 export const WALL_H = 6;
 export const CEIL_H = 4.2;
 export const GEN_VERSION = 4;
+export const MAP_CODEC_VERSION = 1;
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export type Theme = 'industrial' | 'organic' | 'stone' | 'tech';
 export type AmmoType = 'bullets' | 'shells' | 'nails' | 'grenades' | 'cores' | 'void';
 export type EnemyType = 'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant';
 export type ProjectileKind = 'nail' | 'grenade' | 'voidorb' | 'plasma' | 'spit' | 'fireball' | 'bolt' | 'orb';
+
+export type SealBreak =
+  | { type: 'gun'; gun: number }
+  | { type: 'key' };
+
+export interface PlayerLoadout {
+  owned: boolean[];
+  ammo: Record<AmmoType, number>;
+  gun: number;
+}
 
 export interface Room {
   id: number;
@@ -81,6 +92,9 @@ export interface GameMap {
   rooms: Room[];
   doors: DoorDef[];
   seal: SealDef;
+  sealBreak: SealBreak;
+  sealBreakMessage?: string;
+  title?: string;
   decors: Decor[];
   pickups: PickupDef[];
   enemies: EnemySpawn[];

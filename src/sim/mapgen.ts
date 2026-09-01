@@ -593,6 +593,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
     arenaRoomId: arenaRoom.id,
     antechamberId: antechamber.id,
     vaultRoomId: vaultRoom ? vaultRoom.id : -1,
+    sealBreak: { type: 'gun', gun: 7 },
   };
 }
 

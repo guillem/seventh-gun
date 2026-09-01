@@ -61,6 +61,9 @@ export class Screens {
   // victory controls
   private winRetryBtn!: HTMLButtonElement;
   private winNewBtn!: HTMLButtonElement;
+  private winCopyBtn!: HTMLButtonElement;
+  private winCopyRow!: HTMLDivElement;
+  private deathCopyBtn!: HTMLButtonElement;
 
   onSettingsChanged: ((s: Settings) => void) | null = null;
 
@@ -101,6 +104,7 @@ export class Screens {
           <div class="row hidden" id="death-row">
             <button id="retry-btn">RETRY SEED</button>
             <button id="new-maze-btn">NEW MAZE</button>
+            <button id="death-copy" class="hidden">COPY LINK</button>
           </div>
           <div class="hints">
             WASD move · mouse look · click fire · E use · 1-7 / wheel guns · TAB map · ESC pause<br/>
@@ -142,6 +146,9 @@ export class Screens {
           <div class="row">
             <button id="win-retry">SAME SEED AGAIN</button>
             <button id="win-new">NEW MAZE</button>
+          </div>
+          <div class="row hidden" id="win-copy-row">
+            <button id="win-copy">COPY LINK</button>
           </div>
         </div>
       </div>
@@ -193,6 +200,9 @@ export class Screens {
     this.muteBtn = this.title.querySelector('#mute-btn')!;
     this.winRetryBtn = this.victory.querySelector('#win-retry')!;
     this.winNewBtn = this.victory.querySelector('#win-new')!;
+    this.winCopyBtn = this.victory.querySelector('#win-copy')!;
+    this.winCopyRow = this.victory.querySelector('#win-copy-row')!;
+    this.deathCopyBtn = this.title.querySelector('#death-copy')!;
     this.mapCanvas = this.miniCanvas;
 
     // difficulty selectors (title + pause share logic)
@@ -427,6 +437,23 @@ export class Screens {
   bindVictory(handlers: { retry: () => void; newMaze: () => void }): void {
     this.winRetryBtn.addEventListener('click', handlers.retry);
     this.winNewBtn.addEventListener('click', handlers.newMaze);
+  }
+
+  bindCopyLink(handler: () => void): void {
+    this.deathCopyBtn.addEventListener('click', handler);
+    this.winCopyBtn.addEventListener('click', handler);
+  }
+
+  setRunKind(kind: 'maze' | 'map'): void {
+    const map = kind === 'map';
+    this.retryBtn.textContent = map ? 'RETRY MAP' : 'RETRY SEED';
+    this.newMazeBtn.textContent = map ? 'TITLE' : 'NEW MAZE';
+    this.pauseRetryBtn.textContent = map ? 'RETRY MAP' : 'RESTART SEED';
+    this.pauseNewBtn.classList.toggle('hidden', map);
+    this.winRetryBtn.textContent = map ? 'RETRY MAP' : 'SAME SEED AGAIN';
+    this.winNewBtn.textContent = map ? 'TITLE' : 'NEW MAZE';
+    this.deathCopyBtn.classList.toggle('hidden', !map);
+    this.winCopyRow.classList.toggle('hidden', !map);
   }
 
   bindMapClose(handler: () => void): void {

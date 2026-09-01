@@ -41,3 +41,11 @@ Unspecified things got decided; this is the record.
   durationSec?, kills? }`. Persistence in `src/app/mapLog.ts`, never sim.
   Campaign/editor runs are not logged (modes do not exist yet). Loader
   ignores unknown fields so later `kind` can be added.
+- **Authored maps**: compact `SGMAP.v1.` binary, shared as `#m=` (hash, not
+  query). `#m=` wins if `?seed=` is also present. Share URLs strip
+  lights/decors; decoder regenerates from `cosmeticSeed`. Campaign files
+  may later bake cosmetics; the compiler skips regen when those arrays
+  are present. `Sim` constructor stays `(seed, difficulty)`; authored
+  maps enter via `Sim.fromMap`. Difficulty never re-rolls entity counts
+  on an authored map. Maze `generateMap` must stay behavior-identical
+  (`GEN_VERSION` not bumped).

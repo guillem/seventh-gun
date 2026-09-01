@@ -1,8 +1,9 @@
 # STATUS
 
-Updated: 2026-09-01 — PR 1: title-screen MAP LOG (`feat/map-log`).
+Updated: 2026-09-01 — PR 2: authored map codec, `Sim.fromMap`, `#m=` share
+(`feat/map-codec`).
 
-## State: initial version + bugfixes #1–2 + map log (this PR)
+## State: initial version + bugfixes #1–2 + map log + authored-map codec
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -16,14 +17,14 @@ New Maze. Desktop + phone viewports verified.
   browser: boots to title, UI start works, HUD/minimap render, `?seed=`
   pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
   Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites this PR: `npm test` 42/42 (was 35; +7 map log), `npm run test:e2e`
-  28 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
-  Browser-checked: title MAP LOG under ENTER THE MAZE, quit records QUIT,
-  PLAY starts the same seed; 390×844 title panel still fits.
-- Deploy Preview (PR #3): https://deploy-preview-3--seventh-gun.netlify.app
-  — verified in a real browser: title has MAP LOG, quit records QUIT,
-  PLAY starts `preview-log`, mobile 390×844 panel fits. Production URL
-  is unchanged until this merges.
+- Suites this PR: `npm test` 54/54 (was 42; +12 codec/fromMap), `npm run test:e2e`
+  34 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
+  Maze 300-seed sweep unchanged. Authored-map e2e: `startMap` / `#m=` play,
+  RETRY MAP, COPY LINK; mobile FIRE ≥44px and 390×844 title panel still fit.
+- Deploy Preview (PR #4): https://deploy-preview-4--seventh-gun.netlify.app
+  — title + maze start + MAP LOG + 390×844 panel verified in a real browser;
+  authored `#m=` / startMap / RETRY MAP / COPY LINK verified by Playwright
+  e2e against the same build. Leave the PR open; do not merge from this agent.
 
 ## Verified this session (final pass)
 
@@ -79,10 +80,32 @@ Players can reopen seeds they already ran without writing the code down.
 - Maze mode is unchanged (still seed-based). Campaign/editor runs are not
   logged (those modes do not exist yet). `GEN_VERSION` was not bumped.
 
+## Authored maps (PR 2)
+
+Shareable compact maps, no campaign/editor yet.
+
+- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`. Sim consumes
+  `GameMap` only. Maze `generateMap(seed)` is unchanged (`GEN_VERSION` still 4).
+- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, version `MAP_CODEC_VERSION = 1`.
+  Share URLs: `https://<origin>/#m=SGMAP.v1.<payload>` (hash, not query).
+  `#m=` wins over `?seed=`. Cosmetics (lights/decors) are stripped from share
+  URLs and regenerated via `placeCosmetics(makeRng('cos|' + cosmeticSeed))`.
+  Browser compresses with `CompressionStream('deflate-raw')` when the packed
+  body is > 1200 bytes; Node tests use `zlib.deflateRawSync`. Missing
+  CompressionStream → uncompressed (flag off).
+- `Sim.fromMap(map, difficulty, opts?)`. Enemy rng keys `enemy|${rngKey}|${id}`
+  (`rngKey` defaults to `map.seed` or `'authored'`). No `GEN_VERSION` in
+  authored keys. Difficulty only scales combat numbers, not entity counts.
+  `checkPickups` uses `map.sealBreak` (`{type:'gun',gun}` or `{type:'key'}`).
+  Generated mazes set `sealBreak: { type:'gun', gun:7 }`.
+- Victory/death for a URL map: **RETRY MAP** / **TITLE** + **COPY LINK**.
+  Debug API (`?e2e=1`): `startMap(blueprint | code)`.
+- Authored runs are not written to the map log.
+- Do not bump `GEN_VERSION` for this work.
+
 ## Open / next
 
-- PR 2+ from `docs/brainstorm/grok-plan.md` (map codec, campaign, editor) —
-  not started.
+- PR 3–4 from `docs/brainstorm/grok-plan.md` (campaign, editor).
 - Balance is first-pass from the economy tests; needs a human Normal run
   against the 20–30 min target, then tune `src/sim/{weapons,enemyTypes,
   difficulty}.ts` (mirror in GAME-DESIGN.md).
