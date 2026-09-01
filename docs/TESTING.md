@@ -23,6 +23,9 @@
   positions identical with different HP.
 - `tests/unit/mapcodec.test.ts` — binary round-trip including 60+ enemies,
   maze-sized payload ≲ 2 KB, zlib deflate-raw when the body is large.
+- `tests/unit/campaign.test.ts` — all 7 DSLs compile + validate + economy
+  floor; map 1 shotgun unseals; map 6 key unseals (guns do not); loadout
+  carry; retry restores entry loadout; key does not persist; continue key.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
@@ -39,8 +42,9 @@ seed reproducibility (map hash), killed enemies upright when a seed is
 replayed (rig-reuse regression, checks rig `rotX` via `debugInfo`), Tab map
 open/close with fog of war, E opens a door, MAP LOG records a quit and
 PLAY replays the same seed, authored map via `startMap` / `#m=` with
-RETRY MAP + COPY LINK, mobile touch HUD with ≥44px FIRE button
-(title panel still fits 390×844 with the MAP LOG button), FIRE latches
+RETRY MAP + COPY LINK, CAMPAIGN begin / startCampaign(n) / death retry /
+continue after completeMap, mobile touch HUD with ≥44px FIRE button
+(title panel still fits 390×844 with CAMPAIGN + MAP LOG), FIRE latches
 and unlatches.
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything

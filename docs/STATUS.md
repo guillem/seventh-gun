@@ -1,9 +1,9 @@
 # STATUS
 
-Updated: 2026-09-01 — PR 2: authored map codec, `Sim.fromMap`, `#m=` share
-(`feat/map-codec`).
+Updated: 2026-09-01 — PR 3: seven-map campaign with persistent guns
+(`feat/campaign`).
 
-## State: initial version + bugfixes #1–2 + map log + authored-map codec
+## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -13,108 +13,81 @@ New Maze. Desktop + phone viewports verified.
 - Repo: https://github.com/guillem/seventh-gun (`main`). From now on:
   branches + PRs (`gh`), Netlify deploy preview verified before merge.
 - Netlify: LIVE at https://seventh-gun.netlify.app — repo linked, deployment
-  current (bundle hash matches local HEAD 1dc2629), verified in a real
-  browser: boots to title, UI start works, HUD/minimap render, `?seed=`
-  pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
-  Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites this PR: `npm test` 54/54 (was 42; +12 codec/fromMap), `npm run test:e2e`
-  34 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
-  Maze 300-seed sweep unchanged. Authored-map e2e: `startMap` / `#m=` play,
-  RETRY MAP, COPY LINK; mobile FIRE ≥44px and 390×844 title panel still fit.
-- Deploy Preview (PR #4): https://deploy-preview-4--seventh-gun.netlify.app
-  — title + maze start + MAP LOG + 390×844 panel verified in a real browser;
-  authored `#m=` / startMap / RETRY MAP / COPY LINK verified by Playwright
-  e2e against the same build. Leave the PR open; do not merge from this agent.
+  current. Local folder linked via `netlify link` (`.netlify/` is gitignored).
+- Maze `generateMap` is unchanged (`GEN_VERSION` still 4). Do not bump it
+  for campaign work.
+- Suites this PR: `npm test` 64/64 (was 54; +10 campaign), `npm run test:e2e`
+  45 passed (+3 mobile-only skips), `tsc --noEmit` clean. Existing maze and
+  `#m=` e2e stay green. Mobile FIRE ≥44px; 390×844 title panel still fits
+  with CAMPAIGN + MAP LOG in one `.row`.
+- Each map was played via `?e2e=1` + `startCampaign(n)` (walk, warp
+  ante/arena, `completeMap`): guns award in order, map 6 is key-only,
+  map 7 shows THE SEVENTH IS SILENT.
+- Deploy Preview (PR #6): https://deploy-preview-6--seventh-gun.netlify.app
+  — title CAMPAIGN + MAP LOG visible, BEGIN starts map 1 (no runtime
+  errors), `?e2e=1` `startCampaign(5)` reaches THE SPIRE with guns 1–5,
+  390×844 panel 390×353 at y=285 (fits). Leave the PR open; do not merge
+  from this agent.
 
-## Verified this session (final pass)
+## Campaign (PR 3)
 
-- Dead code removed after review (unused gun light, door-mesh updater,
-  renderer debug helpers, empty FX stub, unused texture entries); suites
-  re-run green.
-- Visual acceptance (screenshots of the running game): AI-vision pass on
-  world/HUD/pistol/husk/slab/wisp/decorations + pixel-metric pass on the
-  rest (see TESTING.md for the numbers and method).
+Title **CAMPAIGN** (same `button.big` tap size as **ENTER THE MAZE**,
+sharing a `.row` with **MAP LOG** so 390×844 still fits). Seven authored
+maps compiled from JSON DSL at module load (`src/campaign/`).
 
-## Bugfix history worth remembering
+- Persistence: `src/app/campaignProgress.ts`, localStorage key
+  `seventh-gun.campaign`. Record
+  `{ difficulty, nextMap: 1..8, loadout, mapStartedAt? }` (`nextMap` 8 =
+  finished). CONTINUE when `nextMap` is 2–7. Starting a new campaign
+  overwrites. Quitting mid-map does not advance `nextMap`. Fail soft on
+  quota. Never imported from `src/sim/`.
+- Loadout: guns + ammo persist; HP = 100 at each map start; Bone Key does
+  not persist. Difficulty chosen on the campaign panel, locked until
+  quit+restart. Combat scaling only (same as `Sim.fromMap`).
+- Maps 1–6: intermission (title + flavor + CONTINUE). Map 7: campaign
+  victory “THE SEVENTH IS SILENT” / “You ended it.” — not maze GAME OVER.
+- Death: 2s lockout then RETRY MAP (entry loadout, not mid-map pickups) /
+  QUIT TO TITLE. Pause hides NEW MAZE.
+- Cosmetics are baked into the shipped blueprints; `compileBlueprint`
+  skips regen when lights/decors are present.
+- Campaign runs are not written to the map log.
+- Debug (`?e2e=1`): `startCampaign(n)`, `completeMap()`, `campaign`.
+- Incoming loadout table (also the retry snapshot) lives in each map JSON
+  as `incomingGuns` / `incomingAmmo`.
 
-- Wisps (flying enemies) were almost unhittable with anything but splash
-  weapons: enemies have no y in the sim, and both player-damage checks
-  (hitscan gate and projectile gate in `sim.ts`) put every enemy's hittable
-  band at y 0.1..height+pad — at the floor — while the wisp's body renders
-  (and shoots from) `hoverY = 2.3`. Aiming at the visible body passed ~1–2u
-  above the hitbox; grenades "worked" because splash measures horizontal
-  distance only. Fix: offset both vertical gates (and the `hitEnemy` FX y)
-  by `hoverY` for `flying` defs. Unit regression: hitscan/nail through the
-  body height must connect, through the old floor band must not.
-- Enemies appeared sideways / half sunk in the floor on the *second* play
-  of a map: `EnemyRenderer` rigs are keyed by enemy id, and ids restart at 0
-  for every generated map, so `setRun`'s id-diff reused the previous run's
-  rigs — complete with the death animation's fallen-over `rotation.x`,
-  faded shadow and blackened eyes (never reset on the alive path). Fix:
-  `setRun` now disposes all rigs (like pickups already did) so every run
-  builds fresh ones. E2E regression: kill 3, replay seed, assert every rig
-  `rotX == 0` (verified to fail pre-fix).
-- Floor rendered the sky (culled back faces) → up-facing winding +
-  DoubleSide insurance.
-- Doors/decals/seal were 90° off → per-axis slab dims, decal facings from
-  plane-normal math, seal axis derived from the arena edge.
-- Spawn-safety LOS in mapgen now uses exact grid DDA (the old 0.5u sampler
-  could miss a clipped wall corner on diagonals; the 300-seed sweep caught
-  it when GEN_VERSION bumped 3→4).
+| # | Title | Rooms / enemies (compiled) | Unseal |
+|---|---|---|---|
+| 1 | THE FOUNDRY | 7 / 22 | shotgun |
+| 2 | THE GULLET | 8 / 31 | chaingun |
+| 3 | THE CATACOMBS | 8 / 31 | spiker |
+| 4 | THE PIT | 9 / 36 | bile |
+| 5 | THE SPIRE | 9 / 38 | sunlance |
+| 6 | THE WARD | 12 / 46 | Bone Key |
+| 7 | THE SANCTUM | 11 / 48 | The Seventh |
 
 ## Map log (PR 1)
 
-Players can reopen seeds they already ran without writing the code down.
-
 - Persistence: `src/app/mapLog.ts`, localStorage key `seventh-gun.maplog`.
-  Cap 200, newest-first, fail soft on quota. Never imported from `src/sim/`.
-- Record: `{ seed, difficulty, startedAt, genVersion, outcome?, durationSec?, kills? }`.
-  `startRun` prepends; death / win / quit-to-title patches the latest
-  matching seed+startedAt. Loader ignores unknown fields.
-- Title: **MAP LOG** under **ENTER THE MAZE** (same `button.big` tap size,
-  wrapped in `.row` so the 390×844 panel still fits). Panel lists seed,
-  relative time, skill, outcome badge (`—` / `DIED` / `WON` / `QUIT`).
-  Click/PLAY fills seed+difficulty and starts; copy seed is secondary.
-  If `genVersion !== GEN_VERSION`, warn “generator changed — layout may differ”
-  but still allow play.
-- Maze mode is unchanged (still seed-based). Campaign/editor runs are not
-  logged (those modes do not exist yet). `GEN_VERSION` was not bumped.
+  Cap 200, newest-first, fail soft on quota. Maze runs only.
 
 ## Authored maps (PR 2)
 
-Shareable compact maps, no campaign/editor yet.
-
-- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`. Sim consumes
-  `GameMap` only. Maze `generateMap(seed)` is unchanged (`GEN_VERSION` still 4).
-- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, version `MAP_CODEC_VERSION = 1`.
-  Share URLs: `https://<origin>/#m=SGMAP.v1.<payload>` (hash, not query).
-  `#m=` wins over `?seed=`. Cosmetics (lights/decors) are stripped from share
-  URLs and regenerated via `placeCosmetics(makeRng('cos|' + cosmeticSeed))`.
-  Browser compresses with `CompressionStream('deflate-raw')` when the packed
-  body is > 1200 bytes; Node tests use `zlib.deflateRawSync`. Missing
-  CompressionStream → uncompressed (flag off).
-- `Sim.fromMap(map, difficulty, opts?)`. Enemy rng keys `enemy|${rngKey}|${id}`
-  (`rngKey` defaults to `map.seed` or `'authored'`). No `GEN_VERSION` in
-  authored keys. Difficulty only scales combat numbers, not entity counts.
-  `checkPickups` uses `map.sealBreak` (`{type:'gun',gun}` or `{type:'key'}`).
-  Generated mazes set `sealBreak: { type:'gun', gun:7 }`.
-- Victory/death for a URL map: **RETRY MAP** / **TITLE** + **COPY LINK**.
-  Debug API (`?e2e=1`): `startMap(blueprint | code)`.
-- Authored runs are not written to the map log.
-- Do not bump `GEN_VERSION` for this work.
+- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`.
+- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, `#m=` hash URLs.
+- `Sim.fromMap(map, difficulty, opts?)`. Difficulty only scales combat.
 
 ## Open / next
 
-- PR 3–4 from `docs/brainstorm/grok-plan.md` (campaign, editor).
-- Balance is first-pass from the economy tests; needs a human Normal run
-  against the 20–30 min target, then tune `src/sim/{weapons,enemyTypes,
-  difficulty}.ts` (mirror in GAME-DESIGN.md).
-- Optional: CI workflow running both suites per PR; phone perf check
-  during the arena wave.
+- PR 4 from `docs/brainstorm/grok-plan.md` (editor). Rebase onto this
+  campaign branch after merge; shared UI (`screens.ts`, `game.ts`,
+  `index.html`) only gained a CAMPAIGN button / panels — MAP LOG was not
+  rewritten and EDITOR was not invented.
+- Balance still wants a human Normal run against the maze 20–30 min target.
 
 ## Where things are
 
 - Balance numbers: `src/sim/{weapons,enemyTypes,difficulty}.ts` + GAME-DESIGN.md
 - Generator: `src/sim/mapgen.ts` (bump `GEN_VERSION` on any change)
-- Map log: `src/app/mapLog.ts` + title wiring in `src/ui/screens.ts` / `src/app/game.ts`
+- Campaign: `src/campaign/` + `src/app/campaignProgress.ts`
+- Map log: `src/app/mapLog.ts`
 - Debug API: `src/app/game.ts getDebugApi()` — `?e2e=1` only

@@ -1,0 +1,65 @@
+{
+  "id": "03-catacombs",
+  "title": "THE CATACOMBS",
+  "subtitle": "names worn off the stone",
+  "themeDefault": "stone",
+  "cosmeticSeed": 3003,
+  "sealBreak": { "type": "gun", "gun": 4 },
+  "sealBreakMessage": "SPIKER SINGS — the ossuary lock splits.",
+  "intermission": [
+    "Nails still ring in the dark.",
+    "The floor drops. Heat rises.",
+    "You are being digested on a schedule."
+  ],
+  "incomingGuns": [1, 2, 3],
+  "incomingAmmo": { "bullets": 80, "shells": 12 },
+  "rooms": [
+    { "id": "start", "x": 8, "z": 8, "w": 7, "h": 7, "kind": "start" },
+    { "id": "nave", "x": 8, "z": 22, "w": 9, "h": 8, "kind": "spine" },
+    { "id": "niche", "x": 24, "z": 22, "w": 6, "h": 6, "kind": "spur" },
+    { "id": "crypt", "x": 8, "z": 38, "w": 8, "h": 8, "kind": "spine" },
+    { "id": "gallery", "x": 24, "z": 38, "w": 10, "h": 7, "kind": "spine" },
+    { "id": "ossuary", "x": 42, "z": 36, "w": 8, "h": 9, "kind": "spine" },
+    { "id": "ante", "x": 58, "z": 38, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
+    { "id": "arena", "x": 56, "z": 18, "w": 14, "h": 13, "kind": "arena", "theme": "tech" }
+  ],
+  "links": [
+    { "from": "start", "to": "nave" },
+    { "from": "nave", "to": "niche" },
+    { "from": "nave", "to": "crypt" },
+    { "from": "crypt", "to": "gallery" },
+    { "from": "gallery", "to": "ossuary" },
+    { "from": "ossuary", "to": "ante" },
+    { "from": "ante", "to": "arena" }
+  ],
+  "doors": [{ "room": "nave" }, { "room": "gallery" }],
+  "guns": [{ "gun": 4, "room": "ante" }],
+  "pickups": [
+    { "kind": "medikit", "room": "nave" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "nave" },
+    { "kind": "ammo", "ammoType": "shells", "room": "niche" },
+    { "kind": "medikit", "room": "niche" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "crypt" },
+    { "kind": "medikit", "room": "crypt" },
+    { "kind": "ammo", "ammoType": "shells", "room": "gallery" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "gallery" },
+    { "kind": "medikit", "room": "ossuary" },
+    { "kind": "ammo", "ammoType": "nails", "room": "ante" },
+    { "kind": "medikit", "room": "ante" }
+  ],
+  "enemies": [
+    { "type": "husk", "room": "nave", "n": 3 },
+    { "type": "crawler", "room": "nave", "n": 2 },
+    { "type": "husk", "room": "niche", "n": 2 },
+    { "type": "husk", "room": "crypt", "n": 3 },
+    { "type": "wisp", "room": "crypt", "n": 2 },
+    { "type": "crawler", "room": "gallery", "n": 3 },
+    { "type": "wisp", "room": "gallery", "n": 2 },
+    { "type": "husk", "room": "ossuary", "n": 3 },
+    { "type": "wisp", "room": "ossuary", "n": 2 },
+    { "type": "slab", "room": "arena", "n": 1 },
+    { "type": "wisp", "room": "arena", "n": 3 },
+    { "type": "husk", "room": "arena", "n": 3 },
+    { "type": "crawler", "room": "arena", "n": 2 }
+  ]
+}

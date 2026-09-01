@@ -31,8 +31,13 @@ See `docs/STATUS.md`.
 ## Authored map codec (PR 2)
 
 Blueprint format, `compileBlueprint`, `Sim.fromMap`, `#m=` URL loader,
-cosmetic regen. Campaign / editor are later PRs (`docs/brainstorm/grok-plan.md`
-PRs 3–4).
+cosmetic regen.
+
+## Campaign (PR 3)
+
+Title **CAMPAIGN**: seven authored maps, persistent guns/ammo, intermissions,
+continue key `seventh-gun.campaign`. Editor is a later PR
+(`docs/brainstorm/grok-plan.md` PR 4).
 
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from

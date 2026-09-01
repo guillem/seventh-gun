@@ -1,0 +1,135 @@
+import { test, expect } from '@playwright/test';
+
+const BASE = '/?e2e=1';
+
+type GameApi = {
+  state: () => {
+    phase: string;
+    kind?: string;
+    seed?: string;
+    campaign?: { map: number; nextMap: number; owned: boolean[] } | null;
+  };
+  startCampaign: (n?: number) => void;
+  completeMap: () => void;
+  killPlayer: () => void;
+  campaign: () => { map: number; nextMap: number; owned: boolean[] };
+};
+
+test.describe('campaign desktop', () => {
+  test('CAMPAIGN begins map 1', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
+    await page.getByRole('button', { name: 'BEGIN' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.kind === 'campaign';
+    });
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
+    expect(state.kind).toBe('campaign');
+    expect(state.campaign?.map).toBe(1);
+  });
+
+  test('startCampaign(n) plays the chosen map', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => {
+      (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(3);
+    });
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 3;
+    });
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
+    expect(state.campaign?.map).toBe(3);
+    expect(state.kind).toBe('campaign');
+  });
+
+  test('death retry restores the map and entry loadout', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.killPlayer());
+    await page.waitForTimeout(2400);
+    await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'QUIT TO TITLE' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'NEW MAZE' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'RETRY MAP' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 1;
+    });
+    const owned = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state().campaign?.owned);
+    expect(owned?.[0]).toBe(true);
+    expect(owned?.[1]).toBe(false);
+  });
+
+  test('completeMap then CONTINUE starts the next map', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.completeMap());
+    await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible();
+    await expect(page.getByText('THE FOUNDRY')).toBeVisible();
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 2;
+    });
+    const camp = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.campaign());
+    expect(camp.map).toBe(2);
+    expect(camp.owned[1]).toBe(true);
+  });
+
+  test('title CONTINUE resumes after a completed map', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.completeMap());
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.campaign?.map === 2;
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    await expect(page.getByRole('button', { name: /CONTINUE/ })).toBeVisible();
+    await page.getByRole('button', { name: /CONTINUE/ }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 2;
+    });
+  });
+});
+
+test.describe('campaign mobile', () => {
+  test('title panel still fits with CAMPAIGN and FIRE is ≥44px', async ({ page }) => {
+    test.skip(!test.info().project.name.startsWith('mobile'), 'mobile-only');
+    await page.goto(BASE);
+    await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
+    const panel = page.locator('#title-screen .panel');
+    const panelBox = await panel.boundingBox();
+    expect(panelBox).not.toBeNull();
+    expect(panelBox!.width).toBeLessThanOrEqual(390);
+    expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(390 + 1);
+    expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(844);
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    await page.getByRole('button', { name: 'BEGIN' }).click();
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    const fireBox = await page.locator('#btn-fire').boundingBox();
+    expect(fireBox).not.toBeNull();
+    expect(Math.min(fireBox!.width, fireBox!.height)).toBeGreaterThanOrEqual(44);
+  });
+});

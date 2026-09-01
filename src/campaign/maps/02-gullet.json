@@ -1,0 +1,63 @@
+{
+  "id": "02-gullet",
+  "title": "THE GULLET",
+  "subtitle": "it swallows light",
+  "themeDefault": "organic",
+  "cosmeticSeed": 2002,
+  "sealBreak": { "type": "gun", "gun": 3 },
+  "sealBreakMessage": "HORNET WAKES — the gullet unclenches.",
+  "intermission": [
+    "The chaingun chatters itself quiet.",
+    "Stone replaces meat.",
+    "The air tastes like old prayers."
+  ],
+  "incomingGuns": [1, 2],
+  "incomingAmmo": { "bullets": 50, "shells": 14 },
+  "rooms": [
+    { "id": "start", "x": 6, "z": 18, "w": 7, "h": 6, "kind": "start" },
+    { "id": "throat", "x": 20, "z": 16, "w": 7, "h": 8, "kind": "spine" },
+    { "id": "acid", "x": 34, "z": 18, "w": 8, "h": 7, "kind": "spine" },
+    { "id": "cyst", "x": 34, "z": 6, "w": 6, "h": 6, "kind": "spur" },
+    { "id": "fold", "x": 49, "z": 16, "w": 8, "h": 8, "kind": "spine" },
+    { "id": "choke", "x": 64, "z": 18, "w": 7, "h": 7, "kind": "spine" },
+    { "id": "ante", "x": 64, "z": 32, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
+    { "id": "arena", "x": 48, "z": 42, "w": 13, "h": 12, "kind": "arena", "theme": "tech" }
+  ],
+  "links": [
+    { "from": "start", "to": "throat" },
+    { "from": "throat", "to": "acid" },
+    { "from": "acid", "to": "cyst" },
+    { "from": "acid", "to": "fold" },
+    { "from": "fold", "to": "choke" },
+    { "from": "choke", "to": "ante" },
+    { "from": "ante", "to": "arena" }
+  ],
+  "doors": [{ "room": "throat" }, { "room": "fold" }],
+  "guns": [{ "gun": 3, "room": "ante" }],
+  "pickups": [
+    { "kind": "medikit", "room": "throat" },
+    { "kind": "ammo", "ammoType": "shells", "room": "throat" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "acid" },
+    { "kind": "medikit", "room": "cyst" },
+    { "kind": "ammo", "ammoType": "shells", "room": "cyst" },
+    { "kind": "medikit", "room": "fold" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "fold" },
+    { "kind": "ammo", "ammoType": "shells", "room": "choke" },
+    { "kind": "medikit", "room": "choke" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "ante" }
+  ],
+  "enemies": [
+    { "type": "husk", "room": "throat", "n": 3 },
+    { "type": "crawler", "room": "throat", "n": 2 },
+    { "type": "husk", "room": "acid", "n": 3 },
+    { "type": "crawler", "room": "acid", "n": 3 },
+    { "type": "crawler", "room": "cyst", "n": 2 },
+    { "type": "husk", "room": "fold", "n": 3 },
+    { "type": "crawler", "room": "fold", "n": 3 },
+    { "type": "crawler", "room": "choke", "n": 3 },
+    { "type": "husk", "room": "choke", "n": 2 },
+    { "type": "slab", "room": "arena", "n": 1 },
+    { "type": "crawler", "room": "arena", "n": 4 },
+    { "type": "husk", "room": "arena", "n": 2 }
+  ]
+}

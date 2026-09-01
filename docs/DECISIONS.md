@@ -39,8 +39,8 @@ Unspecified things got decided; this is the record.
   stays seed-based. localStorage key `seventh-gun.maplog`, cap 200, fail
   soft. Record `{ seed, difficulty, startedAt, genVersion, outcome?,
   durationSec?, kills? }`. Persistence in `src/app/mapLog.ts`, never sim.
-  Campaign/editor runs are not logged (modes do not exist yet). Loader
-  ignores unknown fields so later `kind` can be added.
+  Campaign and `#m=` runs are not logged. Loader ignores unknown fields
+  so later `kind` can be added.
 - **Authored maps**: compact `SGMAP.v1.` binary, shared as `#m=` (hash, not
   query). `#m=` wins if `?seed=` is also present. Share URLs strip
   lights/decors; decoder regenerates from `cosmeticSeed`. Campaign files
@@ -49,3 +49,13 @@ Unspecified things got decided; this is the record.
   maps enter via `Sim.fromMap`. Difficulty never re-rolls entity counts
   on an authored map. Maze `generateMap` must stay behavior-identical
   (`GEN_VERSION` not bumped).
+- **Campaign**: one seven-map run (`src/campaign/`), authored JSON DSLs
+  compiled at module load. Player keeps guns and ammo; HP resets to 100
+  each map; the Bone Key does not persist. Difficulty is chosen on the
+  campaign panel and locked until quit+restart. Progress key
+  `seventh-gun.campaign` (`{ difficulty, nextMap, loadout }`); CONTINUE
+  when `nextMap` is 2–7. Quitting mid-map does not advance `nextMap`.
+  Death retries the map with the entry loadout. Maps 1–6 intermission;
+  map 7 is campaign victory (“THE SEVENTH IS SILENT”), not maze GAME OVER.
+  Cosmetics are baked into the shipped blueprints. Campaign runs are not
+  written to the map log.

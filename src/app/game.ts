@@ -2,7 +2,7 @@
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
-import { GEN_VERSION, type SimEvent, type Difficulty } from '../sim/types';
+import { GEN_VERSION, type SimEvent, type Difficulty, type PlayerLoadout } from '../sim/types';
 import { compileBlueprint, mapSeedFromTitle, type MapBlueprint } from '../sim/blueprint';
 import { decodeBlueprint } from '../sim/mapcodec';
 import { GameRenderer } from '../render/renderer';
@@ -24,6 +24,10 @@ import {
   parseMapHash,
   shareUrlFromCode,
 } from './mapShare';
+import { CAMPAIGN, campaignMap, snapshotLoadout } from '../campaign/index';
+import {
+  canContinue, loadCampaignProgress, saveCampaignProgress,
+} from './campaignProgress';
 
 type Phase = 'title' | 'playing' | 'paused' | 'map' | 'dead' | 'won';
 
@@ -45,10 +49,12 @@ export class Game {
   seed = '';
   debug = false;
   freeze = false;
-  private runKind: 'maze' | 'map' = 'maze';
+  private runKind: 'maze' | 'map' | 'campaign' = 'maze';
   private authoredBlueprint: MapBlueprint | null = null;
   private shareCode: string | null = null;
   private runLog: { seed: string; difficulty: Difficulty; startedAt: number } | null = null;
+  private campaignIndex = 1;
+  private entryLoadout: PlayerLoadout | null = null;
 
   constructor(canvas: HTMLCanvasElement, debug: boolean) {
     this.debug = debug;
@@ -130,7 +136,15 @@ export class Game {
         saveSettings(this.settings);
       },
       openMapLog: () => this.openMapLog(),
+      openCampaign: () => this.openCampaign(),
     });
+    this.screens.bindCampaign({
+      begin: () => this.beginCampaign(),
+      continue: () => this.continueCampaign(),
+      back: () => this.closeCampaign(),
+    });
+    this.screens.bindIntermission(() => this.continueFromIntermission());
+    this.screens.bindCampaignWin(() => this.toTitle());
     this.screens.bindMapLog({
       back: () => this.closeMapLog(),
       play: (entry) => this.playFromLog(entry),
@@ -207,6 +221,7 @@ export class Game {
     this.runKind = 'maze';
     this.authoredBlueprint = null;
     this.shareCode = null;
+    this.entryLoadout = null;
     this.screens.setRunKind('maze');
     this.seed = seed;
     this.sim = new Sim(seed, this.settings.difficulty);
@@ -260,6 +275,9 @@ export class Game {
     if (!this.sim) return;
     this.renderer.setRun(this.sim);
     this.screens.showMapLog(false);
+    this.screens.showCampaign(false);
+    this.screens.showIntermission(false);
+    this.screens.showCampaignWin(false);
     this.screens.showTitle(false);
     this.screens.showPause(false);
     this.screens.showVictory(false, '');
@@ -275,6 +293,10 @@ export class Game {
   }
 
   private retryCurrent(): void {
+    if (this.runKind === 'campaign') {
+      this.startCampaignMap(this.campaignIndex, this.entryLoadout ?? campaignMap(this.campaignIndex)!.incomingLoadout);
+      return;
+    }
     if (this.runKind === 'map') {
       if (this.authoredBlueprint) this.startFromBlueprint(this.authoredBlueprint, this.shareCode ?? undefined);
       else if (this.shareCode) this.startFromCode(this.shareCode);
@@ -284,7 +306,7 @@ export class Game {
   }
 
   private secondaryCurrent(): void {
-    if (this.runKind === 'map') {
+    if (this.runKind === 'map' || this.runKind === 'campaign') {
       this.toTitle();
       return;
     }
@@ -318,6 +340,148 @@ export class Game {
   private closeMapLog(): void {
     this.screens.showMapLog(false);
     this.screens.showTitle(true);
+  }
+
+  private openCampaign(): void {
+    const progress = loadCampaignProgress();
+    const next = progress && canContinue(progress) ? campaignMap(progress.nextMap) : undefined;
+    this.screens.showCampaign(true, {
+      canContinue: !!next,
+      nextTitle: next?.title,
+    });
+  }
+
+  private closeCampaign(): void {
+    this.screens.showCampaign(false);
+    this.screens.showTitle(true);
+  }
+
+  beginCampaign(): void {
+    const first = CAMPAIGN[0];
+    saveCampaignProgress({
+      difficulty: this.settings.difficulty,
+      nextMap: 1,
+      loadout: first.incomingLoadout,
+    });
+    this.startCampaignMap(1, first.incomingLoadout);
+  }
+
+  continueCampaign(): void {
+    const progress = loadCampaignProgress();
+    if (!progress || !canContinue(progress)) {
+      this.beginCampaign();
+      return;
+    }
+    this.setDifficulty(progress.difficulty);
+    this.startCampaignMap(progress.nextMap, progress.loadout);
+  }
+
+  startCampaign(n = 1): void {
+    const cm = campaignMap(n) ?? CAMPAIGN[0];
+    this.startCampaignMap(cm.index, cm.incomingLoadout);
+  }
+
+  private startCampaignMap(n: number, loadout: PlayerLoadout): void {
+    const cm = campaignMap(n);
+    if (!cm) return;
+    this.runKind = 'campaign';
+    this.authoredBlueprint = null;
+    this.shareCode = null;
+    this.runLog = null;
+    this.campaignIndex = cm.index;
+    this.entryLoadout = snapshotLoadout(loadout);
+    this.screens.setRunKind('campaign');
+    this.seed = cm.map.seed;
+    this.sim = Sim.fromMap(cm.map, this.settings.difficulty, {
+      loadout: snapshotLoadout(loadout),
+      rngKey: `campaign:${cm.id}`,
+    });
+    const saved = loadCampaignProgress();
+    saveCampaignProgress({
+      difficulty: this.settings.difficulty,
+      nextMap: saved?.nextMap ?? cm.index,
+      loadout: saved?.loadout ?? this.entryLoadout,
+      mapStartedAt: Date.now(),
+    });
+    this.beginPlay(cm.title);
+  }
+
+  completeMap(): void {
+    const sim = this.sim;
+    if (!sim || this.runKind !== 'campaign') return;
+    const cm = campaignMap(this.campaignIndex);
+    if (!cm) return;
+    const sb = cm.map.sealBreak;
+    if (sb.type === 'gun') {
+      const pk = sim.pickups.find(p => p.kind === 'gun' && p.gun === sb.gun);
+      if (pk) {
+        pk.taken = false;
+        sim.player.owned[sb.gun] = false;
+        sim.player.x = pk.x;
+        sim.player.z = pk.z;
+        sim.step(emptyInput());
+      }
+    } else {
+      const key = sim.pickups.find(p => p.kind === 'key');
+      if (key) {
+        key.taken = false;
+        sim.hasKey = false;
+        sim.player.x = key.x;
+        sim.player.z = key.z;
+        sim.step(emptyInput());
+      }
+    }
+    const arena = sim.map.rooms[sim.map.arenaRoomId];
+    sim.player.x = arena.cx;
+    sim.player.z = arena.cz;
+    for (const e of sim.enemies) {
+      if (!e.dead && sim.enemyRoomId(e) === sim.map.arenaRoomId) {
+        e.hp = 1;
+        sim.damageEnemy(e, 10, 0);
+      }
+    }
+    for (let i = 0; i < 90; i++) sim.step(emptyInput());
+    for (const e of sim.takeEvents()) this.handleEvent(e);
+    if (sim.phase === 'won' && !this.winHandled) {
+      this.winHandled = true;
+      this.phase = 'won';
+      this.onCampaignMapWon();
+    }
+  }
+
+  private continueFromIntermission(): void {
+    const progress = loadCampaignProgress();
+    const n = progress?.nextMap ?? this.campaignIndex + 1;
+    const loadout = progress?.loadout ?? snapshotLoadout(this.sim!.player);
+    this.startCampaignMap(n, loadout);
+  }
+
+  private onCampaignMapWon(): void {
+    const sim = this.sim!;
+    const cm = campaignMap(this.campaignIndex);
+    if (!cm) return;
+    this.input.releaseLock();
+    this.screens.showTouch(false);
+    this.screens.showMapLog(false);
+    this.screens.showMap(false);
+    const loadout = snapshotLoadout(sim.player);
+    const nextMap = this.campaignIndex + 1;
+    saveCampaignProgress({
+      difficulty: this.settings.difficulty,
+      nextMap: Math.min(8, nextMap),
+      loadout,
+    });
+    if (this.campaignIndex >= 7) {
+      this.screens.showCampaignWin(true, {
+        title: cm.victoryTitle ?? 'THE SEVENTH IS SILENT',
+        body: cm.victoryBody ?? 'You ended it.',
+        stats: `KILLS ${sim.killCount} · HEALTH ${Math.max(0, Math.ceil(sim.player.hp))}`,
+      });
+      this.audio.stopLoops();
+      return;
+    }
+    this.screens.showIntermission(true, cm.title, cm.intermission);
+    this.audio.stopLoops();
   }
 
   private playFromLog(entry: MapLogEntry): void {
@@ -368,6 +532,9 @@ export class Game {
     this.screens.showMap(false);
     this.screens.showVictory(false, '');
     this.screens.showMapLog(false);
+    this.screens.showCampaign(false);
+    this.screens.showIntermission(false);
+    this.screens.showCampaignWin(false);
     this.screens.showDeathRow(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
@@ -468,7 +635,8 @@ export class Game {
     if (sim.phase === 'won' && !this.winHandled) {
       this.winHandled = true;
       this.phase = 'won';
-      this.showVictory();
+      if (this.runKind === 'campaign') this.onCampaignMapWon();
+      else this.showVictory();
     }
 
     const moving = Math.abs(sim.player.x - (this.lastPx ?? sim.player.x)) + Math.abs(sim.player.z - (this.lastPz ?? sim.player.z)) > 0.001;
@@ -491,6 +659,9 @@ export class Game {
     this.finishMapLog('died');
     this.screens.showMap(false);
     this.screens.showMapLog(false);
+    this.screens.showCampaign(false);
+    this.screens.showIntermission(false);
+    this.screens.showCampaignWin(false);
     this.screens.showTouch(false);
     this.screens.showTitle(true);
     this.screens.showDeathRow(true);
@@ -594,6 +765,11 @@ export class Game {
           sealIntact: sim.sealIntact,
           exploredPct: exploredPct(sim),
           mapHash: this.mapHash(),
+          campaign: this.runKind === 'campaign' ? {
+            map: this.campaignIndex,
+            nextMap: loadCampaignProgress()?.nextMap ?? this.campaignIndex,
+            owned: p.owned.slice(1, 8),
+          } : null,
         };
       },
       startRun: (seed?: string, difficulty?: Difficulty) => {
@@ -602,6 +778,20 @@ export class Game {
       },
       startMap: (input: MapBlueprint | string) => {
         this.startMap(input);
+      },
+      startCampaign: (n?: number) => {
+        this.startCampaign(n ?? 1);
+      },
+      completeMap: () => {
+        this.completeMap();
+      },
+      campaign: () => {
+        const progress = loadCampaignProgress();
+        return {
+          map: this.runKind === 'campaign' ? this.campaignIndex : 0,
+          nextMap: progress?.nextMap ?? 1,
+          owned: this.sim ? this.sim.player.owned.slice(1, 8) : [],
+        };
       },
       give: (gun: number) => { this.sim?.giveGun(gun); },
       fire: (hold = true) => { this.input.setFire(hold); },
