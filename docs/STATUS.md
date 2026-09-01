@@ -21,8 +21,10 @@ New Maze. Desktop + phone viewports verified.
   34 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
   Maze 300-seed sweep unchanged. Authored-map e2e: `startMap` / `#m=` play,
   RETRY MAP, COPY LINK; mobile FIRE ≥44px and 390×844 title panel still fit.
-- Deploy Preview (PR #4): wait for Netlify on
-  https://github.com/guillem/seventh-gun/pull/4 — do not merge until verified.
+- Deploy Preview (PR #4): https://deploy-preview-4--seventh-gun.netlify.app
+  — title + maze start + MAP LOG + 390×844 panel verified in a real browser;
+  authored `#m=` / startMap / RETRY MAP / COPY LINK verified by Playwright
+  e2e against the same build. Leave the PR open; do not merge from this agent.
 
 ## Verified this session (final pass)
 
