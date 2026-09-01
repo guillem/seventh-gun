@@ -23,6 +23,11 @@ New Maze. Desktop + phone viewports verified.
 - Each map was played via `?e2e=1` + `startCampaign(n)` (walk, warp
   ante/arena, `completeMap`): guns award in order, map 6 is key-only,
   map 7 shows THE SEVENTH IS SILENT.
+- Deploy Preview (PR #6): https://deploy-preview-6--seventh-gun.netlify.app
+  — title CAMPAIGN + MAP LOG visible, BEGIN starts map 1 (no runtime
+  errors), `?e2e=1` `startCampaign(5)` reaches THE SPIRE with guns 1–5,
+  390×844 panel 390×353 at y=285 (fits). Leave the PR open; do not merge
+  from this agent.
 
 ## Campaign (PR 3)
 
