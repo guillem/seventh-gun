@@ -20,6 +20,8 @@ test.describe('editor', () => {
   test('title EDITOR button opens the editor', async ({ page }) => {
     await page.goto('/?e2e=1');
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'EDITOR' })).toBeVisible();
     await page.getByRole('button', { name: 'EDITOR' }).click();
     await expect(page.locator('#editor-screen')).toBeVisible();
     await expect(page.locator('#editor-heading')).toHaveText('EDITOR');
