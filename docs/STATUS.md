@@ -1,10 +1,8 @@
 # STATUS
 
-Updated: 2026-08-31 — bugfix #2: flying enemies (wisps) carried a floor-level
-hitbox, making them nearly unhittable with direct-fire weapons (PR #2, branch
-`fix/wisp-hitbox-height`).
+Updated: 2026-09-01 — PR 1: title-screen MAP LOG (`feat/map-log`).
 
-## State: initial version complete + bugfixes #1–2
+## State: initial version + bugfixes #1–2 + map log (this PR)
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -18,8 +16,8 @@ New Maze. Desktop + phone viewports verified.
   browser: boots to title, UI start works, HUD/minimap render, `?seed=`
   pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
   Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites: `npm test` 35/35, `npm run test:e2e` 26 passed (+2 mobile-only
-  skips), `tsc --noEmit` clean, `vite build` clean.
+- Suites: `npm test` (unit + map log), `npm run test:e2e` (desktop + mobile),
+  `tsc --noEmit` clean, `vite build` clean.
 
 ## Verified this session (final pass)
 
@@ -57,8 +55,28 @@ New Maze. Desktop + phone viewports verified.
   could miss a clipped wall corner on diagonals; the 300-seed sweep caught
   it when GEN_VERSION bumped 3→4).
 
+## Map log (PR 1)
+
+Players can reopen seeds they already ran without writing the code down.
+
+- Persistence: `src/app/mapLog.ts`, localStorage key `seventh-gun.maplog`.
+  Cap 200, newest-first, fail soft on quota. Never imported from `src/sim/`.
+- Record: `{ seed, difficulty, startedAt, genVersion, outcome?, durationSec?, kills? }`.
+  `startRun` prepends; death / win / quit-to-title patches the latest
+  matching seed+startedAt. Loader ignores unknown fields.
+- Title: **MAP LOG** under **ENTER THE MAZE** (same `button.big` tap size,
+  wrapped in `.row` so the 390×844 panel still fits). Panel lists seed,
+  relative time, skill, outcome badge (`—` / `DIED` / `WON` / `QUIT`).
+  Click/PLAY fills seed+difficulty and starts; copy seed is secondary.
+  If `genVersion !== GEN_VERSION`, warn “generator changed — layout may differ”
+  but still allow play.
+- Maze mode is unchanged (still seed-based). Campaign/editor runs are not
+  logged (those modes do not exist yet). `GEN_VERSION` was not bumped.
+
 ## Open / next
 
+- PR 2+ from `docs/brainstorm/grok-plan.md` (map codec, campaign, editor) —
+  not started.
 - Balance is first-pass from the economy tests; needs a human Normal run
   against the 20–30 min target, then tune `src/sim/{weapons,enemyTypes,
   difficulty}.ts` (mirror in GAME-DESIGN.md).
@@ -69,4 +87,5 @@ New Maze. Desktop + phone viewports verified.
 
 - Balance numbers: `src/sim/{weapons,enemyTypes,difficulty}.ts` + GAME-DESIGN.md
 - Generator: `src/sim/mapgen.ts` (bump `GEN_VERSION` on any change)
+- Map log: `src/app/mapLog.ts` + title wiring in `src/ui/screens.ts` / `src/app/game.ts`
 - Debug API: `src/app/game.ts getDebugApi()` — `?e2e=1` only

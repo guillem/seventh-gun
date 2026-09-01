@@ -35,3 +35,9 @@ Unspecified things got decided; this is the record.
 - **Remote**: github.com/guillem/seventh-gun. The initial one-shot version
   went to `main`; all further development is branches + PRs via `gh`, with
   the Netlify deploy preview verified before merge.
+- **Map log**: title-screen history of maze seeds already played. Maze mode
+  stays seed-based. localStorage key `seventh-gun.maplog`, cap 200, fail
+  soft. Record `{ seed, difficulty, startedAt, genVersion, outcome?,
+  durationSec?, kills? }`. Persistence in `src/app/mapLog.ts`, never sim.
+  Campaign/editor runs are not logged (modes do not exist yet). Loader
+  ignores unknown fields so later `kind` can be added.

@@ -14,7 +14,9 @@ fight. The Seventh — a void-cannon that erases whole packs — shatters the
 seal on the finale arena. Clear the arena to win.
 
 - Same seed + skill = the exact same maze, demons and loot. Share a seed,
-  race a friend.
+  race a friend. **MAP LOG** on the title screen remembers seeds you already
+  played (time, skill, won/died/quit) so you can replay without writing
+  the code down. Stored in this browser only.
 - Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
   if you don't.
 

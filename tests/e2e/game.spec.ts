@@ -217,6 +217,30 @@ test.describe('desktop', () => {
     expect(closed).toBe('playing');
   });
 
+  test('MAP LOG records a quit and PLAY starts the same seed', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
+    await page.locator('#seed-input').fill('maplog-e2e');
+    await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
+    await page.getByRole('button', { name: 'MAP LOG' }).click();
+    await expect(page.locator('.maplog-entry[data-seed="maplog-e2e"]')).toBeVisible();
+    await expect(page.locator('.maplog-entry[data-seed="maplog-e2e"] .maplog-badge')).toHaveText('QUIT');
+    await page.locator('.maplog-entry[data-seed="maplog-e2e"] button').filter({ hasText: 'PLAY' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string; seed?: string } } }).__GAME__?.state();
+      return s?.phase === 'playing';
+    });
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { seed: string } } }).__GAME__.state());
+    expect(state.seed).toBe('maplog-e2e');
+  });
+
   test('E opens a door (door state changes, becomes passable)', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-door'));
@@ -249,6 +273,13 @@ test.describe('mobile', () => {
   test('touch HUD is present with big FIRE/USE/MAP buttons', async ({ page }) => {
     test.skip(!test.info().project.name.startsWith('mobile'), 'mobile-only');
     await page.goto(BASE);
+    await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
+    const panel = page.locator('#title-screen .panel');
+    const box = await panel.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeLessThanOrEqual(390);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390 + 1);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
     await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await expect(page.locator('#btn-fire')).toBeVisible();

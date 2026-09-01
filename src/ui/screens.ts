@@ -1,7 +1,8 @@
 // DOM screens: title, pause, death-after-lockout (title mode), victory,
 // full map overlay, touch controls. All styled in index.html <style>.
-import type { Difficulty } from '../sim/types';
+import { GEN_VERSION, type Difficulty } from '../sim/types';
 import { DIFFICULTIES, DIFFICULTY_ORDER } from '../sim/difficulty';
+import { formatRelativeTime, type MapLogEntry } from '../app/mapLog';
 
 export interface Settings {
   volume: number;
@@ -31,12 +32,16 @@ export class Screens {
   private title!: HTMLDivElement;
   private pause!: HTMLDivElement;
   private victory!: HTMLDivElement;
+  private mapLog!: HTMLDivElement;
+  private mapLogList!: HTMLDivElement;
   private deathNote!: HTMLDivElement;
   private mapOverlay!: HTMLDivElement;
+  private mapLogEntries: MapLogEntry[] = [];
   private mapCanvas!: HTMLCanvasElement;
   private miniCanvas!: HTMLCanvasElement;
   private touch!: HTMLDivElement;
   private toast!: HTMLDivElement;
+  private toastTimer = 0;
 
   // title controls
   seedInput!: HTMLInputElement;
@@ -90,6 +95,9 @@ export class Screens {
             <div class="diff-row" id="diff-row"></div>
           </div>
           <button id="start-btn" class="big">ENTER THE MAZE</button>
+          <div class="row">
+            <button id="maplog-btn" class="big">MAP LOG</button>
+          </div>
           <div class="row hidden" id="death-row">
             <button id="retry-btn">RETRY SEED</button>
             <button id="new-maze-btn">NEW MAZE</button>
@@ -157,9 +165,19 @@ export class Screens {
         </div>
       </div>
     `);
+    this.mapLog = this.el(`
+      <div class="screen hidden" id="maplog-screen">
+        <div class="panel" id="maplog-panel">
+          <h2>MAP LOG</h2>
+          <div id="maplog-list"></div>
+          <button id="maplog-back" class="big">BACK</button>
+        </div>
+      </div>
+    `);
     this.toast = this.el(`<div id="toast" class="hidden"></div>`);
 
-    this.root.append(this.title, this.pause, this.victory, this.mapOverlay, this.touch, this.toast);
+    this.root.append(this.title, this.pause, this.victory, this.mapLog, this.mapOverlay, this.touch, this.toast);
+    this.mapLogList = this.mapLog.querySelector('#maplog-list')!;
 
     // wire refs
     this.seedInput = this.title.querySelector('#seed-input')!;
@@ -214,6 +232,21 @@ export class Screens {
 
   showTitle(show: boolean): void {
     this.title.classList.toggle('hidden', !show);
+    if (!show) this.mapLog.classList.add('hidden');
+  }
+
+  showMapLog(show: boolean, entries: MapLogEntry[] = []): void {
+    if (show) {
+      this.title.classList.add('hidden');
+      this.mapLog.classList.remove('hidden');
+      this.renderMapLog(entries);
+    } else {
+      this.mapLog.classList.add('hidden');
+    }
+  }
+
+  isMapLogOpen(): boolean {
+    return !this.mapLog.classList.contains('hidden');
   }
 
   showPause(show: boolean): void {
@@ -267,13 +300,112 @@ export class Screens {
     newMaze: () => void;
     volume: (v: number) => void;
     mute: () => void;
+    openMapLog: () => void;
   }): void {
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
     this.newMazeBtn.addEventListener('click', handlers.newMaze);
     this.muteBtn.addEventListener('click', handlers.mute);
+    (this.title.querySelector('#maplog-btn') as HTMLButtonElement)
+      .addEventListener('click', handlers.openMapLog);
     const vs = this.title.querySelector('#volume-slider') as HTMLInputElement;
     vs.addEventListener('input', () => handlers.volume(Number(vs.value) / 100));
+  }
+
+  bindMapLog(handlers: {
+    back: () => void;
+    play: (entry: MapLogEntry) => void;
+    copy: (seed: string) => void;
+  }): void {
+    this.mapLog.querySelector('#maplog-back')!.addEventListener('click', handlers.back);
+    this.mapLogList.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const row = t.closest('.maplog-entry') as HTMLElement | null;
+      if (!row) return;
+      const i = Number(row.dataset.index);
+      const entry = this.mapLogEntries[i];
+      if (!entry) return;
+      if (t.closest('[data-action="copy"]')) {
+        e.stopPropagation();
+        handlers.copy(entry.seed);
+        return;
+      }
+      handlers.play(entry);
+    });
+  }
+
+  showToast(msg: string): void {
+    this.toast.textContent = msg;
+    this.toast.classList.remove('hidden');
+    window.clearTimeout(this.toastTimer);
+    this.toastTimer = window.setTimeout(() => {
+      this.toast.classList.add('hidden');
+    }, 1600);
+  }
+
+  private renderMapLog(entries: MapLogEntry[]): void {
+    this.mapLogEntries = entries;
+    this.mapLogList.replaceChildren();
+    if (entries.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'maplog-empty';
+      empty.textContent = 'No mazes yet. Enter the maze to start a log.';
+      this.mapLogList.appendChild(empty);
+      return;
+    }
+    for (let i = 0; i < entries.length; i++) {
+      this.mapLogList.appendChild(this.mapLogRow(entries[i], i));
+    }
+  }
+
+  private mapLogRow(entry: MapLogEntry, index: number): HTMLDivElement {
+    const row = document.createElement('div');
+    row.className = 'maplog-entry';
+    row.dataset.index = String(index);
+    row.dataset.seed = entry.seed;
+
+    const meta = document.createElement('div');
+    meta.className = 'maplog-meta';
+
+    const seed = document.createElement('span');
+    seed.className = 'maplog-seed';
+    seed.textContent = entry.seed;
+
+    const time = document.createElement('span');
+    time.className = 'maplog-time';
+    time.textContent = formatRelativeTime(entry.startedAt);
+
+    const skill = document.createElement('span');
+    skill.className = 'maplog-skill';
+    skill.textContent = DIFFICULTIES[entry.difficulty].label;
+
+    const badge = document.createElement('span');
+    const outcome = entry.outcome ?? '';
+    badge.className = `maplog-badge ${outcome || 'open'}`;
+    badge.textContent = outcome ? outcome.toUpperCase() : '—';
+
+    meta.append(seed, time, skill, badge);
+    row.appendChild(meta);
+
+    if (entry.genVersion !== GEN_VERSION) {
+      const warn = document.createElement('div');
+      warn.className = 'maplog-warn';
+      warn.textContent = 'generator changed — layout may differ';
+      row.appendChild(warn);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'row';
+    const play = document.createElement('button');
+    play.textContent = 'PLAY';
+    play.dataset.action = 'play';
+    const copy = document.createElement('button');
+    copy.className = 'small';
+    copy.textContent = 'copy seed';
+    copy.dataset.action = 'copy';
+    actions.append(play, copy);
+    row.appendChild(actions);
+    return row;
   }
 
   bindPause(handlers: {

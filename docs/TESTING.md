@@ -16,6 +16,8 @@
   doors, dodgeable projectiles, death lockout, win path.
 - `tests/unit/architecture.test.ts` — sim stays headless: no three imports,
   no Math.random, no DOM/window/localStorage, no imports from render/ui.
+- `tests/unit/mapLog.test.ts` — prepend newest-first, cap 200 (drop oldest),
+  parse missing/unknown fields, ignore quota errors via injected fake storage.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
@@ -30,8 +32,10 @@ heals, death lockout then title with Retry Seed / New Maze, win copy
 "GAME OVER / You won", difficulty economy (same layout, different counts),
 seed reproducibility (map hash), killed enemies upright when a seed is
 replayed (rig-reuse regression, checks rig `rotX` via `debugInfo`), Tab map
-open/close with fog of war, E opens a door, mobile touch HUD with ≥44px
-FIRE button, FIRE latches and unlatches.
+open/close with fog of war, E opens a door, MAP LOG records a quit and
+PLAY replays the same seed, mobile touch HUD with ≥44px FIRE button
+(title panel still fits 390×844 with the MAP LOG button), FIRE latches
+and unlatches.
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production

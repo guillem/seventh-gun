@@ -18,6 +18,8 @@ app (Game, input, debug API)
   the sim so the unit tests actually cover it.
 - `Game` (app layer) owns the loop: gather input → `sim.step(input)` (0..n
   times per frame with an accumulator) → drain events → update render/audio/ui.
+- Persistence (settings, map log) lives in the app/ui layers — never in
+  `src/sim/`. Map history is `src/app/mapLog.ts` (`seventh-gun.maplog`).
 
 ## Determinism
 
