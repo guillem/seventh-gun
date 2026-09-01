@@ -2,13 +2,20 @@
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
-import type { SimEvent, Difficulty } from '../sim/types';
+import { GEN_VERSION, type SimEvent, type Difficulty } from '../sim/types';
 import { weapon, WEAPONS } from '../sim/weapons';
 import { GameRenderer } from '../render/renderer';
 import { AudioEngine } from '../audio/audio';
 import { Hud, exploredPct } from '../ui/hud';
 import { Screens, loadSettings, saveSettings, randomSeed, type Settings } from '../ui/screens';
 import { InputManager } from './input';
+import {
+  loadMapLog,
+  prependMapLog,
+  patchLatestMapLog,
+  type MapLogEntry,
+  type MapLogOutcome,
+} from './mapLog';
 
 type Phase = 'title' | 'playing' | 'paused' | 'map' | 'dead' | 'won';
 
@@ -30,6 +37,7 @@ export class Game {
   seed = '';
   debug = false;
   freeze = false;
+  private runLog: { seed: string; difficulty: Difficulty; startedAt: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, debug: boolean) {
     this.debug = debug;
@@ -106,6 +114,12 @@ export class Game {
         this.screens.setMuteLabel(this.settings.muted);
         saveSettings(this.settings);
       },
+      openMapLog: () => this.openMapLog(),
+    });
+    this.screens.bindMapLog({
+      back: () => this.closeMapLog(),
+      play: (entry) => this.playFromLog(entry),
+      copy: (seed) => this.copySeed(seed),
     });
     this.screens.bindPause({
       resume: () => this.resume(),
@@ -176,7 +190,16 @@ export class Game {
   startRun(seed: string): void {
     this.seed = seed;
     this.sim = new Sim(seed, this.settings.difficulty);
+    const startedAt = Date.now();
+    this.runLog = { seed, difficulty: this.settings.difficulty, startedAt };
+    prependMapLog({
+      seed,
+      difficulty: this.settings.difficulty,
+      startedAt,
+      genVersion: GEN_VERSION,
+    });
     this.renderer.setRun(this.sim);
+    this.screens.showMapLog(false);
     this.screens.showTitle(false);
     this.screens.showPause(false);
     this.screens.showVictory(false, '');
@@ -191,12 +214,72 @@ export class Game {
     if (!this.input.isTouch) this.input.requestLock();
   }
 
+  private finishMapLog(outcome: MapLogOutcome): void {
+    if (!this.sim || !this.runLog) return;
+    patchLatestMapLog(this.runLog, {
+      outcome,
+      durationSec: Math.round(this.sim.time),
+      kills: this.sim.killCount,
+    });
+  }
+
+  private openMapLog(): void {
+    this.screens.showMapLog(true, loadMapLog());
+  }
+
+  private closeMapLog(): void {
+    this.screens.showMapLog(false);
+    this.screens.showTitle(true);
+  }
+
+  private playFromLog(entry: MapLogEntry): void {
+    this.settings.difficulty = entry.difficulty;
+    saveSettings(this.settings);
+    this.screens.setDifficulties(entry.difficulty, (d) => this.setDifficulty(d));
+    this.screens.seedInput.value = entry.seed;
+    this.screens.showMapLog(false);
+    this.startRun(entry.seed);
+  }
+
+  private copySeed(seed: string): void {
+    const done = () => this.screens.showToast('seed copied');
+    const fail = () => this.screens.showToast('could not copy');
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(seed).then(done, () => {
+        if (this.copySeedFallback(seed)) done();
+        else fail();
+      });
+      return;
+    }
+    if (this.copySeedFallback(seed)) done();
+    else fail();
+  }
+
+  private copySeedFallback(seed: string): boolean {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = seed;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
   private toTitle(): void {
+    this.finishMapLog('quit');
     this.phase = 'title';
     this.audio.stopLoops();
     this.screens.showPause(false);
     this.screens.showMap(false);
     this.screens.showVictory(false, '');
+    this.screens.showMapLog(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
     this.input.releaseLock();
@@ -316,7 +399,9 @@ export class Game {
   private lastPz: number | null = null;
 
   private toTitleAfterDeath(): void {
+    this.finishMapLog('died');
     this.screens.showMap(false);
+    this.screens.showMapLog(false);
     this.screens.showTouch(false);
     this.screens.showTitle(true);
     this.screens.showDeathRow(true);
@@ -326,9 +411,11 @@ export class Game {
   }
 
   private showVictory(): void {
+    this.finishMapLog('won');
     const sim = this.sim!;
     this.input.releaseLock();
     this.screens.showTouch(false);
+    this.screens.showMapLog(false);
     this.screens.showVictory(true,
       `KILLS ${sim.killCount} · HEALTH ${Math.max(0, Math.ceil(sim.player.hp))} · EXPLORED ${exploredPct(sim)}% · SEED ${this.seed}`);
     this.audio.stopLoops();

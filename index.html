@@ -86,8 +86,9 @@
     }
     button:hover { background: #454a3f; }
     button:active { transform: translateY(1px); }
-    button.big { font-size: 20px; padding: 14px 22px; background: #4a2820; border-color: #a05040; color: #ffd9c0; }
+    button.big { font-size: 20px; padding: 14px 22px; background: #4a2820; border-color: #a05040; color: #ffd9c0; min-height: 48px; }
     button.big:hover { background: #63321f; }
+    .row > button.big { flex: 1 1 140px; }
     button.small { padding: 7px 12px; font-size: 13px; }
     button.diff.active { background: #63321f; border-color: var(--accent); color: var(--accent); }
     .diff-row { display: flex; gap: 6px; flex: 1; }
@@ -101,7 +102,38 @@
     #fullmap-canvas { border: 2px solid #3a3f36; max-width: 92vw; max-height: 80vh; }
     .map-hint { color: #6e7264; font-size: 13px; margin-top: 10px; }
 
-    #toast { position: fixed; z-index: 30; }
+    #toast {
+      position: fixed; z-index: 40; pointer-events: none;
+      left: 50%; bottom: calc(72px + var(--safe-bottom)); transform: translateX(-50%);
+      background: #2c302a; border: 1px solid #565b50; color: #e8e4c8;
+      padding: 8px 16px; border-radius: 4px; letter-spacing: 0.08em; font-size: 13px;
+    }
+
+    #maplog-list {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: min(52vh, 420px); overflow-y: auto; padding-right: 2px;
+    }
+    .maplog-empty { color: #6e7264; text-align: center; padding: 18px 8px; font-size: 13px; }
+    .maplog-entry {
+      background: #11130f; border: 1px solid #565b50; border-radius: 5px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+      cursor: pointer;
+    }
+    .maplog-entry:hover { border-color: #8a8578; }
+    .maplog-meta {
+      display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px;
+    }
+    .maplog-seed { color: #ffe9a0; letter-spacing: 0.08em; }
+    .maplog-time, .maplog-skill { color: #9aa08e; }
+    .maplog-badge {
+      font-size: 11px; letter-spacing: 0.1em; padding: 2px 8px;
+      border-radius: 3px; border: 1px solid #565b50; color: #9aa08e;
+    }
+    .maplog-badge.won { color: #9ff09a; border-color: #4a8a48; }
+    .maplog-badge.died { color: #ffb0a0; border-color: #a04030; }
+    .maplog-badge.quit { color: #c8c4a0; border-color: #6a7062; }
+    .maplog-badge.open { color: #9aa08e; }
+    .maplog-warn { color: var(--accent); font-size: 11px; line-height: 1.4; }
 
     #touch-ui { position: fixed; inset: 0; z-index: 15; pointer-events: none; }
     #stick-zone {

@@ -23,8 +23,13 @@
   (floor winding, door slab axis, decal facings, seal axis); docs.
 - First version pushed to `main` at github.com/guillem/seventh-gun.
 
-## Next (ideas, not committed)
+## Map log (PR 1)
 
+Title-screen **MAP LOG**: localStorage history of maze seeds already played.
+See `docs/STATUS.md`. Campaign / editor / authored-map codec are later PRs
+(`docs/brainstorm/grok-plan.md` PRs 2–4).
+
+## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from
   `docs/GAME-DESIGN.md` numbers.
 - Perf pass on phones during the arena wave (pixel ratio / draw calls).
