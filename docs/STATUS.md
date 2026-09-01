@@ -17,8 +17,11 @@ New Maze. Desktop + phone viewports verified.
   for campaign or editor work.
 - Title chrome: **MAP LOG**, **CAMPAIGN**, **EDITOR** share one `.row`
   (`button.big`, same tap size as ENTER THE MAZE) so 390×844 still fits.
-- Suites after rebase: see below after `npm test` / `npm run test:e2e`.
-  Maze, campaign, `#m=`, and editor e2e must stay green.
+- Suites after rebase onto campaign (`79d572f`): `npm test` 73/73
+  (64 campaign + 9 editor), `npm run test:e2e` 51 passed (+3 mobile-only
+  skips), `tsc --noEmit` clean. Maze sweep unchanged. Campaign, `#m=`,
+  and editor e2e stay green. Mobile FIRE ≥44px; 390×844 title panel
+  still fits MAP LOG + CAMPAIGN + EDITOR.
 - Deploy Preview (PR #5): https://deploy-preview-5--seventh-gun.netlify.app
   — rebuilds after this rebase. Leave the PR open; do not merge.
 
