@@ -38,10 +38,10 @@ cosmetic regen.
 Title **CAMPAIGN**: seven authored maps, persistent guns/ammo, intermissions,
 continue key `seventh-gun.campaign`.
 
-## Level editor (PR 4)
+## Level editor (PR 4, merged as #5)
 
 Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
-`seventh-gun.mymaps`, URL/code/file export.
+`seventh-gun.mymaps`, URL/code/file export. On `main` as of `0295af2`.
 
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from

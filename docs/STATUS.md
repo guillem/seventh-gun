@@ -1,6 +1,6 @@
 # STATUS
 
-Updated: 2026-09-01 — PR 4 rebase onto campaign (`feat/editor` on `79d572f`).
+Updated: 2026-09-01 — editor merged to `main` (`0295af2`, PR #5).
 
 ## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign + editor
 
@@ -17,13 +17,14 @@ New Maze. Desktop + phone viewports verified.
   for campaign or editor work.
 - Title chrome: **MAP LOG**, **CAMPAIGN**, **EDITOR** share one `.row`
   (`button.big`, same tap size as ENTER THE MAZE) so 390×844 still fits.
-- Suites after rebase onto campaign (`79d572f`): `npm test` 73/73
-  (64 campaign + 9 editor), `npm run test:e2e` 51 passed (+3 mobile-only
-  skips), `tsc --noEmit` clean. Maze sweep unchanged. Campaign, `#m=`,
-  and editor e2e stay green. Mobile FIRE ≥44px; 390×844 title panel
-  still fits MAP LOG + CAMPAIGN + EDITOR.
-- Deploy Preview (PR #5): https://deploy-preview-5--seventh-gun.netlify.app
-  — rebuilds after this rebase. Leave the PR open; do not merge.
+- `main` at `0295af2` (`feat: in-browser map editor with URL export (#5)`),
+  stacked on campaign `79d572f`. Production:
+  https://seventh-gun.netlify.app
+- Suites at merge: `npm test` 73/73 (64 campaign + 9 editor),
+  `npm run test:e2e` 51 passed (+3 mobile-only skips), `tsc --noEmit`
+  clean. Maze sweep unchanged. Campaign, `#m=`, and editor e2e stay
+  green. Mobile FIRE ≥44px; 390×844 title panel still fits MAP LOG +
+  CAMPAIGN + EDITOR.
 
 ## Campaign (PR 3)
 
@@ -81,7 +82,7 @@ authors user maps in the same format.
   **SAVE TO LIBRARY**.
 - Authored / campaign / editor-playtest runs are not written to the map log.
 
-## Editor (PR 4)
+## Editor (PR 4, merged as #5)
 
 In-browser 2D author of a `MapBlueprint` (rooms + 3-wide corridor rects +
 entities). Never a raw bitmap. 88×88, `CELL=2`. Reuses PR 2
