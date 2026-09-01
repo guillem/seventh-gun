@@ -20,6 +20,8 @@ app (Game, input, debug API)
   times per frame with an accumulator) → drain events → update render/audio/ui.
 - Persistence (settings, map log) lives in the app/ui layers — never in
   `src/sim/`. Map history is `src/app/mapLog.ts` (`seventh-gun.maplog`).
+  Share URL parse/deflate/clipboard is `src/app/mapShare.ts`. The binary
+  codec itself is pure and lives in `src/sim/mapcodec.ts`.
 
 ## Determinism
 
@@ -36,6 +38,14 @@ app (Game, input, debug API)
 theme/outdoor/kind; corridors are 3-cell-wide carved rects. Dynamic solidity:
 closed doors and the arena seal (see `physics.ts: isSolidCell`). A* on the
 grid for enemy chase paths (4-dir, staggered repaths).
+
+Authored maps use three layers: `MapBlueprint` (cell-int document) →
+`compileBlueprint` (carves the 88×88 grid, expands doors, infers seal,
+places cosmetics from `cosmeticSeed` when lights/decors are absent) →
+`GameMap` (what `Sim` already consumes). `Sim.fromMap` is the second
+constructor path; maze mode still uses `new Sim(seed, difficulty)` →
+`generateMap`. Seal break is `GameMap.sealBreak` (gun N or key), not
+hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
 
 ## Rendering approach
 

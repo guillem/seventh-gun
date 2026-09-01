@@ -18,6 +18,11 @@
   no Math.random, no DOM/window/localStorage, no imports from render/ui.
 - `tests/unit/mapLog.test.ts` — prepend newest-first, cap 200 (drop oldest),
   parse missing/unknown fields, ignore quota errors via injected fake storage.
+- `tests/unit/blueprint.test.ts` — compile a tiny handmade map (connectivity,
+  spawn-safe, gun-seal / key-seal), `Sim.fromMap` determinism, easy-vs-hard
+  positions identical with different HP.
+- `tests/unit/mapcodec.test.ts` — binary round-trip including 60+ enemies,
+  maze-sized payload ≲ 2 KB, zlib deflate-raw when the body is large.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
@@ -33,7 +38,8 @@ heals, death lockout then title with Retry Seed / New Maze, win copy
 seed reproducibility (map hash), killed enemies upright when a seed is
 replayed (rig-reuse regression, checks rig `rotX` via `debugInfo`), Tab map
 open/close with fog of war, E opens a door, MAP LOG records a quit and
-PLAY replays the same seed, mobile touch HUD with ≥44px FIRE button
+PLAY replays the same seed, authored map via `startMap` / `#m=` with
+RETRY MAP + COPY LINK, mobile touch HUD with ≥44px FIRE button
 (title panel still fits 390×844 with the MAP LOG button), FIRE latches
 and unlatches.
 

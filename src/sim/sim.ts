@@ -4,7 +4,7 @@ import {
   CELL, GEN_VERSION,
 } from './types';
 import type {
-  AmmoType, Difficulty, EnemyType, GameMap, PickupDef, SimEvent,
+  AmmoType, Difficulty, EnemyType, GameMap, PickupDef, PlayerLoadout, SimEvent,
 } from './types';
 import { generateMap } from './mapgen';
 import { DIFFICULTIES } from './difficulty';
@@ -122,23 +122,35 @@ export class Sim {
   private nextProjId = 1;
   arenaRoomId: number;
 
-  constructor(seed: string, difficulty: Difficulty) {
+  constructor(
+    seed: string,
+    difficulty: Difficulty,
+    prebuilt?: GameMap,
+    fromMapOpts?: { loadout?: PlayerLoadout; rngKey?: string },
+  ) {
     this.difficulty = difficulty;
-    this.map = generateMap(seed, difficulty);
+    const authored = !!prebuilt;
+    this.map = prebuilt ?? generateMap(seed, difficulty);
     this.arenaRoomId = this.map.arenaRoomId;
     const diff = DIFFICULTIES[difficulty];
-    this.rng = makeRng(`sim|${seed}|${difficulty}|v${GEN_VERSION}`);
+    const rngKey = fromMapOpts?.rngKey ?? this.map.seed ?? 'authored';
+    this.rng = authored
+      ? makeRng(`sim|${rngKey}|${difficulty}`)
+      : makeRng(`sim|${seed}|${difficulty}|v${GEN_VERSION}`);
     this.explored = new Uint8Array(this.map.w * this.map.h);
+    const loadout = fromMapOpts?.loadout;
     this.player = {
       x: this.map.playerStart.x, z: this.map.playerStart.z,
       yaw: this.map.playerStart.yaw, pitch: 0,
       hp: 100, maxHp: 100,
-      gun: 1,
-      owned: [false, true, false, false, false, false, false, false],
-      ammo: {
-        bullets: WEAPONS[0].spawnAmmo, shells: 0, nails: 0,
-        grenades: 0, cores: 0, void: 0,
-      },
+      gun: loadout?.gun ?? 1,
+      owned: loadout?.owned?.slice() ?? [false, true, false, false, false, false, false, false],
+      ammo: loadout?.ammo
+        ? { ...loadout.ammo }
+        : {
+          bullets: WEAPONS[0].spawnAmmo, shells: 0, nails: 0,
+          grenades: 0, cores: 0, void: 0,
+        },
       fireCd: 0, dryCd: 0, bloom: 0, useCd: 0,
     };
     for (const d of this.map.doors) {
@@ -162,9 +174,19 @@ export class Sim {
         state: 'idle', timer: 0, attackCd: 0, burstLeft: 0, burstTimer: 0,
         path: null, pathIndex: 0, pathTimer: 0, noLosTime: 0,
         awakened: false, dead: false, deathTime: 0, animPhase: 0,
-        rng: makeRng(`enemy|${seed}|${e.id}|v${GEN_VERSION}`),
+        rng: makeRng(authored
+          ? `enemy|${rngKey}|${e.id}`
+          : `enemy|${seed}|${e.id}|v${GEN_VERSION}`),
       });
     }
+  }
+
+  static fromMap(
+    map: GameMap,
+    difficulty: Difficulty,
+    opts?: { loadout?: PlayerLoadout; rngKey?: string },
+  ): Sim {
+    return new Sim(map.seed || 'authored', difficulty, map, opts);
   }
 
   takeEvents(): SimEvent[] {
@@ -745,10 +767,9 @@ export class Sim {
           if (isNew) {
             p.gun = g;
             this.events.push({ t: 'pickup', kind: 'gun', label: w.name.toUpperCase() });
-            if (g === 7 && this.sealIntact) {
-              this.sealIntact = false;
-              this.events.push({ t: 'sealBreak' });
-              this.message('THE SEVENTH SPEAKS — the arena seal shatters.');
+            const sb = this.map.sealBreak;
+            if (this.sealIntact && sb?.type === 'gun' && sb.gun === g) {
+              this.breakSeal();
             }
           } else {
             this.events.push({ t: 'pickup', kind: 'ammo', label: `+${w.spawnAmmo} ${w.ammo.toUpperCase()}` });
@@ -760,9 +781,30 @@ export class Sim {
           it.taken = true;
           this.events.push({ t: 'pickup', kind: 'key', label: 'BONE KEY' });
           this.message('You took the Bone Key.');
+          if (this.sealIntact && this.map.sealBreak?.type === 'key') {
+            this.breakSeal();
+          }
           break;
         }
       }
+    }
+  }
+
+  private breakSeal() {
+    this.sealIntact = false;
+    this.events.push({ t: 'sealBreak' });
+    const custom = this.map.sealBreakMessage;
+    if (custom) {
+      this.message(custom);
+      return;
+    }
+    const sb = this.map.sealBreak;
+    if (sb?.type === 'gun' && sb.gun === 7) {
+      this.message('THE SEVENTH SPEAKS — the arena seal shatters.');
+    } else if (sb?.type === 'key') {
+      this.message('THE WARD BREAKS — the arena seal shatters.');
+    } else {
+      this.message('The arena seal shatters.');
     }
   }
 

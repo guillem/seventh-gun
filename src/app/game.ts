@@ -3,7 +3,8 @@
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
 import { GEN_VERSION, type SimEvent, type Difficulty } from '../sim/types';
-import { weapon, WEAPONS } from '../sim/weapons';
+import { compileBlueprint, mapSeedFromTitle, type MapBlueprint } from '../sim/blueprint';
+import { decodeBlueprint } from '../sim/mapcodec';
 import { GameRenderer } from '../render/renderer';
 import { AudioEngine } from '../audio/audio';
 import { Hud, exploredPct } from '../ui/hud';
@@ -16,6 +17,13 @@ import {
   type MapLogEntry,
   type MapLogOutcome,
 } from './mapLog';
+import {
+  copyText,
+  decodeShareCode,
+  encodeShareCodeSync,
+  parseMapHash,
+  shareUrlFromCode,
+} from './mapShare';
 
 type Phase = 'title' | 'playing' | 'paused' | 'map' | 'dead' | 'won';
 
@@ -37,6 +45,9 @@ export class Game {
   seed = '';
   debug = false;
   freeze = false;
+  private runKind: 'maze' | 'map' = 'maze';
+  private authoredBlueprint: MapBlueprint | null = null;
+  private shareCode: string | null = null;
   private runLog: { seed: string; difficulty: Difficulty; startedAt: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, debug: boolean) {
@@ -64,6 +75,10 @@ export class Game {
     this.screens.setSensSlider(this.settings.sensitivity);
     this.screens.setMuteLabel(this.settings.muted);
     this.screens.setDifficulties(this.settings.difficulty, (d) => this.setDifficulty(d));
+    this.screens.setRunKind('maze');
+
+    const hashCode = parseMapHash(window.location.hash);
+    if (hashCode) void this.bootFromShare(hashCode);
 
     window.addEventListener('resize', () => this.onResize());
     this.onResize();
@@ -105,8 +120,8 @@ export class Game {
   private wireUi(): void {
     this.screens.bindTitle({
       start: () => this.startRun(this.screens.seedInput.value.trim() || randomSeed()),
-      retry: () => this.startRun(this.seed),
-      newMaze: () => this.startRun(randomSeed()),
+      retry: () => this.retryCurrent(),
+      newMaze: () => this.secondaryCurrent(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       mute: () => {
         this.settings.muted = !this.settings.muted;
@@ -123,16 +138,17 @@ export class Game {
     });
     this.screens.bindPause({
       resume: () => this.resume(),
-      retry: () => this.startRun(this.seed),
-      newMaze: () => this.startRun(randomSeed()),
+      retry: () => this.retryCurrent(),
+      newMaze: () => this.secondaryCurrent(),
       quit: () => this.toTitle(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       sens: (v) => { this.settings.sensitivity = v; this.input.sensitivity = v; saveSettings(this.settings); },
     });
     this.screens.bindVictory({
-      retry: () => this.startRun(this.seed),
-      newMaze: () => this.startRun(randomSeed()),
+      retry: () => this.retryCurrent(),
+      newMaze: () => this.secondaryCurrent(),
     });
+    this.screens.bindCopyLink(() => { void this.copyShareLink(); });
     this.screens.setTouchUi({
       fire: (down) => this.input.setFire(down),
       use: () => { if (this.sim) this.sim.tryUse(); },
@@ -188,6 +204,10 @@ export class Game {
 
   // ------------------------------------------------------------------ run flow
   startRun(seed: string): void {
+    this.runKind = 'maze';
+    this.authoredBlueprint = null;
+    this.shareCode = null;
+    this.screens.setRunKind('maze');
     this.seed = seed;
     this.sim = new Sim(seed, this.settings.difficulty);
     const startedAt = Date.now();
@@ -198,6 +218,46 @@ export class Game {
       startedAt,
       genVersion: GEN_VERSION,
     });
+    this.beginPlay('Find the seven guns. The Seventh unseals the arena.');
+  }
+
+  startMap(input: MapBlueprint | string): void {
+    if (typeof input === 'string') this.startFromCode(input);
+    else this.startFromBlueprint(input);
+  }
+
+  private startFromCode(code: string): void {
+    try {
+      this.startFromBlueprint(decodeBlueprint(code), code);
+    } catch {
+      void this.bootFromShare(code);
+    }
+  }
+
+  private startFromBlueprint(bp: MapBlueprint, code?: string): void {
+    const map = compileBlueprint(bp, { seed: mapSeedFromTitle(bp.title), difficulty: this.settings.difficulty });
+    this.runKind = 'map';
+    this.authoredBlueprint = bp;
+    this.shareCode = code ?? encodeShareCodeSync(bp);
+    this.screens.setRunKind('map');
+    this.seed = map.seed;
+    this.sim = Sim.fromMap(map, this.settings.difficulty);
+    this.runLog = null;
+    this.beginPlay(map.title ?? 'Authored map.');
+  }
+
+  private async bootFromShare(code: string): Promise<void> {
+    try {
+      const bp = await decodeShareCode(code);
+      this.startFromBlueprint(bp, code);
+    } catch {
+      this.screens.showToast('could not load map');
+      this.screens.showTitle(true);
+    }
+  }
+
+  private beginPlay(message: string): void {
+    if (!this.sim) return;
     this.renderer.setRun(this.sim);
     this.screens.showMapLog(false);
     this.screens.showTitle(false);
@@ -209,9 +269,37 @@ export class Game {
     this.phase = 'playing';
     this.deathHandled = false;
     this.winHandled = false;
-    this.hud.showMessage('Find the seven guns. The Seventh unseals the arena.');
+    this.hud.showMessage(message);
     this.audio.unlock().then(() => this.audio.startAmbient());
     if (!this.input.isTouch) this.input.requestLock();
+  }
+
+  private retryCurrent(): void {
+    if (this.runKind === 'map') {
+      if (this.authoredBlueprint) this.startFromBlueprint(this.authoredBlueprint, this.shareCode ?? undefined);
+      else if (this.shareCode) this.startFromCode(this.shareCode);
+      return;
+    }
+    this.startRun(this.seed);
+  }
+
+  private secondaryCurrent(): void {
+    if (this.runKind === 'map') {
+      this.toTitle();
+      return;
+    }
+    this.startRun(randomSeed());
+  }
+
+  private async copyShareLink(): Promise<void> {
+    const code = this.shareCode;
+    if (!code) {
+      this.screens.showToast('no link');
+      return;
+    }
+    const url = shareUrlFromCode(code);
+    const ok = await copyText(url);
+    this.screens.showToast(ok ? 'link copied' : 'could not copy');
   }
 
   private finishMapLog(outcome: MapLogOutcome): void {
@@ -280,6 +368,7 @@ export class Game {
     this.screens.showMap(false);
     this.screens.showVictory(false, '');
     this.screens.showMapLog(false);
+    this.screens.showDeathRow(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
     this.input.releaseLock();
@@ -496,6 +585,7 @@ export class Game {
           pos: { x: +p.x.toFixed(2), z: +p.z.toFixed(2) },
           yaw: +p.yaw.toFixed(3),
           seed: this.seed,
+          kind: this.runKind,
           difficulty: this.settings.difficulty,
           kills: sim.killCount,
           enemiesAlive: sim.enemies.filter(e => !e.dead).length,
@@ -509,6 +599,9 @@ export class Game {
       startRun: (seed?: string, difficulty?: Difficulty) => {
         if (difficulty) this.setDifficulty(difficulty);
         this.startRun(seed ?? randomSeed());
+      },
+      startMap: (input: MapBlueprint | string) => {
+        this.startMap(input);
       },
       give: (gun: number) => { this.sim?.giveGun(gun); },
       fire: (hold = true) => { this.input.setFire(hold); },

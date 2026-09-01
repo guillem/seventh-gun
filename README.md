@@ -48,9 +48,10 @@ npm run test:e2e   # playwright: desktop + mobile projects
 npm run build      # static build -> dist/ (Netlify-ready, see netlify.toml)
 ```
 
-URL tricks: `?seed=anything` starts a specific seed; `?e2e=1` exposes the
+URL tricks: `?seed=anything` pre-fills a maze seed; `#m=SGMAP.v1.…` loads an
+authored map (hash, not query; wins over `?seed=`); `?e2e=1` exposes the
 `window.__GAME__` debug API used by the test suite (not present in normal
-play).
+play). `#m=` maps offer RETRY MAP / TITLE / COPY LINK instead of a new maze.
 
 ## Under the hood
 

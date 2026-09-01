@@ -15,7 +15,10 @@ Single source of truth: `src/sim/weapons.ts`, `src/sim/enemyTypes.ts`,
   3–4 loot spurs + up to 2 alternate links. 2–3 doors, ≤1 locked (vault spur
   only — the arena is never key-gated). 2–3 courtyards. 55–75 enemies.
   Guns 2–6 spaced along the route (BFS order, strictly increasing), gun 7 in
-  the antechamber; picking it up shatters the arena seal.
+  the antechamber; picking it up shatters the arena seal
+  (`sealBreak: { type:'gun', gun:7 }`). Authored / URL maps may unseal with
+  a different gun or the Bone Key; they do not re-roll enemy counts from
+  difficulty.
 
 ## The seven guns (Normal base damage; outgoing scaled by difficulty)
 

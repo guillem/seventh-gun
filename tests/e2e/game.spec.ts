@@ -2,8 +2,13 @@
 // difficulty, seed reproducibility. Drives the ?e2e=1 debug API instead of
 // pointer lock (synthetic mousemove pointer-lock is flaky by design).
 import { test, expect } from '@playwright/test';
+import { encodeBlueprint } from '../../src/sim/mapcodec';
+import { stripCosmetics } from '../../src/sim/blueprint';
+import { tinyGunSealBlueprint } from '../helpers/authoredMaps';
 
 const BASE = '/?e2e=1';
+const TINY_BP = tinyGunSealBlueprint();
+const TINY_CODE = encodeBlueprint(stripCosmetics(TINY_BP));
 
 test.describe('desktop', () => {
   test('boots to title and starts a run', async ({ page }) => {
@@ -266,6 +271,69 @@ test.describe('desktop', () => {
       return 'used';
     });
     expect(['used', 'no-door']).toContain(opened);
+  });
+
+  test('authored map via startMap: play, RETRY MAP, COPY LINK', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, TINY_BP);
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string; kind?: string } } }).__GAME__?.state();
+      return s?.phase === 'playing' && s.kind === 'map';
+    });
+    await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: { warpTo: (t: string) => void; step: (n: number) => void; clearArena: () => void };
+      }).__GAME__;
+      G.warpTo('gun2');
+      G.step(10);
+      G.warpTo('arena');
+      G.clearArena();
+      G.step(240);
+    });
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('GAME OVER')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'TITLE' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'COPY LINK' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'NEW MAZE' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'COPY LINK' }).click();
+    await expect(page.locator('#toast')).toContainText('copied');
+    await page.getByRole('button', { name: 'RETRY MAP' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string; kind?: string } } }).__GAME__?.state();
+      return s?.phase === 'playing' && s.kind === 'map';
+    });
+  });
+
+  test('opens an authored map from #m= share hash', async ({ page }) => {
+    await page.goto(`/?e2e=1#m=${TINY_CODE}`);
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string; kind?: string } } }).__GAME__?.state();
+      return s?.phase === 'playing' && s.kind === 'map';
+    }, null, { timeout: 10000 });
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { kind: string; sealIntact: boolean } } }).__GAME__.state());
+    expect(state.kind).toBe('map');
+    expect(state.sealIntact).toBe(true);
+  });
+
+  test('authored-map death offers RETRY MAP / TITLE, not a new maze', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, TINY_BP);
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { killPlayer: () => void } }).__GAME__.killPlayer());
+    await page.waitForTimeout(2400);
+    await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'TITLE' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'COPY LINK' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'RETRY SEED' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'NEW MAZE' })).toHaveCount(0);
   });
 });
 

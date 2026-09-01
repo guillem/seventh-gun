@@ -6,3 +6,6 @@ export * from './enemyTypes';
 export * from './mapgen';
 export * from './physics';
 export * from './sim';
+export * from './cosmetics';
+export * from './blueprint';
+export * from './mapcodec';
