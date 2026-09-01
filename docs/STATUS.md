@@ -19,7 +19,8 @@ New Maze. Desktop + phone viewports verified.
   (`button.big`, same tap size as ENTER THE MAZE) so 390×844 still fits.
 - Suites after rebase: see below after `npm test` / `npm run test:e2e`.
   Maze, campaign, `#m=`, and editor e2e must stay green.
-- PR #5 stays open; do not merge from this agent.
+- Deploy Preview (PR #5): https://deploy-preview-5--seventh-gun.netlify.app
+  — rebuilds after this rebase. Leave the PR open; do not merge.
 
 ## Campaign (PR 3)
 
