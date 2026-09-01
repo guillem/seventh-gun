@@ -36,8 +36,12 @@ cosmetic regen.
 ## Campaign (PR 3)
 
 Title **CAMPAIGN**: seven authored maps, persistent guns/ammo, intermissions,
-continue key `seventh-gun.campaign`. Editor is a later PR
-(`docs/brainstorm/grok-plan.md` PR 4).
+continue key `seventh-gun.campaign`.
+
+## Level editor (PR 4)
+
+Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
+`seventh-gun.mymaps`, URL/code/file export.
 
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from

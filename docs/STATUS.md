@@ -1,9 +1,8 @@
 # STATUS
 
-Updated: 2026-09-01 — PR 3: seven-map campaign with persistent guns
-(`feat/campaign`).
+Updated: 2026-09-01 — PR 4 rebase onto campaign (`feat/editor` on `79d572f`).
 
-## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign
+## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign + editor
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -15,25 +14,21 @@ New Maze. Desktop + phone viewports verified.
 - Netlify: LIVE at https://seventh-gun.netlify.app — repo linked, deployment
   current. Local folder linked via `netlify link` (`.netlify/` is gitignored).
 - Maze `generateMap` is unchanged (`GEN_VERSION` still 4). Do not bump it
-  for campaign work.
-- Suites this PR: `npm test` 64/64 (was 54; +10 campaign), `npm run test:e2e`
-  45 passed (+3 mobile-only skips), `tsc --noEmit` clean. Existing maze and
-  `#m=` e2e stay green. Mobile FIRE ≥44px; 390×844 title panel still fits
-  with CAMPAIGN + MAP LOG in one `.row`.
-- Each map was played via `?e2e=1` + `startCampaign(n)` (walk, warp
-  ante/arena, `completeMap`): guns award in order, map 6 is key-only,
-  map 7 shows THE SEVENTH IS SILENT.
-- Deploy Preview (PR #6): https://deploy-preview-6--seventh-gun.netlify.app
-  — title CAMPAIGN + MAP LOG visible, BEGIN starts map 1 (no runtime
-  errors), `?e2e=1` `startCampaign(5)` reaches THE SPIRE with guns 1–5,
-  390×844 panel 390×353 at y=285 (fits). Leave the PR open; do not merge
-  from this agent.
+  for campaign or editor work.
+- Title chrome: **MAP LOG**, **CAMPAIGN**, **EDITOR** share one `.row`
+  (`button.big`, same tap size as ENTER THE MAZE) so 390×844 still fits.
+- Suites after rebase onto campaign (`79d572f`): `npm test` 73/73
+  (64 campaign + 9 editor), `npm run test:e2e` 51 passed (+3 mobile-only
+  skips), `tsc --noEmit` clean. Maze sweep unchanged. Campaign, `#m=`,
+  and editor e2e stay green. Mobile FIRE ≥44px; 390×844 title panel
+  still fits MAP LOG + CAMPAIGN + EDITOR.
+- Deploy Preview (PR #5): https://deploy-preview-5--seventh-gun.netlify.app
+  — rebuilds after this rebase. Leave the PR open; do not merge.
 
 ## Campaign (PR 3)
 
-Title **CAMPAIGN** (same `button.big` tap size as **ENTER THE MAZE**,
-sharing a `.row` with **MAP LOG** so 390×844 still fits). Seven authored
-maps compiled from JSON DSL at module load (`src/campaign/`).
+Title **CAMPAIGN** (same `button.big` tap size as **ENTER THE MAZE**).
+Seven authored maps compiled from JSON DSL at module load (`src/campaign/`).
 
 - Persistence: `src/app/campaignProgress.ts`, localStorage key
   `seventh-gun.campaign`. Record
@@ -72,22 +67,57 @@ maps compiled from JSON DSL at module load (`src/campaign/`).
 
 ## Authored maps (PR 2)
 
-- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`.
-- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, `#m=` hash URLs.
+Shareable compact maps. Campaign ships baked blueprints; the editor
+authors user maps in the same format.
+
+- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`. Sim consumes
+  `GameMap` only. Maze `generateMap(seed)` is unchanged (`GEN_VERSION` still 4).
+- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, version `MAP_CODEC_VERSION = 1`.
+  Share URLs: `https://<origin>/#m=SGMAP.v1.<payload>` (hash, not query).
+  `#m=` wins over `?seed=`. Cosmetics (lights/decors) are stripped from share
+  URLs and regenerated via `placeCosmetics(makeRng('cos|' + cosmeticSeed))`.
 - `Sim.fromMap(map, difficulty, opts?)`. Difficulty only scales combat.
+- Victory/death for a URL map: **RETRY MAP** / **TITLE** + **COPY LINK** +
+  **SAVE TO LIBRARY**.
+- Authored / campaign / editor-playtest runs are not written to the map log.
+
+## Editor (PR 4)
+
+In-browser 2D author of a `MapBlueprint` (rooms + 3-wide corridor rects +
+entities). Never a raw bitmap. 88×88, `CELL=2`. Reuses PR 2
+`compileBlueprint` / `mapcodec` / `mapShare`.
+
+- Title **EDITOR** (same `button.big` tap size, shared `.row` with MAP LOG
+  and CAMPAIGN). `?edit=1` also opens it. `#m=` still wins on boot.
+- Tools: room stamp, corridor (3-wide rect or click two rooms to L-link),
+  erase (will not orphan the only start), door, seal override (else inferred),
+  entity stamps (enemies, medikit, ammo, gun 2–7, key, player start),
+  seal-break picker, title, cosmetic seed + RND (preview dots, not painted).
+- PLAYTEST = compile + `Sim.fromMap` (fresh pistol unless “start with all
+  guns”). Esc returns to the editor. TITLE abandons to the title screen.
+  Playtest is not written to the map log. Pointer lock matches maze;
+  the 2D editor never requests it.
+- Persistence: localStorage `seventh-gun.mymaps`,
+  `{ id, title, savedAt, code }`, cap 40. SAVE / LIBRARY / LOAD.
+- Export: COPY LINK (`origin/#m=` + encode(stripCosmetics)), COPY CODE
+  `SGMAP.v1.…`, DOWNLOAD `title.sgmap`. Import: paste code or drop `.sgmap`.
+- Received URL maps can **SAVE TO LIBRARY** from pause / victory / death.
+- Validate runs PR 2 validators; errors block PLAYTEST/EXPORT; economy
+  warning (2.2×) does not.
+- Files: `src/editor/model.ts` (pure), `src/editor/view.ts` (canvas+DOM),
+  `src/editor/library.ts`. Debug (`?e2e=1`): `loadBlueprint`, `openEditor`.
 
 ## Open / next
 
-- PR 4 from `docs/brainstorm/grok-plan.md` (editor). Rebase onto this
-  campaign branch after merge; shared UI (`screens.ts`, `game.ts`,
-  `index.html`) only gained a CAMPAIGN button / panels — MAP LOG was not
-  rewritten and EDITOR was not invented.
 - Balance still wants a human Normal run against the maze 20–30 min target.
+- Optional: CI workflow running both suites per PR; phone perf check
+  during the arena wave.
 
 ## Where things are
 
 - Balance numbers: `src/sim/{weapons,enemyTypes,difficulty}.ts` + GAME-DESIGN.md
 - Generator: `src/sim/mapgen.ts` (bump `GEN_VERSION` on any change)
 - Campaign: `src/campaign/` + `src/app/campaignProgress.ts`
-- Map log: `src/app/mapLog.ts`
+- Map log: `src/app/mapLog.ts` + title wiring in `src/ui/screens.ts` / `src/app/game.ts`
+- Editor: `src/editor/{model,view,library}.ts` — title EDITOR / `?edit=1`
 - Debug API: `src/app/game.ts getDebugApi()` — `?e2e=1` only

@@ -51,10 +51,13 @@ npm run build      # static build -> dist/ (Netlify-ready, see netlify.toml)
 ```
 
 URL tricks: `?seed=anything` pre-fills a maze seed; `#m=SGMAP.v1.…` loads an
-authored map (hash, not query; wins over `?seed=`); `?e2e=1` exposes the
-`window.__GAME__` debug API used by the test suite (not present in normal
-play). `#m=` maps offer RETRY MAP / TITLE / COPY LINK instead of a new maze.
-Campaign debug: `startCampaign(n)`, `completeMap()`, `campaign`.
+authored map (hash, not query; wins over `?seed=`); `?edit=1` opens the
+level editor; `?e2e=1` exposes the `window.__GAME__` debug API used by the
+test suite (not present in normal play). `#m=` maps offer RETRY MAP / TITLE
+/ COPY LINK / SAVE TO LIBRARY instead of a new maze. Title **CAMPAIGN**
+is seven authored maps with persistent guns; **EDITOR** authors a
+shareable map (library in this browser only). Campaign debug:
+`startCampaign(n)`, `completeMap()`, `campaign`.
 
 ## Under the hood
 

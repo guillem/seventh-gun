@@ -28,8 +28,16 @@ import { CAMPAIGN, campaignMap, snapshotLoadout } from '../campaign/index';
 import {
   canContinue, loadCampaignProgress, saveCampaignProgress,
 } from './campaignProgress';
+import { EditorView } from '../editor/view';
+import { upsertLibrary } from '../editor/library';
 
-type Phase = 'title' | 'playing' | 'paused' | 'map' | 'dead' | 'won';
+type Phase = 'title' | 'playing' | 'paused' | 'map' | 'dead' | 'won' | 'editing';
+
+const ALL_GUNS_LOADOUT: PlayerLoadout = {
+  owned: [false, true, true, true, true, true, true, true],
+  gun: 1,
+  ammo: { bullets: 70, shells: 16, nails: 70, grenades: 8, cores: 10, void: 5 },
+};
 
 export class Game {
   private renderer: GameRenderer;
@@ -55,6 +63,9 @@ export class Game {
   private runLog: { seed: string; difficulty: Difficulty; startedAt: number } | null = null;
   private campaignIndex = 1;
   private entryLoadout: PlayerLoadout | null = null;
+  private editor: EditorView | null = null;
+  private fromEditor = false;
+  private playtestAllGuns = false;
 
   constructor(canvas: HTMLCanvasElement, debug: boolean) {
     this.debug = debug;
@@ -85,6 +96,7 @@ export class Game {
 
     const hashCode = parseMapHash(window.location.hash);
     if (hashCode) void this.bootFromShare(hashCode);
+    else if (url.searchParams.has('edit')) this.openEditor();
 
     window.addEventListener('resize', () => this.onResize());
     this.onResize();
@@ -145,6 +157,7 @@ export class Game {
     });
     this.screens.bindIntermission(() => this.continueFromIntermission());
     this.screens.bindCampaignWin(() => this.toTitle());
+    this.screens.bindEditor(() => this.openEditor());
     this.screens.bindMapLog({
       back: () => this.closeMapLog(),
       play: (entry) => this.playFromLog(entry),
@@ -163,6 +176,8 @@ export class Game {
       newMaze: () => this.secondaryCurrent(),
     });
     this.screens.bindCopyLink(() => { void this.copyShareLink(); });
+    this.screens.bindSaveLibrary(() => this.saveAuthoredToLibrary());
+    this.screens.bindBackToEditor(() => this.returnToEditor());
     this.screens.setTouchUi({
       fire: (down) => this.input.setFire(down),
       use: () => { if (this.sim) this.sim.tryUse(); },
@@ -179,16 +194,27 @@ export class Game {
     this.input.setCallbacks({
       onPointerLockChange: () => {
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
-          // Esc or click-out releases the lock -> pause
-          this.togglePause();
+          // First Esc is consumed by the browser to exit pointer lock (no keydown).
+          // Playtest returns to the editor; maze pauses.
+          if (this.fromEditor) this.returnToEditor();
+          else this.togglePause();
         }
       },
       onPauseToggle: () => {
+        if (this.phase === 'editing') return;
+        if (this.phase === 'playing' && this.fromEditor) {
+          this.returnToEditor();
+          return;
+        }
         if (this.phase === 'playing') this.togglePause();
-        else if (this.phase === 'paused') this.resume();
+        else if (this.phase === 'paused') {
+          if (this.fromEditor) this.returnToEditor();
+          else this.resume();
+        }
         else if (this.phase === 'map') this.toggleMap(false);
       },
       onMapToggle: () => {
+        if (this.phase === 'editing') return;
         if (this.phase === 'playing') this.toggleMap(true);
         else if (this.phase === 'map') this.toggleMap(false);
       },
@@ -222,7 +248,11 @@ export class Game {
     this.authoredBlueprint = null;
     this.shareCode = null;
     this.entryLoadout = null;
+    this.fromEditor = false;
+    this.playtestAllGuns = false;
+    this.editor?.hide();
     this.screens.setRunKind('maze');
+    this.screens.setPlaytestMode(false);
     this.seed = seed;
     this.sim = new Sim(seed, this.settings.difficulty);
     const startedAt = Date.now();
@@ -249,14 +279,18 @@ export class Game {
     }
   }
 
-  private startFromBlueprint(bp: MapBlueprint, code?: string): void {
+  private startFromBlueprint(bp: MapBlueprint, code?: string, opts?: { playtest?: boolean; allGuns?: boolean }): void {
     const map = compileBlueprint(bp, { seed: mapSeedFromTitle(bp.title), difficulty: this.settings.difficulty });
     this.runKind = 'map';
     this.authoredBlueprint = bp;
     this.shareCode = code ?? encodeShareCodeSync(bp);
+    this.fromEditor = !!opts?.playtest;
+    this.playtestAllGuns = !!opts?.allGuns;
     this.screens.setRunKind('map');
+    this.screens.setPlaytestMode(this.fromEditor);
     this.seed = map.seed;
-    this.sim = Sim.fromMap(map, this.settings.difficulty);
+    const loadout = opts?.allGuns ? ALL_GUNS_LOADOUT : undefined;
+    this.sim = Sim.fromMap(map, this.settings.difficulty, loadout ? { loadout } : undefined);
     this.runLog = null;
     this.beginPlay(map.title ?? 'Authored map.');
   }
@@ -274,6 +308,7 @@ export class Game {
   private beginPlay(message: string): void {
     if (!this.sim) return;
     this.renderer.setRun(this.sim);
+    this.editor?.hide();
     this.screens.showMapLog(false);
     this.screens.showCampaign(false);
     this.screens.showIntermission(false);
@@ -284,6 +319,7 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showMap(false);
     this.screens.showTouch(this.input.isTouch);
+    if (this.miniCanvas) this.miniCanvas.style.display = '';
     this.phase = 'playing';
     this.deathHandled = false;
     this.winHandled = false;
@@ -298,8 +334,12 @@ export class Game {
       return;
     }
     if (this.runKind === 'map') {
-      if (this.authoredBlueprint) this.startFromBlueprint(this.authoredBlueprint, this.shareCode ?? undefined);
-      else if (this.shareCode) this.startFromCode(this.shareCode);
+      if (this.authoredBlueprint) {
+        this.startFromBlueprint(this.authoredBlueprint, this.shareCode ?? undefined, {
+          playtest: this.fromEditor,
+          allGuns: this.playtestAllGuns,
+        });
+      } else if (this.shareCode) this.startFromCode(this.shareCode);
       return;
     }
     this.startRun(this.seed);
@@ -388,6 +428,10 @@ export class Game {
     this.authoredBlueprint = null;
     this.shareCode = null;
     this.runLog = null;
+    this.fromEditor = false;
+    this.playtestAllGuns = false;
+    this.editor?.hide();
+    this.screens.setPlaytestMode(false);
     this.campaignIndex = cm.index;
     this.entryLoadout = snapshotLoadout(loadout);
     this.screens.setRunKind('campaign');
@@ -526,6 +570,10 @@ export class Game {
 
   private toTitle(): void {
     this.finishMapLog('quit');
+    this.fromEditor = false;
+    this.playtestAllGuns = false;
+    this.screens.setPlaytestMode(false);
+    this.editor?.hide();
     this.phase = 'title';
     this.audio.stopLoops();
     this.screens.showPause(false);
@@ -538,7 +586,66 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
+    if (this.miniCanvas) this.miniCanvas.style.display = '';
     this.input.releaseLock();
+  }
+
+  private ensureEditor(): EditorView {
+    if (!this.editor) {
+      this.editor = new EditorView();
+      this.editor.bind({
+        playtest: (bp, allGuns) => this.startFromBlueprint(bp, undefined, { playtest: true, allGuns }),
+        toTitle: () => this.toTitle(),
+        toast: (msg) => this.screens.showToast(msg),
+        copyText,
+      });
+    }
+    return this.editor;
+  }
+
+  private openEditor(): void {
+    const ed = this.ensureEditor();
+    this.phase = 'editing';
+    this.screens.showTitle(false);
+    this.screens.showMapLog(false);
+    this.screens.showCampaign(false);
+    this.screens.showIntermission(false);
+    this.screens.showCampaignWin(false);
+    this.screens.showPause(false);
+    this.screens.showVictory(false, '');
+    this.screens.showDeathRow(false);
+    this.screens.showMap(false);
+    this.screens.showTouch(false);
+    if (this.miniCanvas) this.miniCanvas.style.display = 'none';
+    this.input.releaseLock();
+    ed.show();
+  }
+
+  private returnToEditor(): void {
+    this.fromEditor = false;
+    this.screens.setPlaytestMode(false);
+    this.audio.stopLoops();
+    this.screens.showPause(false);
+    this.screens.showVictory(false, '');
+    this.screens.showMap(false);
+    this.screens.showDeathRow(false);
+    this.screens.showTouch(false);
+    this.input.releaseLock();
+    this.openEditor();
+  }
+
+  private saveAuthoredToLibrary(): void {
+    if (!this.authoredBlueprint) {
+      this.screens.showToast('no map');
+      return;
+    }
+    try {
+      const code = this.shareCode ?? encodeShareCodeSync(this.authoredBlueprint);
+      upsertLibrary({ title: this.authoredBlueprint.title ?? 'UNTITLED', code });
+      this.screens.showToast('saved');
+    } catch {
+      this.screens.showToast('could not save');
+    }
   }
 
   private togglePause(): void {
@@ -643,8 +750,10 @@ export class Game {
     this.lastPx = sim.player.x; this.lastPz = sim.player.z;
 
     this.renderer.update(dtReal, sim, moving);
-    this.hud.draw(sim, { fullMapOpen: this.phase === 'map', paused: this.phase === 'paused' });
-    if (this.miniCanvas && this.phase !== 'title') {
+    if (this.phase !== 'editing') {
+      this.hud.draw(sim, { fullMapOpen: this.phase === 'map', paused: this.phase === 'paused' });
+    }
+    if (this.miniCanvas && this.phase !== 'title' && this.phase !== 'editing') {
       this.hud.drawMinimap(sim, 0, false);
     }
     if (this.phase === 'map') {
@@ -663,9 +772,15 @@ export class Game {
     this.screens.showIntermission(false);
     this.screens.showCampaignWin(false);
     this.screens.showTouch(false);
-    this.screens.showTitle(true);
-    this.screens.showDeathRow(true);
-    this.screens.seedInput.value = this.seed;
+    if (this.fromEditor) {
+      this.screens.showTitle(true);
+      this.screens.showDeathRow(true);
+      this.screens.setPlaytestMode(true);
+    } else {
+      this.screens.showTitle(true);
+      this.screens.showDeathRow(true);
+      this.screens.seedInput.value = this.seed;
+    }
     this.input.releaseLock();
     this.audio.stopLoops();
   }
@@ -743,6 +858,14 @@ export class Game {
     return {
       version: '1',
       state: () => {
+        if (this.phase === 'editing') {
+          const bp = this.editor?.getBlueprint();
+          return {
+            phase: 'editing',
+            title: bp?.title ?? '',
+            rooms: bp?.rooms.length ?? 0,
+          };
+        }
         const sim = this.sim;
         if (!sim) return { phase: 'title' };
         const p = sim.player;
@@ -793,6 +916,11 @@ export class Game {
           owned: this.sim ? this.sim.player.owned.slice(1, 8) : [],
         };
       },
+      loadBlueprint: (bp: MapBlueprint) => {
+        this.ensureEditor().loadBlueprint(bp);
+        this.openEditor();
+      },
+      openEditor: () => this.openEditor(),
       give: (gun: number) => { this.sim?.giveGun(gun); },
       fire: (hold = true) => { this.input.setFire(hold); },
       inputKey: (code: string, down: boolean) => {
