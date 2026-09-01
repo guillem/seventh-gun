@@ -17,14 +17,12 @@ New Maze. Desktop + phone viewports verified.
   browser: boots to title, UI start works, HUD/minimap render, `?seed=`
   pre-fills, zero runtime errors, `__GAME__` debug API absent in production.
   Local folder linked via `netlify link` (`.netlify/` is gitignored).
-- Suites this PR: `npm test` 42/42 (was 35; +7 map log), `npm run test:e2e`
-  28 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
-  Browser-checked: title MAP LOG under ENTER THE MAZE, quit records QUIT,
-  PLAY starts the same seed; 390×844 title panel still fits.
-- Deploy Preview (PR #3): https://deploy-preview-3--seventh-gun.netlify.app
-  — verified in a real browser: title has MAP LOG, quit records QUIT,
-  PLAY starts `preview-log`, mobile 390×844 panel fits. Production URL
-  is unchanged until this merges.
+- Suites this PR: `npm test` 54/54 (was 42; +12 codec/fromMap), `npm run test:e2e`
+  34 passed (+2 mobile-only skips), `tsc --noEmit` clean, `vite build` clean.
+  Maze 300-seed sweep unchanged. Authored-map e2e: `startMap` / `#m=` play,
+  RETRY MAP, COPY LINK; mobile FIRE ≥44px and 390×844 title panel still fit.
+- Deploy Preview (PR #4): wait for Netlify on
+  https://github.com/guillem/seventh-gun/pull/4 — do not merge until verified.
 
 ## Verified this session (final pass)
 
