@@ -25,7 +25,9 @@
     { "id": "ileum", "x": 40, "z": 52, "w": 12, "h": 9, "kind": "spine" },
     { "id": "cyst-low", "x": 42, "z": 68, "w": 8, "h": 7, "kind": "spur" },
     { "id": "ante", "x": 62, "z": 52, "w": 8, "h": 7, "kind": "antechamber", "theme": "tech" },
-    { "id": "arena", "x": 59, "z": 34, "w": 14, "h": 12, "kind": "arena", "theme": "tech" }
+    { "id": "arena", "x": 59, "z": 34, "w": 14, "h": 12, "kind": "arena", "theme": "tech" },
+    { "id": "s-crop-blister", "x": 18, "z": 23, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-ileum-ganglion", "x": 42, "z": 45, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "maw" },
@@ -38,7 +40,13 @@
     { "from": "pylorus", "to": "ileum" },
     { "from": "ileum", "to": "cyst-low" },
     { "from": "ileum", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "crop", "to": "s-crop-blister" },
+    { "from": "ileum", "to": "s-ileum-ganglion" }
+  ],
+  "secrets": [
+    { "room": "s-crop-blister", "parent": "crop", "kind": "plate-shoot" },
+    { "room": "s-ileum-ganglion", "parent": "ileum", "kind": "remote-shoot", "trigger": { "x": 48, "z": 61 } }
   ],
   "doors": [{ "room": "maw" }, { "room": "coil" }, { "room": "pylorus" }],
   "guns": [{ "gun": 3, "room": "ante", "x": 65, "z": 55 }],
@@ -55,7 +63,12 @@
     { "kind": "medikit", "room": "pylorus" },
     { "kind": "ammo", "ammoType": "bullets", "room": "ileum" },
     { "kind": "medikit", "room": "cyst-low" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-crop-blister" },
+    { "kind": "ammo", "ammoType": "shells", "room": "s-crop-blister" },
+    { "kind": "medikit", "room": "s-ileum-ganglion", "n": 2 },
+    { "kind": "ammo", "ammoType": "shells", "room": "s-ileum-ganglion" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "s-ileum-ganglion" }
   ],
   "enemies": [
     { "type": "husk", "room": "maw", "n": 2 },
@@ -75,6 +88,9 @@
     { "type": "crawler", "room": "cyst-low", "n": 2 },
     { "type": "slab", "room": "arena", "n": 1 },
     { "type": "crawler", "room": "arena", "n": 4 },
-    { "type": "husk", "room": "arena", "n": 2 }
+    { "type": "husk", "room": "arena", "n": 2 },
+    { "type": "crawler", "room": "s-crop-blister", "n": 3 },
+    { "type": "husk", "room": "s-ileum-ganglion", "n": 2 },
+    { "type": "crawler", "room": "s-ileum-ganglion", "n": 2 }
   ]
 }

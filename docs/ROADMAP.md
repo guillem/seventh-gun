@@ -74,3 +74,8 @@ real XZ-circle × Y-slab volume so look-down shots on a close crawler connect.
   running `npm test` + `npm run test:e2e` per PR.
 - Cosmetic depth: per-theme ambience layers, more decoration variety,
   intermission text between gun finds.
+
+## Secrets v1 (campaign)
+
+15 authored pockets, four plate/remote kinds, WARD/WRATH/SEVENFOLD
+powerups, fog leak closed. Maze mode unchanged (`GEN_VERSION` 4).

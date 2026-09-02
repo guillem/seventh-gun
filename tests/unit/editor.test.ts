@@ -98,6 +98,41 @@ describe('editor model', () => {
     expect([...round.grid]).toEqual([...map.grid]);
   });
 
+  it('secret room + powerup encode/decode/compile round-trip', () => {
+    const doc = new EditorDoc();
+    stampTiny(doc);
+    const arena = doc.bp.rooms.find(r => r.kind === 'arena')!;
+    const secret = doc.stampRoom({ x: 60, z: 18, w: 7, h: 6, kind: 'secret', theme: 'industrial' })!;
+    doc.linkRooms(arena.id, secret.id);
+    doc.bp.secrets = [{
+      kind: 'plate-use',
+      cx: secret.x - 1, cz: secret.z + 2, axis: 'x',
+      roomId: secret.id,
+      name: 's-test-cache',
+    }];
+    expect(doc.stampPickup({ kind: 'powerup', powerup: 'ward', x: secret.x + 3, z: secret.z + 2 })).toBe(true);
+    expect(doc.stampEnemy('husk', secret.x + 2, secret.z + 2)).toBe(true);
+    expect(doc.stampEnemy('husk', secret.x + 4, secret.z + 3)).toBe(true);
+
+    const map = doc.compile();
+    expect(map.rooms.some(r => r.kind === 'secret')).toBe(true);
+    expect(map.secrets).toHaveLength(1);
+    expect(map.secrets[0].cells).toHaveLength(3);
+    expect(map.pickups.some(p => p.kind === 'powerup' && p.powerup === 'ward')).toBe(true);
+
+    const code = doc.encode();
+    expect(code.startsWith('SGMAP.v1.')).toBe(true);
+    const decoded = decodeBlueprint(code);
+    expect(decoded.rooms.some(r => r.kind === 'secret')).toBe(true);
+    expect(decoded.secrets).toHaveLength(1);
+    expect(decoded.pickups.some(p => p.kind === 'powerup' && p.powerup === 'ward')).toBe(true);
+    expect(validateBlueprint(decoded)).toEqual([]);
+    const again = compileBlueprint(decoded);
+    expect(again.secrets).toHaveLength(1);
+    expect(again.pickups.some(p => p.kind === 'powerup' && p.powerup === 'ward')).toBe(true);
+    expect([...again.grid]).toEqual([...map.grid]);
+  });
+
   it('click-two-rooms corridor matches L-link legs', () => {
     const doc = new EditorDoc();
     const a = doc.stampRoom({ x: 4, z: 20, w: 7, h: 7, kind: 'start' })!;

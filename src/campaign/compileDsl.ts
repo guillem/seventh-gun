@@ -2,13 +2,13 @@
 import {
   compileBlueprint, expandDoorCells,
   type MapBlueprint, type BlueprintCorridor, type BlueprintDoor,
-  type BlueprintEnemy, type BlueprintPickup, type BlueprintRoom,
+  type BlueprintEnemy, type BlueprintPickup, type BlueprintRoom, type BlueprintSecret,
 } from '../sim/blueprint';
 import { placeCosmetics } from '../sim/cosmetics';
 import { makeRng } from '../sim/rng';
 import { CELL, GRID_W, GRID_H, ECONOMY_FLOOR, cellToWorld } from '../sim/types';
 import type {
-  AmmoType, Difficulty, EnemyType, GameMap, PlayerLoadout, Room, SealBreak, Theme,
+  AmmoType, Difficulty, EnemyType, GameMap, PlayerLoadout, PowerupKind, Room, SealBreak, SecretKind, Theme,
 } from '../sim/types';
 import { ENEMIES } from '../sim/enemyTypes';
 import { WEAPONS, weapon } from '../sim/weapons';
@@ -40,10 +40,11 @@ export interface CampaignGunDsl {
 }
 
 export interface CampaignPickupDsl {
-  kind: 'medikit' | 'ammo' | 'key';
+  kind: 'medikit' | 'ammo' | 'key' | 'powerup';
   room: string;
   ammoType?: AmmoType;
   amount?: number;
+  powerup?: PowerupKind;
   n?: number;
   x?: number;
   z?: number;
@@ -56,6 +57,14 @@ export interface CampaignEnemyDsl {
   x?: number;
   z?: number;
   yaw?: number;
+}
+
+export interface CampaignSecretDsl {
+  room: string;
+  parent: string;
+  kind: SecretKind;
+  trigger?: { x: number; z: number };
+  hp?: number;
 }
 
 export interface CampaignDsl {
@@ -77,12 +86,29 @@ export interface CampaignDsl {
   guns?: CampaignGunDsl[];
   pickups?: CampaignPickupDsl[];
   enemies: CampaignEnemyDsl[];
+  secrets?: CampaignSecretDsl[];
   playerStart?: { x: number; z: number; yaw: number };
 }
 
 const EMPTY_AMMO: Record<AmmoType, number> = {
   bullets: 0, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0,
 };
+
+const SECRET_LIGHT_COLOR: Record<Theme, [number, number, number]> = {
+  industrial: [1.0, 0.75, 0.45],
+  organic: [1.0, 0.35, 0.4],
+  stone: [0.7, 0.85, 0.8],
+  tech: [0.5, 0.9, 1.0],
+};
+
+function toSimRooms(rooms: BlueprintRoom[]): Room[] {
+  return rooms.map(r => ({
+    id: r.id, x: r.x, z: r.z, w: r.w, h: r.h,
+    cx: (r.x + r.w / 2) * CELL,
+    cz: (r.z + r.h / 2) * CELL,
+    theme: r.theme, outdoor: r.outdoor, kind: r.kind, routeDist: 0,
+  }));
+}
 
 function cellKey(x: number, z: number): number {
   return z * GRID_W + x;
@@ -277,6 +303,7 @@ export function campaignEconomy(dsl: CampaignDsl, map: GameMap): {
 
   const ammo = { ...referenceLoadout(dsl).ammo };
   for (const p of map.pickups) {
+    if (p.kind === 'powerup') continue;
     if (p.kind === 'ammo' && p.ammoType) {
       const w = WEAPONS.find(g => g.ammo === p.ammoType);
       ammo[p.ammoType] += p.amount ?? w?.boxAmmo ?? 0;
@@ -324,13 +351,24 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
     outdoor: !!r.outdoor,
   }));
   const byName = new Map(roomsDsl.map((r, i) => [r.id, rooms[i]]));
+  const secretNames = new Set(roomsDsl.filter(r => r.kind === 'secret').map(r => r.id));
 
-  const corridors: BlueprintCorridor[] = [];
+  const publicCorridors: BlueprintCorridor[] = [];
+  const secretCorridors: BlueprintCorridor[] = [];
   for (const link of dsl.links) {
     missing(link.from, 'link.from');
     missing(link.to, 'link.to');
-    corridors.push(...corridorsBetween(byName.get(link.from)!, byName.get(link.to)!));
+    const legs = corridorsBetween(byName.get(link.from)!, byName.get(link.to)!);
+    if (secretNames.has(link.from) || secretNames.has(link.to)) secretCorridors.push(...legs);
+    else publicCorridors.push(...legs);
   }
+  const corridors: BlueprintCorridor[] = [...publicCorridors, ...secretCorridors];
+
+  const publicGrid = new Uint8Array(GRID_W * GRID_H);
+  for (const r of rooms) {
+    if (r.kind !== 'secret') carveRect(publicGrid, r);
+  }
+  for (const c of publicCorridors) carveRect(publicGrid, c);
 
   const grid = new Uint8Array(GRID_W * GRID_H);
   for (const r of rooms) carveRect(grid, r);
@@ -343,12 +381,31 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
     missing(d.room, 'door.room');
     const room = byName.get(d.room)!;
     const prefer = startRoom && d.room !== startRoom.id ? byName.get(startRoom.id) : undefined;
-    const found = findDoorOnRoom(room, grid, prefer);
+    const found = findDoorOnRoom(room, publicGrid, prefer);
     if (!found) throw new Error(`${dsl.id}: no corridor mouth for door on '${d.room}'`);
     const k = `${found.cx},${found.cz},${found.axis}`;
     if (usedDoor.has(k)) continue;
     usedDoor.add(k);
     doors.push({ cx: found.cx, cz: found.cz, axis: found.axis, locked: !!d.locked });
+  }
+
+  const secrets: BlueprintSecret[] = [];
+  for (const spec of dsl.secrets ?? []) {
+    missing(spec.room, 'secret.room');
+    missing(spec.parent, 'secret.parent');
+    const room = byName.get(spec.room)!;
+    const parent = byName.get(spec.parent)!;
+    const found = findDoorOnRoom(room, grid, parent);
+    if (!found) throw new Error(`${dsl.id}: no plate mouth for secret '${spec.room}'`);
+    const s: BlueprintSecret = {
+      kind: spec.kind,
+      cx: found.cx, cz: found.cz, axis: found.axis,
+      roomId: room.id,
+      name: spec.room,
+    };
+    if (spec.trigger) s.trigger = spec.trigger;
+    if (spec.hp !== undefined) s.hp = spec.hp;
+    secrets.push(s);
   }
 
   const occupied = new Set<string>();
@@ -410,6 +467,7 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
         kind: p.kind,
         ammoType: p.ammoType,
         amount: p.amount,
+        powerup: p.powerup,
       });
     }
   }
@@ -440,6 +498,22 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
     ? { x: startBp.x + (startBp.w >> 1), z: startBp.z + (startBp.h >> 1), yaw: startYaw }
     : undefined);
 
+  const publicRooms = rooms.filter(r => r.kind !== 'secret');
+  const cosmetics = placeCosmetics(
+    publicGrid,
+    toSimRooms(publicRooms),
+    makeRng(`cos|${dsl.cosmeticSeed >>> 0}`),
+  );
+  const secretLights = rooms.filter(r => r.kind === 'secret').map(r => ({
+    x: (r.x + r.w / 2) * CELL,
+    z: (r.z + r.h / 2) * CELL,
+    y: 3.4,
+    color: SECRET_LIGHT_COLOR[r.theme],
+    intensity: 1.0,
+    radius: 6,
+    roomId: r.id,
+  }));
+
   const blueprint: MapBlueprint = {
     codec: 1,
     title: dsl.title,
@@ -452,6 +526,9 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
     playerStart,
     pickups,
     enemies,
+    secrets: secrets.length ? secrets : undefined,
+    lights: [...cosmetics.lights, ...secretLights],
+    decors: cosmetics.decors,
   };
 
   const seed = opts?.seed ?? `campaign:${dsl.id}`;
@@ -459,15 +536,6 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
     seed,
     difficulty: opts?.difficulty ?? 'normal',
   });
-
-  // Bake cosmetics into the shipped blueprint (compiler skips regen when present).
-  const cosmetics = (blueprint.lights && blueprint.lights.length) || (blueprint.decors && blueprint.decors.length)
-    ? { lights: blueprint.lights ?? map.lights, decors: blueprint.decors ?? map.decors }
-    : placeCosmetics(map.grid, map.rooms, makeRng(`cos|${dsl.cosmeticSeed >>> 0}`));
-  blueprint.lights = cosmetics.lights;
-  blueprint.decors = cosmetics.decors;
-  map.lights = cosmetics.lights;
-  map.decors = cosmetics.decors;
 
   const warnings: string[] = [];
   const eco = campaignEconomy(dsl, map);

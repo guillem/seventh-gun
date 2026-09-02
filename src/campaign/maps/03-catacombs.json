@@ -25,7 +25,9 @@
     { "id": "gallery-east", "x": 56, "z": 40, "w": 18, "h": 8, "kind": "spine" },
     { "id": "niche-east", "x": 58, "z": 54, "w": 8, "h": 7, "kind": "spur" },
     { "id": "ante", "x": 78, "z": 40, "w": 7, "h": 8, "kind": "antechamber", "theme": "tech" },
-    { "id": "arena", "x": 75, "z": 22, "w": 13, "h": 13, "kind": "arena", "theme": "tech" }
+    { "id": "arena", "x": 75, "z": 22, "w": 13, "h": 13, "kind": "arena", "theme": "tech" },
+    { "id": "s-ossuary-reliquary", "x": 26, "z": 3, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-gallery-crypt", "x": 61, "z": 33, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "gallery-west" },
@@ -38,7 +40,13 @@
     { "from": "crossing", "to": "gallery-east" },
     { "from": "gallery-east", "to": "niche-east" },
     { "from": "gallery-east", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "ossuary", "to": "s-ossuary-reliquary" },
+    { "from": "gallery-east", "to": "s-gallery-crypt" }
+  ],
+  "secrets": [
+    { "room": "s-ossuary-reliquary", "parent": "ossuary", "kind": "remote-use", "trigger": { "x": 48, "z": 6 } },
+    { "room": "s-gallery-crypt", "parent": "gallery-east", "kind": "plate-shoot" }
   ],
   "doors": [{ "room": "gallery-west" }, { "room": "crossing" }, { "room": "gallery-east" }],
   "guns": [{ "gun": 4, "room": "ante", "x": 81, "z": 44 }],
@@ -56,7 +64,12 @@
     { "kind": "medikit", "room": "gallery-east" },
     { "kind": "medikit", "room": "niche-east" },
     { "kind": "ammo", "ammoType": "nails", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "powerup", "powerup": "ward", "room": "s-ossuary-reliquary" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "s-ossuary-reliquary" },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-gallery-crypt" },
+    { "kind": "ammo", "ammoType": "shells", "room": "s-gallery-crypt" },
+    { "kind": "medikit", "room": "s-gallery-crypt" }
   ],
   "enemies": [
     { "type": "husk", "room": "gallery-west", "n": 3 },
@@ -77,6 +90,9 @@
     { "type": "slab", "room": "arena", "n": 1 },
     { "type": "wisp", "room": "arena", "n": 3 },
     { "type": "husk", "room": "arena", "n": 3 },
-    { "type": "crawler", "room": "arena", "n": 2 }
+    { "type": "crawler", "room": "arena", "n": 2 },
+    { "type": "wisp", "room": "s-ossuary-reliquary", "n": 3 },
+    { "type": "husk", "room": "s-gallery-crypt", "n": 2 },
+    { "type": "wisp", "room": "s-gallery-crypt", "n": 2 }
   ]
 }

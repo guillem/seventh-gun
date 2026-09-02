@@ -234,6 +234,10 @@ export class GameRenderer {
         const mesh = this.world.doorMeshes.get(d.id);
         if (mesh) mesh.position.y = (WALL_H * 0.72) / 2 + d.offset * (WALL_H * 0.72 + 0.25);
       }
+      for (const s of sim.secrets) {
+        const mesh = this.world.plateMeshes.get(s.id);
+        if (mesh) mesh.position.y = (WALL_H * 0.72) / 2 + s.offset * (WALL_H * 0.72 + 0.25);
+      }
       this.world.sealMesh.visible = sim.sealIntact;
       if (sim.sealIntact) {
         this.world.sealMesh.children[0].rotation.y += dt * 0.4;

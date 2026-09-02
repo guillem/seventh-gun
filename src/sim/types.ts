@@ -24,6 +24,11 @@ export type Theme = 'industrial' | 'organic' | 'stone' | 'tech';
 export type AmmoType = 'bullets' | 'shells' | 'nails' | 'grenades' | 'cores' | 'void';
 export type EnemyType = 'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant' | 'fiend';
 export type ProjectileKind = 'nail' | 'grenade' | 'voidorb' | 'plasma' | 'spit' | 'fireball' | 'bolt' | 'orb';
+export type PowerupKind = 'ward' | 'wrath' | 'sevenfold';
+export type SecretKind = 'plate-use' | 'plate-shoot' | 'remote-use' | 'remote-shoot';
+
+/** Closed plate slides up in this many seconds. */
+export const SECRET_PLATE_TIME = 0.7;
 
 export type SealBreak =
   | { type: 'gun'; gun: number }
@@ -41,7 +46,7 @@ export interface Room {
   cx: number; cz: number;                     // center world coords
   theme: Theme;
   outdoor: boolean;
-  kind: 'start' | 'spine' | 'spur' | 'arena' | 'antechamber' | 'vault';
+  kind: 'start' | 'spine' | 'spur' | 'arena' | 'antechamber' | 'vault' | 'secret';
   routeDist: number; // BFS cell distance from start room center
 }
 
@@ -78,12 +83,26 @@ export interface SealDef {
 
 export interface PickupDef {
   id: number;
-  kind: 'medikit' | 'ammo' | 'gun' | 'key';
+  kind: 'medikit' | 'ammo' | 'gun' | 'key' | 'powerup';
   gun?: number;
   ammoType?: AmmoType;
   amount?: number;
+  powerup?: PowerupKind;
   x: number; z: number;
   roomId: number;
+}
+
+export interface SecretDef {
+  id: number;
+  name?: string;
+  kind: SecretKind;
+  cx: number; cz: number;
+  axis: 'x' | 'z';
+  cells: [number, number][];
+  x: number; z: number;
+  roomId: number;
+  trigger?: { x: number; z: number };
+  hp: number;
 }
 
 export interface EnemySpawn {
@@ -110,6 +129,7 @@ export interface GameMap {
   pickups: PickupDef[];
   enemies: EnemySpawn[];
   lights: RoomLight[];
+  secrets: SecretDef[];
   playerStart: { x: number; z: number; yaw: number };
   startRoomId: number;
   arenaRoomId: number;
@@ -130,10 +150,15 @@ export type SimEvent =
   | { t: 'enemyPain'; type: EnemyType; id: number; x: number; z: number }
   | { t: 'enemyDeath'; type: EnemyType; id: number; x: number; z: number }
   | { t: 'playerHurt'; damage: number; fromAngle: number } // angle relative to view yaw
+  | { t: 'playerShielded'; fromAngle: number }
   | { t: 'playerDie' }
   | { t: 'pickup'; kind: PickupDef['kind']; label: string }
   | { t: 'doorDenied' }
   | { t: 'doorOpen'; id: number }
+  | { t: 'secretFound'; id: number; name?: string }
+  | { t: 'powerupStart'; kind: PowerupKind }
+  | { t: 'powerupWarn'; kind: PowerupKind }
+  | { t: 'powerupEnd'; kind: PowerupKind }
   | { t: 'sealBreak' }
   | { t: 'arenaEnter' }
   | { t: 'won' }

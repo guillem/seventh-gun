@@ -24,7 +24,9 @@
     { "id": "ledge", "x": 8, "z": 40, "w": 10, "h": 10, "kind": "spine" },
     { "id": "stair", "x": 10, "z": 60, "w": 8, "h": 9, "kind": "spine" },
     { "id": "ante", "x": 28, "z": 64, "w": 8, "h": 8, "kind": "antechamber", "theme": "tech" },
-    { "id": "arena", "x": 42, "z": 62, "w": 14, "h": 12, "kind": "arena", "theme": "tech" }
+    { "id": "arena", "x": 42, "z": 62, "w": 14, "h": 12, "kind": "arena", "theme": "tech" },
+    { "id": "s-toolshed-locker", "x": 29, "z": 20, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-stair-sump", "x": 2, "z": 61, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "gantry" },
@@ -36,7 +38,13 @@
     { "from": "pit", "to": "ledge" },
     { "from": "ledge", "to": "stair" },
     { "from": "stair", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "toolshed", "to": "s-toolshed-locker" },
+    { "from": "stair", "to": "s-stair-sump" }
+  ],
+  "secrets": [
+    { "room": "s-toolshed-locker", "parent": "toolshed", "kind": "plate-use" },
+    { "room": "s-stair-sump", "parent": "stair", "kind": "remote-shoot", "trigger": { "x": 18, "z": 62 } }
   ],
   "doors": [{ "room": "gantry" }, { "room": "crane" }, { "room": "ledge" }],
   "guns": [{ "gun": 5, "room": "ante", "x": 31, "z": 67 }],
@@ -53,7 +61,13 @@
     { "kind": "medikit", "room": "ledge" },
     { "kind": "medikit", "room": "stair" },
     { "kind": "ammo", "ammoType": "grenades", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "ammo", "ammoType": "nails", "room": "s-toolshed-locker", "n": 2 },
+    { "kind": "ammo", "ammoType": "shells", "room": "s-toolshed-locker" },
+    { "kind": "medikit", "room": "s-toolshed-locker", "n": 2 },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-stair-sump" },
+    { "kind": "ammo", "ammoType": "nails", "room": "s-stair-sump" },
+    { "kind": "medikit", "room": "s-stair-sump" }
   ],
   "enemies": [
     { "type": "husk", "room": "gantry", "n": 3 },
@@ -78,6 +92,9 @@
     { "type": "husk", "room": "arena", "n": 3 },
     { "type": "crawler", "room": "arena", "n": 2 },
     { "type": "fiend", "room": "pit", "n": 1 },
-    { "type": "fiend", "room": "stair", "n": 1 }
+    { "type": "fiend", "room": "stair", "n": 1 },
+    { "type": "crawler", "room": "s-toolshed-locker", "n": 3 },
+    { "type": "slab", "room": "s-stair-sump", "n": 1 },
+    { "type": "husk", "room": "s-stair-sump", "n": 2 }
   ]
 }

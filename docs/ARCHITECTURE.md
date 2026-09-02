@@ -45,8 +45,9 @@ app (Game, input, debug API)
 
 88×88 cell grid, 1 cell = 2 world units (`CELL`). Rooms are cell rects with
 theme/outdoor/kind; corridors are 3-cell-wide carved rects. Dynamic solidity:
-closed doors and the arena seal (see `physics.ts: isSolidCell`). Visual
-LOS (`hasVisualLineOfSight`) treats a door as see-through as soon as it
+closed doors, closed secret plates, and the arena seal (see
+`physics.ts: isSolidCell`). Visual
+LOS (`hasVisualLineOfSight`) treats a door or plate as see-through as soon as it
 starts opening so enemies already in the world do not pop in after the
 slab lifts; collision still uses `offset < 0.65`. A* on the
 grid for enemy chase paths (4-dir, staggered repaths).
@@ -58,6 +59,13 @@ places cosmetics from `cosmeticSeed` when lights/decors are absent) →
 constructor path; maze mode still uses `new Sim(seed, difficulty)` →
 `generateMap`. Seal break is `GameMap.sealBreak` (gun N or key), not
 hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
+Campaign maps may include `kind: 'secret'` rooms and a `secrets` array
+(plate + optional remote trigger). Codec flag `FLAG_SECRETS` (bit 6)
+is appended after lights/decors so old `SGMAP.v1` payloads still decode.
+`ROOM_KINDS` index 6 is `secret`; `PICKUP_KINDS` index 4 is `powerup`
+(kind in the existing extra u8). Explored fog uses a `secretCell` mask:
+undiscovered secret cells are never marked; `exploredPct` excludes
+secret cells forever.
 
 ## Rendering approach
 

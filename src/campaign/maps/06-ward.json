@@ -22,7 +22,9 @@
     { "id": "cells", "x": 42, "z": 38, "w": 12, "h": 10, "kind": "spine" },
     { "id": "vault", "x": 46, "z": 22, "w": 8, "h": 8, "kind": "vault" },
     { "id": "ante", "x": 64, "z": 38, "w": 8, "h": 8, "kind": "antechamber" },
-    { "id": "arena", "x": 59, "z": 52, "w": 18, "h": 15, "kind": "arena" }
+    { "id": "arena", "x": 59, "z": 52, "w": 18, "h": 15, "kind": "arena" },
+    { "id": "s-clinic-morgue", "x": 22, "z": 13, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-cells-oubliette", "x": 44, "z": 49, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "foyer" },
@@ -31,7 +33,13 @@
     { "from": "foyer", "to": "cells" },
     { "from": "cells", "to": "vault" },
     { "from": "cells", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "clinic", "to": "s-clinic-morgue" },
+    { "from": "cells", "to": "s-cells-oubliette" }
+  ],
+  "secrets": [
+    { "room": "s-clinic-morgue", "parent": "clinic", "kind": "plate-use" },
+    { "room": "s-cells-oubliette", "parent": "cells", "kind": "plate-shoot", "hp": 150 }
   ],
   "doors": [
     { "room": "foyer" },
@@ -55,7 +63,13 @@
     { "kind": "ammo", "ammoType": "nails", "room": "vault" },
     { "kind": "medikit", "room": "vault" },
     { "kind": "ammo", "ammoType": "shells", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "ammo", "ammoType": "cores", "room": "s-clinic-morgue" },
+    { "kind": "ammo", "ammoType": "nails", "room": "s-clinic-morgue" },
+    { "kind": "medikit", "room": "s-clinic-morgue", "n": 2 },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-cells-oubliette" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "s-cells-oubliette" },
+    { "kind": "medikit", "room": "s-cells-oubliette" }
   ],
   "enemies": [
     { "type": "husk", "room": "foyer", "n": 4 },
@@ -79,6 +93,9 @@
     { "type": "husk", "room": "arena", "n": 4 },
     { "type": "crawler", "room": "arena", "n": 4 },
     { "type": "fiend", "room": "foyer", "n": 1 },
-    { "type": "fiend", "room": "cells", "n": 1 }
+    { "type": "fiend", "room": "cells", "n": 1 },
+    { "type": "wisp", "room": "s-clinic-morgue", "n": 3 },
+    { "type": "fiend", "room": "s-cells-oubliette", "n": 1 },
+    { "type": "husk", "room": "s-cells-oubliette", "n": 2 }
   ]
 }

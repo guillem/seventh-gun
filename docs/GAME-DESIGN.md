@@ -1,7 +1,7 @@
 # GAME DESIGN — the actual numbers
 
 Single source of truth: `src/sim/weapons.ts`, `src/sim/enemyTypes.ts`,
-`src/sim/difficulty.ts`, `src/sim/mapgen.ts`. This file mirrors them.
+`src/sim/difficulty.ts`, `src/sim/mapgen.ts`, `src/sim/powerups.ts`. This file mirrors them.
 
 ## Player
 
@@ -120,4 +120,32 @@ never Foundry, and never by `generateMap`.
 Campaign economy: incoming reference ammo + this map's pickups ≥ 2.2×
 total enemy HP on Normal, counting owned guns plus the gun this map awards
 (map 6: guns 1–6 only). Later maps may include Fiends; incoming loadouts
-are unchanged.
+are unchanged. Powerup pickups do not count toward available damage.
+
+## Secrets (campaign only)
+
+Fifteen authored pockets across the seven campaign maps. Maze
+`generateMap` does not place secrets. Four kinds: **plate-use**,
+**plate-shoot**, **remote-use**, **remote-shoot**. A plate is a 3-cell
+span that stays solid until it slides up in 0.7s (WALL texture, not
+door). Enemies never open plates. `found` is true the frame the plate
+starts opening. Remote-use is a wall lever; remote-shoot is a sigil.
+Crack/light hints match the campaign theme.
+
+### Powerups
+
+| Kind | Duration | Effect | Color |
+|---|---|---|---|
+| WARD | 10s | all incoming damage 0 | cyan `#38C8FF` |
+| WRATH | 20s | outgoing ×3 | violet `#A24BFF` |
+| SEVENFOLD | 7s | outgoing ×7 | green `#4DFF9B` |
+
+SEVENFOLD appears once, in Sanctum. Two tracks: WARD vs damage (WRATH /
+SEVENFOLD). Same kind refreshes `max(t, duration)`. Damage track:
+newest wins. WARD+WRATH stack. Powerups do not persist across campaign
+maps. HUD: colored vignette (not red), crosshair countdown ring, badge,
+last-3s warn.
+
+Fog of war never marks undiscovered secret cells. `exploredPct`
+excludes secret cells forever so adding pockets does not change the
+public map's explore percentage.

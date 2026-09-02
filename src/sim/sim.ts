@@ -2,9 +2,10 @@
 import { makeRng, type Rng } from './rng';
 import {
   CELL, GEN_VERSION, NOISE_TTL, PLAYER_EYE, PLAYER_HEIGHT, PLAYER_RADIUS,
+  SECRET_PLATE_TIME, cellToWorld,
 } from './types';
 import type {
-  AmmoType, Difficulty, EnemyType, GameMap, PickupDef, PlayerLoadout, SimEvent,
+  AmmoType, Difficulty, EnemyType, GameMap, PickupDef, PlayerLoadout, SecretKind, SimEvent,
 } from './types';
 import { generateMap } from './mapgen';
 import { DIFFICULTIES } from './difficulty';
@@ -17,6 +18,10 @@ import {
   isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
 import { aimDirFromLook } from './aim';
+import {
+  applyPowerup, createPowerupState, outgoingMul, stepPowerups, wardActive,
+  POWERUP_DEFS, type PowerupState,
+} from './powerups';
 
 export const STEP_DT = 1 / 60;
 
@@ -90,6 +95,23 @@ export interface PickupEnt extends PickupDef {
   taken: boolean;
 }
 
+export interface SecretState {
+  id: number;
+  name: string;
+  kind: SecretKind;
+  cx: number; cz: number;
+  axis: 'x' | 'z';
+  cells: [number, number][];
+  x: number; z: number;
+  roomId: number;
+  trigger?: { x: number; z: number; wx: number; wz: number };
+  hp: number;
+  hpLeft: number;
+  offset: number;
+  opening: boolean;
+  found: boolean;
+}
+
 export interface PlayerState {
   x: number; z: number;
   yaw: number; pitch: number;
@@ -117,6 +139,10 @@ export class Sim {
   projectiles: ProjectileEnt[] = [];
   pickups: PickupEnt[] = [];
   doors: DoorState[] = [];
+  secrets: SecretState[] = [];
+  secretCell: Uint8Array;
+  private secretOwner: Int16Array;
+  powerups: PowerupState;
   sealIntact = true;
   hasKey = false;
   arenaEntered = false;
@@ -150,6 +176,9 @@ export class Sim {
       ? makeRng(`sim|${rngKey}|${difficulty}`)
       : makeRng(`sim|${seed}|${difficulty}|v${GEN_VERSION}`);
     this.explored = new Uint8Array(this.map.w * this.map.h);
+    this.secretCell = new Uint8Array(this.map.w * this.map.h);
+    this.secretOwner = new Int16Array(this.map.w * this.map.h).fill(-1);
+    this.powerups = createPowerupState();
     const loadout = fromMapOpts?.loadout;
     this.player = {
       x: this.map.playerStart.x, z: this.map.playerStart.z,
@@ -168,6 +197,21 @@ export class Sim {
     for (const d of this.map.doors) {
       this.doors.push({ ...d, offset: 0, opening: false });
     }
+    for (const s of this.map.secrets ?? []) {
+      this.secrets.push({
+        id: s.id,
+        name: s.name ?? '',
+        kind: s.kind,
+        cx: s.cx, cz: s.cz, axis: s.axis, cells: s.cells,
+        x: s.x, z: s.z, roomId: s.roomId,
+        trigger: s.trigger
+          ? { x: s.trigger.x, z: s.trigger.z, wx: cellToWorld(s.trigger.x), wz: cellToWorld(s.trigger.z) }
+          : undefined,
+        hp: s.hp, hpLeft: s.hp,
+        offset: 0, opening: false, found: false,
+      });
+    }
+    this.buildSecretMask();
     for (const p of this.map.pickups) this.pickups.push({ ...p, taken: false });
     for (const e of this.map.enemies) {
       const def = ENEMIES[e.type];
@@ -258,14 +302,21 @@ export class Sim {
     this.stepProjectiles(dt);
     this.stepEnemies(dt);
     this.stepDoors(dt);
+    this.stepSecrets(dt);
+    this.stepPowerupTracks(dt);
     this.checkPickups();
 
-    // exploration fog-of-war
+    // exploration fog-of-war — never mark undiscovered secret cells
     const pcx = Math.floor(p.x / CELL), pcz = Math.floor(p.z / CELL);
+    const w = this.map.w, h = this.map.h;
     for (let z = pcz - 5; z <= pcz + 5; z++) {
       for (let x = pcx - 5; x <= pcx + 5; x++) {
-        if (x < 0 || z < 0 || x >= this.map.w || z >= this.map.h) continue;
-        if ((x - pcx) * (x - pcx) + (z - pcz) * (z - pcz) <= 27) this.explored[z * this.map.w + x] = 1;
+        if (x < 0 || z < 0 || x >= w || z >= h) continue;
+        if ((x - pcx) * (x - pcx) + (z - pcz) * (z - pcz) > 27) continue;
+        const i = z * w + x;
+        const owner = this.secretOwner[i];
+        if (owner >= 0 && !this.secrets[owner].found) continue;
+        this.explored[i] = 1;
       }
     }
 
@@ -375,7 +426,7 @@ export class Sim {
           const sl = Math.hypot(sx, sy, sz);
           sx /= sl; sy /= sl; sz /= sl;
         }
-        this.hitscanShot(p.x, eye, p.z, sx, sy, sz, w.damage * diff.playerDamageOut, w.pierce, w, pellet === 0);
+        this.hitscanShot(p.x, eye, p.z, sx, sy, sz, w.damage * diff.playerDamageOut * outgoingMul(this.powerups), w.pierce, w, pellet === 0);
       }
       if (w.id === 3) p.bloom = Math.min(w.bloomMax, p.bloom + (w.bloomMax / w.bloomTime) * w.fireInterval);
     } else {
@@ -400,7 +451,7 @@ export class Sim {
         vx: sx * proj.speed, vy: sy * proj.speed, vz: sz * proj.speed,
         gravity: proj.gravity,
         radius: proj.radius,
-        damage: w.damage * diff.playerDamageOut,
+        damage: w.damage * diff.playerDamageOut * outgoingMul(this.powerups),
         splashRadius: w.splash?.radius ?? 0,
         damageSelfPct: w.splash?.damageSelfPct ?? 0,
         age: 0,
@@ -441,6 +492,9 @@ export class Sim {
       hits.push({ e, t });
     }
     hits.sort((a, b) => a.t - b.t);
+    if (wall.cell && (!hits.length || wall.dist <= hits[0].t + 0.05)) {
+      this.trySecretShot(wall.cell[0], wall.cell[1], damage);
+    }
     const dmgAt = (t: number) => {
       if (t <= w.falloffStart) return damage;
       if (t >= w.falloffEnd) return damage * w.falloffMin;
@@ -547,6 +601,9 @@ export class Sim {
       }
 
       if (impacted) {
+        if (p.fromPlayer) {
+          this.trySecretShot(Math.floor(nx / CELL), Math.floor(nz / CELL), p.damage);
+        }
         this.impactProjectile(p);
       } else {
         p.x = nx; p.y = ny; p.z = nz;
@@ -585,12 +642,16 @@ export class Sim {
   damagePlayer(damage: number, fromX: number, fromZ: number) {
     if (this.phase !== 'playing') return;
     const p = this.player;
-    const dmg = Math.max(1, damage);
-    p.hp -= dmg;
     const ang = Math.atan2(fromX - p.x, fromZ - p.z);
     let rel = ang - (p.yaw + Math.PI);
     while (rel > Math.PI) rel -= Math.PI * 2;
     while (rel < -Math.PI) rel += Math.PI * 2;
+    if (wardActive(this.powerups)) {
+      this.events.push({ t: 'playerShielded', fromAngle: rel });
+      return;
+    }
+    const dmg = Math.max(1, damage);
+    p.hp -= dmg;
     this.events.push({ t: 'playerHurt', damage: dmg, fromAngle: rel });
     if (p.hp <= 0) {
       this.phase = 'dying';
@@ -823,8 +884,79 @@ export class Sim {
     }
   }
 
+  stepSecrets(dt: number) {
+    const speed = 1 / SECRET_PLATE_TIME;
+    for (const s of this.secrets) {
+      if (s.opening && s.offset < 1) s.offset = Math.min(1, s.offset + dt * speed);
+    }
+  }
+
+  stepPowerupTracks(dt: number) {
+    for (const ev of stepPowerups(this.powerups, dt)) {
+      if (ev.t === 'warn') this.events.push({ t: 'powerupWarn', kind: ev.kind });
+      else this.events.push({ t: 'powerupEnd', kind: ev.kind });
+    }
+  }
+
+  private buildSecretMask() {
+    const w = this.map.w;
+    const mark = (x: number, z: number, id: number) => {
+      if (x < 0 || z < 0 || x >= w || z >= this.map.h) return;
+      const i = z * w + x;
+      this.secretCell[i] = 1;
+      this.secretOwner[i] = id;
+    };
+    for (const s of this.secrets) {
+      const room = this.map.rooms.find(r => r.id === s.roomId);
+      if (room) {
+        for (let z = room.z; z < room.z + room.h; z++) {
+          for (let x = room.x; x < room.x + room.w; x++) mark(x, z, s.id);
+        }
+      }
+      for (const [x, z] of s.cells) mark(x, z, s.id);
+    }
+  }
+
+  openSecret(s: SecretState) {
+    if (s.opening && s.found) return;
+    s.opening = true;
+    s.found = true;
+    this.events.push({ t: 'secretFound', id: s.id, name: s.name || undefined });
+    this.message(s.name ? `SECRET — ${s.name}` : 'SECRET FOUND');
+  }
+
+  trySecretShot(cx: number, cz: number, damage: number) {
+    for (const s of this.secrets) {
+      if (s.found && s.opening) continue;
+      if (s.kind === 'plate-shoot') {
+        if (!s.cells.some(([x, z]) => x === cx && z === cz)) continue;
+        s.hpLeft -= damage;
+        if (s.hpLeft <= 0) this.openSecret(s);
+        return;
+      }
+      if (s.kind === 'remote-shoot' && s.trigger && s.trigger.x === cx && s.trigger.z === cz) {
+        this.openSecret(s);
+        return;
+      }
+    }
+  }
+
   tryUse() {
     const p = this.player;
+    for (const s of this.secrets) {
+      if (s.offset >= 1) continue;
+      if (s.kind === 'plate-use') {
+        if (Math.hypot(s.x - p.x, s.z - p.z) < 3.2) {
+          this.openSecret(s);
+          return;
+        }
+      } else if (s.kind === 'remote-use' && s.trigger) {
+        if (Math.hypot(s.trigger.wx - p.x, s.trigger.wz - p.z) < 3.2) {
+          this.openSecret(s);
+          return;
+        }
+      }
+    }
     for (const d of this.doors) {
       const dist = Math.hypot(d.x - p.x, d.z - p.z);
       if (dist < 3.2 && d.offset < 1) {
@@ -893,6 +1025,16 @@ export class Sim {
           }
           break;
         }
+        case 'powerup': {
+          const kind = it.powerup ?? 'ward';
+          const res = applyPowerup(this.powerups, kind);
+          it.taken = true;
+          const def = POWERUP_DEFS[kind];
+          this.events.push({ t: 'pickup', kind: 'powerup', label: def.label });
+          if (res.ended) this.events.push({ t: 'powerupEnd', kind: res.ended });
+          this.events.push({ t: 'powerupStart', kind: res.started });
+          break;
+        }
       }
     }
   }
@@ -937,6 +1079,8 @@ export class Sim {
       kills: this.killCount,
       doors: this.doors.map(d => Math.round(d.offset * 100)),
       taken: this.pickups.map(pk => (pk.taken ? 1 : 0)).join(''),
+      secrets: this.secrets.map(s => `${s.found ? 1 : 0}:${Math.round(s.offset * 100)}`).join(','),
+      power: `${this.powerups.wardT.toFixed(2)}:${this.powerups.damageKind ?? '-'}:${this.powerups.damageT.toFixed(2)}`,
       enemies: this.enemies.map(e => `${e.state}:${Math.round(e.hp)}:${Math.round(e.x * 10)}:${Math.round(e.z * 10)}`).join(','),
       proj: this.projectiles.length,
       rng: this.rng.state(),

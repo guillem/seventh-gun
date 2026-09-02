@@ -17,6 +17,14 @@ export function isSolidCell(state: Sim, cx: number, cz: number, mode: SolidMode 
       for (const [x, z] of d.cells) if (x === cx && z === cz) return true;
     }
   }
+  for (const s of state.secrets) {
+    const blocks = mode === 'visual'
+      ? !s.opening && s.offset <= 0
+      : s.offset < 0.65;
+    if (blocks) {
+      for (const [x, z] of s.cells) if (x === cx && z === cz) return true;
+    }
+  }
   if (state.sealIntact) {
     for (const [x, z] of state.map.seal.cells) if (x === cx && z === cz) return true;
   }

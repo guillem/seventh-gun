@@ -37,9 +37,18 @@
   floor; map 1 shotgun unseals; map 6 key unseals (guns do not); loadout
   carry; retry restores entry loadout; key does not persist; continue key;
   unlock rules (map 1 open, N unlocks N+1, replay does not rewind).
+- `tests/unit/powerups.test.ts` — refresh/overwrite; WARD blocks damage
+  including self-splash; ×3/×7 on hitscan/projectile/splash.
+- `tests/unit/secrets.test.ts` — ≥1 secret per campaign map; ≥2 enemies
+  per pocket; no ammo for unowned guns; exploredPct unchanged vs pre-secret
+  snapshot (7 maps + maze seeds); unfound secret cells never explored;
+  lights+decors hash unchanged on public rooms; golden pre-secrets SGMAP.v1
+  still decodes; secrets encode/decode; campaignEconomy ignores powerup;
+  economy ≥ 2.2 on all 7 maps.
 - `tests/unit/editor.test.ts` — new maps include a START room that cannot
   be erased; stamp rooms + L-link + gun + enemies compiles / encodes /
-  decodes / validates; erase will not drop the only start; economy
+  decodes / validates; secret room + powerup encode/decode/compile
+  round-trip; erase will not drop the only start; economy
   warning is non-blocking; library upsert/cap/quota; START-only WIPs still
   encode `SGMAP.v1.` despite VALIDATE errors.
 - `tests/unit/sim.test.ts` — also visual LOS: opening a door reveals

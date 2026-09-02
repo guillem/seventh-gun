@@ -689,6 +689,7 @@ export class EditorView {
       if (r.kind === 'arena') ctx.fillStyle = '#5a2028';
       if (r.kind === 'antechamber') ctx.fillStyle = '#204858';
       if (r.kind === 'start') ctx.fillStyle = '#4a4a20';
+      if (r.kind === 'secret') ctx.fillStyle = '#3a2050';
       px(r.x, r.z, r.w, r.h);
       ctx.strokeStyle = r.kind === 'start' ? '#ffe9a0' : 'rgba(0,0,0,0.35)';
       ctx.lineWidth = Math.max(1, cell * 0.12);
@@ -763,6 +764,7 @@ export class EditorView {
       if (p.kind === 'gun') mark(p.x, p.z, '#50c878', String(p.gun ?? ''));
       else if (p.kind === 'key') mark(p.x, p.z, '#e8d060', 'K');
       else if (p.kind === 'medikit') mark(p.x, p.z, '#e06060', '+');
+      else if (p.kind === 'powerup') mark(p.x, p.z, '#a24bff', '*');
       else mark(p.x, p.z, '#70a0d0', 'A');
     }
     if (this.doc.bp.playerStart) {

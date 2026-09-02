@@ -1761,6 +1761,17 @@ export const CAMPAIGN_PACK_MARKERS: Record<CampaignArtId, string> = {
   sanctum: 'gold-void-heptagram',
 };
 
+/** Crack/light hint tint on secret plates (campaign theme). */
+export const SECRET_HINT_COLORS: Record<CampaignArtId, number> = {
+  foundry: 0xff6a18,
+  gullet: 0xc04038,
+  catacombs: 0xc8b890,
+  pit: 0xc8d040,
+  spire: 0x8a6a28,
+  ward: 0x38c8ff,
+  sanctum: 0x4dff9b,
+};
+
 export function campaignArtIdFromIndex(n: number): CampaignArtId {
   const i = Math.min(7, Math.max(1, Math.floor(n) || 1));
   return CAMPAIGN_ART_IDS[i - 1];

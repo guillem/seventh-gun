@@ -22,7 +22,9 @@
     { "id": "moldbay", "x": 42, "z": 54, "w": 7, "h": 6, "kind": "spur" },
     { "id": "throat", "x": 57, "z": 40, "w": 8, "h": 6, "kind": "spine" },
     { "id": "ante", "x": 58, "z": 28, "w": 7, "h": 7, "kind": "antechamber", "theme": "tech" },
-    { "id": "arena", "x": 54, "z": 10, "w": 15, "h": 13, "kind": "arena", "theme": "tech" }
+    { "id": "arena", "x": 54, "z": 10, "w": 15, "h": 13, "kind": "arena", "theme": "tech" },
+    { "id": "s-slag-cache", "x": 32, "z": 33, "w": 6, "h": 5, "kind": "secret" },
+    { "id": "s-throat-cache", "x": 66, "z": 40, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "castfloor" },
@@ -32,7 +34,13 @@
     { "from": "castfloor", "to": "moldbay" },
     { "from": "castfloor", "to": "throat" },
     { "from": "throat", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "castfloor", "to": "s-slag-cache" },
+    { "from": "throat", "to": "s-throat-cache" }
+  ],
+  "secrets": [
+    { "room": "s-slag-cache", "parent": "castfloor", "kind": "plate-shoot" },
+    { "room": "s-throat-cache", "parent": "throat", "kind": "plate-use" }
   ],
   "doors": [{ "room": "castfloor" }, { "room": "throat" }],
   "guns": [{ "gun": 2, "room": "ante", "x": 61, "z": 31 }],
@@ -46,7 +54,12 @@
     { "kind": "ammo", "ammoType": "bullets", "room": "moldbay" },
     { "kind": "medikit", "room": "throat" },
     { "kind": "ammo", "ammoType": "shells", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "powerup", "powerup": "ward", "room": "s-slag-cache" },
+    { "kind": "ammo", "ammoType": "bullets", "room": "s-slag-cache" },
+    { "kind": "medikit", "room": "s-slag-cache" },
+    { "kind": "ammo", "ammoType": "shells", "room": "s-throat-cache" },
+    { "kind": "medikit", "room": "s-throat-cache", "n": 2 }
   ],
   "enemies": [
     { "type": "husk", "room": "castfloor", "n": 5 },
@@ -61,6 +74,8 @@
     { "type": "crawler", "room": "throat", "n": 2 },
     { "type": "slab", "room": "arena", "n": 1 },
     { "type": "husk", "room": "arena", "n": 3 },
-    { "type": "crawler", "room": "arena", "n": 2 }
+    { "type": "crawler", "room": "arena", "n": 2 },
+    { "type": "husk", "room": "s-slag-cache", "n": 2 },
+    { "type": "crawler", "room": "s-throat-cache", "n": 2 }
   ]
 }
