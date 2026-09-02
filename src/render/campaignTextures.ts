@@ -15,6 +15,17 @@ function canvas(size: number): { c: HTMLCanvasElement; g: Ctx } {
   return { c, g };
 }
 
+
+/** Paint in 128-space onto a native hero canvas so wear is not a blurry upsample. */
+function composeCanvas(outSize = 1024, logical = 128): { c: HTMLCanvasElement; g: Ctx } {
+  const { c, g } = canvas(outSize);
+  g.imageSmoothingEnabled = false;
+  g.save();
+  g.scale(outSize / logical, outSize / logical);
+  return { c, g };
+}
+function finishCompose(g: Ctx): void { g.restore(); }
+
 function toTiled(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;
@@ -28,7 +39,7 @@ function toTiled(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
 type WearMode = 'masonry' | 'organic' | 'panel';
 
 /** Worn concrete/tile/plaster — matte grout/wear, not glitter. White = rough. */
-function roughnessCanvas(seed: string, lo: number, hi: number, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
+function roughnessCanvas(seed: string, lo: number, hi: number, size = 256, mode: WearMode = 'masonry'): HTMLCanvasElement {
   const { c, g } = canvas(size);
   const rng = makeRng(seed).float;
   const base = Math.max(lo, 0.72);
@@ -36,48 +47,130 @@ function roughnessCanvas(seed: string, lo: number, hi: number, size = 128, mode:
   g.fillStyle = `rgb(${bv},${bv},${bv})`;
   g.fillRect(0, 0, size, size);
   const cells = mode === 'organic' ? 0 : mode === 'panel' ? 4 : 8;
+  const gw = Math.max(2, Math.round(size / 128));
   if (cells > 0) {
     const step = size / cells;
     const grout = Math.round(Math.min(1, hi) * 255);
     g.fillStyle = `rgb(${grout},${grout},${grout})`;
     for (let i = 0; i <= cells; i++) {
-      g.fillRect(i * step - 1, 0, 2, size);
-      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
+      g.fillRect(i * step - gw / 2, 0, gw, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - gw / 2, size, gw);
+    }
+    // slightly smoother tile faces
+    const face = Math.round(base * 0.96 * 255);
+    for (let y = 0; y < cells; y++) {
+      for (let x = 0; x < (mode === 'panel' ? cells : cells); x++) {
+        const jitter = (rng() * 14 - 7) | 0;
+        const v = Math.max(0, Math.min(255, face + jitter));
+        g.fillStyle = `rgb(${v},${v},${v})`;
+        const x0 = x * step + gw, y0 = y * step + (mode === 'panel' ? 0 : gw);
+        const ww = step - gw * 2, hh = mode === 'panel' ? step : step - gw * 2;
+        if (mode === 'panel') {
+          g.fillRect(x0, 0, ww, size);
+        } else {
+          g.fillRect(x0, y0, ww, hh);
+        }
+      }
+    }
+    g.fillStyle = `rgb(${grout},${grout},${grout})`;
+    for (let i = 0; i <= cells; i++) {
+      g.fillRect(i * step - gw / 2, 0, gw, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - gw / 2, size, gw);
     }
   }
-  for (let i = 0; i < 10; i++) {
-    const x = rng() * size, y = rng() * size, rad = 6 + rng() * 22;
+  for (let i = 0; i < 28; i++) {
+    const x = rng() * size, y = rng() * size, rad = 4 + rng() * 28;
     const v = Math.round((base + rng() * (hi - base)) * 255);
     const pg = g.createRadialGradient(x, y, 0, x, y, rad);
-    pg.addColorStop(0, `rgba(${v},${v},${v},0.35)`);
+    pg.addColorStop(0, `rgba(${v},${v},${v},0.40)`);
     pg.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = pg;
     g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  const rScratch = makeRng(seed + '-rscratch').float;
+  g.strokeStyle = 'rgba(255,255,255,0.12)';
+  g.lineWidth = 1;
+  for (let i = 0; i < 16; i++) {
+    const x = rScratch() * size, y = rScratch() * size;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10 + rScratch() * 36, y + (rScratch() - 0.5) * 7); g.stroke();
+  }
+  g.strokeStyle = 'rgba(0,0,0,0.16)';
+  for (let i = 0; i < 12; i++) {
+    const x = rScratch() * size, y = rScratch() * size;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rScratch() - 0.4) * 40, y + 6 + rScratch() * 24); g.stroke();
+  }
+  for (let i = 0; i < size * 2; i++) {
+    const v = rng() * 255 | 0;
+    g.fillStyle = `rgba(${v},${v},${v},0.06)`;
+    g.fillRect(rng() * size, rng() * size, 1 + (rng() * 2 | 0), 1);
   }
   return c;
 }
 
-function bumpCanvas(seed: string, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
+function bumpCanvas(seed: string, size = 256, mode: WearMode = 'masonry'): HTMLCanvasElement {
   const { c, g } = canvas(size);
   const rng = makeRng(seed).float;
   g.fillStyle = '#c8c8c8';
   g.fillRect(0, 0, size, size);
+  const gw = Math.max(2, Math.round(size / 96));
   if (mode !== 'organic') {
     const cells = mode === 'panel' ? 4 : 8;
     const step = size / cells;
-    g.fillStyle = '#7a7a7a';
+    g.fillStyle = '#6e6e6e';
     for (let i = 0; i <= cells; i++) {
-      g.fillRect(i * step - 1, 0, 2, size);
-      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
+      g.fillRect(i * step - gw / 2, 0, gw, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - gw / 2, size, gw);
+    }
+    g.fillStyle = '#d4d4d4';
+    for (let i = 0; i < cells; i++) {
+      g.fillRect(i * step + gw, 0, 1, size);
+      if (mode !== 'panel') g.fillRect(0, i * step + gw, size, 1);
+    }
+    for (let y = 0; y < cells; y++) {
+      for (let x = 0; x < cells; x++) {
+        const x0 = x * step, y0 = y * step;
+        g.fillStyle = `rgba(90,90,90,${0.12 + rng() * 0.18})`;
+        g.fillRect(x0 + gw, y0 + step - gw * 3, step - gw * 2, gw * 2);
+        const rad = step * (0.12 + rng() * 0.1);
+        for (const [cx, cy] of [[x0, y0], [x0 + step, y0], [x0, y0 + step], [x0 + step, y0 + step]]) {
+          const pg = g.createRadialGradient(cx, cy, 0, cx, cy, rad);
+          pg.addColorStop(0, 'rgba(70,70,70,0.45)');
+          pg.addColorStop(1, 'rgba(0,0,0,0)');
+          g.fillStyle = pg;
+          g.beginPath(); g.arc(cx, cy, rad, 0, Math.PI * 2); g.fill();
+        }
+      }
     }
   }
-  for (let i = 0; i < 12; i++) {
-    const x = rng() * size, y = rng() * size, rad = 4 + rng() * 18;
+  for (let i = 0; i < 36; i++) {
+    const x = rng() * size, y = rng() * size, rad = 3 + rng() * 22;
     const pg = g.createRadialGradient(x, y, 0, x, y, rad);
-    pg.addColorStop(0, 'rgba(90,90,90,0.45)');
+    pg.addColorStop(0, 'rgba(80,80,80,0.50)');
     pg.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = pg;
     g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  const bScratch = makeRng(seed + '-bscratch').float;
+  g.strokeStyle = 'rgba(40,40,40,0.28)';
+  g.lineWidth = 1;
+  for (let i = 0; i < 20; i++) {
+    const x = bScratch() * size, y = bScratch() * size;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 8 + bScratch() * 40, y + (bScratch() - 0.5) * 6); g.stroke();
+  }
+  if (mode === 'organic') {
+    g.strokeStyle = 'rgba(90,90,90,0.35)';
+    g.lineWidth = 2;
+    for (let i = 0; i < 10; i++) {
+      g.beginPath();
+      g.moveTo(rng() * size, rng() * size);
+      g.bezierCurveTo(rng() * size, rng() * size, rng() * size, rng() * size, rng() * size, rng() * size);
+      g.stroke();
+    }
+  }
+  for (let i = 0; i < size; i++) {
+    const v = 80 + (rng() * 80 | 0);
+    g.fillStyle = `rgba(${v},${v},${v},0.08)`;
+    g.fillRect(rng() * size, rng() * size, 1 + (rng() * 2 | 0), 1);
   }
   return c;
 }
@@ -94,68 +187,172 @@ function toLinearMap(c: HTMLCanvasElement): THREE.Texture {
 function toRoughness(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
 function toBump(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
 
-/** Upsample painterly 64/128 canvases and add wear in the same theme. */
+/** Dense 1024 wear on hero albedo — grout, corners, stains, jitter, scratches. Not a single overlay. */
 function enrichAlbedo(src: HTMLCanvasElement, size: number, seed: string, mode: WearMode): HTMLCanvasElement {
   const { c, g } = canvas(size);
   const rng = makeRng('camp-tex-wear-' + seed).float;
   g.imageSmoothingEnabled = false;
   if (typeof g.drawImage === 'function') g.drawImage(src, 0, 0, size, size);
   else { g.fillStyle = '#808080'; g.fillRect(0, 0, size, size); }
-  const cells = 8;
-  const cell = size / cells;
-  for (let y = 0; y < cells; y++) {
-    for (let x = 0; x < cells; x++) {
+
+  const n = mode === 'organic' ? 6 : mode === 'panel' ? 4 : 8;
+  const step = size / n;
+  const gw = Math.max(2, Math.round(size / 256));
+
+  // Per-tile hue / value jitter
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const hr = (rng() * 28 - 12) | 0;
+      const hg = (rng() * 22 - 10) | 0;
+      const hb = (rng() * 24 - 12) | 0;
       const a = 0.04 + rng() * 0.07;
-      const rv = (20 + rng() * 40) | 0, gv = (14 + rng() * 28) | 0, b = (10 + rng() * 24) | 0;
-      g.fillStyle = `rgba(${rv},${gv},${b},${a})`;
-      g.fillRect(x * cell, y * cell, cell, cell);
+      if (rng() > 0.5) g.fillStyle = `rgba(${Math.max(0, 18 + hr)},${Math.max(0, 14 + hg)},${Math.max(0, 10 + hb)},${a})`;
+      else g.fillStyle = `rgba(${140 + hr},${128 + hg},${118 + hb},${a * 0.7})`;
+      g.fillRect(x * step, y * step, step, step);
     }
   }
-  for (let i = 0; i < 10; i++) {
-    const x = rng() * size, y = rng() * size, rad = 10 + rng() * 40;
+
+  // Grout / panel seams + mortar lip
+  if (mode !== 'organic') {
+    g.fillStyle = 'rgba(10,8,6,0.30)';
+    for (let i = 0; i <= n; i++) {
+      g.fillRect(i * step - gw / 2, 0, gw, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - gw / 2, size, gw);
+    }
+    if (mode === 'panel') {
+      g.fillRect(0, size * 0.5 - gw, size, gw * 2);
+    }
+    g.fillStyle = 'rgba(255,248,230,0.08)';
+    for (let i = 0; i < n; i++) {
+      g.fillRect(i * step + gw, 0, 1, size);
+      if (mode !== 'panel') g.fillRect(0, i * step + gw, size, 1);
+    }
+  }
+
+  // Edge wear + dirt in corners of each cell
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const x0 = x * step, y0 = y * step;
+      g.fillStyle = `rgba(255,250,238,${0.05 + rng() * 0.07})`;
+      g.fillRect(x0 + gw + 1, y0 + gw + 1, step - gw * 2 - 2, Math.max(2, step * 0.045));
+      g.fillStyle = `rgba(16,11,8,${0.10 + rng() * 0.14})`;
+      const dh = Math.max(3, step * 0.09);
+      g.fillRect(x0 + gw + 1, y0 + step - gw - dh, step - gw * 2 - 2, dh);
+      const rad = step * (0.16 + rng() * 0.14);
+      for (const [cx, cy] of [[x0, y0], [x0 + step, y0], [x0, y0 + step], [x0 + step, y0 + step]]) {
+        const pg = g.createRadialGradient(cx, cy, 0, cx, cy, rad);
+        pg.addColorStop(0, `rgba(12,8,6,${0.18 + rng() * 0.14})`);
+        pg.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = pg;
+        g.beginPath(); g.arc(cx, cy, rad, 0, Math.PI * 2); g.fill();
+      }
+    }
+  }
+
+  // Theme-tinted micro-stains (seed picks the dirt color)
+  const stainKey = seed.toLowerCase();
+  let sR = 36, sG = 24, sB = 16;
+  if (/org|gullet|flesh|bile/.test(stainKey) || mode === 'organic') { sR = 96; sG = 34; sB = 32; }
+  else if (/sto|cata|bone|spire|mason/.test(stainKey)) { sR = 48; sG = 72; sB = 44; }
+  else if (/tech|ward/.test(stainKey)) { sR = 70; sG = 88; sB = 70; }
+  else if (/pit|found|ind|rust|iron/.test(stainKey)) { sR = 110; sG = 58; sB = 28; }
+  else if (/sanc/.test(stainKey)) { sR = 50; sG = 36; sB = 22; }
+  for (let i = 0; i < 56; i++) {
+    const x = rng() * size, y = rng() * size, rad = 2.5 + rng() * 16;
     const pg = g.createRadialGradient(x, y, 0, x, y, rad);
-    pg.addColorStop(0, `rgba(36,24,16,${0.10 + rng() * 0.16})`);
+    pg.addColorStop(0, `rgba(${sR},${sG},${sB},${0.10 + rng() * 0.18})`);
     pg.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = pg;
     g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
   }
-  if (mode !== 'organic') {
-    const n = mode === 'panel' ? 4 : 8;
-    const step = size / n;
-    g.strokeStyle = 'rgba(0,0,0,0.16)';
-    g.lineWidth = 1;
-    for (let i = 0; i <= n; i++) {
-      g.beginPath(); g.moveTo(i * step, 0); g.lineTo(i * step, size); g.stroke();
-      if (mode !== 'panel') {
-        g.beginPath(); g.moveTo(0, i * step); g.lineTo(size, i * step); g.stroke();
+
+  // Coarser value variation
+  for (let i = 0; i < 26; i++) {
+    const x = rng() * size, y = rng() * size, rad = 16 + rng() * 64;
+    const dark = rng() > 0.42;
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, dark
+      ? `rgba(18,14,10,${0.07 + rng() * 0.10})`
+      : `rgba(255,248,230,${0.035 + rng() * 0.05})`);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+
+  // Wrap-safe scratches (re-seed so the 3x3 torus copies match)
+  wrapDraw(g, size, (gg) => {
+    const r = makeRng('wear-scratch-' + seed).float;
+    gg.lineWidth = 1;
+    gg.strokeStyle = 'rgba(255,245,230,0.11)';
+    for (let i = 0; i < 22; i++) {
+      const x = r() * size, y = r() * size;
+      gg.beginPath(); gg.moveTo(x, y); gg.lineTo(x + 14 + r() * 42, y + (r() - 0.5) * 8); gg.stroke();
+    }
+    gg.strokeStyle = 'rgba(10,8,6,0.16)';
+    for (let i = 0; i < 16; i++) {
+      const x = r() * size, y = r() * size;
+      gg.beginPath(); gg.moveTo(x, y); gg.lineTo(x + (r() - 0.35) * 52, y + 8 + r() * 28); gg.stroke();
+    }
+    if (mode === 'organic') {
+      gg.strokeStyle = 'rgba(80,30,28,0.16)';
+      gg.lineWidth = 1.4;
+      for (let i = 0; i < 8; i++) {
+        gg.beginPath();
+        gg.moveTo(r() * size, r() * size);
+        gg.bezierCurveTo(r() * size, r() * size, r() * size, r() * size, r() * size, r() * size);
+        gg.stroke();
       }
     }
-    g.strokeStyle = 'rgba(255,245,230,0.07)';
-    for (let i = 0; i < 8; i++) {
-      const x = rng() * size, y = rng() * size;
-      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10 + rng() * 24, y + (rng() - 0.5) * 5); g.stroke();
-    }
-  } else {
-    g.strokeStyle = 'rgba(80,30,28,0.18)';
-    g.lineWidth = 1.5;
-    for (let i = 0; i < 6; i++) {
-      g.beginPath();
-      g.moveTo(rng() * size, rng() * size);
-      g.bezierCurveTo(rng() * size, rng() * size, rng() * size, rng() * size, rng() * size, rng() * size);
-      g.stroke();
-    }
+  });
+
+  noise(g, size, rng, Math.floor(size * 5), 0.065);
+  for (let i = 0; i < size * 4; i++) {
+    const v = rng() * 255 | 0;
+    g.fillStyle = `rgba(${v},${v},${v},0.035)`;
+    g.fillRect(rng() * size, rng() * size, 1, 1);
   }
-  noise(g, size, rng, Math.floor(size * 2), 0.05);
   return c;
 }
 
-function toTiledSurf(c: HTMLCanvasElement, seed: string, mode: WearMode, size = 512): THREE.Texture {
+function toTiledSurf(c: HTMLCanvasElement, seed: string, mode: WearMode, size = 1024): THREE.Texture {
   return toTiled(enrichAlbedo(c, size, seed, mode));
 }
 
 
+function plateGrain(src: HTMLCanvasElement, size: number, seed: string): HTMLCanvasElement {
+  if (src.width >= size && src.height >= size) {
+    const { c, g } = canvas(src.width);
+    g.imageSmoothingEnabled = false;
+    if (typeof g.drawImage === "function") g.drawImage(src, 0, 0);
+    const rng = makeRng("plate-" + seed).float;
+    noise(g, src.width, rng, Math.floor(src.width * 3), 0.05);
+    return c;
+  }
+  const { c, g } = canvas(size);
+  g.imageSmoothingEnabled = false;
+  if (typeof g.drawImage === "function") g.drawImage(src, 0, 0, size, size);
+  const rng = makeRng("plate-" + seed).float;
+  noise(g, size, rng, Math.floor(size * 4), 0.055);
+  const r = makeRng("plate-scratch-" + seed).float;
+  g.lineWidth = 1;
+  g.strokeStyle = "rgba(255,245,230,0.08)";
+  for (let i = 0; i < 10; i++) {
+    const x = r() * size, y = r() * size;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 8 + r() * 28, y + (r() - 0.5) * 6); g.stroke();
+  }
+  g.strokeStyle = "rgba(8,6,5,0.12)";
+  for (let i = 0; i < 8; i++) {
+    const x = r() * size, y = r() * size;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.4) * 30, y + 6 + r() * 18); g.stroke();
+  }
+  return c;
+}
+
+let decalGrainSeq = 0;
 function toDecal(c: HTMLCanvasElement): THREE.Texture {
-  const t = new THREE.CanvasTexture(c);
+  decalGrainSeq += 1;
+  const painted = plateGrain(c, 512, "decal-" + decalGrainSeq);
+  const t = new THREE.CanvasTexture(painted);
   t.magFilter = THREE.NearestFilter;
   t.minFilter = THREE.NearestMipmapLinearFilter;
   t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
@@ -267,7 +464,7 @@ function seed(id: string, kind: string): () => number {
 // slag iron, poured plates, heat scale, hazard chevrons, ember cracks
 
 function foundryWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('foundry', 'wall');
   g.fillStyle = '#2b2521';
   g.fillRect(0, 0, 128, 128);
@@ -315,11 +512,12 @@ function foundryWall(): HTMLCanvasElement {
   g.fillStyle = 'rgba(0,0,0,0.5)';
   g.fillRect(0, 54, 128, 2); g.fillRect(0, 70, 128, 2);
   noise(g, 128, rng, 900, 0.07);
+  finishCompose(g);
   return c;
 }
 
 function foundryFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('foundry', 'floor');
   g.fillStyle = '#1d1917';
   g.fillRect(0, 0, 128, 128);
@@ -341,11 +539,12 @@ function foundryFloor(): HTMLCanvasElement {
   speckle(g, 128, rng, 60, 'rgba(18,14,12,0.7)', 1, 4);
   speckle(g, 128, rng, 18, 'rgba(232,120,40,0.22)', 2, 6);
   noise(g, 128, rng, 1100, 0.08);
+  finishCompose(g);
   return c;
 }
 
 function foundryCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('foundry', 'ceil');
   g.fillStyle = '#161210';
   g.fillRect(0, 0, 64, 64);
@@ -359,6 +558,7 @@ function foundryCeiling(): HTMLCanvasElement {
   for (const x of [10, 32, 54]) for (const y of [10, 32, 54]) rivet(g, x, y, 2, '#4a3b2c', '#0b0908');
   speckle(g, 64, rng, 10, 'rgba(255,110,30,0.30)', 0.6, 1.4);
   noise(g, 64, rng, 380, 0.08);
+  finishCompose(g);
   return c;
 }
 
@@ -486,7 +686,7 @@ function foundryHeatWarning(): HTMLCanvasElement {
 // wet mucosa, peristalsis folds, bile sheen — organic interior, not red industrial
 
 function gulletWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('gullet', 'wall');
   const base = g.createLinearGradient(0, 0, 0, 128);
   base.addColorStop(0, '#7d3d48');
@@ -542,11 +742,12 @@ function gulletWall(): HTMLCanvasElement {
   }
   speckle(g, 128, rng, 40, 'rgba(46,12,20,0.45)', 1, 3);
   noise(g, 128, rng, 1300, 0.07);
+  finishCompose(g);
   return c;
 }
 
 function gulletFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('gullet', 'floor');
   g.fillStyle = '#4a2430';
   g.fillRect(0, 0, 128, 128);
@@ -576,11 +777,12 @@ function gulletFloor(): HTMLCanvasElement {
     }
   });
   noise(g, 128, rng, 1500, 0.09);
+  finishCompose(g);
   return c;
 }
 
 function gulletCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('gullet', 'ceil');
   g.fillStyle = '#3a1824';
   g.fillRect(0, 0, 64, 64);
@@ -593,6 +795,7 @@ function gulletCeiling(): HTMLCanvasElement {
     g.beginPath(); g.arc(x, y + r * 1.6, 1, 0, Math.PI * 2); g.fill();
   }
   noise(g, 64, rng, 420, 0.09);
+  finishCompose(g);
   return c;
 }
 
@@ -701,7 +904,7 @@ function gulletDrip(): HTMLCanvasElement {
 // bone-inlaid stone, ossuary niches, soot candles, burial glyphs
 
 function catacombsWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('catacombs', 'wall');
   g.fillStyle = '#231f1c';
   g.fillRect(0, 0, 128, 128);
@@ -760,11 +963,12 @@ function catacombsWall(): HTMLCanvasElement {
     if (x % 20 === 4) g.fillRect(x - 2, 116, 7, 2);
   }
   noise(g, 128, rng, 950, 0.08);
+  finishCompose(g);
   return c;
 }
 
 function catacombsFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('catacombs', 'floor');
   g.fillStyle = '#1a1815';
   g.fillRect(0, 0, 128, 128);
@@ -788,11 +992,12 @@ function catacombsFloor(): HTMLCanvasElement {
   speckle(g, 128, rng, 70, 'rgba(198,188,158,0.22)', 0.8, 2.4);
   speckle(g, 128, rng, 12, 'rgba(226,214,170,0.4)', 1.5, 4);
   noise(g, 128, rng, 900, 0.08);
+  finishCompose(g);
   return c;
 }
 
 function catacombsCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('catacombs', 'ceil');
   g.fillStyle = '#191713';
   g.fillRect(0, 0, 64, 64);
@@ -809,6 +1014,7 @@ function catacombsCeiling(): HTMLCanvasElement {
   g.fillStyle = soot;
   g.fillRect(0, 0, 64, 64);
   noise(g, 64, rng, 420, 0.08);
+  finishCompose(g);
   return c;
 }
 
@@ -915,7 +1121,7 @@ function catacombsBoneCross(): HTMLCanvasElement {
 // rust gantry walls, open dirt floor, sick ochre overcast sky
 
 function pitWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('pit', 'wall');
   g.fillStyle = '#4a3524';
   g.fillRect(0, 0, 128, 128);
@@ -959,11 +1165,12 @@ function pitWall(): HTMLCanvasElement {
   });
   speckle(g, 128, rng, 60, 'rgba(30,20,12,0.4)', 1, 4);
   noise(g, 128, rng, 1000, 0.08);
+  finishCompose(g);
   return c;
 }
 
 function pitFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('pit', 'floor');
   g.fillStyle = '#6b5730';
   g.fillRect(0, 0, 128, 128);
@@ -993,11 +1200,12 @@ function pitFloor(): HTMLCanvasElement {
     g.beginPath(); g.ellipse(x, y, 6 + rng() * 12, 4 + rng() * 7, rng() * 3, 0, Math.PI * 2); g.fill();
   }
   noise(g, 128, rng, 1200, 0.09);
+  finishCompose(g);
   return c;
 }
 
 function pitCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('pit', 'ceil');
   // open gantry mesh with pit daylight leaking through
   g.fillStyle = 'rgba(150,132,74,0.55)';
@@ -1009,6 +1217,7 @@ function pitCeiling(): HTMLCanvasElement {
   for (let x = 0; x < 64; x += 16) g.fillRect(x + 4, 0, 2, 64);
   for (let x = 8; x < 64; x += 16) for (let y = 8; y < 64; y += 16) rivet(g, x, y, 1.8, '#7c6540', '#171008');
   noise(g, 64, rng, 380, 0.08);
+  finishCompose(g);
   return c;
 }
 
@@ -1170,7 +1379,7 @@ function pitRimRust(): HTMLCanvasElement {
 // (not neon circuit panels, not a mesh ceiling, not a purple numeric wall)
 
 function spireWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('spire', 'wall');
   g.fillStyle = '#3a3c3e';
   g.fillRect(0, 0, 128, 128);
@@ -1231,11 +1440,12 @@ function spireWall(): HTMLCanvasElement {
   }
   speckle(g, 128, rng, 40, 'rgba(20,18,16,0.45)', 1, 3);
   noise(g, 128, rng, 650, 0.05);
+  finishCompose(g);
   return c;
 }
 
 function spireFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('spire', 'floor');
   g.fillStyle = '#3e3f41';
   g.fillRect(0, 0, 128, 128);
@@ -1260,11 +1470,12 @@ function spireFloor(): HTMLCanvasElement {
   g.fillRect(63, 0, 2, 128); g.fillRect(0, 63, 128, 2);
   speckle(g, 128, rng, 28, 'rgba(22,20,18,0.5)', 1, 4);
   noise(g, 128, rng, 600, 0.05);
+  finishCompose(g);
   return c;
 }
 
 function spireCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('spire', 'ceil');
   g.fillStyle = '#2c2d2e';
   g.fillRect(0, 0, 64, 64);
@@ -1283,6 +1494,7 @@ function spireCeiling(): HTMLCanvasElement {
   g.fillRect(0, 31, 64, 2);
   for (const x of [12, 32, 52]) rivet(g, x, 32, 2, '#e0b07a', '#4a2814');
   noise(g, 64, rng, 280, 0.05);
+  finishCompose(g);
   return c;
 }
 
@@ -1390,7 +1602,7 @@ function spireDish(): HTMLCanvasElement {
 // clinical siege: cracked tile, quarantine yellow, barred cells
 
 function wardWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('ward', 'wall');
   g.fillStyle = '#7d8a80';
   g.fillRect(0, 0, 128, 128);
@@ -1440,11 +1652,12 @@ function wardWall(): HTMLCanvasElement {
   g.fillRect(0, 100, 128, 2); g.fillRect(0, 116, 128, 2);
   for (let x = 4; x < 128; x += 16) g.fillRect(x, 106, 8, 6);
   noise(g, 128, rng, 900, 0.06);
+  finishCompose(g);
   return c;
 }
 
 function wardFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('ward', 'floor');
   g.fillStyle = '#6f7a72';
   g.fillRect(0, 0, 128, 128);
@@ -1485,11 +1698,12 @@ function wardFloor(): HTMLCanvasElement {
     }
   });
   noise(g, 128, rng, 850, 0.07);
+  finishCompose(g);
   return c;
 }
 
 function wardCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('ward', 'ceil');
   g.fillStyle = '#3d443f';
   g.fillRect(0, 0, 64, 64);
@@ -1509,6 +1723,7 @@ function wardCeiling(): HTMLCanvasElement {
   g.fillStyle = 'rgba(40,46,40,0.4)';
   for (let x = 36; x < 60; x += 5) g.fillRect(x, 4, 2, 24);
   noise(g, 64, rng, 340, 0.06);
+  finishCompose(g);
   return c;
 }
 
@@ -1636,7 +1851,7 @@ function wardKeySigil(): HTMLCanvasElement {
 // inlaid gold on void, apse glow, seventh-gun motif
 
 function sanctumWall(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('sanctum', 'wall');
   g.fillStyle = '#0a0910';
   g.fillRect(0, 0, 128, 128);
@@ -1676,11 +1891,12 @@ function sanctumWall(): HTMLCanvasElement {
   // gold dust caught in the void
   speckle(g, 128, rng, 40, 'rgba(226,190,110,0.18)', 0.6, 1.6);
   noise(g, 128, rng, 500, 0.05);
+  finishCompose(g);
   return c;
 }
 
 function sanctumFloor(): HTMLCanvasElement {
-  const { c, g } = canvas(128);
+  const { c, g } = composeCanvas(1024, 128);
   const rng = seed('sanctum', 'floor');
   g.fillStyle = '#0c0b11';
   g.fillRect(0, 0, 128, 128);
@@ -1721,11 +1937,12 @@ function sanctumFloor(): HTMLCanvasElement {
   g.strokeRect(1, 1, 126, 126);
   speckle(g, 128, rng, 26, 'rgba(226,190,110,0.14)', 0.6, 1.8);
   noise(g, 128, rng, 500, 0.05);
+  finishCompose(g);
   return c;
 }
 
 function sanctumCeiling(): HTMLCanvasElement {
-  const { c, g } = canvas(64);
+  const { c, g } = composeCanvas(1024, 64);
   const rng = seed('sanctum', 'ceil');
   g.fillStyle = '#07060b';
   g.fillRect(0, 0, 64, 64);
@@ -1747,6 +1964,7 @@ function sanctumCeiling(): HTMLCanvasElement {
   }
   speckle(g, 64, rng, 20, 'rgba(240,214,150,0.3)', 0.5, 1.3);
   noise(g, 64, rng, 260, 0.05);
+  finishCompose(g);
   return c;
 }
 
@@ -2033,12 +2251,12 @@ function withPbr(id: CampaignArtId, pack: Omit<CampaignTextureLib, 'roughnessWal
   const wear = CAMPAIGN_WEAR[id];
   return {
     ...pack,
-    roughnessWalls: toRoughness(roughnessCanvas(`camp-rough-w-${id}`, spec.lo, spec.hi, 128, wear)),
-    roughnessFloors: toRoughness(roughnessCanvas(`camp-rough-f-${id}`, Math.min(0.99, spec.lo + 0.04), Math.min(1, spec.hi + 0.02), 128, wear)),
-    roughnessCeilings: toRoughness(roughnessCanvas(`camp-rough-c-${id}`, Math.min(0.99, spec.lo + 0.06), Math.min(1, spec.hi + 0.02), 128, wear)),
-    bumpWalls: toBump(bumpCanvas(`camp-tex-bump-w-${id}`, 128, wear)),
-    bumpFloors: toBump(bumpCanvas(`camp-tex-bump-f-${id}`, 128, wear)),
-    bumpCeilings: toBump(bumpCanvas(`camp-tex-bump-c-${id}`, 128, wear)),
+    roughnessWalls: toRoughness(roughnessCanvas(`camp-rough-w-${id}`, spec.lo, spec.hi, 256, wear)),
+    roughnessFloors: toRoughness(roughnessCanvas(`camp-rough-f-${id}`, Math.min(0.99, spec.lo + 0.04), Math.min(1, spec.hi + 0.02), 256, wear)),
+    roughnessCeilings: toRoughness(roughnessCanvas(`camp-rough-c-${id}`, Math.min(0.99, spec.lo + 0.06), Math.min(1, spec.hi + 0.02), 256, wear)),
+    bumpWalls: toBump(bumpCanvas(`camp-tex-bump-w-${id}`, 256, wear)),
+    bumpFloors: toBump(bumpCanvas(`camp-tex-bump-f-${id}`, 256, wear)),
+    bumpCeilings: toBump(bumpCanvas(`camp-tex-bump-c-${id}`, 256, wear)),
     pbrRoughness: spec.roughness,
     pbrMetalness: spec.metalness,
   };
@@ -2060,8 +2278,11 @@ function heroSeed(id: string): () => number {
   return makeRng('camp-hero-' + id).float;
 }
 
+let heroGrainSeq = 0;
 function toHero(c: HTMLCanvasElement): THREE.Texture {
-  const t = new THREE.CanvasTexture(c);
+  heroGrainSeq += 1;
+  const painted = plateGrain(c, 1024, "hero-" + heroGrainSeq);
+  const t = new THREE.CanvasTexture(painted);
   t.magFilter = THREE.NearestFilter;
   t.minFilter = THREE.NearestMipmapLinearFilter;
   t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
