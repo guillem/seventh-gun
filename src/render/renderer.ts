@@ -10,7 +10,7 @@ import { PickupRenderer } from './pickups';
 import { FxRenderer } from './fx';
 import { buildViewModel, type ViewModel } from './viewmodels';
 import { getTextures } from './textures';
-import { hasLineOfSight } from '../sim/physics';
+import { hasVisualLineOfSight } from '../sim/physics';
 
 export class GameRenderer {
   renderer: THREE.WebGLRenderer;
@@ -103,6 +103,19 @@ export class GameRenderer {
     this.world = buildWorld(sim.map);
     this.scene.add(this.world.group);
     this.setGun(1);
+    this.prefetchDynamicMeshes();
+  }
+
+  /** Warm GPU programs so the first door reveal does not hitch / pop. */
+  private prefetchDynamicMeshes(): void {
+    this.enemies.setAllVisible(true);
+    this.pickups.setAllVisible(true);
+    try {
+      this.renderer.compile(this.scene, this.camera);
+      this.renderer.compile(this.vmScene, this.vmCamera);
+    } catch {
+      /* compile is best-effort — first frame still draws */
+    }
   }
 
   setGun(id: number): void {
@@ -220,8 +233,8 @@ export class GameRenderer {
     this.fx.syncProjectiles(sim.projectiles);
     this.fx.update(dt);
 
-    // enemy visibility: frustum + grid LOS (closed doors hide AND are
-    // impenetrable) + distance
+    // enemy visibility: frustum + visual LOS (opening doors do not occlude)
+    // + distance. Collision LOS still uses offset < 0.65 in physics.
     this.camera.updateMatrixWorld();
     const frustum = new THREE.Frustum();
     const projScreen = new THREE.Matrix4();
@@ -240,7 +253,7 @@ export class GameRenderer {
         this.showAllEnemies ||
         (sim.phase === 'playing' &&
           Math.hypot(e.x - p.x, e.z - p.z) < 55 &&
-          hasLineOfSight(sim, p.x, p.z, e.x, e.z) &&
+          hasVisualLineOfSight(sim, p.x, p.z, e.x, e.z) &&
           frustum.intersectsBox(box));
       rig.group.visible = visible;
     }

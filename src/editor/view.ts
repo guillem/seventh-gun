@@ -35,6 +35,20 @@ const TOOLS: { id: EditorTool; label: string }[] = [
   { id: 'start', label: 'START' },
 ];
 
+const TOOL_HINTS: Record<EditorTool, string> = {
+  room: 'ROOM — drag to stamp a room',
+  corridor: 'CORRIDOR — drag a 3-wide hall, or click two rooms to link',
+  erase: 'ERASE — click a room, corridor, door, or entity to remove it',
+  door: 'DOOR — click a cell to stamp or toggle a door',
+  seal: 'SEAL — click to place the arena seal override',
+  enemy: 'ENEMY — click a room cell to stamp an enemy',
+  medikit: 'MEDIKIT — click a room cell to stamp a medikit',
+  ammo: 'AMMO — click a room cell to stamp ammo',
+  gun: 'GUN — click a room cell to stamp a gun',
+  key: 'KEY — click a room cell to stamp the Bone Key',
+  start: 'START — click to set the player spawn',
+};
+
 const THEME_FILL: Record<Theme, string> = {
   industrial: '#7a5a38',
   organic: '#6a3030',
@@ -148,7 +162,7 @@ export class EditorView {
           <button type="button" id="editor-download">DOWNLOAD</button>
           <button type="button" id="editor-import-btn">IMPORT</button>
         </div>
-        <div id="editor-status">stamp rooms, then link them with CORRIDOR</div>
+        <div id="editor-status">ROOM — drag to stamp a room</div>
       </div>
       <div id="editor-canvas-wrap">
         <canvas id="editor-canvas"></canvas>
@@ -181,6 +195,8 @@ export class EditorView {
     this.root.classList.remove('hidden');
     this.syncForm();
     this.paint();
+    // first paint may run before flex layout; redraw on the next frame
+    requestAnimationFrame(() => { if (this.isOpen()) this.paint(); });
   }
 
   hide(): void {
@@ -218,7 +234,7 @@ export class EditorView {
       this.dotsKey = '';
       this.syncForm();
       this.paint();
-      this.setStatus('new map');
+      this.setStatus(`new map · ${TOOL_HINTS[this.tool]}`);
     });
     this.root.querySelector('#editor-save')!.addEventListener('click', () => this.saveCurrent());
     this.root.querySelector('#editor-lib-btn')!.addEventListener('click', () => this.openLibrary());
@@ -322,12 +338,17 @@ export class EditorView {
       const x0 = Math.min(d.x0, d.x1), z0 = Math.min(d.z0, d.z1);
       const w = Math.abs(d.x1 - d.x0) + 1, h = Math.abs(d.z1 - d.z0) + 1;
       if (this.tool === 'room') {
-        const room = this.doc.stampRoom({
-          x: x0, z: z0, w, h,
-          kind: this.roomKind, theme: this.theme, outdoor: this.outdoor,
-        });
-        this.dotsKey = '';
-        this.setStatus(room ? `room ${room.id} ${room.kind}` : 'room too small');
+        // a plain click is 1×1 — do not stamp (or expand) a tiny rect
+        if (w <= 1 && h <= 1) {
+          this.setStatus(TOOL_HINTS.room);
+        } else {
+          const room = this.doc.stampRoom({
+            x: x0, z: z0, w, h,
+            kind: this.roomKind, theme: this.theme, outdoor: this.outdoor,
+          });
+          this.dotsKey = '';
+          this.setStatus(room ? `room ${room.id} ${room.kind}` : 'room too small — drag a larger rect');
+        }
       } else if (this.tool === 'corridor') {
         if (w === 1 && h === 1 && !this.corrFirst) {
           this.corrFirst = { x: d.x0, z: d.z0 };
@@ -404,6 +425,7 @@ export class EditorView {
     for (const b of Array.from(this.root.querySelectorAll<HTMLButtonElement>('.ed-tool'))) {
       b.classList.toggle('active', b.dataset.tool === tool);
     }
+    this.setStatus(TOOL_HINTS[tool]);
   }
 
   private syncForm(): void {
@@ -561,35 +583,90 @@ export class EditorView {
     this.status.textContent = msg;
   }
 
-  private layout(): { cell: number; originX: number; originZ: number } {
+  private layout(): { cell: number; originX: number; originZ: number; dpr: number; cssW: number; cssH: number } {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const wrap = this.canvas.parentElement!;
-    const cssW = wrap.clientWidth || 640;
-    const cssH = wrap.clientHeight || 480;
-    this.canvas.width = Math.floor(cssW * dpr);
-    this.canvas.height = Math.floor(cssH * dpr);
+    const cssW = wrap.clientWidth;
+    const cssH = wrap.clientHeight;
+    if (cssW < 8 || cssH < 8) {
+      return { cell: 0, originX: 0, originZ: 0, dpr, cssW, cssH };
+    }
+    this.canvas.width = Math.max(1, Math.floor(cssW * dpr));
+    this.canvas.height = Math.max(1, Math.floor(cssH * dpr));
     this.canvas.style.width = `${cssW}px`;
     this.canvas.style.height = `${cssH}px`;
-    const cell = Math.floor(Math.min(this.canvas.width, this.canvas.height) / GRID_W);
-    const originX = Math.floor((this.canvas.width - cell * GRID_W) / 2);
-    const originZ = Math.floor((this.canvas.height - cell * GRID_H) / 2);
-    return { cell, originX, originZ };
+    // cell/origin are CSS pixels so pointer events match the painted grid
+    const cell = Math.max(2, Math.floor(Math.min(cssW, cssH) / GRID_W));
+    const originX = Math.floor((cssW - cell * GRID_W) / 2);
+    const originZ = Math.floor((cssH - cell * GRID_H) / 2);
+    this.canvas.dataset.cell = String(cell);
+    this.canvas.dataset.originX = String(originX);
+    this.canvas.dataset.originZ = String(originZ);
+    return { cell, originX, originZ, dpr, cssW, cssH };
+  }
+
+  private drawGrid(
+    ctx: CanvasRenderingContext2D,
+    originX: number, originZ: number, cell: number,
+    alpha = 1,
+  ): void {
+    const w = GRID_W * cell;
+    const h = GRID_H * cell;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#3a3844';
+    ctx.lineWidth = 1;
+    const step = cell >= 4 ? 1 : 4;
+    ctx.beginPath();
+    for (let i = 0; i <= GRID_W; i += step) {
+      const x = originX + i * cell + 0.5;
+      ctx.moveTo(x, originZ);
+      ctx.lineTo(x, originZ + h);
+    }
+    for (let i = 0; i <= GRID_H; i += step) {
+      const z = originZ + i * cell + 0.5;
+      ctx.moveTo(originX, z);
+      ctx.lineTo(originX + w, z);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#5a5868';
+    ctx.beginPath();
+    for (let i = 0; i <= GRID_W; i += 8) {
+      const x = originX + i * cell + 0.5;
+      ctx.moveTo(x, originZ);
+      ctx.lineTo(x, originZ + h);
+    }
+    for (let i = 0; i <= GRID_H; i += 8) {
+      const z = originZ + i * cell + 0.5;
+      ctx.moveTo(originX, z);
+      ctx.lineTo(originX + w, z);
+    }
+    ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = '#8a8674';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(originX + 1, originZ + 1, w - 2, h - 2);
   }
 
   paint(): void {
     if (this.root.classList.contains('hidden')) return;
     const ctx = this.canvas.getContext('2d');
     if (!ctx) return;
-    const { cell, originX, originZ } = this.layout();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const { cell, originX, originZ, dpr, cssW, cssH } = this.layout();
+    if (cell < 1 || cssW < 8 || cssH < 8) {
+      requestAnimationFrame(() => { if (this.isOpen()) this.paint(); });
+      return;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = '#0c0a0c';
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.fillRect(0, 0, cssW, cssH);
     const px = (x: number, z: number, w = 1, h = 1) => {
       ctx.fillRect(originX + x * cell, originZ + z * cell, w * cell, h * cell);
     };
 
-    ctx.fillStyle = '#16141a';
+    ctx.fillStyle = '#1a1820';
     ctx.fillRect(originX, originZ, GRID_W * cell, GRID_H * cell);
+    this.drawGrid(ctx, originX, originZ, cell, 1);
 
     for (const c of this.doc.bp.corridors) {
       ctx.fillStyle = '#2a2c28';
@@ -604,12 +681,17 @@ export class EditorView {
       ctx.strokeStyle = r.kind === 'start' ? '#ffe9a0' : 'rgba(0,0,0,0.35)';
       ctx.lineWidth = Math.max(1, cell * 0.12);
       ctx.strokeRect(originX + r.x * cell + 0.5, originZ + r.z * cell + 0.5, r.w * cell - 1, r.h * cell - 1);
-      if (cell >= 6) {
-        ctx.fillStyle = '#e8e4c8';
-        ctx.font = `${Math.max(8, cell * 1.4)}px "Courier New", monospace`;
-        ctx.fillText(r.kind.slice(0, 4), originX + r.x * cell + 2, originZ + r.z * cell + cell * 1.6);
+      if (cell >= 4) {
+        const label = r.kind === 'start' ? 'START'
+          : r.kind === 'arena' ? 'ARENA'
+          : r.kind === 'antechamber' ? 'ANTE'
+          : r.kind.slice(0, 4).toUpperCase();
+        ctx.fillStyle = r.kind === 'start' ? '#ffe9a0' : '#e8e4c8';
+        ctx.font = `bold ${Math.max(9, cell * 1.35)}px "Courier New", monospace`;
+        ctx.fillText(label, originX + r.x * cell + 3, originZ + r.z * cell + Math.max(12, cell * 1.7));
       }
     }
+    this.drawGrid(ctx, originX, originZ, cell, 0.28);
 
     if (this.drag && this.tool === 'room') {
       const x = Math.min(this.drag.x0, this.drag.x1);

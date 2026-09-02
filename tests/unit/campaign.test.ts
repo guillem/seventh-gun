@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { Sim, emptyInput } from '../../src/sim/sim';
 import { CAMPAIGN, campaignEconomy, ECONOMY_FLOOR, snapshotLoadout } from '../../src/campaign/index';
 import {
-  CAMPAIGN_PROGRESS_KEY, canContinue, clearCampaignProgress,
-  loadCampaignProgress, parseCampaignProgress, saveCampaignProgress,
-  type CampaignStorage,
+  CAMPAIGN_PROGRESS_KEY, applyMapWin, canContinue, clearCampaignProgress,
+  isMapUnlocked, loadCampaignProgress, parseCampaignProgress, saveCampaignProgress,
+  unlockedThrough, type CampaignStorage,
 } from '../../src/app/campaignProgress';
 
 function memoryStorage(initial?: Record<string, string>): CampaignStorage & { data: Record<string, string> } {
@@ -200,5 +200,68 @@ describe('campaign continue key', () => {
     const storage = memoryStorage({ [CAMPAIGN_PROGRESS_KEY]: '{"difficulty":"normal","nextMap":2,"loadout":{"owned":[false,true],"ammo":{},"gun":1}}' });
     clearCampaignProgress(storage);
     expect(loadCampaignProgress(storage)).toBeNull();
+  });
+});
+
+describe('campaign unlock rules', () => {
+  const loadout = CAMPAIGN[0].incomingLoadout;
+
+  it('first visit unlocks only map 1; winning N unlocks N+1', () => {
+    expect(unlockedThrough(null)).toBe(1);
+    expect(isMapUnlocked(1, null)).toBe(true);
+    expect(isMapUnlocked(2, null)).toBe(false);
+    expect(isMapUnlocked(7, null)).toBe(false);
+
+    const after1 = applyMapWin(null, 1, loadout, 'normal');
+    expect(after1.nextMap).toBe(2);
+    expect(after1.unlocked).toBe(2);
+    expect(isMapUnlocked(1, after1)).toBe(true);
+    expect(isMapUnlocked(2, after1)).toBe(true);
+    expect(isMapUnlocked(3, after1)).toBe(false);
+
+    const after2 = applyMapWin(after1, 2, CAMPAIGN[1].incomingLoadout, 'normal');
+    expect(after2.nextMap).toBe(3);
+    expect(after2.unlocked).toBe(3);
+    expect(isMapUnlocked(3, after2)).toBe(true);
+    expect(isMapUnlocked(4, after2)).toBe(false);
+  });
+
+  it('replaying an earlier map does not rewind nextMap or loadout', () => {
+    const frontier = applyMapWin(
+      applyMapWin(null, 1, CAMPAIGN[0].incomingLoadout, 'hard'),
+      2, CAMPAIGN[1].incomingLoadout, 'hard',
+    );
+    expect(frontier.nextMap).toBe(3);
+    const replay = applyMapWin(frontier, 1, loadout, 'hard');
+    expect(replay.nextMap).toBe(3);
+    expect(replay.unlocked).toBe(3);
+    expect(replay.loadout).toEqual(frontier.loadout);
+    expect(replay.difficulty).toBe('hard');
+  });
+
+  it('winning map 7 finishes the campaign and keeps all maps unlocked', () => {
+    const almost: ReturnType<typeof applyMapWin> = {
+      difficulty: 'normal',
+      nextMap: 7,
+      loadout: CAMPAIGN[6].incomingLoadout,
+      unlocked: 7,
+    };
+    const done = applyMapWin(almost, 7, CAMPAIGN[6].incomingLoadout, 'normal');
+    expect(done.nextMap).toBe(8);
+    expect(done.unlocked).toBe(7);
+    expect(canContinue(done)).toBe(false);
+    for (let n = 1; n <= 7; n++) expect(isMapUnlocked(n, done)).toBe(true);
+  });
+
+  it('derives unlocked from nextMap on old saves', () => {
+    const parsed = parseCampaignProgress({
+      difficulty: 'easy',
+      nextMap: 4,
+      loadout: { owned: [false, true], ammo: {}, gun: 1 },
+    });
+    expect(parsed?.unlocked).toBeUndefined();
+    expect(unlockedThrough(parsed)).toBe(4);
+    expect(isMapUnlocked(4, parsed)).toBe(true);
+    expect(isMapUnlocked(5, parsed)).toBe(false);
   });
 });

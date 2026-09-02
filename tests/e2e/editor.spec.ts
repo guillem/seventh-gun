@@ -17,6 +17,44 @@ test.describe('editor', () => {
     expect(state.phase).toBe('editing');
   });
 
+  test('opens with a visible canvas and a START room', async ({ page }) => {
+    await page.goto(EDIT);
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'editing';
+    });
+    await expect(page.locator('#editor-status')).toContainText('drag to stamp a room');
+    const canvas = page.locator('#editor-canvas');
+    await expect(canvas).toBeVisible();
+    const box = await canvas.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThan(80);
+    expect(box!.height).toBeGreaterThan(80);
+    const meta = await canvas.evaluate((el) => ({
+      cell: Number((el as HTMLCanvasElement).dataset.cell ?? 0),
+      backingW: (el as HTMLCanvasElement).width,
+      backingH: (el as HTMLCanvasElement).height,
+    }));
+    expect(meta.cell).toBeGreaterThan(0);
+    expect(meta.backingW).toBeGreaterThan(0);
+    expect(meta.backingH).toBeGreaterThan(0);
+    const state = await page.evaluate(() => (
+      window as unknown as { __GAME__: { state: () => { rooms: number; startRoom?: boolean } } }
+    ).__GAME__.state());
+    expect(state.rooms).toBeGreaterThanOrEqual(1);
+    expect(state.startRoom).toBe(true);
+
+    const stamped = await page.evaluate(() => (
+      window as unknown as { __GAME__: { stampEditorRoom: (o: { x: number; z: number; w: number; h: number }) => { id: number } | null } }
+    ).__GAME__.stampEditorRoom({ x: 8, z: 20, w: 7, h: 7 }));
+    expect(stamped?.id).toBeGreaterThanOrEqual(0);
+    const after = await page.evaluate(() => (
+      window as unknown as { __GAME__: { state: () => { rooms: number; startRoom?: boolean } } }
+    ).__GAME__.state());
+    expect(after.rooms).toBeGreaterThanOrEqual(2);
+    expect(after.startRoom).toBe(true);
+  });
+
   test('title EDITOR button opens the editor', async ({ page }) => {
     await page.goto('/?e2e=1');
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();

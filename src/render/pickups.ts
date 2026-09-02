@@ -171,4 +171,8 @@ export class PickupRenderer {
     for (const [, m] of this.meshes) this.scene.remove(m);
     this.meshes.clear();
   }
+
+  setAllVisible(v: boolean): void {
+    for (const [, m] of this.meshes) m.visible = v;
+  }
 }
