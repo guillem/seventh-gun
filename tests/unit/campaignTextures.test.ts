@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CAMPAIGN_ART_IDS, CAMPAIGN_PACK_MARKERS, campaignArtIdFromIndex,
+  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_MARKERS, CAMPAIGN_PACK_MARKERS, campaignArtIdFromIndex,
 } from '../../src/render/campaignTextures';
 
 const SRC_PATH = join(process.cwd(), 'src', 'render', 'campaignTextures.ts');
@@ -131,5 +131,68 @@ describe('maze art is untouched', () => {
       expect(src).not.toContain(theme);
     }
     expect(src).not.toContain("from './textures'");
+  });
+});
+
+describe('campaign hero plates', () => {
+  it('rosters at least twelve heroes with unique ids', () => {
+    expect(CAMPAIGN_HERO_MARKERS.length).toBeGreaterThanOrEqual(12);
+    const ids = CAMPAIGN_HERO_MARKERS.map(h => h.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('points every hero at a real pack, a hint and a hero-sized canvas', () => {
+    for (const h of CAMPAIGN_HERO_MARKERS) {
+      expect(CAMPAIGN_ART_IDS).toContain(h.map);
+      expect(h.hint.length).toBeGreaterThan(0);
+      expect([256, 512]).toContain(h.size);
+    }
+  });
+
+  it('covers the named hero set', () => {
+    const byId = new Map(CAMPAIGN_HERO_MARKERS.map(h => [h.id, h] as const));
+    const expected: [string, string, string, number][] = [
+      ['furnace-mouth', 'foundry', 'arena-back-wall', 512],
+      ['pour-crucible', 'foundry', 'side-alcove', 256],
+      ['sphincter-maw', 'gullet', 'arena-back-wall', 512],
+      ['uvula-idol', 'gullet', 'ceiling-boss', 256],
+      ['ossuary-faces', 'catacombs', 'arena-back-wall', 512],
+      ['burial-saint', 'catacombs', 'chapel-niche', 256],
+      ['demonic-idol', 'pit', 'pit-floor-idol', 512],
+      ['crane-god', 'pit', 'sky-gantry', 256],
+      ['dish-eye', 'spire', 'roof-antenna', 512],
+      ['visor-mask', 'spire', 'elevator-door', 256],
+      ['quarantine-mural', 'ward', 'arena-back-wall', 512],
+      ['isolation-cot', 'ward', 'cell-wall', 256],
+      ['gun-reliquary', 'sanctum', 'apse-altar', 512],
+      ['demon-head', 'sanctum', 'nave-tympanum', 512],
+      ['nave-rose', 'sanctum', 'rose-window', 256],
+    ];
+    for (const [id, map, hint, size] of expected) {
+      const h = byId.get(id);
+      expect(h, `hero ${id} missing`).toBeDefined();
+      expect(h!.map).toBe(map);
+      expect(h!.hint).toBe(hint);
+      expect(h!.size).toBe(size);
+    }
+  });
+
+  it('paints a real canvas for every rostered hero', () => {
+    for (const h of CAMPAIGN_HERO_MARKERS) {
+      const fn = 'hero' + h.id.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('');
+      expect(src, `${h.id} has no painter`).toContain(`function ${fn}(`);
+      expect(src, `${h.id} is not wired into the painter table`).toContain(`'${h.id}': ${fn},`);
+      expect(src).toContain(`const S = ${h.size};`);
+    }
+  });
+
+  it('clamps heroes instead of tiling them, and caches them', () => {
+    expect(src).toContain('getCampaignHeroDecals');
+    expect(src).toContain('THREE.ClampToEdgeWrapping');
+    expect(src).toContain('function toHero(');
+    expect(src).toContain('heroCache');
+    expect(src).toContain("makeRng('camp-hero-'");
+    // heroes must not reuse the tiled path
+    expect(src).not.toContain('toTiled(hero');
   });
 });
