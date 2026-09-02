@@ -68,8 +68,9 @@ shareable map (library in this browser only). Campaign debug:
   RNG streams, zero DOM/Three imports — that's what the unit tests run.
   Same seed + generator version + difficulty ⇒ identical world (tested by
   snapshot equality over a 300-seed sweep).
-- Five enemy species with sight cones, hearing, telegraphed dodgeable
-  projectiles; closed doors block line of sight, bullets and rendering.
+- Six enemy species (the Fiend is campaign-only) with sight cones, hearing,
+  telegraphed dodgeable projectiles; closed doors block line of sight,
+  bullets and rendering.
 - Three difficulties scale the whole economy; the layout stays identical.
 
 Start with [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
