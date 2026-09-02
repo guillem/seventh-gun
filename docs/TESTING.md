@@ -33,6 +33,16 @@
   warning is non-blocking; library upsert/cap/quota.
 - `tests/unit/sim.test.ts` — also visual LOS: opening a door reveals
   immediately while collision still waits for `offset >= 0.65`.
+- `tests/unit/campaignArt.test.ts` — `campaignArtIdFromIndex(1)==='foundry'`,
+  seed parse (`campaign:01-foundry` / maze seeds ignored), cached
+  `getCampaignTextures` returns surfaces + extraDecals, placement is
+  per-map and does not mutate `GameMap.decors`. Hero plates from
+  `CAMPAIGN_HERO_MARKERS` land via hint (arena-back-wall / pit-floor-idol /
+  apse-altar). `resolveHeroDecals` prefers `lib.heroDecals`, then sibling
+  `CAMPAIGN_HERO_DECALS`, then `getCampaignHeroDecals()`; empty pack field
+  is a no-op.
+- `tests/unit/campaignTextures.test.ts` — Opus pack markers, extraDecal
+  ids, 29 hero plates, maze `textures.ts` untouched.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
