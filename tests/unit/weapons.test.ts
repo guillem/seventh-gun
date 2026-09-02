@@ -4,8 +4,9 @@ import { describe, it, expect } from 'vitest';
 import { Sim, emptyInput } from '../../src/sim/sim';
 import type { EnemyEnt } from '../../src/sim/sim';
 import type { SimEvent } from '../../src/sim/types';
+import { CELL, PLAYER_EYE, PLAYER_RADIUS } from '../../src/sim/types';
 import { WEAPONS, weapon } from '../../src/sim/weapons';
-import { ENEMIES } from '../../src/sim/enemyTypes';
+import { ENEMIES, enemyVolumeY } from '../../src/sim/enemyTypes';
 import { hasLineOfSight } from '../../src/sim/physics';
 import type { SimInput } from '../../src/sim/sim';
 
@@ -173,9 +174,25 @@ function wispAt(sim: Sim, x: number, z: number, hp = 1000): void {
   });
 }
 
-/** Pitch that aims the eye (1.7) at height h over horizontal distance d. */
+/** Pitch that aims the eye at height h over horizontal distance d. */
 function aimPitchAt(h: number, d: number): number {
-  return Math.atan2(h - 1.7, d);
+  return Math.atan2(h - PLAYER_EYE, d);
+}
+
+function crawlerAt(sim: Sim, x: number, z: number, hp = 1000): void {
+  sim.enemies.push({
+    id: 9000 + sim.enemies.length,
+    type: 'crawler',
+    def: { ...ENEMIES.crawler, sightRange: 0, hearRange: 0, wakeRadius: 0, speed: 0 },
+    x, z, yaw: 0,
+    hp, maxHp: hp,
+    speed: 0,
+    accuracy: 0,
+    state: 'idle', timer: 0, attackCd: 99, burstLeft: 0, burstTimer: 0,
+    path: null, pathIndex: 0, pathTimer: 0, noLosTime: 0,
+    awakened: false, dead: false, deathTime: 0, animPhase: 0,
+    rng: { float: () => 0.5, range: (a, b) => (a + b) / 2, int: () => 0, rangeInt: (a) => a, chance: () => false, pick: (arr) => arr[0], state: () => [0, 0, 0, 0], setState: () => {} },
+  });
 }
 
 describe('flying enemy hitboxes track the visible body', () => {
@@ -221,5 +238,93 @@ describe('flying enemy hitboxes track the visible body', () => {
     sim.giveGun(4);
     for (let i = 0; i < 40; i++) sim.step(input({ fire: i === 0, pitch: aimPitchAt(torsoY, D) }));
     expect(wisp.hp, 'nail through the hovering body must connect').toBeLessThan(wisp.maxHp);
+  });
+});
+
+describe('grounded close-range hitscan is a 3D cylinder test', () => {
+  const vol = enemyVolumeY(ENEMIES.crawler);
+  // Against the body: living collision keeps this gap. Old closest-XZ-then-Y
+  // sampled the floor (y < yMin) on a steep look-down and missed.
+  const D = PLAYER_RADIUS + ENEMIES.crawler.radius + 0.02;
+
+  function closeCrawler(): { sim: Sim; crawler: EnemyEnt } {
+    const sim = freshSim();
+    sim.player.yaw = 0;
+    crawlerAt(sim, sim.player.x, sim.player.z - D);
+    return { sim, crawler: sim.enemies[sim.enemies.length - 1] };
+  }
+
+  it('point-blank look-down at a crawler against the body hits', () => {
+    const { sim, crawler } = closeCrawler();
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: aimPitchAt(vol.yCenter, D) }));
+    expect(crawler.hp, 'reticle on the visible body must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  it('aiming well above the crawler head misses', () => {
+    const { sim, crawler } = closeCrawler();
+    sim.step(input({ fire: true, pitch: aimPitchAt(vol.yMax + 0.8, D) }));
+    expect(crawler.hp, 'shot clearly over the head must miss').toBe(crawler.maxHp);
+  });
+
+  it('aiming into the floor in front of a close crawler misses', () => {
+    const { sim, crawler } = closeCrawler();
+    sim.step(input({ fire: true, pitch: aimPitchAt(0, D * 0.35) }));
+    expect(crawler.hp, 'shot into the floor in front must miss').toBe(crawler.maxHp);
+  });
+
+  it('a husk at range still takes a level pistol shot', () => {
+    const sim = freshSim();
+    sim.player.yaw = 0;
+    dummyAt(sim, sim.player.x, sim.player.z - 5);
+    const husk = sim.enemies[sim.enemies.length - 1];
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: 0 }));
+    expect(husk.hp).toBe(husk.maxHp - WEAPONS[0].damage);
+  });
+
+  it('look-down still hits when the crawler center is slightly behind the camera plane', () => {
+    const sim = freshSim();
+    const ox = sim.player.x, oz = sim.player.z;
+    crawlerAt(sim, ox, oz + 0.28);
+    const crawler = sim.enemies[sim.enemies.length - 1];
+    // Reticle on the part of the body that still sits in front of the eye.
+    const tx = ox, ty = vol.yCenter, tz = oz - 0.25;
+    let dx = tx - ox, dy = ty - PLAYER_EYE, dz = tz - oz;
+    const len = Math.hypot(dx, dy, dz) || 1;
+    dx /= len; dy /= len; dz /= len;
+    sim.hitscanShot(ox, PLAYER_EYE, oz, dx, dy, dz, WEAPONS[0].damage, false, WEAPONS[0], true);
+    expect(crawler.hp, 'volume in front of the eye must count even if center t is negative')
+      .toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  it('a forward shot does not hit a husk standing behind the gun', () => {
+    const sim = freshSim();
+    sim.player.yaw = 0;
+    dummyAt(sim, sim.player.x, sim.player.z + 4);
+    const husk = sim.enemies[sim.enemies.length - 1];
+    sim.step(input({ fire: true, pitch: 0 }));
+    expect(husk.hp, 'must not shoot out the back of the head').toBe(husk.maxHp);
+  });
+
+  it('a solid cell between player and crawler still blocks the shot', () => {
+    const { sim, crawler } = closeCrawler();
+    const far = 6;
+    crawler.z = sim.player.z - far;
+    const midZ = (sim.player.z + crawler.z) / 2;
+    const cx = Math.floor(sim.player.x / CELL);
+    const cz = Math.floor(midZ / CELL);
+    sim.map.grid[cz * sim.map.w + cx] = 0;
+    sim.step(input({ fire: true, pitch: aimPitchAt(vol.yCenter, far) }));
+    expect(crawler.hp, 'wall must stop the bullet').toBe(crawler.maxHp);
+  });
+
+  it('spiker nail look-down at a close crawler connects in flight', () => {
+    const { sim, crawler } = closeCrawler();
+    sim.giveGun(4);
+    for (let i = 0; i < 40; i++) {
+      sim.step(input({ fire: i === 0, pitch: aimPitchAt(vol.yCenter, D) }));
+    }
+    expect(crawler.hp, 'nail through the close body must connect').toBeLessThan(crawler.maxHp);
   });
 });

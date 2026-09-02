@@ -63,6 +63,67 @@ export function pushCircleOut(
   return moveCircle(state, x, z, (dx / d) * push, (dz / d) * push, r);
 }
 
+/**
+ * First t ≥ 0 where a 3D ray hits a finite vertical cylinder: XZ disc of
+ * `radius` around (cx, cz), clipped to y ∈ [yMin, yMax].
+ *
+ * `dir` should be unit length; `maxDist` is distance along that dir.
+ * Returns null on a miss (including when the whole overlap is behind the
+ * origin, t < 0). If the origin is already inside the volume, returns 0.
+ *
+ * This is a real 3D intersection — not "closest XZ approach, then sample Y",
+ * which misses steep look-down shots whose floor-plane closest point sits
+ * below yMin even though the ray crossed the body earlier.
+ */
+export function raycastCylinder(
+  ox: number, oy: number, oz: number,
+  dirX: number, dirY: number, dirZ: number,
+  cx: number, cz: number,
+  radius: number,
+  yMin: number, yMax: number,
+  maxDist: number,
+): number | null {
+  if (radius <= 0 || maxDist < 0 || yMax < yMin) return null;
+
+  const fx = ox - cx, fz = oz - cz;
+  const a = dirX * dirX + dirZ * dirZ;
+  const b = 2 * (fx * dirX + fz * dirZ);
+  const c = fx * fx + fz * fz - radius * radius;
+
+  let cyl0: number, cyl1: number;
+  if (a < 1e-16) {
+    // Ray is vertical in XZ — inside the infinite cylinder for all t, or never.
+    if (c > 0) return null;
+    cyl0 = -Infinity;
+    cyl1 = Infinity;
+  } else {
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) return null;
+    const sqrtD = Math.sqrt(disc);
+    const inv = 0.5 / a;
+    cyl0 = (-b - sqrtD) * inv;
+    cyl1 = (-b + sqrtD) * inv;
+  }
+
+  let y0: number, y1: number;
+  if (Math.abs(dirY) < 1e-12) {
+    if (oy < yMin || oy > yMax) return null;
+    y0 = -Infinity;
+    y1 = Infinity;
+  } else {
+    y0 = (yMin - oy) / dirY;
+    y1 = (yMax - oy) / dirY;
+    if (y0 > y1) { const tmp = y0; y0 = y1; y1 = tmp; }
+  }
+
+  const tEnter = cyl0 > y0 ? cyl0 : y0;
+  const tExit = cyl1 < y1 ? cyl1 : y1;
+  if (tEnter > tExit) return null;
+  if (tExit < 0 || tEnter > maxDist) return null;
+  if (tEnter < 0) return 0;
+  return tEnter;
+}
+
 /** Grid DDA raycast. Returns distance to wall (or maxDist) and hit point. */
 export function raycastWall(
   state: Sim, x0: number, z0: number, dirX: number, dirZ: number, maxDist: number,

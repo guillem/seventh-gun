@@ -49,8 +49,11 @@ Start: pistol + 70 bullets.
 
 Living enemies are solid cylinders (`def.radius` + player radius 0.55u);
 death ragdolls are not. Flying wisps still collide in XZ when the eye
-overlaps their volume. Wisp hitscan/projectile volume is centered on
-`hoverY` (visible torso), not stacked above the head.
+overlaps their volume. Gun tests (hitscan and player projectiles) are a
+real 3D ray vs that cylinder (XZ circle × [yMin, yMax]) — look-down
+shots on a crawler at your feet connect if the reticle is on the body.
+Wisp volume is centered on `hoverY` (visible torso), not stacked above
+the head.
 
 All projectiles are dodgeable; aim error scales with distance (×0.55–2.2 of
 per-type accuracy) and difficulty. Sight: 18–28u range, ~100–150° cone.

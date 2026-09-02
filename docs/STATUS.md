@@ -1,39 +1,34 @@
 # STATUS
 
-Updated: 2026-09-02 — PR #13 (`feat/enemy-art`) rebased onto `origin/main`
-after feel #12 merged (`3b63ea2`). Do not merge from this agent.
+Updated: 2026-09-02 — PR: close-range crawler hits (3D cylinder gun test).
+Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 137/137. `npm run test:e2e` 55 passed / 3 skipped.
-`GEN_VERSION` still 4. Maze `generateMap` is unchanged (no Fiend in the maze).
+`npx tsc --noEmit` clean. `npm test` 151/151. `npm run test:e2e` 55 passed / 3 skipped.
+`GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
-## State: Opus enemy art on merged feel
+## State: hitscan is a real 3D cylinder test
 
-Feel is on `main`: body collision, lasting gunshot wake, wisp hurtbox on
-`hoverY`, plated slab mesh, campaign-only `fiend` type (Pit / Ward / Sanctum).
-The old feel branch `cursor/feat-enemy-feel-07e9` may be deleted.
+Player report: a Crawler at the feet / hugging the body was unhittable when
+looking down. Cause: `hitscanShot` took the closest XZ approach on the 3D
+ray, then sampled Y there. A steep look-down puts that XZ closest point on
+the floor (y below `yMin: 0.1`) even though the ray already crossed the
+cylinder at chest height. `t < 0` also skipped a volume whose center sat
+slightly behind the camera plane while the body was still in the reticle.
 
-This branch adds art on top of that:
+Fix (gun test, not the crawler mesh):
 
-- Opus 128px skins for husk / slab / hierophant / fiend; crawler and wisp
-  polish at 64px. `skins.fiend` feeds the feel Fiend mesh.
-- `getProjectileSprite(kind)` additive bolts (plasma / spit / fireball / bolt /
-  orb). Nail / grenade / voidorb meshes unchanged.
-- Texture lib typing is `Record<EnemyType, THREE.Texture>`.
-
-Rebase onto `3b63ea2` replayed only the art commit (squash tree matched the
-old feel tip). Combined resolution still holds:
-
-- `textures.ts` — Opus painters; feel’s `EnemyType` skin map; no 64px fiend stub
-- `fx.ts` — art’s `buildEnergyBolt` + `getProjectileSprite` (not octahedron corona bolts)
-- Feel meshes / collision / wake stay as merged on `main`
-
-Campaign art from #10 remains on `main`: maze / `#m=` still use `getTextures()`;
-campaign runs swap packs via `getCampaignTextures(artId)`.
+- `raycastCylinder` in `src/sim/physics.ts` — infinite XZ circle ∩ Y slab,
+  first t ≥ 0 in [0, maxDist]. Origin-inside returns 0.
+- Hitscan uses that vs `enemyVolumeY` (grounded `[0.1, height+0.15]`,
+  flying centered on `hoverY`). Walls still clip via `raycastWall` maxDist.
+  Pierce / falloff unchanged.
+- Player projectiles sweep the same cylinder for the step segment (so a
+  look-down nail cannot tunnel the same way). Enemy projectiles vs the
+  player are untouched.
 
 ## Open / next
 
 - Balance still wants a human Normal run against the maze 20–30 min target.
-- Do not merge this branch to main from this agent.
 
 ## Where things are
 
