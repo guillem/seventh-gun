@@ -1,18 +1,21 @@
 // Authored map schema + compiler → GameMap. Pure; no DOM.
 import { makeRng } from './rng';
 import { placeCosmetics } from './cosmetics';
+import { POWERUP_KINDS } from './powerups';
 import {
   CELL, GRID_W, GRID_H, MAP_CODEC_VERSION, cellToWorld,
 } from './types';
 import type {
   AmmoType, Decor, Difficulty, DoorDef, EnemySpawn, EnemyType, GameMap,
-  PickupDef, Room, RoomLight, SealBreak, SealDef, Theme,
+  PickupDef, PowerupKind, Room, RoomLight, SealBreak, SealDef, SecretDef, SecretKind, Theme,
 } from './types';
 
 export const THEMES: Theme[] = ['industrial', 'organic', 'stone', 'tech'];
-export const ROOM_KINDS: Room['kind'][] = ['start', 'spine', 'spur', 'arena', 'antechamber', 'vault'];
+export const ROOM_KINDS: Room['kind'][] = ['start', 'spine', 'spur', 'arena', 'antechamber', 'vault', 'secret'];
 export const ENEMY_TYPES: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
-export const PICKUP_KINDS: PickupDef['kind'][] = ['medikit', 'ammo', 'gun', 'key'];
+export const PICKUP_KINDS: PickupDef['kind'][] = ['medikit', 'ammo', 'gun', 'key', 'powerup'];
+export const SECRET_KINDS: SecretKind[] = ['plate-use', 'plate-shoot', 'remote-use', 'remote-shoot'];
+export { POWERUP_KINDS };
 
 export interface BlueprintRoom {
   id: number;
@@ -37,8 +40,19 @@ export interface BlueprintPickup {
   gun?: number;
   ammoType?: AmmoType;
   amount?: number;
+  powerup?: PowerupKind;
   x: number; z: number;
   roomId: number;
+}
+
+export interface BlueprintSecret {
+  kind: SecretKind;
+  cx: number; cz: number;
+  axis: 'x' | 'z';
+  roomId: number;
+  trigger?: { x: number; z: number };
+  hp?: number;
+  name?: string;
 }
 
 export interface BlueprintEnemy {
@@ -63,6 +77,7 @@ export interface MapBlueprint {
   enemies: BlueprintEnemy[];
   lights?: RoomLight[];
   decors?: Decor[];
+  secrets?: BlueprintSecret[];
 }
 
 export class BlueprintError extends Error {
@@ -287,6 +302,7 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     gun: p.gun,
     ammoType: p.ammoType,
     amount: p.amount,
+    powerup: p.powerup,
     x: cellToWorld(p.x), z: cellToWorld(p.z),
     roomId: p.roomId,
   }));
@@ -298,6 +314,20 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     yaw: e.yaw,
     roomId: e.roomId,
   }));
+
+  const secrets: SecretDef[] = (bp.secrets ?? []).map((s, i) => {
+    const cells = expandDoorCells(s.cx, s.cz, s.axis);
+    return {
+      id: i,
+      name: s.name,
+      kind: s.kind,
+      cx: s.cx, cz: s.cz, axis: s.axis, cells,
+      x: cellToWorld(s.cx), z: cellToWorld(s.cz),
+      roomId: s.roomId,
+      trigger: s.trigger,
+      hp: Math.max(1, s.hp ?? 1),
+    };
+  });
 
   const hasAuthoredCosmetics = (bp.lights && bp.lights.length > 0) || (bp.decors && bp.decors.length > 0);
   let lights: RoomLight[];
@@ -397,6 +427,7 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
   const blocked = new Set<number>();
   for (const d of doors) for (const [x, z] of d.cells) blocked.add(cellKey(x, z));
   for (const [x, z] of seal.cells) blocked.add(cellKey(x, z));
+  for (const s of secrets) for (const [x, z] of s.cells) blocked.add(cellKey(x, z));
   for (const e of enemies) {
     const d = Math.hypot(e.x - playerStart.x, e.z - playerStart.z);
     if (d < 16) errors.push(`enemy ${e.id} is within 16u of spawn (${d.toFixed(1)})`);
@@ -415,7 +446,7 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     sealBreak: bp.sealBreak,
     sealBreakMessage: bp.sealBreakMessage,
     title: bp.title,
-    decors, pickups, enemies, lights,
+    decors, pickups, enemies, lights, secrets,
     playerStart,
     startRoomId: startRoom?.id ?? -1,
     arenaRoomId: arenaRoom?.id ?? -1,

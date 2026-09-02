@@ -18,6 +18,7 @@ export function placeCosmetics(
   const lights: RoomLight[] = [];
   for (const r of rooms) {
     const count = r.outdoor ? 0 : 1 + (r.w * r.h > 90 ? 1 : 0);
+    if (r.kind === 'secret') continue;
     for (let i = 0; i < count; i++) {
       const lx = cellToWorld(r.x + 1 + rng.int(Math.max(1, r.w - 2)));
       const lz = cellToWorld(r.z + 1 + rng.int(Math.max(1, r.h - 2)));
@@ -43,6 +44,7 @@ export function placeCosmetics(
     tech: ['rune', 'lamp', 'tendrils', 'pentagram'],
   };
   for (const r of rooms) {
+    if (r.kind === 'secret') continue;
     const n = 1 + Math.floor((r.w * r.h) / 28);
     for (let i = 0; i < n * 3 && decors.length < 400; i++) {
       if (decors.filter(d => Math.abs(d.x - r.cx) < r.w).length >= n) break;

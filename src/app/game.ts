@@ -989,6 +989,13 @@ export class Game {
           hasKey: sim.hasKey,
           sealIntact: sim.sealIntact,
           exploredPct: exploredPct(sim),
+          secretsFound: sim.secrets.filter(s => s.found).length,
+          secretsTotal: sim.secrets.length,
+          powerups: {
+            ward: +sim.powerups.wardT.toFixed(2),
+            damage: sim.powerups.damageKind,
+            damageT: +sim.powerups.damageT.toFixed(2),
+          },
           mapHash: this.mapHash(),
           campaign: this.runKind === 'campaign' ? {
             map: this.campaignIndex,

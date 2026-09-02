@@ -7,6 +7,8 @@ type GameApi = {
     phase: string;
     kind?: string;
     seed?: string;
+    secretsFound?: number;
+    secretsTotal?: number;
     campaign?: { map: number; nextMap: number; owned: boolean[]; artId?: string } | null;
   };
   startCampaign: (n?: number) => void;
@@ -31,6 +33,8 @@ test.describe('campaign desktop', () => {
     expect(state.kind).toBe('campaign');
     expect(state.campaign?.map).toBe(1);
     expect(state.campaign?.artId).toBe('foundry');
+    expect(state.secretsTotal).toBe(2);
+    expect(state.secretsFound).toBe(0);
   });
 
   test('campaign SKILL after a maze run does not start a maze', async ({ page }) => {

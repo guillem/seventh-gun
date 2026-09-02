@@ -223,7 +223,7 @@ export class AudioEngine {
   }
 
   // ------------------------------------------------------------- events
-  pickup(kind: 'gun' | 'ammo' | 'medikit' | 'key'): void {
+  pickup(kind: 'gun' | 'ammo' | 'medikit' | 'key' | 'powerup'): void {
     if (kind === 'gun') {
       this.tone('square', 420, 420, 0.07, 0.25);
       setTimeout(() => this.tone('square', 630, 630, 0.07, 0.25), 70);
@@ -233,6 +233,9 @@ export class AudioEngine {
     } else if (kind === 'key') {
       this.tone('triangle', 1200, 1600, 0.1, 0.22);
       setTimeout(() => this.tone('triangle', 1600, 2100, 0.14, 0.2), 90);
+    } else if (kind === 'powerup') {
+      this.tone('sine', 480, 720, 0.18, 0.32, 1);
+      setTimeout(() => this.tone('triangle', 720, 1080, 0.22, 0.28, 1), 80);
     } else {
       this.tone('square', 260, 380, 0.06, 0.18);
     }
@@ -353,6 +356,11 @@ export class AudioEngine {
       case 'enemyShoot': this.enemyShoot(e.type); break;
       case 'pickup': this.pickup(e.kind); break;
       case 'playerHurt': this.playerHurt(); break;
+      case 'playerShielded': this.tone('sine', 880, 1400, 0.08, 0.18, 1); break;
+      case 'secretFound': this.tone('square', 360, 720, 0.2, 0.28); setTimeout(() => this.tone('square', 720, 1080, 0.22, 0.24), 90); break;
+      case 'powerupStart': this.tone('sine', 420, 980, 0.16, 0.22, 1); break;
+      case 'powerupWarn': this.tone('sine', 880, 440, 0.12, 0.2, 1); break;
+      case 'powerupEnd': this.tone('triangle', 520, 180, 0.18, 0.22, 1); break;
       case 'doorDenied': this.door(false); break;
       case 'doorOpen': this.door(true); break;
       case 'sealBreak': this.sealBreak(); break;

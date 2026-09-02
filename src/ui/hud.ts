@@ -3,6 +3,7 @@
 import type { Sim } from '../sim/sim';
 import { WEAPONS, weapon } from '../sim/weapons';
 import { CELL } from '../sim/types';
+import { POWERUP_DEFS, wardActive } from '../sim/powerups';
 
 /** Gap between the health bar's right edge and gun slot 1. */
 export const HUD_HEALTH_SLOT_GAP = 10;
@@ -116,6 +117,8 @@ export class Hud {
       g.moveTo(cx, cy - 10); g.lineTo(cx, cy - 4);
       g.moveTo(cx, cy + 4); g.lineTo(cx, cy + 10);
       g.stroke();
+
+      this.drawPowerupHud(sim, g, W, H, cx, cy);
     }
 
     // ---- damage direction arc
@@ -364,6 +367,55 @@ export class Hud {
     void size;
   }
 
+  private drawPowerupHud(
+    sim: Sim, g: CanvasRenderingContext2D, W: number, H: number, cx: number, cy: number,
+  ): void {
+    const pu = sim.powerups;
+    const tracks: { kind: 'ward' | 'wrath' | 'sevenfold'; t: number; dur: number }[] = [];
+    if (wardActive(pu)) tracks.push({ kind: 'ward', t: pu.wardT, dur: POWERUP_DEFS.ward.duration });
+    if (pu.damageKind && pu.damageT > 0) {
+      tracks.push({ kind: pu.damageKind, t: pu.damageT, dur: POWERUP_DEFS[pu.damageKind].duration });
+    }
+    if (!tracks.length) return;
+
+    for (const tr of tracks) {
+      const def = POWERUP_DEFS[tr.kind];
+      const [r, gch, b] = hexRgb(def.hex);
+      const warn = tr.t <= 3;
+      const pulse = warn ? 0.55 + 0.45 * Math.abs(Math.sin(this.time * 10)) : 1;
+      const alpha = (tr.kind === 'ward' ? 0.38 : 0.32) * pulse;
+      const grad = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.22, W / 2, H / 2, Math.max(W, H) * 0.72);
+      grad.addColorStop(0, `rgba(${r},${gch},${b},0)`);
+      grad.addColorStop(1, `rgba(${r},${gch},${b},${alpha})`);
+      g.fillStyle = grad;
+      g.fillRect(0, 0, W, H);
+    }
+
+    tracks.forEach((tr, i) => {
+      const def = POWERUP_DEFS[tr.kind];
+      const [r, gch, b] = hexRgb(def.hex);
+      const warn = tr.t <= 3;
+      const pulse = warn ? 0.5 + 0.5 * Math.abs(Math.sin(this.time * 10)) : 0.9;
+      const radius = 16 + i * 6;
+      g.beginPath();
+      g.strokeStyle = `rgba(${r},${gch},${b},${pulse})`;
+      g.lineWidth = 2.5;
+      g.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + (tr.t / tr.dur) * Math.PI * 2);
+      g.stroke();
+    });
+
+    g.textAlign = 'right';
+    g.font = 'bold 13px monospace';
+    tracks.forEach((tr, i) => {
+      const def = POWERUP_DEFS[tr.kind];
+      const [r, gch, b] = hexRgb(def.hex);
+      const warn = tr.t <= 3;
+      const pulse = warn ? 0.55 + 0.45 * Math.abs(Math.sin(this.time * 10)) : 1;
+      g.fillStyle = `rgba(${r},${gch},${b},${pulse})`;
+      g.fillText(`${def.label} ${Math.ceil(tr.t)}`, W - 14, 22 + i * 18);
+    });
+  }
+
   private miniCanvas: HTMLCanvasElement | null = null;
   private miniCtx: CanvasRenderingContext2D | null = null;
   private mapCanvas: HTMLCanvasElement | null = null;
@@ -383,12 +435,16 @@ export class Hud {
 export function exploredPct(sim: Sim): number {
   let explored = 0, walkable = 0;
   for (let i = 0; i < sim.explored.length; i++) {
-    if (sim.map.grid[i] === 1) {
-      walkable++;
-      if (sim.explored[i]) explored++;
-    }
+    if (sim.map.grid[i] !== 1) continue;
+    if (sim.secretCell[i]) continue;
+    walkable++;
+    if (sim.explored[i]) explored++;
   }
   return walkable ? Math.round((explored / walkable) * 100) : 0;
+}
+
+function hexRgb(hex: number): [number, number, number] {
+  return [(hex >> 16) & 255, (hex >> 8) & 255, hex & 255];
 }
 
 function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {

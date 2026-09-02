@@ -25,7 +25,9 @@
     { "id": "beacon", "x": 44, "z": 20, "w": 14, "h": 9, "kind": "spine", "theme": "tech" },
     { "id": "reliquary", "x": 64, "z": 20, "w": 8, "h": 8, "kind": "spur", "theme": "tech" },
     { "id": "ante", "x": 46, "z": 6, "w": 8, "h": 8, "kind": "antechamber", "theme": "tech" },
-    { "id": "arena", "x": 24, "z": 4, "w": 14, "h": 12, "kind": "arena", "theme": "tech" }
+    { "id": "arena", "x": 24, "z": 4, "w": 14, "h": 12, "kind": "arena", "theme": "tech" },
+    { "id": "s-alcove-oubliette", "x": 2, "z": 34, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-beacon-lens", "x": 36, "z": 21, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "base" },
@@ -38,7 +40,13 @@
     { "from": "flight-c", "to": "beacon" },
     { "from": "beacon", "to": "reliquary" },
     { "from": "beacon", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "alcove", "to": "s-alcove-oubliette" },
+    { "from": "beacon", "to": "s-beacon-lens" }
+  ],
+  "secrets": [
+    { "room": "s-alcove-oubliette", "parent": "alcove", "kind": "plate-use" },
+    { "room": "s-beacon-lens", "parent": "beacon", "kind": "remote-shoot", "trigger": { "x": 54, "z": 19 } }
   ],
   "doors": [{ "room": "base" }, { "room": "gallery" }, { "room": "beacon" }],
   "guns": [{ "gun": 6, "room": "ante", "x": 49, "z": 9 }],
@@ -57,7 +65,13 @@
     { "kind": "medikit", "room": "reliquary" },
     { "kind": "medikit", "room": "beacon" },
     { "kind": "ammo", "ammoType": "cores", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "powerup", "powerup": "ward", "room": "s-alcove-oubliette" },
+    { "kind": "ammo", "ammoType": "nails", "room": "s-alcove-oubliette" },
+    { "kind": "medikit", "room": "s-alcove-oubliette" },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-beacon-lens" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "s-beacon-lens" },
+    { "kind": "medikit", "room": "s-beacon-lens" }
   ],
   "enemies": [
     { "type": "husk", "room": "base", "n": 3 },
@@ -82,6 +96,10 @@
     { "type": "slab", "room": "arena", "n": 2 },
     { "type": "wisp", "room": "arena", "n": 3 },
     { "type": "husk", "room": "arena", "n": 3 },
-    { "type": "crawler", "room": "arena", "n": 3 }
+    { "type": "crawler", "room": "arena", "n": 3 },
+    { "type": "wisp", "room": "s-alcove-oubliette", "n": 2 },
+    { "type": "slab", "room": "s-alcove-oubliette", "n": 1 },
+    { "type": "husk", "room": "s-beacon-lens", "n": 2 },
+    { "type": "wisp", "room": "s-beacon-lens", "n": 2 }
   ]
 }

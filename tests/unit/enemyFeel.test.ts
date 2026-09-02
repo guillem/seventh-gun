@@ -160,17 +160,26 @@ describe('fiend is campaign-only', () => {
   });
 
   it('stamps 1–2 fiends on Pit / Ward / Sanctum only — not Foundry', () => {
-    const count = (i: number) => CAMPAIGN[i].map.enemies.filter(e => e.type === 'fiend').length;
-    expect(count(0), 'foundry').toBe(0);
-    expect(count(1), 'gullet').toBe(0);
-    expect(count(2), 'catacombs').toBe(0);
-    expect(count(3), 'pit').toBeGreaterThanOrEqual(1);
-    expect(count(3), 'pit').toBeLessThanOrEqual(2);
-    expect(count(4), 'spire').toBe(0);
-    expect(count(5), 'ward').toBeGreaterThanOrEqual(1);
-    expect(count(5), 'ward').toBeLessThanOrEqual(2);
-    expect(count(6), 'sanctum').toBeGreaterThanOrEqual(1);
-    expect(count(6), 'sanctum').toBeLessThanOrEqual(2);
+    const publicCount = (i: number) => {
+      const map = CAMPAIGN[i].map;
+      const secretIds = new Set(map.rooms.filter(r => r.kind === 'secret').map(r => r.id));
+      return map.enemies.filter(e => e.type === 'fiend' && !secretIds.has(e.roomId)).length;
+    };
+    expect(publicCount(0), 'foundry').toBe(0);
+    expect(publicCount(1), 'gullet').toBe(0);
+    expect(publicCount(2), 'catacombs').toBe(0);
+    expect(publicCount(3), 'pit').toBeGreaterThanOrEqual(1);
+    expect(publicCount(3), 'pit').toBeLessThanOrEqual(2);
+    expect(publicCount(4), 'spire').toBe(0);
+    expect(publicCount(5), 'ward').toBeGreaterThanOrEqual(1);
+    expect(publicCount(5), 'ward').toBeLessThanOrEqual(2);
+    expect(publicCount(6), 'sanctum').toBeGreaterThanOrEqual(1);
+    expect(publicCount(6), 'sanctum').toBeLessThanOrEqual(2);
+    const wardSecretFiends = CAMPAIGN[5].map.enemies.filter(e => {
+      const room = CAMPAIGN[5].map.rooms.find(r => r.id === e.roomId);
+      return e.type === 'fiend' && room?.kind === 'secret';
+    }).length;
+    expect(wardSecretFiends, 'ward secret fiend').toBe(1);
     expect(ENEMIES.fiend.hp).toBeGreaterThan(ENEMIES.hierophant.hp);
     expect(ENEMIES.fiend.speed).toBeLessThan(ENEMIES.crawler.speed);
   });

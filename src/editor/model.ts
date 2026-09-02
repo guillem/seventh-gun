@@ -201,6 +201,7 @@ export class EditorDoc {
     if (!this.bp.doors) this.bp.doors = [];
     if (!this.bp.pickups) this.bp.pickups = [];
     if (!this.bp.enemies) this.bp.enemies = [];
+    if (!this.bp.secrets) this.bp.secrets = [];
     this.libraryId = libraryId;
   }
 
@@ -345,6 +346,7 @@ export class EditorDoc {
       next.ammoType = p.ammoType ?? 'bullets';
       if (p.amount) next.amount = p.amount;
     }
+    if (p.kind === 'powerup') next.powerup = p.powerup ?? 'ward';
     this.bp.pickups.push(next);
     return true;
   }

@@ -1,8 +1,8 @@
 // Compact binary codec for MapBlueprint. Pure; no DOM, no zlib import.
 import {
-  ENEMY_TYPES, PICKUP_KINDS, ROOM_KINDS, THEMES,
+  ENEMY_TYPES, PICKUP_KINDS, POWERUP_KINDS, ROOM_KINDS, SECRET_KINDS, THEMES,
   type BlueprintCorridor, type BlueprintDoor, type BlueprintEnemy,
-  type BlueprintPickup, type BlueprintRoom, type MapBlueprint,
+  type BlueprintPickup, type BlueprintRoom, type BlueprintSecret, type MapBlueprint,
 } from './blueprint';
 import { AMMO_TYPES } from './weapons';
 import type { Decor, DecorKind, RoomLight, SealBreak, Theme } from './types';
@@ -15,6 +15,7 @@ const FLAG_TITLE = 1 << 2;
 const FLAG_SEAL_MSG = 1 << 3;
 const FLAG_PLAYER_START = 1 << 4;
 const FLAG_EXPLICIT_SEAL = 1 << 5;
+const FLAG_SECRETS = 1 << 6;
 
 const DECOR_KINDS: DecorKind[] = ['rune', 'skull', 'tendrils', 'pentagram', 'lamp'];
 const COMPRESS_AFTER = 1200;
@@ -139,6 +140,7 @@ export function packBlueprint(bp: MapBlueprint): { flags: number; body: Uint8Arr
   if (bp.sealBreakMessage) flags |= FLAG_SEAL_MSG;
   if (bp.playerStart) flags |= FLAG_PLAYER_START;
   if (bp.seal && bp.seal.cells.length) flags |= FLAG_EXPLICIT_SEAL;
+  if (bp.secrets && bp.secrets.length) flags |= FLAG_SECRETS;
 
   const w = new Writer();
   w.u32(bp.cosmeticSeed >>> 0);
@@ -181,6 +183,7 @@ export function packBlueprint(bp: MapBlueprint): { flags: number; body: Uint8Arr
     w.u8(p.x); w.u8(p.z); w.u8(p.roomId);
     if (p.kind === 'gun') w.u8(p.gun ?? 0);
     else if (p.kind === 'ammo') w.u8(idx(AMMO_TYPES, p.ammoType ?? 'bullets', 'ammo'));
+    else if (p.kind === 'powerup') w.u8(idx(POWERUP_KINDS, p.powerup ?? 'ward', 'powerup'));
     else w.u8(0);
     w.u8(p.amount ?? 0);
   }
@@ -206,6 +209,20 @@ export function packBlueprint(bp: MapBlueprint): { flags: number; body: Uint8Arr
       w.f32(d.x); w.f32(d.y); w.f32(d.z); w.f32(d.facing);
       w.u8(idx(DECOR_KINDS, d.kind, 'decor'));
       w.u8(idx(THEMES, d.theme, 'theme'));
+    }
+  }
+
+  if (flags & FLAG_SECRETS) {
+    const secrets = bp.secrets ?? [];
+    w.u8(secrets.length);
+    for (const s of secrets) {
+      w.u8(idx(SECRET_KINDS, s.kind, 'secret'));
+      w.u8(s.cx); w.u8(s.cz);
+      w.u8(s.axis === 'z' ? 1 : 0);
+      w.u8(s.roomId);
+      if (s.trigger) { w.u8(s.trigger.x); w.u8(s.trigger.z); }
+      else { w.u8(0xff); w.u8(0xff); }
+      w.u8(Math.max(1, s.hp ?? 1) & 255);
     }
   }
 
@@ -266,6 +283,7 @@ export function unpackBlueprint(flags: number, body: Uint8Array): MapBlueprint {
     const p: BlueprintPickup = { kind, x, z, roomId };
     if (kind === 'gun') p.gun = extra;
     if (kind === 'ammo') p.ammoType = AMMO_TYPES[extra] ?? 'bullets';
+    if (kind === 'powerup') p.powerup = POWERUP_KINDS[extra] ?? 'ward';
     if (amount) p.amount = amount;
     pickups.push(p);
   }
@@ -302,6 +320,23 @@ export function unpackBlueprint(flags: number, body: Uint8Array): MapBlueprint {
     }
   }
 
+  let secrets: BlueprintSecret[] | undefined;
+  if (flags & FLAG_SECRETS) {
+    const n = r.u8();
+    secrets = [];
+    for (let i = 0; i < n; i++) {
+      const kind = SECRET_KINDS[r.u8()] ?? 'plate-use';
+      const cx = r.u8(), cz = r.u8();
+      const axis = r.u8() ? 'z' as const : 'x' as const;
+      const roomId = r.u8();
+      const tx = r.u8(), tz = r.u8();
+      const hp = r.u8();
+      const s: BlueprintSecret = { kind, cx, cz, axis, roomId, hp };
+      if (tx !== 0xff && tz !== 0xff) s.trigger = { x: tx, z: tz };
+      secrets.push(s);
+    }
+  }
+
   const bp: MapBlueprint = {
     codec: 1,
     cosmeticSeed,
@@ -314,6 +349,7 @@ export function unpackBlueprint(flags: number, body: Uint8Array): MapBlueprint {
   if (playerStart) bp.playerStart = playerStart;
   if (lights) bp.lights = lights;
   if (decors) bp.decors = decors;
+  if (secrets) bp.secrets = secrets;
   return bp;
 }
 
@@ -365,4 +401,4 @@ export function isCompressedCode(code: string): boolean {
   }
 }
 
-export { FLAG_COMPRESSED, FLAG_LIGHTS, COMPRESS_AFTER };
+export { FLAG_COMPRESSED, FLAG_LIGHTS, FLAG_SECRETS, COMPRESS_AFTER };

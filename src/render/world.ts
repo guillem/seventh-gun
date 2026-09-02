@@ -3,11 +3,12 @@
 // Campaign runs swap the theme atlas for getCampaignTextures(artId) and add
 // extra artwork; maze / #m= keep the shared four-theme look.
 import * as THREE from 'three';
-import { CELL, CEIL_H, WALL_H } from '../sim/types';
+import { CELL, CEIL_H, WALL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
 import { getTextures } from './textures';
 import {
   getCampaignTextures,
+  SECRET_HINT_COLORS,
   type CampaignArtId, type CampaignTextureLib,
 } from './campaignTextures';
 import {
@@ -90,6 +91,7 @@ function roomThemeAt(map: GameMap, cx: number, cz: number): { theme: Theme; outd
 export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   group: THREE.Group;
   doorMeshes: Map<number, THREE.Mesh>;
+  plateMeshes: Map<number, THREE.Mesh>;
   sealMesh: THREE.Group;
   sky: THREE.Mesh | null;
   dispose: () => void;
@@ -251,6 +253,82 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     doorMeshes.set(d.id, mesh);
   }
 
+  // secret plates: WALL texture (not door), slide up like doors
+  const plateMeshes = new Map<number, THREE.Mesh>();
+  for (const s of map.secrets ?? []) {
+    const room = map.rooms.find(r => r.id === s.roomId);
+    const theme = room?.theme ?? 'stone';
+    const geo = new THREE.BoxGeometry(
+      s.axis === 'x' ? 0.5 : CELL * 3,
+      WALL_H * 0.72,
+      s.axis === 'x' ? CELL * 3 : 0.5,
+    );
+    disposables.push(geo);
+    const wallTex = camp?.walls ?? tex.walls[theme];
+    const mat = new THREE.MeshLambertMaterial({ map: wallTex });
+    applyRadialFog(mat);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(s.x, (WALL_H * 0.72) / 2, s.z);
+    group.add(mesh);
+    plateMeshes.set(s.id, mesh);
+
+    // crack / light seam on the parent-facing side
+    const secretEast = room ? room.x >= s.cx : false;
+    const secretSouth = room ? room.z >= s.cz : false;
+    const crack = new THREE.Mesh(
+      new THREE.PlaneGeometry(CELL * 2.6, WALL_H * 0.55),
+      new THREE.MeshBasicMaterial({
+        color: resolved ? SECRET_HINT_COLORS[resolved] : 0xffc850,
+        transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, fog: true,
+      }),
+    );
+    applyRadialFog(crack.material as THREE.MeshBasicMaterial);
+    crack.position.y = WALL_H * 0.36;
+    if (s.axis === 'x') {
+      crack.rotation.y = secretEast ? Math.PI / 2 : -Math.PI / 2;
+      crack.position.x = secretEast ? -0.28 : 0.28;
+    } else {
+      crack.rotation.y = secretSouth ? 0 : Math.PI;
+      crack.position.z = secretSouth ? -0.28 : 0.28;
+    }
+    mesh.add(crack);
+
+    if (s.trigger && (s.kind === 'remote-use' || s.kind === 'remote-shoot')) {
+      const tx = cellToWorld(s.trigger.x);
+      const tz = cellToWorld(s.trigger.z);
+      const isLever = s.kind === 'remote-use';
+      const trig = new THREE.Group();
+      if (isLever) {
+        const arm = new THREE.Mesh(
+          new THREE.BoxGeometry(0.18, 0.7, 0.18),
+          new THREE.MeshLambertMaterial({ color: 0x8a7a50 }),
+        );
+        arm.position.y = 1.4;
+        arm.rotation.z = 0.45;
+        trig.add(arm);
+        const knob = new THREE.Mesh(
+          new THREE.SphereGeometry(0.14, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xffc850 }),
+        );
+        knob.position.set(0.22, 1.7, 0);
+        trig.add(knob);
+      } else {
+        const sigil = new THREE.Mesh(
+          new THREE.CircleGeometry(0.45, 12),
+          new THREE.MeshBasicMaterial({
+            color: 0xa24bff, transparent: true, opacity: 0.7,
+            blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+          }),
+        );
+        applyRadialFog(sigil.material as THREE.MeshBasicMaterial);
+        sigil.position.y = 1.65;
+        trig.add(sigil);
+      }
+      trig.position.set(tx, 0, tz);
+      group.add(trig);
+    }
+  }
+
   // arena seal barrier
   const sealMesh = new THREE.Group();
   {
@@ -307,6 +385,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   return {
     group,
     doorMeshes,
+    plateMeshes,
     sealMesh,
     sky,
     dispose: () => { for (const g of disposables) g.dispose(); },

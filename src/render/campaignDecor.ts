@@ -405,7 +405,7 @@ function apseRoomOf(map: GameMap): Room | undefined {
   let best: Room | undefined;
   let bestD = -1;
   for (const r of map.rooms) {
-    if (r.kind === 'arena' || r.kind === 'antechamber' || r.kind === 'start') continue;
+    if (r.kind === 'arena' || r.kind === 'antechamber' || r.kind === 'start' || r.kind === 'secret') continue;
     const d = Math.hypot(r.cx - start.x, r.cz - start.z);
     if (d > bestD) {
       bestD = d;

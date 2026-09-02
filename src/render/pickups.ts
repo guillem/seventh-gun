@@ -132,6 +132,30 @@ export class PickupRenderer {
       glow.position.y = 0.9;
       g.add(glow);
       g.userData.spin = key;
+    } else if (p.kind === 'powerup') {
+      const hex = p.powerup === 'wrath' ? 0xA24BFF : p.powerup === 'sevenfold' ? 0x4DFF9B : 0x38C8FF;
+      const core = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.32, 0),
+        new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.92 }),
+      );
+      core.position.y = 0.85;
+      g.add(core);
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.42, 10, 8),
+        new THREE.MeshBasicMaterial({
+          color: hex, transparent: true, opacity: 0.22,
+          blending: THREE.AdditiveBlending, depthWrite: false,
+        }),
+      );
+      glow.position.y = 0.85;
+      g.add(glow);
+      const label = labelSprite(
+        p.powerup === 'wrath' ? 'WRATH' : p.powerup === 'sevenfold' ? 'SEVEN' : 'WARD',
+        hex,
+      );
+      label.position.set(0, 1.35, 0);
+      g.add(label);
+      g.userData.spin = core;
     }
     applyRadialFogDeep(g);
     return g;
@@ -161,8 +185,9 @@ export class PickupRenderer {
       }
       const spin = mesh.userData.spin as THREE.Object3D | undefined;
       if (spin) {
+        const baseY = p.kind === 'gun' ? 0.95 : p.kind === 'powerup' ? 0.85 : 0.9;
         spin.rotation.y += dt * (p.kind === 'gun' ? 1.4 : 2.2);
-        spin.position.y = (p.kind === 'gun' ? 0.95 : 0.9) + Math.sin(this.time * 2.4 + p.id) * 0.08;
+        spin.position.y = baseY + Math.sin(this.time * 2.4 + p.id) * 0.08;
       }
       const crate = mesh.children.find(c => c instanceof THREE.Mesh && (c.material as THREE.MeshLambertMaterial)?.color?.r === 0.29) as THREE.Mesh | undefined;
       if (crate && p.kind === 'ammo') crate.rotation.y = Math.sin(this.time * 0.8 + p.id) * 0.2;

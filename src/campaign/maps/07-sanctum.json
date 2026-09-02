@@ -21,7 +21,10 @@
     { "id": "vestry", "x": 64, "z": 38, "w": 8, "h": 8, "kind": "spur" },
     { "id": "choir", "x": 38, "z": 70, "w": 12, "h": 9, "kind": "spine" },
     { "id": "ante", "x": 58, "z": 71, "w": 8, "h": 7, "kind": "antechamber" },
-    { "id": "arena", "x": 71, "z": 67, "w": 16, "h": 14, "kind": "arena" }
+    { "id": "arena", "x": 71, "z": 67, "w": 16, "h": 14, "kind": "arena" },
+    { "id": "s-reliq-crypt", "x": 12, "z": 31, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-vestry-censer", "x": 64, "z": 31, "w": 7, "h": 6, "kind": "secret" },
+    { "id": "s-choir-heptagram", "x": 30, "z": 71, "w": 7, "h": 6, "kind": "secret" }
   ],
   "links": [
     { "from": "start", "to": "narthex" },
@@ -33,7 +36,15 @@
     { "from": "sacristy", "to": "vestry" },
     { "from": "crossing", "to": "choir" },
     { "from": "choir", "to": "ante" },
-    { "from": "ante", "to": "arena" }
+    { "from": "ante", "to": "arena" },
+    { "from": "reliq", "to": "s-reliq-crypt" },
+    { "from": "vestry", "to": "s-vestry-censer" },
+    { "from": "choir", "to": "s-choir-heptagram" }
+  ],
+  "secrets": [
+    { "room": "s-reliq-crypt", "parent": "reliq", "kind": "plate-use" },
+    { "room": "s-vestry-censer", "parent": "vestry", "kind": "remote-shoot", "trigger": { "x": 70, "z": 46 } },
+    { "room": "s-choir-heptagram", "parent": "choir", "kind": "remote-use", "trigger": { "x": 50, "z": 76 } }
   ],
   "doors": [{ "room": "narthex" }, { "room": "crossing" }, { "room": "choir" }],
   "guns": [{ "gun": 7, "room": "ante", "x": 61, "z": 74 }],
@@ -55,7 +66,16 @@
     { "kind": "ammo", "ammoType": "grenades", "room": "choir" },
     { "kind": "medikit", "room": "choir" },
     { "kind": "ammo", "ammoType": "void", "room": "ante" },
-    { "kind": "medikit", "room": "ante" }
+    { "kind": "medikit", "room": "ante" },
+    { "kind": "ammo", "ammoType": "cores", "room": "s-reliq-crypt" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "s-reliq-crypt" },
+    { "kind": "medikit", "room": "s-reliq-crypt", "n": 2 },
+    { "kind": "powerup", "powerup": "wrath", "room": "s-vestry-censer" },
+    { "kind": "ammo", "ammoType": "cores", "room": "s-vestry-censer" },
+    { "kind": "medikit", "room": "s-vestry-censer" },
+    { "kind": "powerup", "powerup": "sevenfold", "room": "s-choir-heptagram" },
+    { "kind": "ammo", "ammoType": "grenades", "room": "s-choir-heptagram" },
+    { "kind": "medikit", "room": "s-choir-heptagram", "n": 2 }
   ],
   "enemies": [
     { "type": "husk", "room": "narthex", "n": 4 },
@@ -83,6 +103,11 @@
     { "type": "husk", "room": "arena", "n": 3 },
     { "type": "wisp", "room": "arena", "n": 2 },
     { "type": "fiend", "room": "nave", "n": 1 },
-    { "type": "fiend", "room": "choir", "n": 1 }
+    { "type": "fiend", "room": "choir", "n": 1 },
+    { "type": "husk", "room": "s-reliq-crypt", "n": 3 },
+    { "type": "wisp", "room": "s-vestry-censer", "n": 2 },
+    { "type": "crawler", "room": "s-vestry-censer", "n": 2 },
+    { "type": "hierophant", "room": "s-choir-heptagram", "n": 1 },
+    { "type": "husk", "room": "s-choir-heptagram", "n": 2 }
   ]
 }

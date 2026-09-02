@@ -8,4 +8,4 @@ export * from './physics';
 export * from './sim';
 export * from './cosmetics';
 export * from './blueprint';
-export * from './mapcodec';
+export * from './powerups';

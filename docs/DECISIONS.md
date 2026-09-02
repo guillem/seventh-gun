@@ -72,6 +72,15 @@ Unspecified things got decided; this is the record.
   Hero plates (`lib.heroDecals` / `CAMPAIGN_HERO_DECALS` /
   `getCampaignHeroDecals`) are 256–512 ClampToEdge one-offs placed from
   each plate's hint. Empty pack field is a no-op.
+- **Secrets (campaign v1)**: 15 authored pockets. Maze mode has none.
+  Four kinds (plate-use / plate-shoot / remote-use / remote-shoot). Plates
+  are 3-cell WALL-textured slabs that slide up in 0.7s; enemies never open
+  them. Cosmetics for existing rooms are snapshotted on a pre-secret grid
+  so lights/decors hashes do not shift; secret-room lights use radius ≤ 6.
+  Powerups: WARD (10s, incoming 0), WRATH (20s, outgoing ×3), SEVENFOLD
+  (7s, outgoing ×7, Sanctum once). Two tracks; same kind refreshes
+  max(t, dur); damage track newest wins; WARD+WRATH stack; not carried
+  between campaign maps. `GEN_VERSION` was not bumped.
 - **Editor**: authors a `MapBlueprint` (rooms + 3-wide corridor rects +
   entities), never a raw bitmap. New maps stamp a labeled START room on
   the visible 88×88 grid; ROOM is click-drag (a plain click does not
