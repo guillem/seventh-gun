@@ -9,10 +9,14 @@ import type {
 import { generateMap } from './mapgen';
 import { DIFFICULTIES } from './difficulty';
 import { WEAPONS, weapon } from './weapons';
-import { DEATH_NOISE_RADIUS, ENEMIES, enemyVolumeY, noiseHearRadius, type EnemyDef } from './enemyTypes';
+import {
+  DEATH_NOISE_RADIUS, ENEMIES, enemyGunRadius, enemyGunVolumeY, enemyVolumeY,
+  noiseHearRadius, type EnemyDef,
+} from './enemyTypes';
 import {
   isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
+import { aimDirFromLook } from './aim';
 
 export const STEP_DT = 1 / 60;
 
@@ -24,6 +28,8 @@ export interface SimInput {
   fire: boolean;
   use: boolean;
   switchGun: number | null;
+  /** Optional explicit ray. Default is aimDirFromLook(yaw, pitch). */
+  aimDir?: { dirX: number; dirY: number; dirZ: number };
 }
 
 export function emptyInput(): SimInput {
@@ -116,6 +122,12 @@ export class Sim {
   arenaEntered = false;
   arenaClearTimer = -1;
   killCount = 0;
+  lastAimDir: {
+    dirX: number; dirY: number; dirZ: number;
+    yaw: number; pitch: number;
+    at32y: number;
+    toCrawler: { dx: number; dy: number; dz: number; dist: number } | null;
+  } | null = null;
   explored: Uint8Array;
   lastNoise: { x: number; z: number; radius: number; time: number } | null = null;
   rng: Rng;
@@ -232,21 +244,10 @@ export class Sim {
     p.fireCd = Math.max(0, p.fireCd - dt);
     p.dryCd = Math.max(0, p.dryCd - dt);
     p.useCd = Math.max(0, p.useCd - dt);
-    const w = weapon(p.gun);
     if (!input.fire) p.bloom = Math.max(0, p.bloom - dt * 0.9);
 
     // firing
-    if (input.fire && p.fireCd <= 0) {
-      if (p.ammo[w.ammo] <= 0) {
-        if (p.dryCd <= 0) {
-          this.events.push({ t: 'dryfire', gun: p.gun });
-          p.dryCd = 0.45;
-        }
-        p.fireCd = 0.25;
-      } else {
-        this.fireWeapon();
-      }
-    }
+    if (input.fire) this.tryFire(input.aimDir);
 
     // use (doors)
     if (input.use && p.useCd <= 0) {
@@ -304,7 +305,28 @@ export class Sim {
   }
 
   // ------------------------------------------------------------- weapons
-  fireWeapon() {
+  /**
+   * Fire with the current player yaw/pitch (same basis as the camera).
+   * No movement or AI — used by the posed debug click path so a freeze
+   * screenshot can still register a hit.
+   */
+  tryFire(aim?: { dirX: number; dirY: number; dirZ: number }) {
+    if (this.phase !== 'playing') return;
+    const p = this.player;
+    if (p.fireCd > 0) return;
+    const w = weapon(p.gun);
+    if (p.ammo[w.ammo] <= 0) {
+      if (p.dryCd <= 0) {
+        this.events.push({ t: 'dryfire', gun: p.gun });
+        p.dryCd = 0.45;
+      }
+      p.fireCd = 0.25;
+      return;
+    }
+    this.fireWeapon(aim);
+  }
+
+  fireWeapon(aim?: { dirX: number; dirY: number; dirZ: number }) {
     const p = this.player;
     const w = weapon(p.gun);
     const diff = DIFFICULTIES[this.difficulty];
@@ -313,10 +335,27 @@ export class Sim {
     this.emitNoise(p.x, p.z, w.loudness);
     this.events.push({ t: 'shot', gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
 
-    const dirX = -Math.sin(p.yaw) * Math.cos(p.pitch);
-    const dirY = Math.sin(p.pitch);
-    const dirZ = -Math.cos(p.yaw) * Math.cos(p.pitch);
+    // Compose from yaw/pitch (positive pitch = look-down). Do not use a
+    // raw Three.js getWorldDirection — default XYZ vs YXZ and +X=look-up
+    // sent live shots over the crawler (pitch +0.384, dirY > 0, y@3.2≈2.9).
+    const composed = aimDirFromLook(p.yaw, p.pitch);
+    const dirX = aim ? aim.dirX : composed.dirX;
+    const dirY = aim ? aim.dirY : composed.dirY;
+    const dirZ = aim ? aim.dirZ : composed.dirZ;
     const eye = PLAYER_EYE;
+    const crawler = this.enemies.find(e => !e.dead && e.type === 'crawler');
+    this.lastAimDir = {
+      dirX, dirY, dirZ, yaw: p.yaw, pitch: p.pitch,
+      at32y: eye + dirY * 3.2,
+      toCrawler: crawler
+        ? {
+          dx: crawler.x - p.x,
+          dy: 0.5 - eye,
+          dz: crawler.z - p.z,
+          dist: Math.hypot(crawler.x - p.x, crawler.z - p.z),
+        }
+        : null,
+    };
 
     if (w.hitscan) {
       for (let pellet = 0; pellet < w.pellets; pellet++) {
@@ -377,15 +416,26 @@ export class Sim {
   ) {
     const wall = raycastWall(this, ox, oz, dirX, dirZ, 120);
     const maxD = Math.min(wall.dist, 120);
-    // gather enemy hits along the ray (3D cylinder, not closest-XZ-then-Y)
+    // Floor does not occlude enemy tests. Grounded bodies sit on y=0; a
+    // steep look-down at the wall–floor junction (live playtest) intersects
+    // the floor plane in front of the disc and used to eat the shot.
+    // Tracer / miss visual still stops at the floor so the streak does not
+    // continue underground.
+    let tracerD = maxD;
+    if (dirY < -1e-8) {
+      const tFloor = (0 - oy) / dirY;
+      if (tFloor > 0) tracerD = Math.min(tracerD, tFloor);
+    }
+    // gather enemy hits along the ray (3D cylinder vs visible gun volume)
     const hits: { e: EnemyEnt; t: number }[] = [];
     for (const e of this.enemies) {
       if (e.dead) continue;
-      const vol = enemyVolumeY(e.def);
+      const distXZ = Math.hypot(e.x - ox, e.z - oz);
+      const vol = enemyGunVolumeY(e.def, distXZ);
       const t = raycastCylinder(
         ox, oy, oz, dirX, dirY, dirZ,
-        e.x, e.z, e.def.radius + 0.12,
-        vol.yMin, vol.yMax, maxD,
+        e.x, e.z, enemyGunRadius(e.def),
+        vol.yMin, vol.yMax, maxD + 0.45,
       );
       if (t === null) continue;
       hits.push({ e, t });
@@ -404,7 +454,7 @@ export class Sim {
       if (!pierce) break;
     }
     if (visual) {
-      const endT = pierce ? maxD : (hitAny && hits.length ? hits[0].t : maxD);
+      const endT = pierce ? tracerD : (hitAny && hits.length ? hits[0].t : tracerD);
       if (w.id === 6) {
         this.events.push({ t: 'beam', x0: ox, z0: oz, x1: ox + dirX * endT, z1: oz + dirZ * endT });
       } else {
@@ -464,8 +514,9 @@ export class Sim {
           let best: EnemyEnt | null = null;
           for (const e of this.enemies) {
             if (e.dead) continue;
-            const vol = enemyVolumeY(e.def);
-            const rr = e.def.radius + p.radius;
+            const distXZ = Math.hypot(e.x - p.x, e.z - p.z);
+            const vol = enemyGunVolumeY(e.def, distXZ);
+            const rr = enemyGunRadius(e.def) + p.radius;
             const y0 = vol.yMin - p.radius, y1 = vol.yMax + p.radius;
             let t: number | null;
             if (span < 1e-12) {

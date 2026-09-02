@@ -182,8 +182,9 @@ export class GameRenderer {
     const p = sim.player;
     // camera
     this.camera.position.set(p.x, 1.7, p.z);
-    this.camera.rotation.y = p.yaw;
-    this.camera.rotation.x = p.pitch;
+    // Look lives on the camera (mouse / touch). Do not slam rotation from
+    // player — a real click must fire along this orientation, not a stale
+    // yaw-only player.pitch. Game.pullAimFromCamera copies it into the sim.
     if (sim.phase === 'dying') {
       const t = Math.min(1, sim.phaseTimer / 0.8);
       this.camera.position.y = 1.7 - t * 1.2;

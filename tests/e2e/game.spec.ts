@@ -4,11 +4,12 @@
 import { test, expect } from '@playwright/test';
 import { encodeBlueprint } from '../../src/sim/mapcodec';
 import { stripCosmetics } from '../../src/sim/blueprint';
-import { tinyGunSealBlueprint } from '../helpers/authoredMaps';
+import { tinyCrawlerPlaytestBlueprint, tinyGunSealBlueprint } from '../helpers/authoredMaps';
 
 const BASE = '/?e2e=1';
 const TINY_BP = tinyGunSealBlueprint();
 const TINY_CODE = encodeBlueprint(stripCosmetics(TINY_BP));
+const CRAWLER_BP = tinyCrawlerPlaytestBlueprint();
 
 test.describe('desktop', () => {
   test('boots to title and starts a run', async ({ page }) => {
@@ -71,6 +72,98 @@ test.describe('desktop', () => {
     await page.evaluate(() => (window as unknown as { __GAME__: { fire: (v: boolean) => void } }).__GAME__.fire(false));
     const hp = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { hp: number } } }).__GAME__.state().hp);
     expect(hp).toBe(100);
+  });
+
+  test('playtest pose: look(0, 22) then InputManager mousedown drops crawler hp', async ({ page }) => {
+    // Live: pitch +0.384 (look-down 22°), player (15,71) crawler (15,67.8),
+    // ammo spent, hp 18→18. aimDir.dirY was +sin(pitch) (up). Must be −sin.
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, CRAWLER_BP);
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+
+    const posed = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
+          look: (yaw: number, pitch: number) => void;
+          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number };
+          debugInfo: () => { simEnemies: { type: string; hp: number; dead: boolean }[] };
+        };
+      }).__GAME__;
+      const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
+      G.look(0, 22);
+      const s = G.state();
+      const crawler = G.debugInfo().simEnemies.find(e => e.type === 'crawler' && !e.dead);
+      return {
+        placed: placed.placed, ammo: s.ammo.bullets, kills: s.kills, hp: s.hp,
+        pitch: s.pitch, crawlerHp: crawler?.hp ?? -1,
+      };
+    });
+    expect(posed.placed?.type).toBe('crawler');
+    expect(posed.pitch, 'look(0, 22) is +0.384 look-down').toBeCloseTo(22 * Math.PI / 180, 2);
+    expect(posed.crawlerHp).toBeGreaterThan(0);
+
+    const after = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      canvas?.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
+      const G = (window as unknown as {
+        __GAME__: {
+          tickNow: () => void;
+          debugInfo: () => {
+            simEnemies: { type: string; hp: number; dead: boolean }[];
+            lastAimDir: { dirX: number; dirY: number; dirZ: number; at32y: number } | null;
+          };
+          state: () => { ammo: { bullets: number }; kills: number; hp: number };
+        };
+      }).__GAME__;
+      G.tickNow();
+      document.dispatchEvent(new MouseEvent('mouseup', { button: 0, bubbles: true }));
+      const info = G.debugInfo();
+      const crawler = info.simEnemies.find(e => e.type === 'crawler');
+      return {
+        ...G.state(),
+        crawlerHp: crawler?.hp ?? 0,
+        crawlerDead: !!crawler?.dead,
+        lastAimDir: info.lastAimDir,
+      };
+    });
+    expect(after.ammo.bullets, 'pistol must spend a round').toBe(posed.ammo - 1);
+    expect(after.hp, 'frozen pose must not let the crawler melee').toBe(posed.hp);
+    expect(after.lastAimDir, 'fire must record lastAimDir').toBeTruthy();
+    expect(after.lastAimDir!.dirY, 'look-down aimDir.dirY must be negative').toBeLessThan(0);
+    expect(after.lastAimDir!.at32y, 'ray at t=3.2 should be ~y=0.5').toBeCloseTo(0.5, 1);
+    expect(after.crawlerHp, 'simEnemies crawler hp must drop').toBeLessThan(posed.crawlerHp);
+  });
+
+  test('playtest pose: level camera, crawler in lower FOV, InputManager click hits', async ({ page }) => {
+    // Crosshair on the wall above a floor crawler at 3.2u (lower third).
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, CRAWLER_BP);
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+
+    const result = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
+          inputFire: () => { spent?: boolean; hit?: boolean; killed?: boolean };
+          state: () => { pitch: number; camPitch: number; hp: number };
+        };
+      }).__GAME__;
+      const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
+      const before = G.state();
+      const shot = G.inputFire();
+      return { placed: placed.placed, playerPitch: before.pitch, camPitch: before.camPitch, shot, hp: G.state().hp };
+    });
+    expect(result.placed?.type).toBe('crawler');
+    expect(result.playerPitch).toBeCloseTo(0, 2);
+    expect(result.camPitch).toBeCloseTo(0, 2);
+    expect(result.shot.spent, 'pistol must spend a round').toBeTruthy();
+    expect(result.shot.hit || result.shot.killed, 'level click at a lower-FOV crawler must hit').toBeTruthy();
+    expect(result.hp).toBe(100);
   });
 
   test('gun pickup grants the gun and a usable ammo stack', async ({ page }) => {
@@ -245,6 +338,40 @@ test.describe('desktop', () => {
     });
     const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { seed: string } } }).__GAME__.state());
     expect(state.seed).toBe('maplog-e2e');
+  });
+
+  test('Quit then MAP LOG hides HEALTH / minimap', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
+    await page.locator('#seed-input').fill('hud-leak-e2e');
+    await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
+    await page.getByRole('button', { name: 'MAP LOG' }).click();
+    await expect(page.locator('#maplog-screen')).toBeVisible();
+    await page.waitForTimeout(80);
+    const leak = await page.evaluate(() => {
+      const mini = document.getElementById('minimap') as HTMLCanvasElement | null;
+      const hud = document.getElementById('hud') as HTMLCanvasElement | null;
+      const miniShown = !!mini && mini.style.display !== 'none' && mini.offsetParent !== null;
+      let hudInk = false;
+      if (hud) {
+        const g = hud.getContext('2d')!;
+        const d = g.getImageData(0, 0, hud.width, hud.height).data;
+        for (let i = 3; i < d.length; i += 16) {
+          if (d[i] > 12) { hudInk = true; break; }
+        }
+      }
+      return { miniShown, hudInk, phase: (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase };
+    });
+    expect(leak.phase).not.toBe('playing');
+    expect(leak.miniShown).toBe(false);
+    expect(leak.hudInk).toBe(false);
   });
 
   test('E opens a door (door state changes, becomes passable)', async ({ page }) => {

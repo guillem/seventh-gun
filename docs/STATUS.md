@@ -1,56 +1,61 @@
 # STATUS
 
-Updated: 2026-09-02 — PR: Opus review fixes (P0 campaign SKILL / map-log leak,
-hitscan spread, purity, codec, pause). Do not merge from this agent.
+Updated: 2026-09-02 — PR: playtest fixes (look-down aim sign, crawler
+loft, spire, HUD, editor COPY LINK). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 156/156 (300-seed sweep green).
-`npm run test:e2e` 63 passed / 3 skipped. `GEN_VERSION` still 4. Maze
-`generateMap` is behavior-identical (dead `kind==='vault'` count bump never fired; unused `placeAnnex` rng / `tryDoor`
-axis / `ENEMIES` import removed without touching the layout stream).
-`dirs.sort(() => rng.float() - 0.5)` in mapgen and cosmetics.ts left as-is
-(Fisher-Yates in cosmetics would risk desyncing baked campaign lights).
+`npx tsc --noEmit` clean. `npm test` 173/173. `npm run test:e2e` 71 passed / 3 skipped.
+`GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
-## State: Opus review P0–P2
+## State: four live-playtest bugs
 
-### P0 — setDifficulty / map log / campaign art leak
+### 1. Point-blank crawler miss (P0) — second live fail
 
-After any run, `phase==='title' && this.sim` stayed true on the campaign
-panel, so SKILL called `startRun` and could persist `campaign:01-foundry`
-then paint a maze with Foundry art.
+Fourth live pass: pitch IS in sim (player.pitch === camera.rotation.x
+=== +0.384 after “look-down 22°”). The shot still missed: crawler
+(15, 67.8) from player (15, 71), hp 18→18, ammo 300→299.
 
-- Title SKILL (`#diff-row`) rebuilds a maze only when `runKind==='maze'`.
-  Campaign SKILL only stores difficulty. `playCampaignMap` /
-  `continueCampaign` use `applyDifficulty` (no maze restart).
-- `prependMapLog` / loader refuse seeds starting with `campaign:`.
-  Campaign, editor playtest, and `#m=` still set `runLog = null`.
-- Renderer/world apply campaign packs only when `artId` is passed
-  (`runKind==='campaign'`). Seed-string fallback is gone.
+`dirY = +sin(pitch)` aims **up**. A look-down of +22° must be
+`dirY = −sin(pitch)` so the ray is at y≈0.5 at t=3.2 (inside the body).
+`getWorldDirection()` follows Three.js (+X looks up) and agreed with
+the bad sign. Euler XYZ vs YXZ is a wash at yaw 0.
 
-### P1
+Gun test only:
 
-- Hitscan spread basis matches projectiles: `rightZ = -dirX` (shotgun at
-  yaw 45° now has horizontal pellet spread). Cone still 8× ~5.7°.
-- Architecture purity walk covers `src/campaign` and `src/editor/model.ts`.
-- Map-log invariant tests: campaign / editor / `#m=` are not loggable.
+- `aimDirFromLook`: +pitch = look-down, `dirY = −sin(pitch)`.
+- Camera stores `rotation.order = 'YXZ'` and `rotation.x = −pitch`.
+- `debugInfo.lastAimDir` {dirX,dirY,dirZ,at32y,toCrawler} on fire.
+- E2E: `pose` + `look(0, 22)` + InputManager `mousedown` asserts
+  crawler hp dropped and `lastAimDir.dirY < 0`.
 
-### P2
+### 2. Spire art (P1) — playtest PASS
 
-- Pause hint “the key opens the vault, never the arena” is maze-only.
-- Full-map legend colors the objective gun from `sim.map.sealBreak`.
-- `InputManager.paused` is set from Game pause/resume (blur while paused
-  stays paused). Dead `mapOpen` removed.
-- Share/export uses async `encodeShareCode` (deflate-raw). `Writer.str`
-  truncates UTF-8 bytes to 255.
-- Dead exports removed (`generatorChanged`, `planHeroPlacement`,
-  `ENEMY_ORDER`, `hashString`, `worldToCell`, `worldCellCenter`,
-  `isMapLogOpen`, `isCampaignOpen`, unused `bindTitle.openEditor`).
-  `ECONOMY_FLOOR` lives in `src/sim/types.ts`. `compileDsl` dropped the
-  trailing `validateBlueprint` (always `[]` after a successful compile).
-  Unreachable `PLAYER_EYE` check in `enemySolidVsPlayer` deleted.
+`getCampaignTextures('spire')` read as maze-tech (orange circuit traces,
+mesh ceiling, purple 7-seg door). Repainted wall/floor/ceiling/door/decals
+as cold stone/copper ascent (ashlar masonry, elevation marks, copper
+weather strap, antenna lattice in a stone window). Maze `textures.ts`
+untouched. Marker `masonry-copper-ascent`. One-line lighting: spire fog /
+ambient / door emissive / dish banner were purple — now cold stone/copper.
+
+### 3. HUD leak (P1) — playtest PASS
+
+Quit to title left HEALTH / bullets / minimap drawing because `hud.draw`
+ran whenever phase was not `editing`, and `toTitle` re-showed the
+minimap canvas. Hide in-game HUD whenever phase is not playing / map /
+paused (title, maplog, campaign, editor, dead, won). Sim is kept for
+retry; it is not stepped or drawn as in-game. Campaign SKILL still does
+not start a maze (`onSkillClick` host `diff-row` + `runKind==='maze'`).
+
+### 4. Editor COPY LINK (P1) — playtest PASS
+
+VALIDATE errors blocked COPY LINK / COPY CODE / DOWNLOAD. PLAYTEST still
+uses `blocked()`. Share/export emit `#m=` / `SGMAP` for the current
+blueprint; toast warns if the map has errors. Unit + e2e: START-only
+editor encodes `SGMAP.v1.` / `#m=`.
 
 ## Open / next
 
 - Balance still wants a human Normal run against the maze 20–30 min target.
+- Human playtest of this PR on the Netlify preview (do not merge).
 
 ## Where things are
 

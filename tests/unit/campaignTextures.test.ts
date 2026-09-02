@@ -43,7 +43,7 @@ describe('campaign pack markers', () => {
       gullet: 'mucosa-bile-peristalsis',
       catacombs: 'ossuary-bone-inlay',
       pit: 'gantry-ochre-sky',
-      spire: 'copper-traces-lattice',
+      spire: 'masonry-copper-ascent',
       ward: 'quarantine-cracked-tile',
       sanctum: 'gold-void-heptagram',
     });
@@ -73,7 +73,7 @@ describe('campaign art source', () => {
       gullet: ['peristalsis', 'mucus', 'bile', 'sphincter'],
       catacombs: ['ossuary', 'skull', 'burial glyphs', 'candle'],
       pit: ['gantry', 'ochre', 'corrugated', 'rust'],
-      spire: ['copper', 'lattice', 'elevation', 'composite'],
+      spire: ['copper', 'lattice', 'elevation', 'masonry'],
       ward: ['quarantine', 'tile', 'biohazard', 'cell'],
       sanctum: ['heptagram', 'gold', 'apse', 'arch'],
     };

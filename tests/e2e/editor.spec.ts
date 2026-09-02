@@ -95,4 +95,25 @@ test.describe('editor', () => {
     });
     await expect(page.locator('#editor-heading')).toHaveText('EDITOR');
   });
+
+  test('COPY LINK works on a START-only map that fails VALIDATE', async ({ page }) => {
+    await page.goto(EDIT);
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'editing';
+    });
+    await page.getByRole('button', { name: 'VALIDATE' }).click();
+    await expect(page.locator('#editor-status')).toContainText('arena');
+    const share = await page.evaluate(async () => {
+      const G = window as unknown as { __GAME__: { editorShare: () => Promise<{ code: string; url: string; errors: number } | null> } };
+      return G.__GAME__.editorShare();
+    });
+    expect(share).not.toBeNull();
+    expect(share!.errors).toBeGreaterThan(0);
+    expect(share!.code.startsWith('SGMAP.v1.')).toBe(true);
+    expect(share!.url).toContain('#m=SGMAP');
+    await page.getByRole('button', { name: 'COPY LINK' }).click();
+    await expect(page.locator('#toast')).toContainText('copied');
+    await expect(page.locator('#toast')).not.toHaveText('fix errors first');
+  });
 });

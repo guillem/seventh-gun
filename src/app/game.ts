@@ -2,6 +2,8 @@
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
+import { circleFits, hasLineOfSight } from '../sim/physics';
+import { aimDirFromLook, lookPitchFromThree, threePitchFromLook } from '../sim/aim';
 import { GEN_VERSION, type SimEvent, type Difficulty, type PlayerLoadout } from '../sim/types';
 import { compileBlueprint, mapSeedFromTitle, type MapBlueprint } from '../sim/blueprint';
 import { decodeBlueprint } from '../sim/mapcodec';
@@ -82,6 +84,7 @@ export class Game {
     this.audio.setMuted(this.settings.muted);
     this.input = new InputManager(canvas, this.screens);
     this.input.sensitivity = this.settings.sensitivity;
+    this.input.e2eClick = debug;
 
     this.createMinimapCanvas();
     this.wireUi();
@@ -197,6 +200,12 @@ export class Game {
 
   private wireInput(): void {
     this.input.setCallbacks({
+      onLook: (dyaw, dpitch) => {
+        const cam = this.renderer.camera;
+        cam.rotation.order = 'YXZ';
+        cam.rotation.y += dyaw;
+        cam.rotation.x = Math.max(-1.45, Math.min(1.45, cam.rotation.x + dpitch));
+      },
       onPointerLockChange: () => {
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
           // First Esc is consumed by the browser to exit pointer lock (no keydown).
@@ -238,6 +247,16 @@ export class Game {
 
   private get isPlayingLike(): boolean {
     return this.phase === 'playing' || this.phase === 'map';
+  }
+
+  /** In-game HUD (HEALTH / ammo / minimap). Title, overlays, editor, dead, won: hide. */
+  private get showInGameHud(): boolean {
+    return this.phase === 'playing' || this.phase === 'map' || this.phase === 'paused';
+  }
+
+  private setMinimapVisible(on: boolean): void {
+    if (!this.miniCanvas) return;
+    this.miniCanvas.style.display = on ? '' : 'none';
   }
 
   private applyDifficulty(d: Difficulty): void {
@@ -344,7 +363,7 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showMap(false);
     this.screens.showTouch(this.input.isTouch);
-    if (this.miniCanvas) this.miniCanvas.style.display = '';
+    this.setMinimapVisible(true);
     this.phase = 'playing';
     this.deathHandled = false;
     this.winHandled = false;
@@ -352,6 +371,27 @@ export class Game {
     this.audio.unlock().then(() => this.audio.startAmbient());
     this.input.paused = false;
     if (!this.input.isTouch) this.input.requestLock();
+    this.pushLookToCamera(this.sim.player.yaw, this.sim.player.pitch);
+  }
+
+  /** Mouse look writes the camera; copy that aim into the sim before fire/step. */
+  private pullAimFromCamera(sim: Sim): void {
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+    sim.player.yaw = cam.rotation.y;
+    // Three.js +X looks up; sim +pitch looks down.
+    sim.player.pitch = lookPitchFromThree(cam.rotation.x);
+  }
+
+  private pushLookToCamera(yaw: number, pitch: number): void {
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+    cam.rotation.y = yaw;
+    cam.rotation.x = threePitchFromLook(pitch);
+  }
+
+  private lookAimDir(sim: Sim): { dirX: number; dirY: number; dirZ: number } {
+    return aimDirFromLook(sim.player.yaw, sim.player.pitch);
   }
 
   private retryCurrent(): void {
@@ -623,7 +663,8 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
-    if (this.miniCanvas) this.miniCanvas.style.display = '';
+    this.setMinimapVisible(false);
+    this.hud.clear();
     this.input.releaseLock();
   }
 
@@ -653,7 +694,8 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showMap(false);
     this.screens.showTouch(false);
-    if (this.miniCanvas) this.miniCanvas.style.display = 'none';
+    this.setMinimapVisible(false);
+    this.hud.clear();
     this.input.releaseLock();
     ed.show();
   }
@@ -736,7 +778,20 @@ export class Game {
       return;
     }
 
-    if (this.isPlayingLike && !this.freeze) {
+    if (this.isPlayingLike && this.freeze) {
+      // Pose freeze: no movement / AI. Aim is the camera (mouse look).
+      this.pullAimFromCamera(sim);
+      const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
+      if (polled.switchGun && sim.player.owned[polled.switchGun]) {
+        sim.player.gun = polled.switchGun;
+      }
+      if (polled.fire) {
+        sim.tryFire(this.lookAimDir(sim));
+        for (const e of sim.takeEvents()) this.handleEvent(e);
+      }
+    } else if (this.isPlayingLike && !this.freeze) {
+      // Camera is look authority; copy it onto the player before stepping.
+      this.pullAimFromCamera(sim);
       // wheel gun cycling
       const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
       if (polled.wheel !== 0) {
@@ -753,8 +808,9 @@ export class Game {
 
       const input = {
         moveX: polled.moveX, moveZ: polled.moveZ,
-        yaw: polled.yaw, pitch: polled.pitch,
+        yaw: sim.player.yaw, pitch: sim.player.pitch,
         fire: polled.fire, use: polled.use, switchGun,
+        aimDir: this.lookAimDir(sim),
       };
       this.accumulator += dtReal;
       let steps = 0;
@@ -788,15 +844,16 @@ export class Game {
     const moving = Math.abs(sim.player.x - (this.lastPx ?? sim.player.x)) + Math.abs(sim.player.z - (this.lastPz ?? sim.player.z)) > 0.001;
     this.lastPx = sim.player.x; this.lastPz = sim.player.z;
 
-    this.renderer.update(dtReal, sim, moving);
-    if (this.phase !== 'editing') {
+    if (this.showInGameHud) {
+      this.renderer.update(dtReal, sim, moving);
       this.hud.draw(sim, { fullMapOpen: this.phase === 'map', paused: this.phase === 'paused' });
-    }
-    if (this.miniCanvas && this.phase !== 'title' && this.phase !== 'editing') {
-      this.hud.drawMinimap(sim, 0, false);
-    }
-    if (this.phase === 'map') {
-      this.hud.drawMinimap(sim, 0, true);
+      this.setMinimapVisible(true);
+      if (this.miniCanvas) this.hud.drawMinimap(sim, 0, false);
+      if (this.phase === 'map') this.hud.drawMinimap(sim, 0, true);
+    } else {
+      this.setMinimapVisible(false);
+      this.hud.clear();
+      this.renderer.render();
     }
   };
 
@@ -822,6 +879,8 @@ export class Game {
     }
     this.input.releaseLock();
     this.audio.stopLoops();
+    this.setMinimapVisible(false);
+    this.hud.clear();
   }
 
   private showVictory(): void {
@@ -918,6 +977,9 @@ export class Game {
           ammo: { ...p.ammo },
           pos: { x: +p.x.toFixed(2), z: +p.z.toFixed(2) },
           yaw: +p.yaw.toFixed(3),
+          pitch: +p.pitch.toFixed(3),
+          camPitch: +this.renderer.camera.rotation.x.toFixed(3),
+          camYaw: +this.renderer.camera.rotation.y.toFixed(3),
           seed: this.seed,
           kind: this.runKind,
           difficulty: this.settings.difficulty,
@@ -963,6 +1025,7 @@ export class Game {
         this.ensureEditor().loadBlueprint(bp);
         this.openEditor();
       },
+      editorShare: () => this.editor?.sharePayload() ?? null,
       stampEditorRoom: (opts: { x: number; z: number; w: number; h: number }) => {
         const ed = this.ensureEditor();
         const room = ed.doc.stampRoom({ x: opts.x, z: opts.z, w: opts.w, h: opts.h, kind: 'spine' });
@@ -972,6 +1035,23 @@ export class Game {
       openEditor: () => this.openEditor(),
       give: (gun: number) => { this.sim?.giveGun(gun); },
       fire: (hold = true) => { this.input.setFire(hold); },
+      /** One posed shot along the current camera forward (works while frozen). */
+      shoot: () => {
+        const sim = this.sim;
+        if (!sim || this.phase !== 'playing') return { ok: false };
+        const bullets = sim.player.ammo.bullets;
+        this.pullAimFromCamera(sim);
+        sim.tryFire(this.lookAimDir(sim));
+        const evs = sim.takeEvents();
+        for (const e of evs) this.handleEvent(e);
+        return {
+          ok: true,
+          spent: sim.player.ammo.bullets < bullets,
+          hit: evs.some(e => e.t === 'hitEnemy'),
+          killed: evs.some(e => e.t === 'hitEnemy' && e.killed),
+          kills: sim.killCount,
+        };
+      },
       inputKey: (code: string, down: boolean) => {
         if (down) this.input['keys'].add(code);
         else this.input['keys'].delete(code);
@@ -1029,43 +1109,92 @@ export class Game {
       step: (n: number) => {
         const sim = this.sim;
         if (!sim) return;
-        for (let i = 0; i < n; i++) sim.step(emptyInput());
+        const yaw = sim.player.yaw, pitch = sim.player.pitch;
+        for (let i = 0; i < n; i++) sim.step({ ...emptyInput(), yaw, pitch });
         for (const e of sim.takeEvents()) this.handleEvent(e);
       },
       mapHash: () => this.mapHash(),
       look: (yawDeg: number, pitchDeg = 0) => {
         const sim = this.sim;
         if (!sim) return;
-        sim.player.yaw = (yawDeg * Math.PI) / 180;
-        sim.player.pitch = (pitchDeg * Math.PI) / 180;
+        const yaw = (yawDeg * Math.PI) / 180;
+        // Positive pitchDeg is look-DOWN (look(0, 22) → +0.384, ray y≈0.5 at 3.2u).
+        const pitch = (pitchDeg * Math.PI) / 180;
+        sim.player.yaw = yaw;
+        sim.player.pitch = pitch;
+        this.pushLookToCamera(yaw, pitch);
+      },
+      /** Set camera pitch only (player.pitch unchanged). Proves fire reads the camera. */
+      setCameraPitch: (pitchDeg: number) => {
+        const cam = this.renderer.camera;
+        cam.rotation.order = 'YXZ';
+        cam.rotation.x = (pitchDeg * Math.PI) / 180;
+      },
+      tickNow: () => { this.tick(performance.now()); },
+      /** InputManager fire + one tick (not G.shoot / look). */
+      inputFire: () => {
+        const sim = this.sim;
+        if (!sim || this.phase !== 'playing') return { ok: false };
+        const bullets = sim.player.ammo.bullets;
+        const kills = sim.killCount;
+        const hpSum = sim.enemies.reduce((s, e) => s + Math.max(0, e.hp), 0);
+        this.input.setFire(true);
+        this.tick(performance.now());
+        this.input.setFire(false);
+        const hpAfter = sim.enemies.reduce((s, e) => s + Math.max(0, e.hp), 0);
+        return {
+          ok: true,
+          spent: sim.player.ammo.bullets < bullets,
+          hit: hpAfter < hpSum || sim.killCount > kills,
+          killed: sim.killCount > kills,
+          kills: sim.killCount,
+        };
       },
       pause: () => this.togglePause(),
       toggleMap: () => this.toggleMap(!this.screens.isMapOpen()),
-      pose: (opts: { gun?: number; fire?: boolean; enemy?: string; yaw?: number; dist?: number }): unknown => {
+      pose: (opts: { gun?: number; fire?: boolean; enemy?: string; yaw?: number; pitch?: number; dist?: number }): unknown => {
         // screenshot helper: freeze a composition
         const sim = this.sim;
         if (!sim) return 'no-sim';
         const p = sim.player;
         if (opts.gun) sim.giveGun(opts.gun);
         if (opts.yaw !== undefined) p.yaw = (opts.yaw * Math.PI) / 180;
+        if (opts.pitch !== undefined) p.pitch = (opts.pitch * Math.PI) / 180;
+        this.pushLookToCamera(p.yaw, p.pitch);
         if (opts.fire) this.renderer.fireVisual(p.gun, p.yaw, p.pitch, p.x, p.z);
         let placed: { id: number; type: string; x: number; z: number } | null = null;
         if (opts.enemy) {
           const e = sim.enemies.find(en => en.type === opts.enemy && !en.dead) ?? sim.enemies.find(en => !en.dead);
           if (e) {
-            const d = opts.dist ?? 5;
-            // teleport the ENEMY in front of the player (player may sit in a
-            // safe corner; moving them breaks the composition)
-            e.x = p.x - Math.sin(p.yaw) * d;
-            e.z = p.z - Math.cos(p.yaw) * d;
+            const want = opts.dist ?? 5;
+            // Prefer a floor cell with LOS so the posed body is not behind a
+            // wall the hitscan would eat (tight start-room corners).
+            let d = want;
+            for (const tryD of [want, want + 0.8, want - 0.5, 2.6, 4.0]) {
+              if (tryD < 1.2) continue;
+              const x = p.x - Math.sin(p.yaw) * tryD;
+              const z = p.z - Math.cos(p.yaw) * tryD;
+              if (circleFits(sim, x, z, e.def.radius) && hasLineOfSight(sim, p.x, p.z, x, z)) {
+                d = tryD;
+                e.x = x; e.z = z;
+                break;
+              }
+              e.x = x; e.z = z;
+            }
             e.yaw = p.yaw + Math.PI; // face the camera
             e.state = 'idle';
             e.awakened = false;
-            placed = { id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1) };
+            placed = { id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dist: +d.toFixed(2) } as { id: number; type: string; x: number; z: number };
           }
         }
         this.freeze = true;
-        return { player: { x: +p.x.toFixed(1), z: +p.z.toFixed(1), yaw: +p.yaw.toFixed(2) }, placed };
+        return {
+          player: {
+            x: +p.x.toFixed(1), z: +p.z.toFixed(1),
+            yaw: +p.yaw.toFixed(2), pitch: +p.pitch.toFixed(3),
+          },
+          placed,
+        };
       },
       unfreeze: () => { this.freeze = false; },
       snapshot: () => this.snapshotDataUrl(),
@@ -1073,8 +1202,13 @@ export class Game {
         rigs: this.renderer.enemyRigInfo.slice(0, 8),
         muzzle: this.renderer.muzzleState,
         updateCount: this.renderer.enemyUpdateCount,
-        simEnemies: this.sim ? this.sim.enemies.slice(0, 5).map(e => ({ id: e.id, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dead: e.dead })) : [],
-        playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2) },
+        simEnemies: this.sim ? this.sim.enemies.slice(0, 8).map(e => ({
+          id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1),
+          dead: e.dead, hp: +e.hp.toFixed(1),
+        })) : [],
+        playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2), pitch: +this.sim!.player.pitch.toFixed(3) },
+        camera: { yaw: +this.renderer.camera.rotation.y.toFixed(3), pitch: +this.renderer.camera.rotation.x.toFixed(3) },
+        lastAimDir: this.sim ? this.sim.lastAimDir : null,
       }),
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
       setTouch: (v: boolean) => {

@@ -221,6 +221,13 @@ export class EditorView {
     return this.doc.snapshot();
   }
 
+  /** Encode the current blueprint even if VALIDATE would fail (WIP share). */
+  async sharePayload(): Promise<{ code: string; url: string; errors: number }> {
+    const { errors } = this.doc.validate();
+    const code = await encodeShareCode(this.doc.bp);
+    return { code, url: shareUrlFromCode(code), errors: errors.length };
+  }
+
   playtest(): void {
     this.tryPlaytest();
   }
@@ -557,23 +564,23 @@ export class EditorView {
   }
 
   private async exportLink(): Promise<void> {
-    if (this.blocked()) return;
-    const code = await encodeShareCode(this.doc.bp);
-    const url = shareUrlFromCode(code);
+    const { url, errors } = await this.sharePayload();
     const ok = this.host ? await this.host.copyText(url) : false;
-    this.host?.toast(ok ? 'link copied' : 'could not copy');
+    if (!ok) this.host?.toast('could not copy');
+    else if (errors) this.host?.toast('link copied — map has errors');
+    else this.host?.toast('link copied');
   }
 
   private async exportCode(): Promise<void> {
-    if (this.blocked()) return;
-    const code = await encodeShareCode(this.doc.bp);
+    const { code, errors } = await this.sharePayload();
     const ok = this.host ? await this.host.copyText(code) : false;
-    this.host?.toast(ok ? 'code copied' : 'could not copy');
+    if (!ok) this.host?.toast('could not copy');
+    else if (errors) this.host?.toast('code copied — map has errors');
+    else this.host?.toast('code copied');
   }
 
   private async download(): Promise<void> {
-    if (this.blocked()) return;
-    const code = await encodeShareCode(this.doc.bp);
+    const { code, errors } = await this.sharePayload();
     const name = filenameFromTitle(this.doc.bp.title ?? 'untitled');
     const blob = new Blob([code], { type: 'text/plain' });
     const a = document.createElement('a');
@@ -581,7 +588,7 @@ export class EditorView {
     a.download = name;
     a.click();
     URL.revokeObjectURL(a.href);
-    this.host?.toast('downloaded');
+    this.host?.toast(errors ? 'downloaded — map has errors' : 'downloaded');
   }
 
   private setStatus(msg: string): void {
