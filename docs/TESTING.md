@@ -84,8 +84,8 @@ campaign SKILL does not start a maze, Foundry does not log `campaign:` seeds,
 maze / `#m=` `state().campaign` is null (campaign has artId), quit-to-title MAP LOG hides HEALTH/minimap, editor `?edit=1` chrome + visible canvas +
 START room + `loadBlueprint` / PLAYTEST, COPY LINK on a START-only invalid map emits `SGMAP` / `#m=`, mobile touch HUD with ≥44px FIRE
 button (title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR),
-FIRE latches and unlatches, playtest crawler pose via InputManager click
-  (camera pitch only, player.pitch left at 0; level-camera lower-FOV click).
+FIRE latches and unlatches, playtest crawler pose via `look(0, 22)` +
+  InputManager mousedown (crawler hp drops; `lastAimDir.dirY < 0`).
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production

@@ -16,6 +16,7 @@ import {
 import {
   isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
+import { aimDirFromLook } from './aim';
 
 export const STEP_DT = 1 / 60;
 
@@ -27,7 +28,7 @@ export interface SimInput {
   fire: boolean;
   use: boolean;
   switchGun: number | null;
-  /** Host camera forward (Three.js getWorldDirection). Overrides yaw/pitch aim. */
+  /** Optional explicit ray. Default is aimDirFromLook(yaw, pitch). */
   aimDir?: { dirX: number; dirY: number; dirZ: number };
 }
 
@@ -121,6 +122,12 @@ export class Sim {
   arenaEntered = false;
   arenaClearTimer = -1;
   killCount = 0;
+  lastAimDir: {
+    dirX: number; dirY: number; dirZ: number;
+    yaw: number; pitch: number;
+    at32y: number;
+    toCrawler: { dx: number; dy: number; dz: number; dist: number } | null;
+  } | null = null;
   explored: Uint8Array;
   lastNoise: { x: number; z: number; radius: number; time: number } | null = null;
   rng: Rng;
@@ -328,12 +335,27 @@ export class Sim {
     this.emitNoise(p.x, p.z, w.loudness);
     this.events.push({ t: 'shot', gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
 
-    // Camera-forward when the host passes it (mouse look lives on the
-    // Three.js camera). Headless tests omit it and use player yaw/pitch.
-    const dirX = aim ? aim.dirX : -Math.sin(p.yaw) * Math.cos(p.pitch);
-    const dirY = aim ? aim.dirY : Math.sin(p.pitch);
-    const dirZ = aim ? aim.dirZ : -Math.cos(p.yaw) * Math.cos(p.pitch);
+    // Compose from yaw/pitch (positive pitch = look-down). Do not use a
+    // raw Three.js getWorldDirection — default XYZ vs YXZ and +X=look-up
+    // sent live shots over the crawler (pitch +0.384, dirY > 0, y@3.2≈2.9).
+    const composed = aimDirFromLook(p.yaw, p.pitch);
+    const dirX = aim ? aim.dirX : composed.dirX;
+    const dirY = aim ? aim.dirY : composed.dirY;
+    const dirZ = aim ? aim.dirZ : composed.dirZ;
     const eye = PLAYER_EYE;
+    const crawler = this.enemies.find(e => !e.dead && e.type === 'crawler');
+    this.lastAimDir = {
+      dirX, dirY, dirZ, yaw: p.yaw, pitch: p.pitch,
+      at32y: eye + dirY * 3.2,
+      toCrawler: crawler
+        ? {
+          dx: crawler.x - p.x,
+          dy: 0.5 - eye,
+          dz: crawler.z - p.z,
+          dist: Math.hypot(crawler.x - p.x, crawler.z - p.z),
+        }
+        : null,
+    };
 
     if (w.hitscan) {
       for (let pellet = 0; pellet < w.pellets; pellet++) {

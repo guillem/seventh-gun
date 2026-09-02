@@ -197,9 +197,9 @@ function wispAt(sim: Sim, x: number, z: number, hp = 1000): void {
   });
 }
 
-/** Pitch that aims the eye at height h over horizontal distance d. */
+/** Look-down-positive pitch that aims the eye at height h over distance d. */
 function aimPitchAt(h: number, d: number): number {
-  return Math.atan2(h - PLAYER_EYE, d);
+  return Math.atan2(PLAYER_EYE - h, d);
 }
 
 function crawlerAt(sim: Sim, x: number, z: number, hp = 1000): void {
@@ -292,40 +292,38 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
     expect(crawler.hp, 'reticle on the visible body must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
   });
 
-  it('camera aimDir hits at 3.2u even when player.pitch is 0', () => {
-    // Live mouse look wrote the camera; fire used leftover player.pitch ≈ 0.
-    const dist = 3.2;
-    const { sim, crawler } = crawlerAhead(dist);
-    sim.player.pitch = 0;
-    const pitch = (-16 * Math.PI) / 180;
-    sim.tryFire({
-      dirX: 0,
-      dirY: Math.sin(pitch),
-      dirZ: -Math.cos(pitch),
-    });
-    expect(crawler.hp, 'hitscan must use the camera forward, not yaw-only')
-      .toBe(crawler.maxHp - WEAPONS[0].damage);
+  it('live pose: player z=71, crawler z=67.8, look-down +22° hits y≈0.5', () => {
+    const sim = freshSim();
+    sim.player.x = 15;
+    sim.player.z = 71;
+    sim.player.yaw = 0;
+    crawlerAt(sim, 15, 67.8, 18);
+    const crawler = sim.enemies[sim.enemies.length - 1];
+    const pitch = 0.384; // +22° look-down (live dump)
+    sim.step(input({ fire: true, pitch }));
+    expect(sim.lastAimDir, 'fire must record lastAimDir').toBeTruthy();
+    expect(sim.lastAimDir!.dirY, 'look-down must have negative dirY').toBeLessThan(0);
+    expect(sim.lastAimDir!.at32y, 'ray at t=3.2 must be ~crawler thorax').toBeCloseTo(0.5, 1);
+    expect(crawler.hp, 'live 22° look-down at 3.2u must connect').toBeLessThan(18);
   });
 
   it('nearly-horizontal close shot hits', () => {
     const dist = 3.2;
     const { sim, crawler } = crawlerAhead(dist);
     expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
-    sim.step(input({ fire: true, pitch: -0.22 }));
+    sim.step(input({ fire: true, pitch: 0.22 }));
     expect(crawler.hp, 'nearly-horizontal close shot must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
   });
 
-  // Live playtest (PR17): pose dist 3.2, crawler in the lower FOV, click.
-  // Pitch 0 / −8° / −16° all put the body on screen while the crosshair
-  // sits on the wall above it. Same numbers as the human report.
-  for (const pitchDeg of [0, -8, -16] as const) {
-    it(`playtest pose: dist 3.2, pitch ${pitchDeg}° hits`, () => {
+  // Live playtest: pose dist 3.2. Positive pitch is look-down.
+  for (const pitchDeg of [0, 8, 16, 22] as const) {
+    it(`playtest pose: dist 3.2, look-down ${pitchDeg}° hits`, () => {
       const dist = 3.2;
       const { sim, crawler } = crawlerAhead(dist);
       expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
       const pitch = (pitchDeg * Math.PI) / 180;
       sim.step(input({ fire: true, pitch }));
-      expect(crawler.hp, `pitch ${pitchDeg}° at 3.2u must connect`)
+      expect(crawler.hp, `look-down ${pitchDeg}° at 3.2u must connect`)
         .toBe(crawler.maxHp - WEAPONS[0].damage);
     });
   }
@@ -368,10 +366,10 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
     expect(crawler.hp, 'shot clearly over the head must miss').toBe(crawler.maxHp);
   });
 
-  it('looking up (+16°) at a floor crawler 3.2u ahead misses', () => {
+  it('looking up (−16°) at a floor crawler 3.2u ahead misses', () => {
     const dist = 3.2;
     const { sim, crawler } = crawlerAhead(dist);
-    sim.step(input({ fire: true, pitch: (16 * Math.PI) / 180 }));
+    sim.step(input({ fire: true, pitch: (-16 * Math.PI) / 180 }));
     expect(crawler.hp, 'look-up must miss the floor body').toBe(crawler.maxHp);
   });
 

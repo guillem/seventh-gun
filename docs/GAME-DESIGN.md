@@ -56,9 +56,10 @@ Gun tests (hitscan and player projectiles) use `enemyGunRadius` /
 overhanging `def.radius` 0.5) still counts. At close range (≤6u) the
 grounded gun slab lofts to eye height: a level or shallow look-down
 at a crawler 3.2u ahead connects even when the crosshair sits on the
-wall above the body. Gameplay fire uses the **camera** forward (mouse
-look), not a yaw-only leftover `player.pitch`. Walls still occlude; the
-floor plane does not eat a look-down that already has the body in view.
+wall above the body. Gameplay fire uses `aimDirFromLook` (positive pitch = look-down,
+`dirY = −sin(pitch)`). `look(0, 22)` at dist 3.2 hits y≈0.5. Walls still
+occlude; the floor plane does not eat a look-down that already has the
+body in view.
 Wisp volume is centered on `hoverY` (visible torso), not stacked above
 the head.
 

@@ -74,15 +74,9 @@ test.describe('desktop', () => {
     expect(hp).toBe(100);
   });
 
-  test('playtest pose: crawler in lower FOV, real InputManager click hits', async ({ page }) => {
-    // Live miss: pose dist 3.2, crawler on the floor in the lower third,
-    // real mouse click, ammo spent, no hit. G.look()+G.shoot() was a false
-    // green — look() wrote sim.player.pitch that fire used, while mouse
-    // look only moved the camera.
-    //
-    // This path: no look(), no shoot(). Camera pitch is set by itself
-    // (player.pitch stays 0), then a canvas mousedown through InputManager
-    // and one tick. Pointer-lock mousemove is still not used.
+  test('playtest pose: look(0, 22) then InputManager mousedown drops crawler hp', async ({ page }) => {
+    // Live: pitch +0.384 (look-down 22°), player (15,71) crawler (15,67.8),
+    // ammo spent, hp 18→18. aimDir.dirY was +sin(pitch) (up). Must be −sin.
     await page.goto(BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
@@ -93,23 +87,22 @@ test.describe('desktop', () => {
       const G = (window as unknown as {
         __GAME__: {
           pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
-          setCameraPitch: (d: number) => void;
-          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number; camPitch: number };
+          look: (yaw: number, pitch: number) => void;
+          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number };
           debugInfo: () => { simEnemies: { type: string; hp: number; dead: boolean }[] };
         };
       }).__GAME__;
       const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
-      G.setCameraPitch(-16);
+      G.look(0, 22);
       const s = G.state();
       const crawler = G.debugInfo().simEnemies.find(e => e.type === 'crawler' && !e.dead);
       return {
         placed: placed.placed, ammo: s.ammo.bullets, kills: s.kills, hp: s.hp,
-        playerPitch: s.pitch, camPitch: s.camPitch, crawlerHp: crawler?.hp ?? -1,
+        pitch: s.pitch, crawlerHp: crawler?.hp ?? -1,
       };
     });
     expect(posed.placed?.type).toBe('crawler');
-    expect(posed.playerPitch, 'must not call look() — player pitch stays 0').toBeCloseTo(0, 2);
-    expect(posed.camPitch, 'camera holds the mouse look-down').toBeCloseTo(-16 * Math.PI / 180, 2);
+    expect(posed.pitch, 'look(0, 22) is +0.384 look-down').toBeCloseTo(22 * Math.PI / 180, 2);
     expect(posed.crawlerHp).toBeGreaterThan(0);
 
     const after = await page.evaluate(() => {
@@ -118,21 +111,30 @@ test.describe('desktop', () => {
       const G = (window as unknown as {
         __GAME__: {
           tickNow: () => void;
+          debugInfo: () => {
+            simEnemies: { type: string; hp: number; dead: boolean }[];
+            lastAimDir: { dirX: number; dirY: number; dirZ: number; at32y: number } | null;
+          };
           state: () => { ammo: { bullets: number }; kills: number; hp: number };
-          debugInfo: () => { simEnemies: { type: string; hp: number; dead: boolean }[] };
         };
       }).__GAME__;
       G.tickNow();
       document.dispatchEvent(new MouseEvent('mouseup', { button: 0, bubbles: true }));
-      const crawler = G.debugInfo().simEnemies.find(e => e.type === 'crawler');
-      return { ...G.state(), crawlerHp: crawler?.hp ?? 0, crawlerDead: !!crawler?.dead };
+      const info = G.debugInfo();
+      const crawler = info.simEnemies.find(e => e.type === 'crawler');
+      return {
+        ...G.state(),
+        crawlerHp: crawler?.hp ?? 0,
+        crawlerDead: !!crawler?.dead,
+        lastAimDir: info.lastAimDir,
+      };
     });
     expect(after.ammo.bullets, 'pistol must spend a round').toBe(posed.ammo - 1);
     expect(after.hp, 'frozen pose must not let the crawler melee').toBe(posed.hp);
-    expect(
-      after.crawlerDead || after.crawlerHp < posed.crawlerHp || after.kills > posed.kills,
-      'real InputManager click along camera pitch must register a hit',
-    ).toBeTruthy();
+    expect(after.lastAimDir, 'fire must record lastAimDir').toBeTruthy();
+    expect(after.lastAimDir!.dirY, 'look-down aimDir.dirY must be negative').toBeLessThan(0);
+    expect(after.lastAimDir!.at32y, 'ray at t=3.2 should be ~y=0.5').toBeCloseTo(0.5, 1);
+    expect(after.crawlerHp, 'simEnemies crawler hp must drop').toBeLessThan(posed.crawlerHp);
   });
 
   test('playtest pose: level camera, crawler in lower FOV, InputManager click hits', async ({ page }) => {

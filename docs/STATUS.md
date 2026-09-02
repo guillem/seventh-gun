@@ -1,32 +1,30 @@
 # STATUS
 
-Updated: 2026-09-02 — PR: playtest fixes (camera-aim fire, crawler loft,
-spire masonry, HUD leak, editor COPY LINK). Do not merge from this agent.
+Updated: 2026-09-02 — PR: playtest fixes (look-down aim sign, crawler
+loft, spire, HUD, editor COPY LINK). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 171/171. `npm run test:e2e` 71 passed / 3 skipped.
 `GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
 ## State: four live-playtest bugs
 
 ### 1. Point-blank crawler miss (P0) — second live fail
 
-Third live pass still missed a **real mouse click** (fresh bundle):
-dist 3.2, crawler on the floor in the lower FOV, ammo 210→209, KILLS 0,
-then melee. `G.look()` + `G.shoot()` was a false green — that wrote
-`player.pitch` that `fireWeapon` already used.
+Fourth live pass: pitch IS in sim (player.pitch === camera.rotation.x
+=== +0.384 after “look-down 22°”). The shot still missed: crawler
+(15, 67.8) from player (15, 71), hp 18→18, ammo 300→299.
 
-Real mouse look writes the **camera**. Hitscan now fires
-`camera.getWorldDirection()` after `pullAimFromCamera`. Renderer no
-longer slams `camera.rotation` from a stale `player.pitch`.
+`dirY = +sin(pitch)` aims **up**. A look-down of +22° must be
+`dirY = −sin(pitch)` so the ray is at y≈0.5 at t=3.2 (inside the body).
+`getWorldDirection()` follows Three.js (+X looks up) and agreed with
+the bad sign. Euler XYZ vs YXZ is a wash at yaw 0.
 
-Gun test only (movement / AI still use `def.radius`):
+Gun test only:
 
-- Camera is look authority (mousemove `onLook` → camera Euler).
-- `sim.step` / `tryFire` take optional `aimDir` from the camera.
-- Close-range grounded loft to `PLAYER_EYE + 0.35` (dist ≤ 6u).
-- E2E: pose dist 3.2, `setCameraPitch(-16)` with **player.pitch still 0**,
-  canvas `mousedown` + `tickNow` (InputManager, not `look`/`shoot`).
-  Second e2e: level camera + `inputFire` (lower-FOV loft).
+- `aimDirFromLook`: +pitch = look-down, `dirY = −sin(pitch)`.
+- Camera stores `rotation.order = 'YXZ'` and `rotation.x = −pitch`.
+- `debugInfo.lastAimDir` {dirX,dirY,dirZ,at32y,toCrawler} on fire.
+- E2E: `pose` + `look(0, 22)` + InputManager `mousedown` asserts
+  crawler hp dropped and `lastAimDir.dirY < 0`.
 
 ### 2. Spire art (P1) — playtest PASS
 

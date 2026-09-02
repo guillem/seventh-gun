@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
 import { circleFits, hasLineOfSight } from '../sim/physics';
+import { aimDirFromLook, lookPitchFromThree, threePitchFromLook } from '../sim/aim';
 import { GEN_VERSION, type SimEvent, type Difficulty, type PlayerLoadout } from '../sim/types';
 import { compileBlueprint, mapSeedFromTitle, type MapBlueprint } from '../sim/blueprint';
 import { decodeBlueprint } from '../sim/mapcodec';
@@ -378,20 +379,19 @@ export class Game {
     const cam = this.renderer.camera;
     cam.rotation.order = 'YXZ';
     sim.player.yaw = cam.rotation.y;
-    sim.player.pitch = cam.rotation.x;
+    // Three.js +X looks up; sim +pitch looks down.
+    sim.player.pitch = lookPitchFromThree(cam.rotation.x);
   }
 
   private pushLookToCamera(yaw: number, pitch: number): void {
     const cam = this.renderer.camera;
     cam.rotation.order = 'YXZ';
     cam.rotation.y = yaw;
-    cam.rotation.x = pitch;
+    cam.rotation.x = threePitchFromLook(pitch);
   }
 
-  private cameraAimDir(): { dirX: number; dirY: number; dirZ: number } {
-    const v = new THREE.Vector3();
-    this.renderer.camera.getWorldDirection(v);
-    return { dirX: v.x, dirY: v.y, dirZ: v.z };
+  private lookAimDir(sim: Sim): { dirX: number; dirY: number; dirZ: number } {
+    return aimDirFromLook(sim.player.yaw, sim.player.pitch);
   }
 
   private retryCurrent(): void {
@@ -786,7 +786,7 @@ export class Game {
         sim.player.gun = polled.switchGun;
       }
       if (polled.fire) {
-        sim.tryFire(this.cameraAimDir());
+        sim.tryFire(this.lookAimDir(sim));
         for (const e of sim.takeEvents()) this.handleEvent(e);
       }
     } else if (this.isPlayingLike && !this.freeze) {
@@ -810,7 +810,7 @@ export class Game {
         moveX: polled.moveX, moveZ: polled.moveZ,
         yaw: sim.player.yaw, pitch: sim.player.pitch,
         fire: polled.fire, use: polled.use, switchGun,
-        aimDir: this.cameraAimDir(),
+        aimDir: this.lookAimDir(sim),
       };
       this.accumulator += dtReal;
       let steps = 0;
@@ -1041,7 +1041,7 @@ export class Game {
         if (!sim || this.phase !== 'playing') return { ok: false };
         const bullets = sim.player.ammo.bullets;
         this.pullAimFromCamera(sim);
-        sim.tryFire(this.cameraAimDir());
+        sim.tryFire(this.lookAimDir(sim));
         const evs = sim.takeEvents();
         for (const e of evs) this.handleEvent(e);
         return {
@@ -1118,6 +1118,7 @@ export class Game {
         const sim = this.sim;
         if (!sim) return;
         const yaw = (yawDeg * Math.PI) / 180;
+        // Positive pitchDeg is look-DOWN (look(0, 22) → +0.384, ray y≈0.5 at 3.2u).
         const pitch = (pitchDeg * Math.PI) / 180;
         sim.player.yaw = yaw;
         sim.player.pitch = pitch;
@@ -1207,6 +1208,7 @@ export class Game {
         })) : [],
         playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2), pitch: +this.sim!.player.pitch.toFixed(3) },
         camera: { yaw: +this.renderer.camera.rotation.y.toFixed(3), pitch: +this.renderer.camera.rotation.x.toFixed(3) },
+        lastAimDir: this.sim ? this.sim.lastAimDir : null,
       }),
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
       setTouch: (v: boolean) => {

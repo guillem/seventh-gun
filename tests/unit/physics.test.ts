@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { raycastCylinder } from '../../src/sim/physics';
 import { PLAYER_EYE } from '../../src/sim/types';
 import { ENEMIES, enemyGunRadius, enemyGunVolumeY, enemyVolumeY } from '../../src/sim/enemyTypes';
+import { aimDirFromLook } from '../../src/sim/aim';
 
 function dirTo(dx: number, dy: number, dz: number): [number, number, number] {
   const l = Math.hypot(dx, dy, dz) || 1;
@@ -80,18 +81,19 @@ describe('raycastCylinder', () => {
     expect(yAt).toBeLessThanOrEqual(gv.yMax);
   });
 
-  for (const pitchDeg of [0, -8, -16] as const) {
-    it(`playtest pose: dist 3.2, pitch ${pitchDeg}° intersects the lofted gun disc`, () => {
+  for (const pitchDeg of [0, 8, 16, 22] as const) {
+    it(`playtest pose: dist 3.2, look-down ${pitchDeg}° intersects the lofted gun disc`, () => {
       const dist = 3.2;
       const gunR = enemyGunRadius(crawler);
       const gv = enemyGunVolumeY(crawler, dist);
       const pitch = (pitchDeg * Math.PI) / 180;
-      const dx = 0;
-      const dy = Math.sin(pitch);
-      const dz = -Math.cos(pitch);
+      const { dirX: dx, dirY: dy, dirZ: dz } = aimDirFromLook(0, pitch);
       const t = raycastCylinder(0, PLAYER_EYE, 0, dx, dy, dz, 0, -dist, gunR, gv.yMin, gv.yMax, 120);
-      expect(t, `pitch ${pitchDeg}° must hit`).not.toBeNull();
+      expect(t, `look-down ${pitchDeg}° must hit`).not.toBeNull();
       expect(t!).toBeGreaterThanOrEqual(0);
+      if (pitchDeg === 22) {
+        expect(PLAYER_EYE + dy * 3.2).toBeCloseTo(0.5, 1);
+      }
     });
   }
 
