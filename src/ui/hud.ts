@@ -300,7 +300,9 @@ export class Hud {
       if (pk.taken || (pk.kind !== 'gun' && pk.kind !== 'key')) continue;
       const cx = Math.floor(pk.x / CELL), cz = Math.floor(pk.z / CELL);
       if (!sim.explored[cz * map.w + cx]) continue;
-      g.fillStyle = pk.kind === 'key' ? '#ffd23a' : pk.gun === 7 ? '#ff5050' : '#ffffff';
+      const sb = sim.map.sealBreak;
+      const objectiveGun = sb.type === 'gun' ? sb.gun : null;
+      g.fillStyle = pk.kind === 'key' ? '#ffd23a' : (objectiveGun !== null && pk.gun === objectiveGun) ? '#ff5050' : '#ffffff';
       g.beginPath();
       g.arc(ox + (pk.x / CELL + 0.5) * scale, oz + (pk.z / CELL + 0.5) * scale, Math.max(2.5, scale * 0.45), 0, Math.PI * 2);
       g.fill();
@@ -326,7 +328,11 @@ export class Hud {
       g.fillText(`SEED ${map.seed}   KILLS ${sim.killCount}   EXPLORED ${exploredPct(sim)}%`, 16, 28);
       g.font = '13px monospace';
       g.fillStyle = 'rgba(160,160,170,0.7)';
-      g.fillText('white = gun  ·  red = the Seventh  ·  gold = key/door  ·  purple = seal', 16, 50);
+      const sb = sim.map.sealBreak;
+      const legend = sb.type === 'gun'
+        ? `white = gun  ·  red = gun ${sb.gun} (unseals)  ·  gold = key/door  ·  purple = seal`
+        : 'white = gun  ·  gold = key (unseals) / door  ·  purple = seal';
+      g.fillText(legend, 16, 50);
     }
     void size;
   }

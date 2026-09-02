@@ -13,6 +13,9 @@ export const PLAYER_RADIUS = 0.55;
 export const PLAYER_EYE = 1.7;
 export const PLAYER_HEIGHT = 1.9;
 
+/** Authored / campaign / maze ammo-vs-HP floor (damage ≥ this × total enemy HP). */
+export const ECONOMY_FLOOR = 2.2;
+
 /** Gunshot / death-cry events stay audible this long (not a single-frame blink). */
 export const NOISE_TTL = 1.6;
 
@@ -138,8 +141,4 @@ export type SimEvent =
 
 export function cellToWorld(c: number): number {
   return (c + 0.5) * CELL;
-}
-
-export function worldToCell(x: number): number {
-  return Math.floor(x / CELL);
 }

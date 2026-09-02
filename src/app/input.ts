@@ -22,7 +22,6 @@ export class InputManager {
   pointerLocked = false;
   sensitivity = 1;
   paused = false;
-  mapOpen = false;
   isTouch = false;
 
   private keys = new Set<string>();

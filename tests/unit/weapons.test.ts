@@ -72,6 +72,29 @@ describe('weapon personalities', () => {
     void far;
   });
 
+  it('shotgun at yaw 45° has non-zero horizontal pellet spread (8 pellets, ~5.7° cone)', () => {
+    const w = weapon(2);
+    expect(w.pellets).toBe(8);
+    expect(w.spread * 180 / Math.PI).toBeCloseTo(5.7, 1);
+
+    const sim = freshSim();
+    sim.player.yaw = Math.PI / 4;
+    sim.player.pitch = 0;
+    sim.giveGun(2);
+    const dirs: { x: number; z: number }[] = [];
+    const orig = sim.hitscanShot.bind(sim);
+    sim.hitscanShot = (ox, oy, oz, dx, dy, dz, damage, pierce, wpn, visual) => {
+      dirs.push({ x: dx, z: dz });
+      orig(ox, oy, oz, dx, dy, dz, damage, pierce, wpn, visual);
+    };
+    sim.fireWeapon();
+    expect(dirs).toHaveLength(8);
+    const lookX = -Math.sin(Math.PI / 4);
+    const lookZ = -Math.cos(Math.PI / 4);
+    const lats = dirs.map(d => d.x * lookZ - d.z * lookX);
+    expect(Math.max(...lats.map(Math.abs)), 'horizontal spread at 45° yaw').toBeGreaterThan(1e-4);
+  });
+
   it('chaingun: bloom grows while held, tightens when released', () => {
     const sim = freshSim();
     sim.giveGun(3);

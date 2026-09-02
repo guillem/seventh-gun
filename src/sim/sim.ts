@@ -325,14 +325,12 @@ export class Sim {
         if (spread > 0) {
           const a = this.rng.float() * Math.PI * 2;
           const r = Math.sqrt(this.rng.float()) * spread;
-          // perturb in the plane perpendicular to view dir
-          const upX = 0, upY = 1, upZ = 0;
-          const rightX = dirZ * upY - dirY * upZ;
-          const rightZ = dirX * upY - dirY * upX;
+          // same perpendicular basis as projectiles: right = (dirZ, -dirX)
+          const rightX = dirZ, rightZ = -dirX;
           const rl = Math.hypot(rightX, rightZ) || 1;
           const rxn = rightX / rl, rzn = rightZ / rl;
           const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
-          sx = dirX + rxn * ca + 0 * sa;
+          sx = dirX + rxn * ca;
           sy = dirY + sa;
           sz = dirZ + rzn * ca;
           const sl = Math.hypot(sx, sy, sz);
@@ -571,12 +569,11 @@ export class Sim {
     return nd < noiseHearRadius(n.radius, e.def.hearRange);
   }
 
-  /** Living grounded enemies always block. Flying wisps block in XZ when the eye is in (or overlaps) their volume. Ragdolls do not. */
+  /** Living grounded enemies always block. Flying wisps block in XZ when their volume overlaps the player capsule. Ragdolls do not. */
   enemySolidVsPlayer(e: EnemyEnt): boolean {
     if (e.dead) return false;
     if (!e.def.flying) return true;
     const vol = enemyVolumeY(e.def);
-    if (PLAYER_EYE >= vol.yMin && PLAYER_EYE <= vol.yMax) return true;
     return vol.yMin < PLAYER_HEIGHT && vol.yMax > 0.05;
   }
 

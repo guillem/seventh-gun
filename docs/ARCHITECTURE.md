@@ -12,7 +12,9 @@ app (Game, input, debug API)
 
 - `src/sim/` is pure TypeScript: no Three, no DOM, no `Math.random`. Fixed
   timestep 1/60 (`STEP_DT`). All randomness flows from seeded sfc32 streams
-  (`rng.ts`). An architecture unit test enforces this.
+  (`rng.ts`). An architecture unit test enforces this on `src/sim`,
+  `src/campaign`, and `src/editor/model.ts`. `ECONOMY_FLOOR` (2.2×) lives
+  in `src/sim/types.ts`.
 - The renderer/audio/UI never decide gameplay outcomes; they consume
   `Sim.takeEvents()` and read state. Anything gameplay-visible must come from
   the sim so the unit tests actually cover it.
@@ -63,13 +65,14 @@ hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
   textures with nearest-mipmap filtering: crunchy but not muddy.
 - World geometry is merged per-theme `BufferGeometry` with baked per-vertex
   light colors (room lights) + black fog: cheap, Quake-ish. Campaign runs
-  (`GameMap.seed` `campaign:…` / `runKind === 'campaign'`) bind
+  (`runKind === 'campaign'`) bind
   `getCampaignTextures(artId)` for walls/floors/ceilings/door/sky and add
   renderer-only extras from `campaignDecor.ts`. Hero plates come from
   optional `CampaignTextureLib.heroDecals`, sibling `CAMPAIGN_HERO_DECALS`,
   or `getCampaignHeroDecals()` / `CAMPAIGN_HERO_MARKERS` (hint-driven
   ClampToEdge quads). Empty/missing is a no-op. Maze and `#m=` keep
-  `getTextures()` themes. Packs are cached. Painting stays canvas-only.
+  `getTextures()` themes even if a seed string looks like `campaign:`.
+  Packs are cached. Painting stays canvas-only.
 - Enemies/viewmodels/pickups are procedural Three meshes (no sprites, no
   billboards) with blob contact shadows. Enemy/pickup programs are
   compiled at `setRun` so the first door reveal does not hitch.

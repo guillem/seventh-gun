@@ -11,7 +11,7 @@ import { PickupRenderer } from './pickups';
 import { FxRenderer } from './fx';
 import { buildViewModel, type ViewModel } from './viewmodels';
 import { getTextures } from './textures';
-import { campaignArtIdFromSeed, type CampaignArtId } from './campaignTextures';
+import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
 
@@ -107,7 +107,7 @@ export class GameRenderer {
     this.enemies.syncStart(sim.enemies);
     this.pickups.dispose();
     this.pickups.syncStart(sim.pickups);
-    const resolved = artId ?? campaignArtIdFromSeed(sim.map.seed);
+    const resolved = artId;
     this.world = buildWorld(sim.map, resolved);
     this.scene.add(this.world.group);
     this.scene.fog = resolved

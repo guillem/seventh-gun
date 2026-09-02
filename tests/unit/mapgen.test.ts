@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateMap, mapStats } from '../../src/sim/mapgen';
 import { Sim, emptyInput } from '../../src/sim/sim';
-import { CELL } from '../../src/sim/types';
+import { CELL, ECONOMY_FLOOR } from '../../src/sim/types';
 import type { GameMap, Difficulty } from '../../src/sim/types';
 import { hasLineOfSight } from '../../src/sim/physics';
 import { WEAPONS } from '../../src/sim/weapons';
@@ -155,7 +155,7 @@ describe('mapgen validity (300-seed sweep)', () => {
         }
       }
       dmg *= diff.playerDamageOut;
-      expect(dmg, `economy too tight in seed ${s}: ${dmg} vs ${enemyHp}`).toBeGreaterThan(enemyHp * 2.2);
+      expect(dmg, `economy too tight in seed ${s}: ${dmg} vs ${enemyHp}`).toBeGreaterThan(enemyHp * ECONOMY_FLOOR);
     }
   });
 

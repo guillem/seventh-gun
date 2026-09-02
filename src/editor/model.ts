@@ -1,4 +1,4 @@
-// Pure editor document. Authors a MapBlueprint; no DOM, no localStorage.
+// Pure editor model. Authors a MapBlueprint; no browser APIs.
 import {
   compileBlueprint,
   expandDoorCells,
@@ -15,13 +15,13 @@ import { makeRng } from '../sim/rng';
 import { ENEMIES } from '../sim/enemyTypes';
 import { WEAPONS } from '../sim/weapons';
 import {
-  CELL, GRID_H, GRID_W, cellToWorld,
+  CELL, GRID_H, GRID_W, ECONOMY_FLOOR,
   type AmmoType, type EnemyType, type Room, type SealBreak, type Theme,
 } from '../sim/types';
 import { encodeBlueprint, decodeBlueprint } from '../sim/mapcodec';
 
 export const EDITOR_MIN_ROOM = 3;
-export const ECONOMY_FLOOR = 2.2;
+export { ECONOMY_FLOOR } from '../sim/types';
 
 /** Default START room stamped onto every new editor map (cell ints). */
 export const DEFAULT_START_ROOM = { x: 36, z: 36, w: 8, h: 8 } as const;
@@ -424,10 +424,6 @@ export class EditorDoc {
   static decode(code: string): MapBlueprint {
     return decodeBlueprint(code);
   }
-}
-
-export function worldCellCenter(x: number, z: number): { x: number; z: number } {
-  return { x: cellToWorld(x), z: cellToWorld(z) };
 }
 
 export type { AmmoType, EnemyType, Theme, SealBreak, BlueprintEnemy, BlueprintPickup };

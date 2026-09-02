@@ -33,6 +33,83 @@ test.describe('campaign desktop', () => {
     expect(state.campaign?.artId).toBe('foundry');
   });
 
+  test('campaign SKILL after a maze run does not start a maze', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => {
+      localStorage.removeItem('seventh-gun.maplog');
+      localStorage.removeItem('seventh-gun.campaign');
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi & { startRun: (s: string) => void } }).__GAME__.startRun('skill-maze'));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
+    await page.locator('#c-diff-row button').filter({ hasText: 'Hard' }).click();
+    await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
+    expect(state.phase).not.toBe('playing');
+    expect(state.kind).not.toBe('maze');
+  });
+
+  test('Foundry start does not grow the map log with campaign: seeds', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => {
+      localStorage.removeItem('seventh-gun.maplog');
+      localStorage.removeItem('seventh-gun.campaign');
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi & { startRun: (s: string) => void } }).__GAME__.startRun('prior-maze'));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.kind === 'campaign';
+    });
+    const log = await page.evaluate(() => JSON.parse(localStorage.getItem('seventh-gun.maplog') || '[]') as { seed: string }[]);
+    expect(log.some((e) => e.seed.startsWith('campaign:'))).toBe(false);
+    expect(log.some((e) => e.seed === 'prior-maze')).toBe(true);
+  });
+
+  test('title Easy after quitting campaign does not start a campaign-art maze', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await expect(page.getByRole('button', { name: 'ENTER THE MAZE' })).toBeVisible();
+    await page.locator('#diff-row button').filter({ hasText: 'Easy' }).click();
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
+    const playingCampaignArt = state.phase === 'playing' && !!state.campaign?.artId;
+    expect(playingCampaignArt).toBe(false);
+    if (state.phase === 'playing') {
+      expect(state.kind).toBe('maze');
+      expect(state.campaign).toBeNull();
+      expect(state.seed?.startsWith('campaign:')).toBe(false);
+    }
+  });
+
+  test('completing map 7 shows THE SEVENTH IS SILENT', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(7));
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 7;
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.completeMap());
+    await expect(page.getByText('THE SEVENTH IS SILENT')).toBeVisible();
+    await expect(page.locator('#campaign-win-screen')).not.toHaveClass(/hidden/);
+  });
+
   test('campaign screen lists seven named maps; map 2 unlocks after winning map 1', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));

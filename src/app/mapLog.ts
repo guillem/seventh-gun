@@ -78,6 +78,7 @@ export function parseMapLogEntry(raw: unknown): MapLogEntry | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
   if (typeof o.seed !== 'string' || !o.seed) return null;
+  if (o.seed.startsWith('campaign:')) return null;
   const entry: MapLogEntry = {
     ...EMPTY_DEFAULTS,
     seed: o.seed,
@@ -123,6 +124,11 @@ export function saveMapLog(entries: MapLogEntry[], storage?: MapLogStorage): voi
   }
 }
 
+/** Maze seeds only. Campaign, editor playtest, and `#m=` runs stay out of the log. */
+export function shouldLogRun(runKind: 'maze' | 'map' | 'campaign', seed: string): boolean {
+  return runKind === 'maze' && !!seed && !seed.startsWith('campaign:');
+}
+
 export function prependMapLog(
   input: {
     seed: string;
@@ -132,6 +138,7 @@ export function prependMapLog(
   },
   storage?: MapLogStorage,
 ): MapLogEntry[] {
+  if (!shouldLogRun('maze', input.seed)) return loadMapLog(storage);
   const entries = loadMapLog(storage);
   const entry: MapLogEntry = {
     seed: input.seed,
@@ -182,8 +189,4 @@ export function formatRelativeTime(startedAt: number, now = Date.now()): string 
   } catch {
     return 'unknown';
   }
-}
-
-export function generatorChanged(entry: MapLogEntry): boolean {
-  return entry.genVersion !== GEN_VERSION;
 }

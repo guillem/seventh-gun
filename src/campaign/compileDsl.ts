@@ -1,12 +1,12 @@
 // Campaign JSON DSL → MapBlueprint → GameMap. Pure; no DOM.
 import {
-  compileBlueprint, expandDoorCells, validateBlueprint,
+  compileBlueprint, expandDoorCells,
   type MapBlueprint, type BlueprintCorridor, type BlueprintDoor,
   type BlueprintEnemy, type BlueprintPickup, type BlueprintRoom,
 } from '../sim/blueprint';
 import { placeCosmetics } from '../sim/cosmetics';
 import { makeRng } from '../sim/rng';
-import { CELL, GRID_W, GRID_H, cellToWorld } from '../sim/types';
+import { CELL, GRID_W, GRID_H, ECONOMY_FLOOR, cellToWorld } from '../sim/types';
 import type {
   AmmoType, Difficulty, EnemyType, GameMap, PlayerLoadout, Room, SealBreak, Theme,
 } from '../sim/types';
@@ -301,7 +301,7 @@ export function campaignEconomy(dsl: CampaignDsl, map: GameMap): {
   return { damage, enemyHp, ratio: enemyHp > 0 ? damage / enemyHp : Infinity };
 }
 
-export const ECONOMY_FLOOR = 2.2;
+export { ECONOMY_FLOOR } from '../sim/types';
 
 export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; seed?: string }): {
   blueprint: MapBlueprint;
@@ -476,8 +476,6 @@ export function compileDsl(dsl: CampaignDsl, opts?: { difficulty?: Difficulty; s
       `${dsl.id}: economy ${eco.ratio.toFixed(2)}× < ${ECONOMY_FLOOR}× (${eco.damage} dmg vs ${eco.enemyHp} hp)`,
     );
   }
-  const leftover = validateBlueprint(blueprint);
-  if (leftover.length) warnings.push(...leftover.map(e => `${dsl.id}: ${e}`));
 
   return { blueprint, map, warnings };
 }
