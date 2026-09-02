@@ -1,13 +1,13 @@
 // Campaign-only extra artwork placement. Driven by art id + GameMap room
 // kinds already on the compiled map — does not rewrite JSON or generateMap.
 // Renderer-side only: extras never enter GameMap.decors.
-// Optional heroDecals (one prominent ClampToEdge quad per map) use hint
-// arena-back / pit-rim / sanctum-apse; missing field → no hero.
+// extraDecals come from getCampaignTextures(id); hero plates from
+// getCampaignHeroDecals() / CAMPAIGN_HERO_MARKERS (hint-driven, ClampToEdge).
 import * as THREE from 'three';
 import { CELL, CEIL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room } from '../sim/types';
 import {
-  resolveHeroDecals,
+  getCampaignHeroDecals,
   type CampaignArtId, type CampaignHeroDecal, type CampaignTextureLib,
 } from './campaignTextures';
 
@@ -46,6 +46,8 @@ export type ExtraKind = 'decal' | 'chain' | 'glow' | 'shelf' | 'banner' | 'floor
 export interface ExtraPlacement {
   kind: ExtraKind;
   decalId?: string;
+  tex?: THREE.Texture;
+  orient?: 'wall' | 'floor' | 'ceiling';
   x: number;
   y: number;
   z: number;
@@ -216,10 +218,10 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
     }
   } else if (artId === 'ward') {
     for (const s of slotsFor(WORK, 3, 0)) {
-      push({ kind: 'decal', decalId: 'ward-cot-stencil', x: s.x, y: 1.8, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.65 });
+      push({ kind: 'decal', decalId: 'ward-biohazard', x: s.x, y: 1.8, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.65 });
     }
     for (const s of slotsFor(WORK, 4, 2)) {
-      push({ kind: 'decal', decalId: 'ward-biohazard', x: s.x, y: 1.5, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.9 });
+      push({ kind: 'decal', decalId: 'ward-cot-stencil', x: s.x, y: 1.5, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.9 });
     }
     for (const s of slotsFor(HALL, 3, 1)) {
       push({ kind: 'glow', decalId: 'ward-key-sigil', x: s.x, y: 3.15, z: s.z, yaw: s.yaw, w: CELL * 0.9, h: 0.22, color: 0x7ad0c8, additive: true });
@@ -252,40 +254,9 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
   return extras;
 }
 
-export type HeroHint = 'arena-back' | 'pit-rim' | 'sanctum-apse';
+export type HeroOrient = 'wall' | 'floor' | 'ceiling';
 
 const HERO_WALL_INSET = CELL / 2 - 0.06;
-
-function pickHeroDecal(
-  heroes: CampaignHeroDecal[],
-  artId: CampaignArtId,
-  seed: string,
-): CampaignHeroDecal | undefined {
-  if (!heroes.length) return undefined;
-  const seedL = seed.toLowerCase();
-  const matches = heroes.filter(h => {
-    if (!h.map) return true;
-    const m = h.map.toLowerCase();
-    return m === artId || seedL.includes(m) || m.includes(artId);
-  });
-  if (!matches.length) return undefined;
-  const wanted = artId === 'pit' ? 'pit-rim' : artId === 'sanctum' ? 'sanctum-apse' : 'arena-back';
-  return matches.find(h => normalizeHeroHint(h.hint, artId) === wanted) ?? matches[0];
-}
-
-export function normalizeHeroHint(hint: string | undefined, artId: CampaignArtId): HeroHint {
-  const h = (hint ?? '').toLowerCase();
-  if (/\brim\b/.test(h) || h.includes('pit-rim') || h.includes('pit-floor') || h.includes('gantry')) {
-    return 'pit-rim';
-  }
-  if (h.includes('apse') || h.includes('choir') || h.includes('narthex') || h.includes('altar')) {
-    return 'sanctum-apse';
-  }
-  if (h.includes('arena') || h.includes('back')) return 'arena-back';
-  if (artId === 'pit') return 'pit-rim';
-  if (artId === 'sanctum') return 'sanctum-apse';
-  return 'arena-back';
-}
 
 function facesOnSide(map: GameMap, room: Room, dx: number, dz: number, yaw: number): WallSlot[] {
   const out: WallSlot[] = [];
@@ -309,17 +280,10 @@ function facesOnSide(map: GameMap, room: Room, dx: number, dz: number, yaw: numb
 
 function longestRunMid(faces: WallSlot[]): WallSlot | null {
   if (!faces.length) return null;
-  // facesOnSide walks x then z; group by the axis that varies
   return faces[Math.floor(faces.length / 2)] ?? null;
 }
 
-function sideDistance(
-  room: Room,
-  dx: number,
-  dz: number,
-  fromX: number,
-  fromZ: number,
-): number {
+function sideDistance(room: Room, dx: number, dz: number, fromX: number, fromZ: number): number {
   const cx = room.cx + dx * (room.w * CELL) / 2;
   const cz = room.cz + dz * (room.h * CELL) / 2;
   return Math.hypot(cx - fromX, cz - fromZ);
@@ -331,6 +295,7 @@ function bestWallOnRoom(
   fromX: number,
   fromZ: number,
   preferFarthest: boolean,
+  skipYaw?: number,
 ): WallSlot | null {
   const ranked = DIRS
     .map(([dx, dz, yaw]) => ({
@@ -338,7 +303,7 @@ function bestWallOnRoom(
       dist: sideDistance(room, dx, dz, fromX, fromZ),
       faces: facesOnSide(map, room, dx, dz, yaw),
     }))
-    .filter(s => s.faces.length > 0)
+    .filter(s => s.faces.length > 0 && (skipYaw === undefined || s.yaw !== skipYaw))
     .sort((a, b) => preferFarthest
       ? (b.dist - a.dist) || (b.faces.length - a.faces.length)
       : (b.faces.length - a.faces.length) || (b.dist - a.dist));
@@ -388,42 +353,97 @@ function pitRimRoom(map: GameMap): Room | undefined {
   return outdoor[0];
 }
 
-function heroSize(outdoor: boolean, faceCount: number): { w: number; h: number; y: number } {
-  const run = Math.max(1, faceCount) * CELL;
-  const w = Math.min(CELL * 2.6, Math.max(CELL * 0.95, run * 0.72));
-  const h = outdoor ? 3.7 : 3.05;
-  const y = outdoor ? 2.35 : 2.05;
-  return { w, h, y };
+function largestSpine(map: GameMap): Room | undefined {
+  const spines = roomsOf(map, ['spine']);
+  if (!spines.length) return arenaRoomOf(map);
+  return [...spines].sort((a, b) => (b.w * b.h) - (a.w * a.h))[0];
 }
 
-export function planHeroPlacement(
-  map: GameMap,
-  artId: CampaignArtId,
-  heroes: CampaignHeroDecal[],
-): ExtraPlacement | null {
-  const hero = pickHeroDecal(heroes, artId, map.seed);
-  if (!hero) return null;
-  const hint = normalizeHeroHint(hero.hint, artId);
-  let room: Room | undefined;
-  let from: { x: number; z: number };
-  let preferFarthest = true;
-  if (hint === 'pit-rim') {
-    room = pitRimRoom(map);
-    const arena = arenaRoomOf(map);
-    from = arena ? { x: arena.cx, z: arena.cz } : startRef(map);
-    preferFarthest = true;
-  } else if (hint === 'sanctum-apse') {
-    room = apseRoomOf(map);
-    from = startRef(map);
-    preferFarthest = true;
-  } else {
-    room = arenaRoomOf(map);
-    from = anteRef(map);
-    preferFarthest = true;
+function farthestSpine(map: GameMap): Room | undefined {
+  const start = startRef(map);
+  const spines = roomsOf(map, ['spine']);
+  if (!spines.length) return arenaRoomOf(map);
+  return [...spines].sort((a, b) =>
+    Math.hypot(b.cx - start.x, b.cz - start.z) - Math.hypot(a.cx - start.x, a.cz - start.z),
+  )[0];
+}
+
+function firstSide(map: GameMap): Room | undefined {
+  return roomsOf(map, ['spur', 'vault'])[0] ?? roomsOf(map, ['spine'])[0];
+}
+
+export function heroOrient(hint: string): HeroOrient {
+  const h = hint.toLowerCase();
+  if (h.includes('floor') || h.includes('pool') || h.includes('inlay') || h.includes('idol')) return 'floor';
+  if (h.includes('ceiling')) return 'ceiling';
+  return 'wall';
+}
+
+function roomForHint(map: GameMap, hint: string): Room | undefined {
+  const h = hint.toLowerCase();
+  if (h.includes('arena')) return arenaRoomOf(map);
+  if (h.includes('apse') || h.includes('altar') || h.includes('reliquary')) return apseRoomOf(map);
+  if (h.includes('pit') || h.includes('sky') || h.includes('gantry') || h.includes('crane') || h.includes('hook') || h.includes('idol')) {
+    return pitRimRoom(map) ?? arenaRoomOf(map);
   }
-  if (!room) return null;
-  const slot = bestWallOnRoom(map, room, from.x, from.z, preferFarthest);
+  if (h.includes('nave') || h.includes('tympanum') || h.includes('rose-window')) return largestSpine(map);
+  if (h.includes('alcove') || h.includes('niche') || h.includes('chapel') || h.includes('cell') || h.includes('nurse') || h.includes('cot')) {
+    return firstSide(map);
+  }
+  if (h.includes('door') || h.includes('entry') || h.includes('elevator') || h.includes('landing') || h.includes('plaque') || h.includes('frame')) {
+    return roomsOf(map, ['start'])[0] ?? roomsOf(map, ['spine'])[0] ?? arenaRoomOf(map);
+  }
+  if (h.includes('far-wall') || h.includes('corridor-end') || h.includes('shaft') || h.includes('totem') || h.includes('antenna') || h.includes('roof')) {
+    return farthestSpine(map);
+  }
+  if (h.includes('floor') || h.includes('pool') || h.includes('inlay')) {
+    return largestSpine(map) ?? arenaRoomOf(map);
+  }
+  if (h.includes('ceiling')) {
+    return roomsOf(map, ['spine']).find(r => !r.outdoor) ?? arenaRoomOf(map);
+  }
+  return arenaRoomOf(map);
+}
+
+function wallFromForHint(map: GameMap, hint: string, room: Room): { x: number; z: number; farthest: boolean } {
+  const h = hint.toLowerCase();
+  if (h.includes('arena') || h.includes('back')) return { ...anteRef(map), farthest: true };
+  if (h.includes('pit') || h.includes('sky')) {
+    const arena = arenaRoomOf(map);
+    return arena ? { x: arena.cx, z: arena.cz, farthest: true } : { ...startRef(map), farthest: true };
+  }
+  if (h.includes('entry') || h.includes('door') || h.includes('frame') || h.includes('elevator')) {
+    return { ...startRef(map), farthest: false };
+  }
+  void room;
+  return { ...startRef(map), farthest: true };
+}
+
+function heroQuadSize(hint: string, outdoor: boolean): { w: number; h: number; y: number } {
+  const orient = heroOrient(hint);
+  if (orient === 'floor') return { w: CELL * 3.2, h: CELL * 3.2, y: 0.05 };
+  if (orient === 'ceiling') return { w: CELL * 1.8, h: CELL * 1.8, y: CEIL_H - 0.05 };
+  const sky = hint.toLowerCase().includes('sky') || hint.toLowerCase().includes('roof');
+  const h = outdoor || sky ? 3.6 : 3.05;
+  const y = outdoor ? 2.35 : 2.05;
+  return { w: CELL * 2.6, h, y };
+}
+
+function placeHeroOnWall(
+  map: GameMap,
+  room: Room,
+  hint: string,
+  usedYaws: Set<string>,
+): { x: number; y: number; z: number; yaw: number; w: number; h: number } | null {
+  const from = wallFromForHint(map, hint, room);
+  const keyBase = `${room.id}`;
+  let skip: number | undefined;
+  const used = [...usedYaws].filter(k => k.startsWith(keyBase + ':')).map(k => Number(k.split(':')[1]));
+  if (used.length) skip = used[0];
+  const slot = bestWallOnRoom(map, room, from.x, from.z, from.farthest, Number.isFinite(skip) ? skip : undefined)
+    ?? bestWallOnRoom(map, room, from.x, from.z, from.farthest);
   if (!slot) return null;
+  usedYaws.add(`${room.id}:${slot.yaw}`);
   let chosenCount = 1;
   for (const [dx, dz, yaw] of DIRS) {
     const faces = facesOnSide(map, room, dx, dz, yaw);
@@ -432,35 +452,70 @@ export function planHeroPlacement(
       break;
     }
   }
-  const size = heroSize(!!room.outdoor, chosenCount);
-  return {
-    kind: 'hero',
-    decalId: hero.id,
-    x: slot.x,
-    y: size.y,
-    z: slot.z,
-    yaw: slot.yaw,
-    w: size.w,
-    h: size.h,
-  };
+  const size = heroQuadSize(hint, !!room.outdoor);
+  const run = Math.max(1, chosenCount) * CELL;
+  const w = Math.min(size.w, Math.max(CELL * 0.95, run * 0.72));
+  return { x: slot.x, y: size.y, z: slot.z, yaw: slot.yaw, w, h: size.h };
+}
+
+export function planHeroPlacements(
+  map: GameMap,
+  artId: CampaignArtId,
+  heroes: CampaignHeroDecal[],
+): ExtraPlacement[] {
+  const mine = heroes.filter(h => h.map === artId);
+  const out: ExtraPlacement[] = [];
+  const usedYaws = new Set<string>();
+  const floorUsed = new Set<number>();
+  for (const hero of mine) {
+    const room = roomForHint(map, hero.hint);
+    if (!room) continue;
+    const orient = heroOrient(hero.hint);
+    if (orient === 'floor' || orient === 'ceiling') {
+      const size = heroQuadSize(hero.hint, !!room.outdoor);
+      let x = room.cx;
+      let z = room.cz;
+      if (floorUsed.has(room.id)) {
+        x += CELL * 1.4;
+        z += CELL * 0.8;
+      }
+      floorUsed.add(room.id);
+      out.push({
+        kind: 'hero',
+        decalId: hero.id,
+        tex: hero.tex,
+        orient,
+        x, y: size.y, z, yaw: 0,
+        w: size.w, h: size.h,
+      });
+      continue;
+    }
+    const slot = placeHeroOnWall(map, room, hero.hint, usedYaws);
+    if (!slot) continue;
+    out.push({
+      kind: 'hero',
+      decalId: hero.id,
+      tex: hero.tex,
+      orient: 'wall',
+      x: slot.x, y: slot.y, z: slot.z, yaw: slot.yaw,
+      w: slot.w, h: slot.h,
+    });
+  }
+  return out;
+}
+
+/** @deprecated use planHeroPlacements — kept for a single-quad fallback. */
+export function planHeroPlacement(
+  map: GameMap,
+  artId: CampaignArtId,
+  heroes: CampaignHeroDecal[],
+): ExtraPlacement | null {
+  return planHeroPlacements(map, artId, heroes)[0] ?? null;
 }
 
 function decalTex(lib: CampaignTextureLib, id: string | undefined): THREE.Texture | undefined {
   if (!id) return undefined;
-  const exact = lib.extraDecals.find(d => d.id === id);
-  if (exact) return exact.tex;
-  const fuzzy = lib.extraDecals.find(d => d.id.includes(id) || id.includes(d.id));
-  if (fuzzy) return fuzzy.tex;
-  const tail = id.split('-').pop()!;
-  return lib.extraDecals.find(d => d.id.includes(tail))?.tex;
-}
-
-function heroTex(lib: CampaignTextureLib, artId: CampaignArtId, id: string | undefined): THREE.Texture | undefined {
-  if (!id) return undefined;
-  const heroes = resolveHeroDecals(artId, lib);
-  const hit = heroes.find(h => h.id === id);
-  if (hit) return hit.tex;
-  return decalTex(lib, id);
+  return lib.extraDecals.find(d => d.id === id)?.tex;
 }
 
 export function applyCampaignDecor(
@@ -471,12 +526,10 @@ export function applyCampaignDecor(
   disposables: THREE.BufferGeometry[],
 ): number {
   const extras = planCampaignExtras(map, artId);
-  const hero = planHeroPlacement(map, artId, resolveHeroDecals(artId, lib));
-  const all = hero ? extras.concat(hero) : extras;
+  const heroes = planHeroPlacements(map, artId, getCampaignHeroDecals());
+  const all = extras.concat(heroes);
   for (const e of all) {
-    const tex = e.kind === 'hero'
-      ? heroTex(lib, artId, e.decalId)
-      : decalTex(lib, e.decalId);
+    const tex = e.tex ?? decalTex(lib, e.decalId);
     if (tex && e.kind === 'hero') {
       tex.wrapS = THREE.ClampToEdgeWrapping;
       tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -508,8 +561,11 @@ export function applyCampaignDecor(
       blending: e.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
     const mesh = new THREE.Mesh(geo, mat);
-    if (e.kind === 'floor') {
+    if (e.kind === 'floor' || e.orient === 'floor') {
       mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(e.x, e.y, e.z);
+    } else if (e.orient === 'ceiling') {
+      mesh.rotation.x = Math.PI / 2;
       mesh.position.set(e.x, e.y, e.z);
     } else if (e.kind === 'chain') {
       mesh.position.set(e.x, e.y, e.z);

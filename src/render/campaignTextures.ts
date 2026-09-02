@@ -1752,8 +1752,6 @@ export interface CampaignTextureLib {
   door: THREE.Texture;
   sky?: THREE.Texture;
   extraDecals: { id: string; tex: THREE.Texture }[];
-  /** Optional 256–512 ClampToEdge paintings. Missing → use getCampaignHeroDecals(). */
-  heroDecals?: CampaignHeroDecal[];
 }
 
 // Cheap identity strings the unit test can read without a canvas.
@@ -1892,10 +1890,6 @@ function toHero(c: HTMLCanvasElement): THREE.Texture {
   t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
-}
-
-export function toHeroTexture(c: HTMLCanvasElement): THREE.Texture {
-  return toHero(c);
 }
 
 // Ring of inward-pointing teeth around a maw.
@@ -3112,15 +3106,1496 @@ function heroNaveRose(): HTMLCanvasElement {
   return c;
 }
 
+// ---------------------------------------------------------------- 16. slag titan
+
+function heroSlagTitan(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('foundry-slag-titan');
+  ironPlateField(g, S, rng, '#151110', '#332a22', 128);
+  // the far wall is lit from below by the pour floor
+  const up = g.createLinearGradient(0, S, 0, 120);
+  up.addColorStop(0, 'rgba(255,120,26,0.34)');
+  up.addColorStop(1, 'rgba(60,20,4,0)');
+  g.fillStyle = up;
+  g.fillRect(0, 0, S, S);
+
+  // Cast-iron body, poured in one piece: shoulders wider than the frame, so the
+  // titan reads as too big for the room it is standing in.
+  const body = (fill: string | CanvasGradient, inset: number): void => {
+    g.fillStyle = fill;
+    g.beginPath();
+    g.moveTo(24 + inset, 500);
+    g.lineTo(48 + inset, 250);          // left flank
+    g.lineTo(16 + inset, 186);          // left shoulder pauldron
+    g.lineTo(96 + inset, 150);
+    g.lineTo(174 + inset, 118);         // trapezius
+    g.lineTo(196 + inset, 60);          // jaw line
+    g.lineTo(316 - inset, 60);
+    g.lineTo(338 - inset, 118);
+    g.lineTo(416 - inset, 150);
+    g.lineTo(496 - inset, 186);
+    g.lineTo(464 - inset, 250);
+    g.lineTo(488 - inset, 500);
+    g.closePath();
+    g.fill();
+  };
+  body('#0d0a08', 0);
+  const skin = g.createLinearGradient(0, 60, 0, 500);
+  skin.addColorStop(0, '#5b4c39');
+  skin.addColorStop(0.42, '#3a3026');
+  skin.addColorStop(1, '#221a14');
+  body(skin, 8);
+
+  // hammered facets across the chest — big flat planes catching the floor light
+  for (let i = 0; i < 26; i++) {
+    const x = 40 + rng() * 432, y = 150 + rng() * 300;
+    const w = 30 + rng() * 90, h = 22 + rng() * 60;
+    g.fillStyle = rng() < 0.5 ? 'rgba(255,222,178,0.05)' : 'rgba(0,0,0,0.24)';
+    g.beginPath();
+    g.moveTo(x, y); g.lineTo(x + w, y - 10 + rng() * 20); g.lineTo(x + w * 0.8, y + h); g.lineTo(x - 8, y + h * 0.9);
+    g.closePath(); g.fill();
+  }
+
+  // brow slab and sunken furnace eyes
+  g.fillStyle = '#1a1410';
+  g.fillRect(196, 60, 120, 30);
+  g.fillStyle = '#463a2c';
+  g.fillRect(190, 84, 132, 14);
+  for (const ex of [226, 288] as const) {
+    const eye = g.createRadialGradient(ex, 108, 2, ex, 108, 26);
+    eye.addColorStop(0, '#fff3cd');
+    eye.addColorStop(0.3, '#ffab34');
+    eye.addColorStop(0.7, '#c33c04');
+    eye.addColorStop(1, 'rgba(90,20,0,0)');
+    g.fillStyle = eye;
+    g.beginPath(); g.arc(ex, 108, 26, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#120c08';
+    g.fillRect(ex - 16, 96, 32, 5);
+  }
+  // clenched mouth grate
+  g.fillStyle = '#0b0806';
+  g.fillRect(214, 126, 84, 20);
+  g.fillStyle = '#ff8c1e';
+  for (let x = 218; x < 296; x += 10) g.fillRect(x, 128, 4, 16);
+
+  // arms folded across the belly — two heavy poured bars
+  for (const [ax, ay, rot] of [[128, 322, 0.22], [384, 322, -0.22]] as const) {
+    g.save();
+    g.translate(ax, ay); g.rotate(rot);
+    g.fillStyle = '#2c241b';
+    g.fillRect(-52, -34, 190, 68);
+    g.strokeStyle = '#5f4f3a';
+    g.lineWidth = 5;
+    g.strokeRect(-52, -34, 190, 68);
+    g.fillStyle = 'rgba(255,226,180,0.07)';
+    g.fillRect(-52, -34, 190, 8);
+    for (let k = -40; k < 130; k += 26) rivet(g, k, 22, 5, '#8c7350', '#100c08');
+    g.restore();
+  }
+
+  // heat cracks: molten seams branching through the iron, brightest at the base
+  const crack = (x: number, y: number, a: number, len: number, w: number, depth: number): void => {
+    if (depth <= 0 || len < 6) return;
+    const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+    const glow = 0.25 + (y / S) * 0.6;
+    g.strokeStyle = `rgba(255,${120 + rng() * 90 | 0},32,${glow})`;
+    g.lineWidth = w;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    g.strokeStyle = `rgba(255,242,196,${glow * 0.5})`;
+    g.lineWidth = Math.max(1, w * 0.35);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    crack(x2, y2, a + (rng() - 0.5) * 0.9, len * 0.78, w * 0.7, depth - 1);
+    if (rng() < 0.55) crack(x2, y2, a + (rng() - 0.5) * 2.2, len * 0.55, w * 0.6, depth - 1);
+  };
+  for (let i = 0; i < 14; i++) crack(60 + rng() * 400, 460 + rng() * 40, -Math.PI / 2 + (rng() - 0.5) * 1.3, 40 + rng() * 34, 6, 5);
+  for (let i = 0; i < 7; i++) crack(120 + rng() * 280, 180 + rng() * 140, rng() * Math.PI * 2, 26 + rng() * 22, 4, 4);
+
+  // slag crusting up the legs
+  for (let i = 0; i < 40; i++) {
+    const x = 30 + rng() * 452, y = 400 + rng() * 110;
+    g.fillStyle = `rgba(${60 + rng() * 50 | 0},${40 + rng() * 30 | 0},28,0.7)`;
+    g.beginPath(); g.ellipse(x, y, 8 + rng() * 22, 4 + rng() * 10, rng(), 0, Math.PI * 2); g.fill();
+  }
+  chevronBand(g, S, 486, 26, 48, '#c8901f', '#191310');
+  speckle(g, S, rng, 110, 'rgba(16,10,6,0.4)', 2, 8);
+  noise(g, S, rng, 2800, 0.07);
+  return c;
+}
+
+// ---------------------------------------------------------------- 17. hazard gate
+
+function heroHazardGate(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('foundry-hazard-gate');
+  // scorched frame plate
+  g.fillStyle = '#241d17';
+  g.fillRect(0, 0, S, S);
+  g.fillStyle = '#332a20';
+  g.fillRect(6, 6, S - 12, S - 12);
+  noise(g, S, rng, 900, 0.09);
+
+  // Chevron arch: wedges marched around the doorway opening, alternating
+  // hazard yellow and slag black, so the mouth reads as "do not walk in".
+  const cx = 128, top = 104;
+  const chevAt = (px: number, py: number, a: number, k: number): void => {
+    g.save();
+    g.translate(px, py); g.rotate(a);
+    g.fillStyle = k % 2 ? '#c8901f' : '#171009';
+    g.beginPath();
+    g.moveTo(-17, -26); g.lineTo(0, -26); g.lineTo(17, 0); g.lineTo(0, 26); g.lineTo(-17, 26); g.lineTo(0, 0);
+    g.closePath(); g.fill();
+    g.restore();
+  };
+  let k = 0;
+  for (let i = 0; i <= 22; i++, k++) {
+    const a = Math.PI + (Math.PI * i) / 22;
+    chevAt(cx + Math.cos(a) * 84, top + Math.sin(a) * 84, a + Math.PI / 2, k);
+  }
+  for (let y = top; y < 244; y += 30, k++) {
+    chevAt(cx - 84, y, 0, k);
+    chevAt(cx + 84, y, Math.PI, k + 1);
+  }
+
+  // the dark mouth itself
+  g.fillStyle = '#050403';
+  g.beginPath();
+  g.moveTo(cx - 62, 248); g.lineTo(cx - 62, top);
+  g.arc(cx, top, 62, Math.PI, 0);
+  g.lineTo(cx + 62, 248);
+  g.closePath(); g.fill();
+  // a faint ember throat far inside
+  const throat = g.createRadialGradient(cx, 168, 4, cx, 168, 74);
+  throat.addColorStop(0, 'rgba(196,70,10,0.5)');
+  throat.addColorStop(0.5, 'rgba(120,34,4,0.16)');
+  throat.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = throat;
+  g.beginPath();
+  g.moveTo(cx - 62, 248); g.lineTo(cx - 62, top);
+  g.arc(cx, top, 62, Math.PI, 0);
+  g.lineTo(cx + 62, 248);
+  g.closePath(); g.fill();
+  // inner jamb bevel
+  g.strokeStyle = '#6d5b44';
+  g.lineWidth = 5;
+  g.beginPath();
+  g.moveTo(cx - 62, 248); g.lineTo(cx - 62, top);
+  g.arc(cx, top, 62, Math.PI, 0);
+  g.lineTo(cx + 62, 248);
+  g.stroke();
+
+  // keystone lamp above the arch
+  g.fillStyle = '#1a1410';
+  g.fillRect(cx - 26, 14, 52, 26);
+  const lamp = g.createRadialGradient(cx, 27, 2, cx, 27, 30);
+  lamp.addColorStop(0, '#ffe9a6');
+  lamp.addColorStop(0.35, 'rgba(255,150,32,0.7)');
+  lamp.addColorStop(1, 'rgba(255,120,20,0)');
+  g.fillStyle = lamp;
+  g.fillRect(cx - 34, 2, 68, 56);
+  for (const bx of [cx - 34, cx + 34] as const) rivet(g, bx, 27, 5, '#9a8058', '#0f0b08');
+
+  // scuffed threshold stripes and bolt rows down the jambs
+  chevronBand(g, S, 244, 12, 32, '#c8901f', '#171009');
+  for (let y = 116; y < 240; y += 34) {
+    rivet(g, 16, y, 5, '#8c7350', '#100c08');
+    rivet(g, S - 16, y, 5, '#8c7350', '#100c08');
+  }
+  speckle(g, S, rng, 60, 'rgba(14,10,7,0.5)', 1, 5);
+  return c;
+}
+
+// ---------------------------------------------------------------- 18. tooth gate
+
+function heroToothGate(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('gullet-tooth-gate');
+  // wet mucosa wall
+  const flesh = g.createRadialGradient(256, 256, 40, 256, 256, 380);
+  flesh.addColorStop(0, '#7d2c30');
+  flesh.addColorStop(0.45, '#63232a');
+  flesh.addColorStop(1, '#33121a');
+  g.fillStyle = flesh;
+  g.fillRect(0, 0, S, S);
+  // capillary veins fanning toward the gap
+  for (let i = 0; i < 90; i++) {
+    const y = rng() * S;
+    const fromLeft = rng() < 0.5;
+    let x = fromLeft ? 0 : S, yy = y;
+    g.strokeStyle = `rgba(${140 + rng() * 60 | 0},${34 + rng() * 30 | 0},${44 + rng() * 26 | 0},${0.16 + rng() * 0.3})`;
+    g.lineWidth = 1 + rng() * 3.5;
+    g.beginPath(); g.moveTo(x, yy);
+    for (let s = 0; s < 8; s++) {
+      x += (fromLeft ? 1 : -1) * (14 + rng() * 22);
+      yy += (rng() - 0.5) * 26;
+      g.lineTo(x, yy);
+    }
+    g.stroke();
+  }
+  // peristalsis folds running horizontally into the throat
+  for (let i = 0; i < 16; i++) {
+    const y = 14 + i * 32 + rng() * 8;
+    g.strokeStyle = `rgba(28,8,12,${0.2 + rng() * 0.2})`;
+    g.lineWidth = 6 + rng() * 8;
+    g.beginPath();
+    g.moveTo(0, y);
+    g.quadraticCurveTo(256, y + (rng() - 0.5) * 40, S, y + (rng() - 0.5) * 20);
+    g.stroke();
+  }
+
+  // the gap: a vertical slit throat, black and deep
+  const gapTop = 24, gapBot = 488, half = 62;
+  g.fillStyle = '#060305';
+  g.beginPath();
+  g.moveTo(256 - half, gapTop);
+  g.quadraticCurveTo(256 - half - 22, 256, 256 - half, gapBot);
+  g.lineTo(256 + half, gapBot);
+  g.quadraticCurveTo(256 + half + 22, 256, 256 + half, gapTop);
+  g.closePath(); g.fill();
+  const deep = g.createLinearGradient(256 - half, 0, 256 + half, 0);
+  deep.addColorStop(0, 'rgba(120,30,40,0.5)');
+  deep.addColorStop(0.5, 'rgba(0,0,0,0)');
+  deep.addColorStop(1, 'rgba(120,30,40,0.5)');
+  g.fillStyle = deep;
+  g.fillRect(256 - half - 24, gapTop, (half + 24) * 2, gapBot - gapTop);
+
+  // gum ridges either side, then the tooth ridge biting inward
+  for (const side of [-1, 1] as const) {
+    g.fillStyle = '#8e3a3c';
+    g.beginPath();
+    g.moveTo(256 + side * (half + 6), gapTop);
+    g.quadraticCurveTo(256 + side * (half + 34), 256, 256 + side * (half + 6), gapBot);
+    g.lineTo(256 + side * (half + 52), gapBot);
+    g.quadraticCurveTo(256 + side * (half + 80), 256, 256 + side * (half + 52), gapTop);
+    g.closePath(); g.fill();
+    g.fillStyle = 'rgba(212,132,132,0.22)';
+    g.fillRect(256 + side * (half + 10) - (side < 0 ? 10 : 0), gapTop, 10, gapBot - gapTop);
+    // teeth: alternating long fangs and short molars, angled toward the gap
+    for (let i = 0; i < 21; i++) {
+      const y = gapTop + 10 + i * 22.5;
+      const long = i % 3 === 0;
+      const len = (long ? 62 : 34) + rng() * 12;
+      const base = 256 + side * (half + 10);
+      const w = long ? 15 : 11;
+      const tip = base - side * len;
+      const grd = g.createLinearGradient(base, y, tip, y);
+      grd.addColorStop(0, '#b6a98c');
+      grd.addColorStop(0.5, '#e9e2c8');
+      grd.addColorStop(1, '#fffaea');
+      g.fillStyle = grd;
+      g.beginPath();
+      g.moveTo(base, y - w);
+      g.lineTo(base, y + w);
+      g.lineTo(tip, y + (rng() - 0.5) * 8);
+      g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(60,24,26,0.45)';
+      g.lineWidth = 2;
+      g.stroke();
+      // gum line stain at the root
+      g.fillStyle = 'rgba(92,26,32,0.55)';
+      g.fillRect(base - (side > 0 ? 0 : 8), y - w, 8, w * 2);
+    }
+  }
+
+  // drool strands bridging the gap
+  for (let i = 0; i < 12; i++) {
+    const y = 40 + rng() * 420;
+    g.strokeStyle = `rgba(214,226,196,${0.2 + rng() * 0.35})`;
+    g.lineWidth = 1 + rng() * 3;
+    g.beginPath();
+    g.moveTo(256 - half + 4, y);
+    g.quadraticCurveTo(256, y + 20 + rng() * 40, 256 + half - 4, y + (rng() - 0.5) * 30);
+    g.stroke();
+  }
+  // wet specular blooms on the mucosa
+  for (let i = 0; i < 46; i++) {
+    const x = rng() * S, y = rng() * S;
+    if (Math.abs(x - 256) < 150) continue;
+    const sh = g.createRadialGradient(x, y, 1, x, y, 8 + rng() * 22);
+    sh.addColorStop(0, 'rgba(255,214,206,0.4)');
+    sh.addColorStop(1, 'rgba(255,180,170,0)');
+    g.fillStyle = sh;
+    g.beginPath(); g.arc(x, y, 8 + rng() * 22, 0, Math.PI * 2); g.fill();
+  }
+  speckle(g, S, rng, 120, 'rgba(40,10,16,0.3)', 1, 5);
+  noise(g, S, rng, 2200, 0.05);
+  return c;
+}
+
+// ---------------------------------------------------------------- 19. bile pool
+
+function heroBilePool(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('gullet-bile-pool');
+  // Clamped, not tiled: the pool fades to nothing before the edge so it can sit
+  // anywhere on a floor without showing a rectangle.
+  const pool = g.createRadialGradient(126, 132, 8, 128, 132, 122);
+  pool.addColorStop(0, 'rgba(214,220,96,0.92)');
+  pool.addColorStop(0.32, 'rgba(158,164,44,0.86)');
+  pool.addColorStop(0.62, 'rgba(96,102,24,0.68)');
+  pool.addColorStop(0.86, 'rgba(48,52,16,0.34)');
+  pool.addColorStop(1, 'rgba(30,34,10,0)');
+  g.save();
+  g.translate(128, 132); g.scale(1, 0.78); g.translate(-128, -132);
+  g.fillStyle = pool;
+  g.beginPath(); g.arc(128, 132, 122, 0, Math.PI * 2); g.fill();
+  g.restore();
+
+  // ragged spill lobes reaching off the main oval
+  for (let i = 0; i < 14; i++) {
+    const a = rng() * Math.PI * 2;
+    const d = 74 + rng() * 34;
+    const x = 128 + Math.cos(a) * d, y = 132 + Math.sin(a) * d * 0.78;
+    g.fillStyle = `rgba(${120 + rng() * 70 | 0},${128 + rng() * 60 | 0},${28 + rng() * 26 | 0},${0.3 + rng() * 0.4})`;
+    g.beginPath(); g.ellipse(x, y, 10 + rng() * 26, 6 + rng() * 14, a, 0, Math.PI * 2); g.fill();
+  }
+  // thicker skin at the rim
+  g.strokeStyle = 'rgba(66,72,18,0.5)';
+  g.lineWidth = 6;
+  g.save();
+  g.translate(128, 132); g.scale(1, 0.78); g.translate(-128, -132);
+  g.beginPath(); g.arc(128, 132, 104, 0, Math.PI * 2); g.stroke();
+  g.restore();
+
+  // bubbles: domes with a rim, a shadow and a specular pip
+  for (let i = 0; i < 40; i++) {
+    const a = rng() * Math.PI * 2, d = rng() * 96;
+    const x = 128 + Math.cos(a) * d, y = 132 + Math.sin(a) * d * 0.78;
+    const r = 3 + rng() * 15;
+    g.fillStyle = 'rgba(36,40,10,0.4)';
+    g.beginPath(); g.ellipse(x + 1.5, y + 2, r, r * 0.8, 0, 0, Math.PI * 2); g.fill();
+    const dome = g.createRadialGradient(x - r * 0.3, y - r * 0.4, 1, x, y, r);
+    dome.addColorStop(0, 'rgba(238,242,178,0.85)');
+    dome.addColorStop(0.6, 'rgba(176,184,58,0.5)');
+    dome.addColorStop(1, 'rgba(120,128,30,0.22)');
+    g.fillStyle = dome;
+    g.beginPath(); g.ellipse(x, y, r, r * 0.82, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(226,232,150,0.45)';
+    g.lineWidth = 1.2;
+    g.stroke();
+    g.fillStyle = 'rgba(255,255,224,0.7)';
+    g.beginPath(); g.arc(x - r * 0.32, y - r * 0.38, Math.max(0.8, r * 0.18), 0, Math.PI * 2); g.fill();
+  }
+  // froth ring where the bile has been churning
+  for (let i = 0; i < 70; i++) {
+    const a = rng() * Math.PI * 2, d = 52 + rng() * 44;
+    g.fillStyle = `rgba(232,238,182,${0.12 + rng() * 0.3})`;
+    g.beginPath(); g.arc(128 + Math.cos(a) * d, 132 + Math.sin(a) * d * 0.78, 0.8 + rng() * 2.4, 0, Math.PI * 2); g.fill();
+  }
+  // sheen streak, as if the pool is catching a light overhead
+  const sheen = g.createLinearGradient(70, 80, 190, 176);
+  sheen.addColorStop(0, 'rgba(255,255,214,0)');
+  sheen.addColorStop(0.5, 'rgba(255,255,214,0.22)');
+  sheen.addColorStop(1, 'rgba(255,255,214,0)');
+  g.fillStyle = sheen;
+  g.save();
+  g.translate(128, 132); g.scale(1, 0.78); g.translate(-128, -132);
+  g.beginPath(); g.arc(128, 132, 112, 0, Math.PI * 2); g.fill();
+  g.restore();
+  return c;
+}
+
+// ---------------------------------------------------------------- 20. candle crypt
+
+function heroCandleCrypt(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('catacombs-candle-crypt');
+  // soot-blackened chapel stone
+  g.fillStyle = '#17140f';
+  g.fillRect(0, 0, S, S);
+  for (let y = 0; y < S; y += 34) {
+    for (let x = (y / 34) % 2 ? -26 : 0; x < S; x += 74) {
+      const v = 34 + rng() * 26 | 0;
+      g.fillStyle = `rgb(${v + 12},${v + 6},${v})`;
+      g.fillRect(x + 2, y + 2, 70, 30);
+      g.fillStyle = 'rgba(0,0,0,0.4)';
+      g.fillRect(x + 2, y + 29, 70, 3);
+    }
+  }
+
+  // Four deep niches, each a black box with a bone pile in it. Depth comes from
+  // a hard inner shadow plus a lit lip, not from perspective.
+  const skull = (x: number, y: number, r: number, tilt: number, lit: number): void => {
+    g.save();
+    g.translate(x, y); g.rotate(tilt);
+    const v = 120 + lit * 90;
+    g.fillStyle = `rgb(${v + 40 | 0},${v + 26 | 0},${v | 0})`;
+    g.beginPath(); g.ellipse(0, 0, r, r * 1.06, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(8,6,4,0.94)';
+    g.beginPath(); g.ellipse(-r * 0.36, -r * 0.06, r * 0.28, r * 0.35, 0.12, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(r * 0.36, -r * 0.06, r * 0.28, r * 0.35, -0.12, 0, Math.PI * 2); g.fill();
+    g.beginPath();
+    g.moveTo(0, r * 0.2); g.lineTo(-r * 0.16, r * 0.46); g.lineTo(r * 0.16, r * 0.46);
+    g.closePath(); g.fill();
+    g.fillStyle = `rgba(${v + 20 | 0},${v + 8 | 0},${v - 16 | 0},1)`;
+    g.fillRect(-r * 0.54, r * 0.56, r * 1.08, r * 0.42);
+    g.fillStyle = 'rgba(10,8,6,0.8)';
+    for (let k = -2; k <= 2; k++) g.fillRect(k * r * 0.23 - 1, r * 0.56, 2.4, r * 0.42);
+    g.restore();
+  };
+
+  for (let n = 0; n < 4; n++) {
+    const nx = 18 + n * 122, ny = 66, nw = 100, nh = 296;
+    // recess
+    g.fillStyle = '#050403';
+    g.fillRect(nx, ny, nw, nh);
+    g.beginPath(); g.arc(nx + nw / 2, ny, nw / 2, Math.PI, 0); g.fill();
+    // inner falloff so the back of the niche disappears
+    const inner = g.createLinearGradient(0, ny, 0, ny + nh);
+    inner.addColorStop(0, 'rgba(0,0,0,0.95)');
+    inner.addColorStop(0.5, 'rgba(0,0,0,0.55)');
+    inner.addColorStop(1, 'rgba(0,0,0,0.9)');
+    // skull stack, denser and darker toward the back of the box
+    for (let row = 0; row < 6; row++) {
+      const by = ny + 44 + row * 46;
+      const lit = 0.25 + row * 0.13;
+      const offs = row % 2 ? 12 : 0;
+      for (let k = 0; k < 3; k++) {
+        skull(nx + 22 + offs + k * 30, by, 15 + rng() * 3, (rng() - 0.5) * 0.5, lit * (0.7 + rng() * 0.5));
+      }
+      // femur ends wedged between the courses
+      for (let k = 0; k < 5; k++) {
+        const bx = nx + 12 + k * 20;
+        g.fillStyle = `rgba(${168 + lit * 50 | 0},${158 + lit * 44 | 0},${126 + lit * 36 | 0},1)`;
+        g.beginPath(); g.arc(bx, by + 24, 7, 0, Math.PI * 2); g.fill();
+        g.fillStyle = 'rgba(16,12,8,0.6)';
+        g.beginPath(); g.arc(bx, by + 24, 2.6, 0, Math.PI * 2); g.fill();
+      }
+    }
+    g.fillStyle = inner;
+    g.fillRect(nx, ny, nw, nh);
+    // arch surround, lit lip on the left of each niche
+    g.strokeStyle = '#6d6353';
+    g.lineWidth = 9;
+    g.beginPath();
+    g.moveTo(nx, ny + nh); g.lineTo(nx, ny);
+    g.arc(nx + nw / 2, ny, nw / 2, Math.PI, 0);
+    g.lineTo(nx + nw, ny + nh);
+    g.stroke();
+    g.strokeStyle = 'rgba(216,204,176,0.3)';
+    g.lineWidth = 3;
+    g.beginPath(); g.moveTo(nx + 5, ny + nh); g.lineTo(nx + 5, ny + 6); g.stroke();
+
+    // ledge with soot candles below the niche
+    g.fillStyle = '#4b4438';
+    g.fillRect(nx - 8, ny + nh, nw + 16, 16);
+    g.fillStyle = 'rgba(0,0,0,0.5)';
+    g.fillRect(nx - 8, ny + nh + 13, nw + 16, 4);
+    const soot = g.createLinearGradient(0, ny + nh, 0, ny - 40);
+    soot.addColorStop(0, 'rgba(8,7,6,0.8)');
+    soot.addColorStop(1, 'rgba(8,7,6,0)');
+    g.fillStyle = soot;
+    g.fillRect(nx - 4, 0, nw + 8, ny + nh);
+    for (let k = 0; k < 4; k++) {
+      const cx2 = nx + 6 + k * 26;
+      const ch = 20 + rng() * 34;
+      g.fillStyle = '#ded2a8';
+      g.fillRect(cx2, ny + nh - ch, 11, ch);
+      // wax runs down the ledge
+      g.fillStyle = 'rgba(228,216,178,0.75)';
+      for (let d = 0; d < 3; d++) g.fillRect(cx2 + 1 + d * 4, ny + nh, 3, 4 + rng() * 14);
+      const fl = g.createRadialGradient(cx2 + 5, ny + nh - ch - 6, 1, cx2 + 5, ny + nh - ch - 6, 26);
+      fl.addColorStop(0, 'rgba(255,236,178,0.95)');
+      fl.addColorStop(0.28, 'rgba(255,178,66,0.45)');
+      fl.addColorStop(1, 'rgba(255,140,30,0)');
+      g.fillStyle = fl;
+      g.fillRect(cx2 - 22, ny + nh - ch - 34, 56, 56);
+      g.fillStyle = '#fff2c6';
+      g.beginPath(); g.ellipse(cx2 + 5, ny + nh - ch - 7, 3, 6, 0, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  // burial glyphs cut into the band under the ledges
+  g.fillStyle = 'rgba(206,196,166,0.5)';
+  for (let x = 14; x < S - 10; x += 26) {
+    g.fillRect(x, 404, 5, 12 + (x % 4) * 6);
+    if (x % 78 === 14) { g.fillRect(x - 7, 430, 20, 5); g.fillRect(x + 1, 430, 5, 14); }
+  }
+  // ash drift along the floor line
+  g.fillStyle = 'rgba(190,182,158,0.14)';
+  g.fillRect(0, 470, S, 42);
+  speckle(g, S, rng, 220, 'rgba(214,204,174,0.14)', 1, 4);
+  speckle(g, S, rng, 90, 'rgba(6,5,4,0.5)', 2, 8);
+  noise(g, S, rng, 3000, 0.08);
+  return c;
+}
+
+// ---------------------------------------------------------------- 21. femur wheel
+
+function heroFemurWheel(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('catacombs-femur-wheel');
+  // ceiling rose: dark recess the wheel is pinned into
+  const back = g.createRadialGradient(128, 128, 10, 128, 128, 126);
+  back.addColorStop(0, '#241f18');
+  back.addColorStop(0.7, '#120f0b');
+  back.addColorStop(1, 'rgba(8,6,5,0)');
+  g.fillStyle = back;
+  g.beginPath(); g.arc(128, 128, 126, 0, Math.PI * 2); g.fill();
+
+  // sixteen femurs radiating out, knuckle ends outward
+  const femur = (a: number, r0: number, r1: number, w: number, tone: number): void => {
+    g.save();
+    g.translate(128, 128); g.rotate(a);
+    const shaft = g.createLinearGradient(0, -w, 0, w);
+    shaft.addColorStop(0, `rgb(${210 + tone | 0},${200 + tone | 0},${168 + tone | 0})`);
+    shaft.addColorStop(0.5, `rgb(${180 + tone | 0},${170 + tone | 0},${138 + tone | 0})`);
+    shaft.addColorStop(1, `rgb(${120 + tone | 0},${112 + tone | 0},${88 + tone | 0})`);
+    g.fillStyle = shaft;
+    g.beginPath();
+    g.moveTo(r0, -w * 0.62); g.lineTo(r1, -w);
+    g.lineTo(r1, w); g.lineTo(r0, w * 0.62);
+    g.closePath(); g.fill();
+    // condyle knuckles at each end
+    for (const [rr, k] of [[r0, 0.72], [r1, 1.05]] as const) {
+      g.fillStyle = `rgb(${216 + tone | 0},${206 + tone | 0},${172 + tone | 0})`;
+      g.beginPath(); g.arc(rr, -w * k * 0.6, w * k * 0.7, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(rr, w * k * 0.6, w * k * 0.7, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(40,32,22,0.35)';
+      g.beginPath(); g.arc(rr, 0, w * k * 0.3, 0, Math.PI * 2); g.fill();
+    }
+    g.strokeStyle = 'rgba(36,28,20,0.4)';
+    g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(r0 + 6, 0); g.lineTo(r1 - 6, 0); g.stroke();
+    g.restore();
+  };
+  for (let i = 0; i < 16; i++) femur((Math.PI * 2 * i) / 16, 34, 112, 9 + rng() * 2, rng() * 24 - 12);
+  // shorter ribs filling the gaps between spokes
+  for (let i = 0; i < 16; i++) {
+    const a = (Math.PI * 2 * (i + 0.5)) / 16;
+    g.save();
+    g.translate(128, 128); g.rotate(a);
+    g.strokeStyle = 'rgba(198,188,156,0.75)';
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(44, 0);
+    g.quadraticCurveTo(78, -16, 104, -4);
+    g.stroke();
+    g.beginPath();
+    g.moveTo(44, 0);
+    g.quadraticCurveTo(78, 16, 104, 4);
+    g.stroke();
+    g.restore();
+  }
+  // vertebra ring binding the spoke ends
+  for (let i = 0; i < 24; i++) {
+    const a = (Math.PI * 2 * i) / 24;
+    const x = 128 + Math.cos(a) * 116, y = 128 + Math.sin(a) * 116;
+    g.fillStyle = '#c9bd9a';
+    g.beginPath(); g.arc(x, y, 8, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(30,24,16,0.6)';
+    g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(214,204,172,0.6)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(x, y); g.lineTo(128 + Math.cos(a) * 126, 128 + Math.sin(a) * 126);
+    g.stroke();
+  }
+  // hub: a single skull staring straight down
+  g.fillStyle = '#0a0806';
+  g.beginPath(); g.arc(128, 128, 38, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#ddd2ac';
+  g.beginPath(); g.ellipse(128, 124, 30, 32, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(10,8,6,0.95)';
+  g.beginPath(); g.ellipse(117, 120, 8.5, 11, 0.12, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(139, 120, 8.5, 11, -0.12, 0, Math.PI * 2); g.fill();
+  g.beginPath();
+  g.moveTo(128, 130); g.lineTo(123, 143); g.lineTo(133, 143);
+  g.closePath(); g.fill();
+  g.fillStyle = '#c9bd9a';
+  g.fillRect(112, 148, 32, 13);
+  g.fillStyle = 'rgba(10,8,6,0.85)';
+  for (let k = 0; k < 5; k++) g.fillRect(114 + k * 7, 148, 2.4, 13);
+  g.strokeStyle = 'rgba(190,178,146,0.7)';
+  g.lineWidth = 3;
+  g.beginPath(); g.arc(128, 128, 40, 0, Math.PI * 2); g.stroke();
+  speckle(g, S, rng, 90, 'rgba(24,18,12,0.35)', 1, 4);
+  noise(g, S, rng, 900, 0.07);
+  return c;
+}
+
+// ---------------------------------------------------------------- 22. rust sun
+
+function heroRustSun(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('pit-rust-sun');
+  // sick ochre haze, thickest at the horizon
+  const sky = g.createLinearGradient(0, 0, 0, S);
+  sky.addColorStop(0, '#4a3a1e');
+  sky.addColorStop(0.42, '#7d6026');
+  sky.addColorStop(0.72, '#b08a35');
+  sky.addColorStop(1, '#6b5220');
+  g.fillStyle = sky;
+  g.fillRect(0, 0, S, S);
+  // dust banding
+  for (let i = 0; i < 30; i++) {
+    const y = rng() * S;
+    g.fillStyle = `rgba(${180 + rng() * 50 | 0},${150 + rng() * 40 | 0},${80 + rng() * 40 | 0},${0.04 + rng() * 0.09})`;
+    g.fillRect(0, y, S, 6 + rng() * 40);
+  }
+
+  // the disc: corona, then a flat rust plate of a sun
+  const corona = g.createRadialGradient(252, 240, 60, 252, 240, 250);
+  corona.addColorStop(0, 'rgba(255,196,86,0.5)');
+  corona.addColorStop(0.35, 'rgba(214,136,40,0.26)');
+  corona.addColorStop(1, 'rgba(120,70,20,0)');
+  g.fillStyle = corona;
+  g.fillRect(0, 0, S, S);
+  const disc = g.createRadialGradient(238, 226, 20, 252, 240, 152);
+  disc.addColorStop(0, '#ffe6a4');
+  disc.addColorStop(0.28, '#e8a03a');
+  disc.addColorStop(0.62, '#a85c1c');
+  disc.addColorStop(0.88, '#6d3410');
+  disc.addColorStop(1, '#4a2409');
+  g.fillStyle = disc;
+  g.beginPath(); g.arc(252, 240, 152, 0, Math.PI * 2); g.fill();
+  // concentric rust rings, like a corroded plate rather than a star
+  g.save();
+  g.beginPath(); g.arc(252, 240, 152, 0, Math.PI * 2); g.clip();
+  for (let r = 18; r < 160; r += 9 + rng() * 8) {
+    g.strokeStyle = `rgba(${90 + rng() * 70 | 0},${44 + rng() * 40 | 0},14,${0.1 + rng() * 0.3})`;
+    g.lineWidth = 1 + rng() * 5;
+    g.beginPath(); g.arc(252 + (rng() - 0.5) * 8, 240 + (rng() - 0.5) * 8, r, 0, Math.PI * 2); g.stroke();
+  }
+  // corrosion blooms eating into the disc
+  for (let i = 0; i < 60; i++) {
+    const a = rng() * Math.PI * 2, d = rng() * 150;
+    g.fillStyle = `rgba(${118 + rng() * 60 | 0},${52 + rng() * 40 | 0},${14 + rng() * 20 | 0},${0.14 + rng() * 0.4})`;
+    g.beginPath();
+    g.ellipse(252 + Math.cos(a) * d, 240 + Math.sin(a) * d, 5 + rng() * 26, 4 + rng() * 18, rng() * 3, 0, Math.PI * 2);
+    g.fill();
+  }
+  // pitting
+  speckle(g, S, rng, 200, 'rgba(52,24,8,0.4)', 1, 5);
+  g.restore();
+  g.strokeStyle = 'rgba(52,26,8,0.6)';
+  g.lineWidth = 7;
+  g.beginPath(); g.arc(252, 240, 152, 0, Math.PI * 2); g.stroke();
+
+  // gantry bars in silhouette across the disc
+  g.fillStyle = '#1b1610';
+  for (const bx of [46, 168, 300, 434] as const) {
+    g.fillRect(bx, 0, 26, S);
+    g.fillStyle = 'rgba(120,92,44,0.22)';
+    g.fillRect(bx, 0, 5, S);
+    g.fillStyle = '#1b1610';
+  }
+  for (const by of [92, 300] as const) {
+    g.fillRect(0, by, S, 22);
+    g.fillStyle = 'rgba(120,92,44,0.22)';
+    g.fillRect(0, by, S, 4);
+    g.fillStyle = '#1b1610';
+  }
+  // cross-bracing between the uprights
+  g.strokeStyle = '#1b1610';
+  g.lineWidth = 9;
+  for (const [x0, x1] of [[72, 168], [194, 300], [326, 434]] as const) {
+    for (const [y0, y1] of [[114, 300], [300, 470], [0, 92]] as const) {
+      g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+      g.beginPath(); g.moveTo(x1, y0); g.lineTo(x0, y1); g.stroke();
+    }
+  }
+  // rust weeping down the bars
+  for (let i = 0; i < 44; i++) {
+    const bx = [46, 168, 300, 434][rng() * 4 | 0] + rng() * 26;
+    const y = rng() * S;
+    g.fillStyle = `rgba(${140 + rng() * 60 | 0},${64 + rng() * 40 | 0},18,${0.16 + rng() * 0.3})`;
+    g.fillRect(bx, y, 2 + rng() * 4, 20 + rng() * 90);
+  }
+  // rivet rows on the crossbeams
+  for (let x = 12; x < S; x += 30) {
+    rivet(g, x, 103, 4, '#8a6c38', '#0e0b07');
+    rivet(g, x, 311, 4, '#8a6c38', '#0e0b07');
+  }
+  // grit blowing across the whole plate
+  speckle(g, S, rng, 150, 'rgba(30,22,10,0.28)', 1, 4);
+  noise(g, S, rng, 2600, 0.07);
+  return c;
+}
+
+// ---------------------------------------------------------------- 23. hook crown
+
+function heroHookCrown(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('pit-hook-crown');
+  // Silhouette first: a crane hook hung dead centre, big enough to read as a
+  // crown when a player looks up at it.
+  const iron = (w: number, col: string): void => {
+    g.strokeStyle = col;
+    g.lineWidth = w;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    // shank
+    g.beginPath(); g.moveTo(128, 62); g.lineTo(128, 138); g.stroke();
+    // the hook body: a big open C swinging left then curling back up right
+    g.beginPath();
+    g.moveTo(128, 138);
+    g.bezierCurveTo(128, 206, 74, 226, 56, 186);
+    g.bezierCurveTo(42, 152, 76, 132, 96, 158);
+    g.stroke();
+  };
+  iron(40, '#120e09');
+  iron(30, '#6b4c22');
+  iron(20, '#8f6a30');
+  iron(9, 'rgba(212,168,96,0.55)');
+  g.lineCap = 'butt';
+  g.lineJoin = 'miter';
+
+  // hook point, sharpened
+  g.fillStyle = '#c39a4e';
+  g.beginPath();
+  g.moveTo(96, 158); g.lineTo(112, 146); g.lineTo(104, 178);
+  g.closePath(); g.fill();
+  g.strokeStyle = '#3a2a12';
+  g.lineWidth = 2;
+  g.stroke();
+  // safety latch across the throat
+  g.strokeStyle = '#4a3a1c';
+  g.lineWidth = 6;
+  g.beginPath(); g.moveTo(126, 148); g.lineTo(86, 194); g.stroke();
+
+  // sheave block and trunnion above the shank
+  g.fillStyle = '#241c12';
+  g.beginPath();
+  g.moveTo(88, 18); g.lineTo(168, 18); g.lineTo(158, 74); g.lineTo(98, 74);
+  g.closePath(); g.fill();
+  g.strokeStyle = '#8f6a30';
+  g.lineWidth = 5;
+  g.stroke();
+  g.fillStyle = '#0b0805';
+  g.beginPath(); g.arc(128, 44, 20, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#a8813c';
+  g.lineWidth = 4;
+  g.beginPath(); g.arc(128, 44, 20, 0, Math.PI * 2); g.stroke();
+  for (let i = 0; i < 10; i++) {
+    const a = (Math.PI * 2 * i) / 10;
+    g.strokeStyle = 'rgba(168,129,60,0.5)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(128 + Math.cos(a) * 6, 44 + Math.sin(a) * 6);
+    g.lineTo(128 + Math.cos(a) * 18, 44 + Math.sin(a) * 18);
+    g.stroke();
+  }
+  for (const bx of [98, 158] as const) rivet(g, bx, 30, 5, '#c0a066', '#0d0a06');
+
+  // chain climbing out of frame — the crown's points
+  let cy2 = 18;
+  for (let i = 0; i < 5; i++) {
+    g.strokeStyle = i % 2 ? '#7a5a28' : '#96703a';
+    g.lineWidth = 7;
+    g.beginPath();
+    g.ellipse(128, cy2 - 6, i % 2 ? 9 : 14, 16, i % 2 ? Math.PI / 2 : 0, 0, Math.PI * 2);
+    g.stroke();
+    cy2 -= 22;
+  }
+
+  // rust bleeding down the iron and pooling under the point
+  for (let i = 0; i < 60; i++) {
+    const x = 44 + rng() * 150, y = 30 + rng() * 190;
+    g.fillStyle = `rgba(${150 + rng() * 70 | 0},${70 + rng() * 46 | 0},${18 + rng() * 18 | 0},${0.1 + rng() * 0.34})`;
+    g.fillRect(x, y, 2 + rng() * 5, 8 + rng() * 40);
+  }
+  for (let i = 0; i < 40; i++) {
+    const a = rng() * Math.PI * 2, d = rng() * 90;
+    g.fillStyle = `rgba(${120 + rng() * 60 | 0},${56 + rng() * 34 | 0},14,${0.14 + rng() * 0.3})`;
+    g.beginPath(); g.ellipse(110 + Math.cos(a) * d, 150 + Math.sin(a) * d, 3 + rng() * 12, 2 + rng() * 8, rng() * 3, 0, Math.PI * 2); g.fill();
+  }
+  // load-rating stencil on the block
+  g.fillStyle = '#c8a340';
+  segDigit(g, 4, 176, 30, 16, 30, 4);
+  segDigit(g, 0, 196, 30, 16, 30, 4);
+  g.fillRect(176, 66, 36, 4);
+  speckle(g, S, rng, 70, 'rgba(20,14,8,0.4)', 1, 5);
+  return c;
+}
+
+// ---------------------------------------------------------------- 24. lattice totem
+
+function heroLatticeTotem(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('spire-lattice-totem');
+  // composite shaft wall
+  const wall = g.createLinearGradient(0, 0, S, S);
+  wall.addColorStop(0, '#20262c');
+  wall.addColorStop(0.5, '#161b21');
+  wall.addColorStop(1, '#0e1216');
+  g.fillStyle = wall;
+  g.fillRect(0, 0, S, S);
+  for (let x = 0; x < S; x += 64) {
+    g.fillStyle = 'rgba(140,160,178,0.05)';
+    g.fillRect(x, 0, 2, S);
+    g.fillStyle = 'rgba(0,0,0,0.3)';
+    g.fillRect(x + 62, 0, 2, S);
+  }
+  for (let y = 0; y < S; y += 128) {
+    g.fillStyle = 'rgba(0,0,0,0.4)';
+    g.fillRect(0, y, S, 5);
+    g.fillStyle = 'rgba(150,172,190,0.07)';
+    g.fillRect(0, y + 5, S, 2);
+  }
+
+  // Copper traces climbing the wall toward the mast, like a circuit routed by
+  // an electrician with a straightedge: right-angle runs with via pads.
+  const via = (x: number, y: number): void => {
+    g.fillStyle = '#c07a3c';
+    g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#0e1216';
+    g.beginPath(); g.arc(x, y, 2.4, 0, Math.PI * 2); g.fill();
+  };
+  for (let i = 0; i < 22; i++) {
+    let x = rng() < 0.5 ? 10 + rng() * 130 : 372 + rng() * 130;
+    let y = 20 + rng() * 470;
+    g.strokeStyle = `rgba(192,122,60,${0.35 + rng() * 0.45})`;
+    g.lineWidth = 2 + rng() * 3;
+    g.beginPath(); g.moveTo(x, y);
+    for (let s = 0; s < 5; s++) {
+      if (s % 2 === 0) x += (x < 256 ? 1 : -1) * (20 + rng() * 60);
+      else y -= 24 + rng() * 70;
+      g.lineTo(x, y);
+    }
+    g.stroke();
+    via(x, y);
+  }
+
+  // the totem: a vertical mast of stacked lattice bays
+  const mx = 256, top = 26, bot = 470, hw = 62;
+  g.fillStyle = '#0a0d11';
+  g.fillRect(mx - hw - 10, top - 10, (hw + 10) * 2, bot - top + 26);
+  // uprights
+  for (const ux of [mx - hw, mx - 22, mx + 22, mx + hw] as const) {
+    const leg = g.createLinearGradient(ux - 8, 0, ux + 8, 0);
+    leg.addColorStop(0, '#4d5964');
+    leg.addColorStop(0.4, '#87949f');
+    leg.addColorStop(1, '#2b333a');
+    g.fillStyle = leg;
+    g.fillRect(ux - 8, top, 16, bot - top);
+  }
+  // bay braces and platform rings
+  for (let y = top; y < bot; y += 56) {
+    g.strokeStyle = '#6c7883';
+    g.lineWidth = 6;
+    g.beginPath();
+    g.moveTo(mx - hw, y); g.lineTo(mx + hw, y + 56);
+    g.moveTo(mx + hw, y); g.lineTo(mx - hw, y + 56);
+    g.stroke();
+    g.fillStyle = '#39424a';
+    g.fillRect(mx - hw - 14, y, (hw + 14) * 2, 9);
+    g.fillStyle = 'rgba(176,196,212,0.25)';
+    g.fillRect(mx - hw - 14, y, (hw + 14) * 2, 2);
+    // copper collar every other bay
+    if (((y - top) / 56) % 2 === 0) {
+      g.fillStyle = '#c07a3c';
+      g.fillRect(mx - hw - 14, y + 9, (hw + 14) * 2, 3);
+      via(mx - hw - 8, y + 4);
+      via(mx + hw + 8, y + 4);
+    }
+    for (let k = -1; k <= 1; k += 2) rivet(g, mx + k * (hw + 4), y + 4, 4, '#c2d0da', '#0b0e11');
+  }
+  // antenna elements sprouting off the mast
+  for (let i = 0; i < 9; i++) {
+    const y = top + 34 + i * 48;
+    const side = i % 2 ? 1 : -1;
+    g.strokeStyle = '#9aa7b2';
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(mx + side * hw, y); g.lineTo(mx + side * (hw + 60 + (i % 3) * 26), y - 14); g.stroke();
+    g.fillStyle = '#c07a3c';
+    g.beginPath(); g.arc(mx + side * (hw + 60 + (i % 3) * 26), y - 14, 6, 0, Math.PI * 2); g.fill();
+    // dipole crossbars
+    g.strokeStyle = 'rgba(154,167,178,0.8)';
+    g.lineWidth = 3;
+    for (let k = 1; k <= 3; k++) {
+      const px = mx + side * (hw + 14 * k), py = y - 3.3 * k;
+      g.beginPath(); g.moveTo(px, py - 12); g.lineTo(px, py + 12); g.stroke();
+    }
+  }
+  // status lamps down the spine
+  for (let i = 0; i < 8; i++) {
+    const y = top + 40 + i * 56;
+    const on = i % 3 !== 1;
+    const lamp = g.createRadialGradient(mx, y, 1, mx, y, 16);
+    lamp.addColorStop(0, on ? 'rgba(224,244,255,0.95)' : 'rgba(190,86,42,0.8)');
+    lamp.addColorStop(0.4, on ? 'rgba(120,186,238,0.4)' : 'rgba(150,60,26,0.3)');
+    lamp.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = lamp;
+    g.fillRect(mx - 18, y - 18, 36, 36);
+  }
+  // mast head beacon
+  g.fillStyle = '#2b333a';
+  g.beginPath();
+  g.moveTo(mx - 26, top); g.lineTo(mx, top - 26); g.lineTo(mx + 26, top);
+  g.closePath(); g.fill();
+  const beacon = g.createRadialGradient(mx, top - 18, 2, mx, top - 18, 40);
+  beacon.addColorStop(0, 'rgba(255,255,255,0.95)');
+  beacon.addColorStop(0.3, 'rgba(140,200,248,0.45)');
+  beacon.addColorStop(1, 'rgba(80,150,220,0)');
+  g.fillStyle = beacon;
+  g.fillRect(mx - 42, top - 58, 84, 84);
+
+  // floor numerals stencilled either side of the base — which level this is
+  g.fillStyle = '#c9d6e0';
+  segDigit(g, 4, 60, 396, 40, 74, 9);
+  segDigit(g, 7, 112, 396, 40, 74, 9);
+  g.fillStyle = '#c07a3c';
+  g.fillRect(60, 484, 92, 6);
+  g.fillStyle = 'rgba(201,214,224,0.7)';
+  segDigit(g, 4, 372, 410, 30, 56, 7);
+  segDigit(g, 8, 410, 410, 30, 56, 7);
+  g.fillStyle = 'rgba(192,122,60,0.7)';
+  g.fillRect(372, 476, 68, 5);
+  // elevation caret above the lower numeral pair
+  g.strokeStyle = '#c07a3c';
+  g.lineWidth = 5;
+  g.beginPath(); g.moveTo(384, 396); g.lineTo(404, 374); g.lineTo(424, 396); g.stroke();
+
+  speckle(g, S, rng, 90, 'rgba(200,220,236,0.07)', 1, 3);
+  noise(g, S, rng, 2200, 0.05);
+  return c;
+}
+
+// ---------------------------------------------------------------- 25. elevation stela
+
+function heroElevationStela(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('spire-elevation-stela');
+  // brushed landing plaque, tall and narrow
+  const px = 54, pw = 148;
+  g.fillStyle = '#0c1014';
+  g.fillRect(px - 10, 8, pw + 20, 240);
+  const plate = g.createLinearGradient(px, 0, px + pw, 0);
+  plate.addColorStop(0, '#3b454e');
+  plate.addColorStop(0.35, '#69757f');
+  plate.addColorStop(0.7, '#4b565f');
+  plate.addColorStop(1, '#242c33');
+  g.fillStyle = plate;
+  g.fillRect(px, 14, pw, 228);
+  // brush grain
+  for (let i = 0; i < 130; i++) {
+    g.fillStyle = `rgba(${rng() < 0.5 ? '210,226,238' : '10,14,18'},${0.03 + rng() * 0.08})`;
+    g.fillRect(px + 2, 16 + rng() * 224, pw - 4, 1);
+  }
+  g.strokeStyle = '#c07a3c';
+  g.lineWidth = 4;
+  g.strokeRect(px + 6, 20, pw - 12, 216);
+  for (const cy2 of [26, 230] as const) {
+    rivet(g, px + 16, cy2, 5, '#cfdae2', '#0a0d10');
+    rivet(g, px + pw - 16, cy2, 5, '#cfdae2', '#0a0d10');
+  }
+
+  // Stacked elevation marks: each landing above this one, most recent at the
+  // top, with the current level highlighted in copper.
+  const marks: readonly [number, number, boolean][] = [
+    [6, 3, false], [5, 8, false], [4, 8, true], [3, 6, false], [2, 4, false], [1, 2, false],
+  ];
+  marks.forEach(([hundreds, tens, here], i) => {
+    const y = 34 + i * 34;
+    if (here) {
+      g.fillStyle = 'rgba(192,122,60,0.22)';
+      g.fillRect(px + 10, y - 4, pw - 20, 30);
+      g.fillStyle = '#c07a3c';
+      g.beginPath();
+      g.moveTo(px + 14, y + 4); g.lineTo(px + 26, y + 11); g.lineTo(px + 14, y + 18);
+      g.closePath(); g.fill();
+    }
+    g.fillStyle = here ? '#f0d9b8' : 'rgba(206,220,230,0.72)';
+    segDigit(g, hundreds, px + 34, y, 15, 24, 3.5);
+    segDigit(g, tens, px + 54, y, 15, 24, 3.5);
+    segDigit(g, 0, px + 74, y, 15, 24, 3.5);
+    // tick ladder to the right of each reading
+    g.fillStyle = here ? '#c07a3c' : 'rgba(150,170,186,0.5)';
+    g.fillRect(px + 98, y + 10, 34, 3);
+    for (let k = 0; k < 4; k++) g.fillRect(px + 100 + k * 9, y + 4, 2, 9);
+    g.fillStyle = 'rgba(10,14,18,0.5)';
+    g.fillRect(px + 12, y + 27, pw - 24, 2);
+  });
+
+  // "elevation" rule down the left edge: a scale bar with major/minor ticks
+  g.fillStyle = 'rgba(201,214,224,0.55)';
+  g.fillRect(px + 2, 20, 3, 216);
+  for (let y = 20; y <= 236; y += 8) {
+    const major = (y - 20) % 32 === 0;
+    g.fillRect(px + 2, y, major ? 12 : 7, major ? 3 : 2);
+  }
+  // copper header band and shaft-side arrow
+  g.fillStyle = '#c07a3c';
+  g.fillRect(px + 6, 14, pw - 12, 6);
+  g.fillRect(px + 6, 236, pw - 12, 6);
+  g.strokeStyle = 'rgba(192,122,60,0.85)';
+  g.lineWidth = 5;
+  g.beginPath(); g.moveTo(214, 210); g.lineTo(214, 60); g.stroke();
+  g.beginPath(); g.moveTo(202, 74); g.lineTo(214, 54); g.lineTo(226, 74); g.stroke();
+  // scuffs from decades of shoulders brushing past
+  for (let i = 0; i < 22; i++) {
+    g.strokeStyle = `rgba(214,230,242,${0.04 + rng() * 0.12})`;
+    g.lineWidth = 1 + rng() * 2;
+    const x = px + rng() * pw, y = 18 + rng() * 220;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + rng() * 18 - 9, y + rng() * 4 - 2); g.stroke();
+  }
+  return c;
+}
+
+// ---------------------------------------------------------------- 26. plague seal
+
+function heroPlagueSeal(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('ward-plague-seal');
+  // cracked institutional tile
+  g.fillStyle = '#1d2420';
+  g.fillRect(0, 0, S, S);
+  for (let y = 0; y < S; y += 64) {
+    for (let x = 0; x < S; x += 64) {
+      const v = 118 + rng() * 34;
+      g.fillStyle = `rgb(${v * 0.86 | 0},${v | 0},${v * 0.9 | 0})`;
+      g.fillRect(x + 3, y + 3, 58, 58);
+      g.fillStyle = 'rgba(255,255,255,0.05)';
+      g.fillRect(x + 3, y + 3, 58, 3);
+      g.fillStyle = 'rgba(0,0,0,0.3)';
+      g.fillRect(x + 3, y + 58, 58, 3);
+      // some tiles are missing entirely
+      if (rng() < 0.08) {
+        g.fillStyle = '#0f1512';
+        g.fillRect(x + 3, y + 3, 58, 58);
+      }
+    }
+  }
+  // grime creeping out of the grout
+  for (let i = 0; i < 60; i++) {
+    const x = (rng() * 8 | 0) * 64, y = rng() * S;
+    g.fillStyle = `rgba(${40 + rng() * 40 | 0},${52 + rng() * 40 | 0},${34 + rng() * 30 | 0},${0.12 + rng() * 0.3})`;
+    g.fillRect(x, y, 64, 3 + rng() * 20);
+  }
+  // structural cracks running across the tile field
+  for (let i = 0; i < 9; i++) {
+    let x = rng() * S, y = rng() * S;
+    g.strokeStyle = `rgba(14,20,16,${0.4 + rng() * 0.4})`;
+    g.lineWidth = 1 + rng() * 4;
+    g.beginPath(); g.moveTo(x, y);
+    for (let s = 0; s < 12; s++) {
+      x += (rng() - 0.5) * 90; y += (rng() - 0.5) * 90;
+      g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+
+  // The seal: a stamped disc over the entry, big enough to stop you walking in.
+  const cx = 256, cy = 246;
+  g.fillStyle = 'rgba(12,18,14,0.55)';
+  g.beginPath(); g.arc(cx, cy, 198, 0, Math.PI * 2); g.fill();
+  for (const [r, w, col] of [[196, 12, '#d8c23a'], [176, 5, '#1b2119'], [166, 3, '#d8c23a']] as const) {
+    g.strokeStyle = col;
+    g.lineWidth = w;
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+  }
+  // hazard band between the rings
+  g.save();
+  g.beginPath(); g.arc(cx, cy, 196, 0, Math.PI * 2);
+  g.arc(cx, cy, 176, 0, Math.PI * 2, true);
+  g.clip('evenodd');
+  for (let i = 0; i < 44; i++) {
+    const a0 = (Math.PI * 2 * i) / 44, a1 = (Math.PI * 2 * (i + 1)) / 44;
+    g.fillStyle = i % 2 ? '#d8c23a' : '#171d15';
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.arc(cx, cy, 200, a0, a1);
+    g.closePath(); g.fill();
+  }
+  g.restore();
+
+  // biohazard trefoil at the heart of the seal
+  g.save();
+  g.translate(cx, cy);
+  for (let i = 0; i < 3; i++) {
+    g.save();
+    g.rotate((Math.PI * 2 * i) / 3);
+    g.fillStyle = '#d8c23a';
+    g.beginPath(); g.arc(0, -96, 46, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#101610';
+    g.beginPath(); g.arc(0, -96, 26, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#d8c23a';
+    g.beginPath();
+    g.moveTo(-22, -52); g.lineTo(22, -52); g.lineTo(14, -18); g.lineTo(-14, -18);
+    g.closePath(); g.fill();
+    g.restore();
+  }
+  g.fillStyle = '#101610';
+  g.beginPath(); g.arc(0, 0, 34, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#d8c23a';
+  g.beginPath(); g.arc(0, 0, 22, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#101610';
+  g.beginPath(); g.arc(0, 0, 11, 0, Math.PI * 2); g.fill();
+  g.restore();
+
+  // quarantine legend arcing under the seal, as stencil ticks
+  g.fillStyle = 'rgba(216,194,58,0.8)';
+  for (let i = 0; i < 30; i++) {
+    const a = Math.PI * (0.16 + (i / 29) * 0.68);
+    const x = cx + Math.cos(a) * 148, y = cy + Math.sin(a) * 148;
+    g.save(); g.translate(x, y); g.rotate(a - Math.PI / 2);
+    g.fillRect(-3, -9, 6, 18 - (i % 3) * 5);
+    g.restore();
+  }
+
+  // planks barred across the doorway in an X, nailed at the crossings
+  const plank = (x0: number, y0: number, x1: number, y1: number): void => {
+    const a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
+    g.save();
+    g.translate(x0, y0); g.rotate(a);
+    const wood = g.createLinearGradient(0, -30, 0, 30);
+    wood.addColorStop(0, '#6b5638');
+    wood.addColorStop(0.4, '#42341f');
+    wood.addColorStop(1, '#241b10');
+    g.fillStyle = wood;
+    g.fillRect(0, -30, len, 60);
+    g.strokeStyle = 'rgba(12,8,4,0.8)';
+    g.lineWidth = 4;
+    g.strokeRect(0, -30, len, 60);
+    for (let i = 0; i < 22; i++) {
+      g.strokeStyle = `rgba(${rng() < 0.5 ? '150,124,86' : '20,14,8'},${0.1 + rng() * 0.25})`;
+      g.lineWidth = 1 + rng() * 2;
+      const gy = -26 + rng() * 52;
+      g.beginPath(); g.moveTo(rng() * len * 0.3, gy); g.lineTo(len * (0.4 + rng() * 0.6), gy + (rng() - 0.5) * 6); g.stroke();
+    }
+    for (const t of [0.08, 0.5, 0.92] as const) {
+      rivet(g, len * t - 10, -12, 5, '#b9c4cc', '#0b0d0a');
+      rivet(g, len * t + 10, 12, 5, '#b9c4cc', '#0b0d0a');
+    }
+    g.restore();
+  };
+  plank(-20, 60, 532, 452);
+  plank(-20, 452, 532, 60);
+  // stencilled warning strip across the middle plank
+  g.save();
+  g.translate(256, 256); g.rotate(0.63);
+  g.fillStyle = 'rgba(216,194,58,0.9)';
+  for (let x = -190; x < 190; x += 30) {
+    g.beginPath();
+    g.moveTo(x, -20); g.lineTo(x + 14, -20); g.lineTo(x + 2, 20); g.lineTo(x - 12, 20);
+    g.closePath(); g.fill();
+  }
+  g.restore();
+  // splatter and mildew over everything
+  speckle(g, S, rng, 120, 'rgba(30,44,26,0.35)', 2, 9);
+  speckle(g, S, rng, 60, 'rgba(96,32,26,0.3)', 1, 6);
+  noise(g, S, rng, 3000, 0.07);
+  return c;
+}
+
+// ---------------------------------------------------------------- 27. key rack
+
+function heroKeyRack(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('ward-key-rack');
+  // nurse-station tile behind the board
+  for (let y = 0; y < S; y += 32) {
+    for (let x = 0; x < S; x += 32) {
+      const v = 108 + rng() * 30;
+      g.fillStyle = `rgb(${v * 0.85 | 0},${v | 0},${v * 0.9 | 0})`;
+      g.fillRect(x + 2, y + 2, 28, 28);
+    }
+  }
+  g.fillStyle = 'rgba(20,28,22,0.4)';
+  g.fillRect(0, 0, S, S);
+  // the board itself
+  g.fillStyle = '#2a2119';
+  g.fillRect(20, 26, 216, 206);
+  g.strokeStyle = '#5d4c34';
+  g.lineWidth = 5;
+  g.strokeRect(20, 26, 216, 206);
+  for (const [bx, by] of [[30, 36], [226, 36], [30, 222], [226, 222]] as const) rivet(g, bx, by, 5, '#a8b4bc', '#0d100c');
+  // rails the keys hang from
+  for (const ry of [72, 134, 196] as const) {
+    g.fillStyle = '#8d7a55';
+    g.fillRect(30, ry, 196, 7);
+    g.fillStyle = 'rgba(0,0,0,0.45)';
+    g.fillRect(30, ry + 6, 196, 3);
+  }
+
+  // Cell keys: each bow carries a different ward sigil so a player can tell
+  // them apart at a glance, and every bit pattern is unique.
+  const key = (x: number, y: number, bow: number, bits: number, tone: string): void => {
+    g.save();
+    g.translate(x, y);
+    // hook
+    g.strokeStyle = '#c3ccd2';
+    g.lineWidth = 3;
+    g.beginPath(); g.arc(0, -6, 5, Math.PI * 0.15, Math.PI * 0.95); g.stroke();
+    // bow
+    g.strokeStyle = tone;
+    g.lineWidth = 5;
+    g.beginPath(); g.arc(0, 8, 11, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = 'rgba(0,0,0,0.45)';
+    g.beginPath(); g.arc(0, 8, 8, 0, Math.PI * 2); g.fill();
+    // the sigil inside the bow
+    g.fillStyle = tone;
+    g.strokeStyle = tone;
+    g.lineWidth = 2;
+    if (bow === 0) { g.fillRect(-4, 4, 8, 8); }
+    else if (bow === 1) { g.beginPath(); g.arc(0, 8, 4, 0, Math.PI * 2); g.fill(); }
+    else if (bow === 2) { g.beginPath(); g.moveTo(0, 2); g.lineTo(5, 12); g.lineTo(-5, 12); g.closePath(); g.fill(); }
+    else if (bow === 3) { g.fillRect(-5, 7, 10, 3); g.fillRect(-1.5, 3, 3, 11); }
+    else { starPath(g, 0, 8, 6, 5, 2); g.stroke(); }
+    // shank and ward bits
+    g.strokeStyle = tone;
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(0, 19); g.lineTo(0, 54); g.stroke();
+    g.fillStyle = tone;
+    for (let b = 0; b < 4; b++) {
+      if (bits & (1 << b)) g.fillRect(2, 34 + b * 5, 8 - (b % 2) * 3, 4);
+    }
+    g.fillRect(-8, 50, 8, 5);
+    // paper tag tied to the bow
+    g.save();
+    g.rotate(0.18);
+    g.fillStyle = 'rgba(214,206,176,0.9)';
+    g.fillRect(9, 14, 20, 13);
+    g.fillStyle = 'rgba(40,34,24,0.8)';
+    g.fillRect(11, 17, 16, 2);
+    g.fillRect(11, 21, 11, 2);
+    g.restore();
+    g.restore();
+  };
+  const tones = ['#cfd8de', '#c9b26a', '#a9b6be', '#d8c23a', '#9fa9b0'] as const;
+  let bits = 3;
+  for (let row = 0; row < 3; row++) {
+    for (let k = 0; k < 6; k++) {
+      bits = (bits * 5 + 3) % 16;
+      key(44 + k * 34, 76 + row * 62, (row * 6 + k) % 5, bits || 9, tones[(row + k) % 5]);
+    }
+  }
+  // a few empty hooks where keys are signed out
+  g.strokeStyle = '#8f9aa2';
+  g.lineWidth = 3;
+  for (const [hx, hy] of [[112, 138], [180, 200], [78, 76]] as const) {
+    g.clearRect(hx - 18, hy - 4, 36, 62);
+    g.beginPath(); g.arc(hx, hy - 6, 5, Math.PI * 0.15, Math.PI * 0.95); g.stroke();
+  }
+  // grime and a chipped corner
+  speckle(g, S, rng, 70, 'rgba(24,34,24,0.3)', 1, 5);
+  noise(g, S, rng, 900, 0.06);
+  return c;
+}
+
+// ---------------------------------------------------------------- 28. seventh seal
+
+function heroSeventhSeal(): HTMLCanvasElement {
+  const S = 512;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('sanctum-seventh-seal');
+  // void floor: the inlay is the only thing in the frame
+  g.fillStyle = '#05040a';
+  g.fillRect(0, 0, S, S);
+  const bloom = g.createRadialGradient(256, 256, 20, 256, 256, 260);
+  bloom.addColorStop(0, 'rgba(226,190,110,0.26)');
+  bloom.addColorStop(0.55, 'rgba(140,106,42,0.1)');
+  bloom.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = bloom;
+  g.fillRect(0, 0, S, S);
+
+  // outer band of gold, with seven nodes marking the star points
+  for (const [r, w] of [[240, 10], [222, 3], [190, 5]] as const) {
+    g.strokeStyle = 'rgba(217,180,92,0.85)';
+    g.lineWidth = w;
+    g.beginPath(); g.arc(256, 256, r, 0, Math.PI * 2); g.stroke();
+  }
+  // inscription ticks between the rings
+  g.fillStyle = 'rgba(217,180,92,0.5)';
+  for (let i = 0; i < 98; i++) {
+    const a = (Math.PI * 2 * i) / 98;
+    g.save();
+    g.translate(256 + Math.cos(a) * 231, 256 + Math.sin(a) * 231);
+    g.rotate(a);
+    g.fillRect(-6, -2, 12, i % 7 === 0 ? 5 : 3);
+    g.restore();
+  }
+
+  // the heptagram itself, drawn heavy then re-lit
+  g.lineJoin = 'round';
+  g.strokeStyle = 'rgba(20,14,6,0.9)';
+  g.lineWidth = 22;
+  starPath(g, 256, 256, 186, 7, 3);
+  g.stroke();
+  const gold = g.createLinearGradient(70, 70, 442, 442);
+  gold.addColorStop(0, '#f6e2ab');
+  gold.addColorStop(0.35, '#d9b45c');
+  gold.addColorStop(0.6, '#9a7830');
+  gold.addColorStop(1, '#f0d189');
+  g.strokeStyle = gold;
+  g.lineWidth = 13;
+  starPath(g, 256, 256, 186, 7, 3);
+  g.stroke();
+  g.strokeStyle = 'rgba(255,246,214,0.55)';
+  g.lineWidth = 3;
+  starPath(g, 256, 256, 186, 7, 3);
+  g.stroke();
+  // a second, counter-wound star inside it
+  g.strokeStyle = 'rgba(217,180,92,0.4)';
+  g.lineWidth = 5;
+  starPath(g, 256, 256, 128, 7, 2);
+  g.stroke();
+
+  // seven node discs on the outer points, each numbered by pip count
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI / 2 + (Math.PI * 2 * i) / 7;
+    const x = 256 + Math.cos(a) * 186, y = 256 + Math.sin(a) * 186;
+    g.fillStyle = '#0a0810';
+    g.beginPath(); g.arc(x, y, 27, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#f0d189';
+    g.lineWidth = 5;
+    g.beginPath(); g.arc(x, y, 27, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = '#f6e2ab';
+    for (let k = 0; k <= i; k++) {
+      const pa = (Math.PI * 2 * k) / (i + 1) - Math.PI / 2;
+      g.beginPath(); g.arc(x + Math.cos(pa) * (i ? 13 : 0), y + Math.sin(pa) * (i ? 13 : 0), 4, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  // centre medallion: the gun laid across a seven
+  g.fillStyle = '#08060e';
+  g.beginPath(); g.arc(256, 256, 96, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#d9b45c';
+  g.lineWidth = 7;
+  g.beginPath(); g.arc(256, 256, 96, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = 'rgba(240,209,137,0.4)';
+  g.lineWidth = 2;
+  g.beginPath(); g.arc(256, 256, 84, 0, Math.PI * 2); g.stroke();
+  // the seven, cut deep
+  g.fillStyle = 'rgba(20,14,6,0.9)';
+  segDigit(g, 7, 226, 204, 62, 104, 13);
+  g.fillStyle = '#f0d189';
+  segDigit(g, 7, 222, 200, 62, 104, 13);
+  // the gun across it
+  g.save();
+  g.translate(256, 272); g.rotate(-0.3);
+  g.fillStyle = 'rgba(8,6,12,0.75)';
+  g.fillRect(-62, -8, 96, 24);
+  g.fillStyle = '#f6e2ab';
+  g.fillRect(-58, -10, 82, 19);      // receiver
+  g.fillRect(24, -6, 48, 11);        // barrel
+  g.fillStyle = '#c49e4e';
+  g.fillRect(66, -9, 10, 17);        // muzzle
+  g.fillRect(-20, 9, 30, 10);        // magazine
+  g.fillStyle = '#f6e2ab';
+  g.beginPath();
+  g.moveTo(-56, 9); g.lineTo(-36, 9); g.lineTo(-26, 48); g.lineTo(-48, 48);
+  g.closePath(); g.fill();            // grip
+  g.strokeStyle = '#f6e2ab';
+  g.lineWidth = 5;
+  g.beginPath(); g.arc(-26, 12, 14, 0, Math.PI); g.stroke();
+  g.fillStyle = 'rgba(255,248,222,0.65)';
+  g.fillRect(-58, -10, 82, 3);
+  g.restore();
+  g.lineJoin = 'miter';
+
+  // gold dust settling on the void
+  speckle(g, S, rng, 160, 'rgba(232,206,142,0.18)', 1, 3);
+  noise(g, S, rng, 1600, 0.04);
+  return c;
+}
+
+// ---------------------------------------------------------------- 29. apse glow
+
+function heroApseGlow(): HTMLCanvasElement {
+  const S = 256;
+  const { c, g } = canvas(S);
+  const rng = heroSeed('sanctum-apse-glow');
+  g.fillStyle = '#05040a';
+  g.fillRect(0, 0, S, S);
+  // Pointed arch of light: the wall behind the altar is a hole, not a surface.
+  const archPath = (inset: number): void => {
+    g.beginPath();
+    g.moveTo(56 + inset, 250);
+    g.lineTo(56 + inset, 122);
+    g.quadraticCurveTo(56 + inset, 40 + inset, 128, 22 + inset);
+    g.quadraticCurveTo(200 - inset, 40 + inset, 200 - inset, 122);
+    g.lineTo(200 - inset, 250);
+    g.closePath();
+  };
+  // outer haze spilling past the arch mouth
+  const haze = g.createRadialGradient(128, 150, 20, 128, 150, 170);
+  haze.addColorStop(0, 'rgba(240,209,137,0.42)');
+  haze.addColorStop(0.5, 'rgba(160,120,48,0.14)');
+  haze.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = haze;
+  g.fillRect(0, 0, S, S);
+  // the void inside the arch, glowing from deep back
+  g.save();
+  archPath(0);
+  g.clip();
+  const inside = g.createRadialGradient(128, 196, 6, 128, 176, 168);
+  inside.addColorStop(0, '#fff4d2');
+  inside.addColorStop(0.22, '#f0d189');
+  inside.addColorStop(0.5, '#a8792c');
+  inside.addColorStop(0.78, '#4a3210');
+  inside.addColorStop(1, '#0b0806');
+  g.fillStyle = inside;
+  g.fillRect(0, 0, S, S);
+  // rays fanning out of the light
+  for (let i = 0; i < 26; i++) {
+    const a = -Math.PI / 2 + (i - 13) * 0.115;
+    g.strokeStyle = `rgba(255,238,190,${0.05 + (i % 3 === 0 ? 0.16 : 0.06)})`;
+    g.lineWidth = i % 3 === 0 ? 8 : 3;
+    g.beginPath();
+    g.moveTo(128, 196);
+    g.lineTo(128 + Math.cos(a) * 260, 196 + Math.sin(a) * 260);
+    g.stroke();
+  }
+  // recessed arch orders stepping back into the glow
+  for (let k = 1; k <= 4; k++) {
+    g.strokeStyle = `rgba(20,14,8,${0.16 + k * 0.06})`;
+    g.lineWidth = 5;
+    archPath(k * 11);
+    g.stroke();
+  }
+  // motes rising in the light
+  for (let i = 0; i < 70; i++) {
+    const x = 64 + rng() * 128, y = 30 + rng() * 216;
+    g.fillStyle = `rgba(255,246,214,${0.12 + rng() * 0.45})`;
+    g.beginPath(); g.arc(x, y, 0.7 + rng() * 2.4, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+  // gold arch surround, doubled
+  g.strokeStyle = '#d9b45c';
+  g.lineWidth = 9;
+  archPath(0);
+  g.stroke();
+  g.strokeStyle = 'rgba(255,244,206,0.5)';
+  g.lineWidth = 3;
+  archPath(6);
+  g.stroke();
+  // keystone heptagram over the arch head
+  g.strokeStyle = '#f0d189';
+  g.lineWidth = 3;
+  starPath(g, 128, 30, 17, 7, 3);
+  g.stroke();
+  // impost blocks where the arch springs from the wall
+  for (const bx of [46, 190] as const) {
+    g.fillStyle = '#1a1420';
+    g.fillRect(bx, 116, 20, 14);
+    g.strokeStyle = '#c49e4e';
+    g.lineWidth = 3;
+    g.strokeRect(bx, 116, 20, 14);
+  }
+  speckle(g, S, rng, 40, 'rgba(232,206,142,0.2)', 0.8, 2);
+  return c;
+}
+
 // ---------------------------------------------------------------- hero registry
 
 export interface CampaignHeroDecal {
   id: string;
   tex: THREE.Texture;
-  /** Pack or seed fragment, e.g. `foundry` or `01-foundry`. */
-  map?: string;
-  /** `arena-back` | `pit-rim` | `sanctum-apse` (substrings match). */
-  hint?: string;
+  map: CampaignArtId;
+  hint: string;
 }
 
 // Canvas-free description of the hero set, so tests (and tooling) can read the
@@ -3141,6 +4616,20 @@ export const CAMPAIGN_HERO_MARKERS: { id: string; map: CampaignArtId; hint: stri
   { id: 'gun-reliquary', map: 'sanctum', hint: 'apse-altar', size: 512 },
   { id: 'demon-head', map: 'sanctum', hint: 'nave-tympanum', size: 512 },
   { id: 'nave-rose', map: 'sanctum', hint: 'rose-window', size: 256 },
+  { id: 'slag-titan', map: 'foundry', hint: 'foundry-far-wall', size: 512 },
+  { id: 'hazard-gate', map: 'foundry', hint: 'foundry-door-frame', size: 256 },
+  { id: 'tooth-gate', map: 'gullet', hint: 'gullet-corridor-end', size: 512 },
+  { id: 'bile-pool', map: 'gullet', hint: 'floor-decal', size: 256 },
+  { id: 'candle-crypt', map: 'catacombs', hint: 'side-chapel', size: 512 },
+  { id: 'femur-wheel', map: 'catacombs', hint: 'ceiling-rose', size: 256 },
+  { id: 'rust-sun', map: 'pit', hint: 'sky-disc', size: 512 },
+  { id: 'hook-crown', map: 'pit', hint: 'crane-hook', size: 256 },
+  { id: 'lattice-totem', map: 'spire', hint: 'shaft-wall', size: 512 },
+  { id: 'elevation-stela', map: 'spire', hint: 'landing-plaque', size: 256 },
+  { id: 'plague-seal', map: 'ward', hint: 'ward-entry', size: 512 },
+  { id: 'key-rack', map: 'ward', hint: 'nurse-station', size: 256 },
+  { id: 'seventh-seal', map: 'sanctum', hint: 'floor-inlay', size: 512 },
+  { id: 'apse-glow', map: 'sanctum', hint: 'apse-back', size: 256 },
 ];
 
 const HERO_PAINTERS: Record<string, () => HTMLCanvasElement> = {
@@ -3159,6 +4648,20 @@ const HERO_PAINTERS: Record<string, () => HTMLCanvasElement> = {
   'gun-reliquary': heroGunReliquary,
   'demon-head': heroDemonHead,
   'nave-rose': heroNaveRose,
+  'slag-titan': heroSlagTitan,
+  'hazard-gate': heroHazardGate,
+  'tooth-gate': heroToothGate,
+  'bile-pool': heroBilePool,
+  'candle-crypt': heroCandleCrypt,
+  'femur-wheel': heroFemurWheel,
+  'rust-sun': heroRustSun,
+  'hook-crown': heroHookCrown,
+  'lattice-totem': heroLatticeTotem,
+  'elevation-stela': heroElevationStela,
+  'plague-seal': heroPlagueSeal,
+  'key-rack': heroKeyRack,
+  'seventh-seal': heroSeventhSeal,
+  'apse-glow': heroApseGlow,
 };
 
 let heroCache: CampaignHeroDecal[] | null = null;
@@ -3172,21 +4675,4 @@ export function getCampaignHeroDecals(): CampaignHeroDecal[] {
     hint: m.hint,
   }));
   return heroCache;
-}
-
-/**
- * Sibling table a pack can fill without changing getCampaignTextures().
- * Prefer lib.heroDecals, then this table, then getCampaignHeroDecals().
- */
-export const CAMPAIGN_HERO_DECALS: Partial<Record<CampaignArtId, CampaignHeroDecal[]>> = {};
-
-export function resolveHeroDecals(
-  id: CampaignArtId,
-  lib?: CampaignTextureLib | null,
-): CampaignHeroDecal[] {
-  const fromLib = lib?.heroDecals;
-  if (fromLib && fromLib.length) return fromLib;
-  const fromSibling = CAMPAIGN_HERO_DECALS[id];
-  if (fromSibling && fromSibling.length) return fromSibling;
-  return getCampaignHeroDecals().filter(h => !h.map || h.map === id || String(h.map).includes(id));
 }

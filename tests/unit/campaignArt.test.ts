@@ -1,15 +1,15 @@
-// Campaign art hook: id mapping, texture cache, extra placement.
+// Campaign art hook: id mapping, texture cache, extra + hero placement.
 // Texture generation is stubbed at the canvas level so the unit suite
 // stays node-only (no jsdom / extra deps).
 import { describe, it, expect, beforeAll } from 'vitest';
 import { CAMPAIGN } from '../../src/campaign/index';
 import { generateMap } from '../../src/sim/mapgen';
 import {
-  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_DECALS,
+  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_MARKERS,
   campaignArtIdFromIndex, campaignArtIdFromSeed, getCampaignTextures,
-  resolveHeroDecals,
+  type CampaignHeroDecal,
 } from '../../src/render/campaignTextures';
-import { planCampaignExtras, planHeroPlacement } from '../../src/render/campaignDecor';
+import { planCampaignExtras, planHeroPlacements } from '../../src/render/campaignDecor';
 
 function installCanvasStub(): void {
   if (typeof document !== 'undefined') return;
@@ -19,18 +19,10 @@ function installCanvasStub(): void {
     lineWidth: 1,
     lineCap: 'butt',
     lineJoin: 'miter',
-    miterLimit: 10,
-    font: '10px sans-serif',
-    textAlign: 'start',
-    textBaseline: 'alphabetic',
     shadowColor: '',
     shadowBlur: 0,
-    shadowOffsetX: 0,
-    shadowOffsetY: 0,
     globalAlpha: 1,
     globalCompositeOperation: 'source-over',
-    imageSmoothingEnabled: false,
-    canvas: { width: 0, height: 0 },
     fillRect() {},
     strokeRect() {},
     clearRect() {},
@@ -39,34 +31,24 @@ function installCanvasStub(): void {
     moveTo() {},
     lineTo() {},
     arc() {},
-    arcTo() {},
     ellipse() {},
     fill() {},
     stroke() {},
-    bezierCurveTo() {},
-    quadraticCurveTo() {},
-    setLineDash() {},
-    getLineDash() { return []; },
     createLinearGradient() { return { addColorStop() {} }; },
     createRadialGradient() { return { addColorStop() {} }; },
-    createPattern() { return null; },
     save() {},
     restore() {},
     clip() {},
     rect() {},
+    quadraticCurveTo() {},
+    bezierCurveTo() {},
     setTransform() {},
-    resetTransform() {},
-    transform() {},
     translate() {},
     rotate() {},
     scale() {},
     drawImage() {},
     fillText() {},
-    strokeText() {},
     measureText() { return { width: 0 }; },
-    getImageData() { return { data: new Uint8ClampedArray(4), width: 1, height: 1 }; },
-    putImageData() {},
-    createImageData() { return { data: new Uint8ClampedArray(4), width: 1, height: 1 }; },
   };
   (globalThis as unknown as { document: { createElement: (tag: string) => unknown } }).document = {
     createElement(tag: string) {
@@ -76,6 +58,14 @@ function installCanvasStub(): void {
       return {};
     },
   };
+}
+
+const fakeTex = { wrapS: 0, wrapT: 0 } as unknown as import('three').Texture;
+
+function fakeHeroes(artId: (typeof CAMPAIGN_ART_IDS)[number]): CampaignHeroDecal[] {
+  return CAMPAIGN_HERO_MARKERS.filter(m => m.map === artId).map(m => ({
+    id: m.id, tex: fakeTex, map: m.map, hint: m.hint,
+  }));
 }
 
 beforeAll(() => {
@@ -132,8 +122,9 @@ describe('getCampaignTextures', () => {
     expect(a.floors).toBeTruthy();
     expect(a.ceilings).toBeTruthy();
     expect(a.door).toBeTruthy();
-    expect(a.extraDecals.length).toBeGreaterThanOrEqual(3);
-    expect(new Set(a.extraDecals.map(d => d.id)).size).toBe(a.extraDecals.length);
+    expect(a.extraDecals.map(d => d.id)).toEqual([
+      'foundry-furnace-stencil', 'foundry-pour-ladle', 'foundry-heat-warning',
+    ]);
     expect(a.extraDecals.every(d => d.tex)).toBe(true);
   });
 
@@ -165,91 +156,57 @@ describe('planCampaignExtras', () => {
   });
 });
 
-describe('hero decals', () => {
-  const fakeTex = { wrapS: 0, wrapT: 0 } as unknown as import('three').Texture;
-
-  it('places nothing when the caller passes an empty list', () => {
+describe('hero plates', () => {
+  it('places nothing when the roster is empty', () => {
     for (const m of CAMPAIGN) {
       const artId = campaignArtIdFromIndex(m.index);
-      expect(planHeroPlacement(m.map, artId, [])).toBeNull();
+      expect(planHeroPlacements(m.map, artId, [])).toEqual([]);
     }
   });
 
-  it('resolves shipped hero plates and hangs one on foundry', () => {
-    const resolved = resolveHeroDecals('foundry');
-    expect(resolved.some(h => h.id === 'furnace-mouth')).toBe(true);
-    const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', resolved);
-    expect(p?.kind).toBe('hero');
-    expect(p?.decalId).toBe('furnace-mouth');
-  });
-
-  it('places one arena-back quad on foundry when a hero is provided', () => {
+  it('places every foundry plate, with furnace-mouth on the arena', () => {
     const map = CAMPAIGN[0].map;
     const arena = map.rooms.find(r => r.kind === 'arena')!;
     const ante = map.rooms.find(r => r.kind === 'antechamber')!;
-    const p = planHeroPlacement(map, 'foundry', [
-      { id: 'hero-foundry', tex: fakeTex, hint: 'arena-back' },
-    ]);
-    expect(p).not.toBeNull();
-    expect(p!.kind).toBe('hero');
-    expect(p!.decalId).toBe('hero-foundry');
-    expect(p!.w).toBeGreaterThan(2);
-    expect(p!.h).toBeGreaterThan(2);
-    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
-    const dAnte = Math.hypot(p!.x - ante.cx, p!.z - ante.cz);
+    const placed = planHeroPlacements(map, 'foundry', fakeHeroes('foundry'));
+    expect(placed.map(p => p.decalId).sort()).toEqual(
+      CAMPAIGN_HERO_MARKERS.filter(h => h.map === 'foundry').map(h => h.id).sort(),
+    );
+    const mouth = placed.find(p => p.decalId === 'furnace-mouth')!;
+    expect(mouth.kind).toBe('hero');
+    expect(mouth.orient).toBe('wall');
+    const dArena = Math.hypot(mouth.x - arena.cx, mouth.z - arena.cz);
+    const dAnte = Math.hypot(mouth.x - ante.cx, mouth.z - ante.cz);
     expect(dArena).toBeLessThan(dAnte);
-    expect(dArena).toBeLessThan(Math.max(arena.w, arena.h) * 2);
   });
 
-  it('places the pit-rim hero on the outdoor courtyard, not the arena', () => {
+  it('places the pit idol on the outdoor courtyard, not the arena', () => {
     const map = CAMPAIGN[3].map;
     const pit = map.rooms.filter(r => r.outdoor).sort((a, b) => b.w * b.h - a.w * a.h)[0];
     const arena = map.rooms.find(r => r.kind === 'arena')!;
-    const p = planHeroPlacement(map, 'pit', [
-      { id: 'hero-pit', tex: fakeTex, hint: 'pit-rim' },
-    ]);
-    expect(p).not.toBeNull();
+    const placed = planHeroPlacements(map, 'pit', fakeHeroes('pit'));
+    const idol = placed.find(p => p.decalId === 'demonic-idol')!;
+    expect(idol.orient).toBe('floor');
     const pad = 2.5;
     const inRect = (r: typeof pit, slop: number) =>
-      p!.x >= r.x * 2 - slop && p!.x <= (r.x + r.w) * 2 + slop &&
-      p!.z >= r.z * 2 - slop && p!.z <= (r.z + r.h) * 2 + slop;
+      idol.x >= r.x * 2 - slop && idol.x <= (r.x + r.w) * 2 + slop &&
+      idol.z >= r.z * 2 - slop && idol.z <= (r.z + r.h) * 2 + slop;
     expect(inRect(pit, pad)).toBe(true);
     expect(inRect(arena, 0)).toBe(false);
   });
 
-  it('places the sanctum-apse hero on the far choir wall, not the arena', () => {
+  it('places sanctum apse plates on the choir axis, not the arena', () => {
     const map = CAMPAIGN[6].map;
     const start = map.rooms.find(r => r.kind === 'start')!;
     const arena = map.rooms.find(r => r.kind === 'arena')!;
-    const p = planHeroPlacement(map, 'sanctum', [
-      { id: 'hero-sanctum', tex: fakeTex, hint: 'sanctum-apse' },
-    ]);
-    expect(p).not.toBeNull();
-    const dStart = Math.hypot(p!.x - start.cx, p!.z - start.cz);
-    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
-    expect(dStart).toBeGreaterThan(40);
-    expect(dArena).toBeGreaterThan(8);
-    // choir sits on the nave axis (x≈43); arena is far east (x≈79)
-    expect(Math.abs(p!.x - start.cx)).toBeLessThan(Math.abs(p!.x - arena.cx));
+    const placed = planHeroPlacements(map, 'sanctum', fakeHeroes('sanctum'));
+    const reliquary = placed.find(p => p.decalId === 'gun-reliquary')!;
+    expect(Math.hypot(reliquary.x - start.cx, reliquary.z - start.cz)).toBeGreaterThan(40);
+    expect(Math.abs(reliquary.x - start.cx)).toBeLessThan(Math.abs(reliquary.x - arena.cx));
   });
 
   it('ignores a hero tagged for a different map', () => {
-    const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', [
-      { id: 'hero-gullet', tex: fakeTex, map: 'gullet', hint: 'arena-back' },
-    ]);
-    expect(p).toBeNull();
-  });
-
-  it('reads the sibling CAMPAIGN_HERO_DECALS table when the pack omits the field', () => {
-    CAMPAIGN_HERO_DECALS.foundry = [{ id: 'sibling-hero', tex: fakeTex, hint: 'arena-back' }];
-    try {
-      const resolved = resolveHeroDecals('foundry', getCampaignTextures('foundry'));
-      expect(resolved).toHaveLength(1);
-      expect(resolved[0].id).toBe('sibling-hero');
-      const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', resolved);
-      expect(p?.decalId).toBe('sibling-hero');
-    } finally {
-      delete CAMPAIGN_HERO_DECALS.foundry;
-    }
+    const gulletOnly = fakeHeroes('gullet');
+    expect(planHeroPlacements(CAMPAIGN[0].map, 'foundry', gulletOnly)).toEqual([]);
   });
 });

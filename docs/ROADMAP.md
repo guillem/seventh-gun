@@ -49,8 +49,7 @@ Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
 - Perf pass on phones during the arena wave (pixel ratio / draw calls).
 - Netlify site + deploy previews wired to the repo; CI on GitHub Actions
   running `npm test` + `npm run test:e2e` per PR.
-- Campaign-only texture packs + extra artwork (this PR): painted packs from
-  `feat/campaign-art-textures`; extras + one hero plate per map (furnace mouth,
-  pit rim, sanctum apse). Maze still uses `getTextures()`.
+- Campaign-only texture packs + extra artwork (this PR): Opus painted
+  generators + extra/hero placement. Maze `textures.ts` untouched.
 - Cosmetic depth: per-theme ambience layers, more decoration variety,
   intermission text between gun finds.

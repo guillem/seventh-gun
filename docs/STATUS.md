@@ -3,28 +3,25 @@
 Updated: 2026-09-02 — PR: campaign-only texture packs and extra artwork
 (`feat/campaign-art`, #10). Do not merge from this agent.
 
-Painted packs + hero plates taken from `feat/campaign-art-textures`.
+Opus packs from `feat/campaign-art-textures` (#11) replaced the stubs.
 `GEN_VERSION` still 4. Maze stays on `getTextures()`.
 
-## State: campaign art hook + optional hero decals
+## State: Opus packs + extra / hero placement
 
 Maze / `#m=` / editor playtest still use the shared four-theme atlas
 (`getTextures()`). Campaign runs swap walls/floors/ceilings/door (and pit
 sky) for `getCampaignTextures(artId)` and place extra decals / cheap
-meshes. Optional `heroDecals` (pack field or sibling `CAMPAIGN_HERO_DECALS`)
-place **one** prominent ClampToEdge quad per campaign map (arena back wall,
-pit rim, sanctum apse). Empty list → no extra hero; shipped painters from
-`getCampaignHeroDecals()` fill the plates.
+meshes from that pack's `extraDecals`. Hero plates come from
+`getCampaignHeroDecals()` / `CAMPAIGN_HERO_MARKERS` (29 ClampToEdge
+256/512 paintings), placed from each plate's `hint`.
 `GEN_VERSION` is still 4. The seven JSON maps were not rewritten.
 
 - Repo: https://github.com/guillem/seventh-gun (`main`).
 - Netlify: LIVE at https://seventh-gun.netlify.app
-- Texture API lives in `src/render/campaignTextures.ts` — painted packs
-  taken from `origin/feat/campaign-art-textures` (not the tint stubs).
-  Extra placement is renderer-side only (`src/render/campaignDecor.ts`).
-  `getCampaignHeroDecals()` / optional `heroDecals` hang one ClampToEdge
-  plate per map (furnace mouth, pit rim, sanctum apse). Maze stays on
-  `getTextures()`.
+- Texture API: `src/render/campaignTextures.ts` (Opus painted generators).
+  Public: `CAMPAIGN_ART_IDS`, `campaignArtIdFromIndex`,
+  `campaignArtIdFromSeed`, `getCampaignTextures`, `getCampaignHeroDecals`,
+  `CAMPAIGN_HERO_MARKERS`, `CAMPAIGN_PACK_MARKERS`.
 - Extra placement is renderer-side only (`src/render/campaignDecor.ts`),
   driven by map index + `GameMap` room kinds. Nothing is added to
   `generateMap` or `GameMap.decors`.
@@ -38,23 +35,21 @@ pit rim, sanctum apse). Empty list → no extra hero; shipped painters from
 
 | # | Art id | Extra vocabulary (placement, not JSON) |
 |---|---|---|
-| 1 | foundry | furnace decals, slag glow, hanging chains |
-| 2 | gullet | membrane / tooth decals, drip glow, hanging flaps |
-| 3 | catacombs | epitaphs, ossuary shelves, femur decals |
-| 4 | pit | rust decals, outdoor grate/acid floors, indoor chains + sky |
-| 5 | spire | window glow, brass decals, banners |
-| 6 | ward | charts, restraints, clinical lamp strips |
-| 7 | sanctum | relics, veils, arena/ante sigil floor |
+| 1 | foundry | furnace stencil, pour ladle, heat warning, hanging chains |
+| 2 | gullet | sphincter / tooth / drip, hanging flaps |
+| 3 | catacombs | epitaphs, ossuary shelves, bone cross |
+| 4 | pit | rim rust, outdoor crane/hazard floors, indoor chains + ochre sky |
+| 5 | spire | visor glow, floor numerals, dish banners |
+| 6 | ward | biohazard, cot stencil, key-sigil lamps |
+| 7 | sanctum | saint-marks, gun-7 veils, heptagram floor |
 
-Hero default without `hint`: pit → pit-rim, sanctum → sanctum-apse,
-else arena-back. Debug (`?e2e=1`) campaign state includes `artId`.
+Hero hints drive placement (arena-back-wall, pit-floor-idol, apse-altar, …).
+Debug (`?e2e=1`) campaign state includes `artId`.
 
 ## Open / next
 
-- Opus painters are in `campaignTextures.ts` (from `feat/campaign-art-textures`).
-  Keep `CAMPAIGN_ART_IDS`, `campaignArtIdFromIndex`, `getCampaignTextures`,
-  `getCampaignHeroDecals` / optional `heroDecals`, and extraDecal ids.
 - Balance still wants a human Normal run against the maze 20–30 min target.
+- PR #11 can close once this branch carries the painted file.
 
 ## Where things are
 
