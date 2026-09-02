@@ -3,8 +3,9 @@
 Updated: 2026-09-02 — PR: Opus review fixes (P0 campaign SKILL / map-log leak,
 hitscan spread, purity, codec, pause). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 156/156 (300-seed sweep green). `npm run test:e2e` pending re-run after tightening the campaign-SKILL assertion (phase stays non-playing; `runKind` may still be `maze` from the prior run).
-`kind==='vault'` count bump never fired; unused `placeAnnex` rng / `tryDoor`
+`npx tsc --noEmit` clean. `npm test` 156/156 (300-seed sweep green).
+`npm run test:e2e` 63 passed / 3 skipped. `GEN_VERSION` still 4. Maze
+`generateMap` is behavior-identical (dead `kind==='vault'` count bump never fired; unused `placeAnnex` rng / `tryDoor`
 axis / `ENEMIES` import removed without touching the layout stream).
 `dirs.sort(() => rng.float() - 0.5)` in mapgen and cosmetics.ts left as-is
 (Fisher-Yates in cosmetics would risk desyncing baked campaign lights).
