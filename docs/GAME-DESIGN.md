@@ -51,9 +51,11 @@ Living enemies are solid cylinders (`def.radius` + player radius 0.55u);
 death ragdolls are not. Flying wisps still collide in XZ, because their
 hover volume (`[1.75, 2.85]`) overlaps the player's body column
 (`0 .. PLAYER_HEIGHT`) — the eye at 1.7u sits just under it.
-Gun tests (hitscan and player projectiles) are a
-real 3D ray vs that cylinder (XZ circle × [yMin, yMax]) — look-down
-shots on a crawler at your feet connect if the reticle is on the body.
+Gun tests (hitscan and player projectiles) use `enemyGunRadius` /
+`enemyGunVolumeY` so the crawler's visible mesh (legs / abdomen / head
+overhanging `def.radius` 0.5) still counts. Look-down at a crawler ~3u
+ahead that fills the lower view connects; the floor (y=0) occludes a ray
+that has not already hit a body.
 Wisp volume is centered on `hoverY` (visible torso), not stacked above
 the head.
 

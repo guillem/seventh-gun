@@ -6,7 +6,7 @@ import type { EnemyEnt } from '../../src/sim/sim';
 import type { SimEvent } from '../../src/sim/types';
 import { CELL, PLAYER_EYE, PLAYER_RADIUS } from '../../src/sim/types';
 import { WEAPONS, weapon } from '../../src/sim/weapons';
-import { ENEMIES, enemyVolumeY } from '../../src/sim/enemyTypes';
+import { ENEMIES, enemyGunRadius, enemyGunVolumeY, enemyVolumeY } from '../../src/sim/enemyTypes';
 import { hasLineOfSight } from '../../src/sim/physics';
 import type { SimInput } from '../../src/sim/sim';
 
@@ -266,6 +266,8 @@ describe('flying enemy hitboxes track the visible body', () => {
 
 describe('grounded close-range hitscan is a 3D cylinder test', () => {
   const vol = enemyVolumeY(ENEMIES.crawler);
+  const gunVol = enemyGunVolumeY(ENEMIES.crawler);
+  const gunR = enemyGunRadius(ENEMIES.crawler);
   // Against the body: living collision keeps this gap. Old closest-XZ-then-Y
   // sampled the floor (y < yMin) on a steep look-down and missed.
   const D = PLAYER_RADIUS + ENEMIES.crawler.radius + 0.02;
@@ -277,11 +279,49 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
     return { sim, crawler: sim.enemies[sim.enemies.length - 1] };
   }
 
+  function crawlerAhead(dist: number): { sim: Sim; crawler: EnemyEnt } {
+    const sim = freshSim();
+    sim.player.yaw = 0;
+    crawlerAt(sim, sim.player.x, sim.player.z - dist);
+    return { sim, crawler: sim.enemies[sim.enemies.length - 1] };
+  }
+
   it('point-blank look-down at a crawler against the body hits', () => {
     const { sim, crawler } = closeCrawler();
     expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
     sim.step(input({ fire: true, pitch: aimPitchAt(vol.yCenter, D) }));
     expect(crawler.hp, 'reticle on the visible body must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  it('nearly-horizontal close shot hits', () => {
+    // Eye is 1.7u; crawler yMax is ~1.15. A true pitch-0 shot always flies
+    // over. "Nearly horizontal" here is a shallow look-down (~12°) at ~3u
+    // that still clips the visible top of the body.
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: -0.22 }));
+    expect(crawler.hp, 'nearly-horizontal close shot must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  it('playtest pose: crawler ~3u ahead, look-down through the visible front hits', () => {
+    // Mesh head/thorax sit ~0.55–0.7u closer than the body origin. A downward
+    // pitch that still intersects that visible volume (filling the lower view)
+    // used to miss the def.radius 0.5 cylinder and punch the floor.
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
+    const visFront = dist - 0.65;
+    sim.step(input({ fire: true, pitch: aimPitchAt(0.12, visFront) }));
+    expect(crawler.hp, 'look-down on the visible front must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  it('playtest pose: eye-aimed at crawler thorax ~3u ahead hits', () => {
+    const dist = 3.0;
+    const { sim, crawler } = crawlerAhead(dist);
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: aimPitchAt(0.48, dist - 0.5) }));
+    expect(crawler.hp, 'pitch through the visible thorax must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
   });
 
   it('aiming well above the crawler head misses', () => {
@@ -290,9 +330,12 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
     expect(crawler.hp, 'shot clearly over the head must miss').toBe(crawler.maxHp);
   });
 
-  it('aiming into the floor in front of a close crawler misses', () => {
-    const { sim, crawler } = closeCrawler();
-    sim.step(input({ fire: true, pitch: aimPitchAt(0, D * 0.35) }));
+  it('aiming into the floor in front of a crawler misses', () => {
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    // Floor well in front of even the enlarged gun cylinder (front ≈ dist - gunR).
+    expect(dist - gunR).toBeGreaterThan(1.4);
+    sim.step(input({ fire: true, pitch: aimPitchAt(0, 1.0) }));
     expect(crawler.hp, 'shot into the floor in front must miss').toBe(crawler.maxHp);
   });
 

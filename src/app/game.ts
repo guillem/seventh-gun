@@ -240,6 +240,16 @@ export class Game {
     return this.phase === 'playing' || this.phase === 'map';
   }
 
+  /** In-game HUD (HEALTH / ammo / minimap). Title, overlays, editor, dead, won: hide. */
+  private get showInGameHud(): boolean {
+    return this.phase === 'playing' || this.phase === 'map' || this.phase === 'paused';
+  }
+
+  private setMinimapVisible(on: boolean): void {
+    if (!this.miniCanvas) return;
+    this.miniCanvas.style.display = on ? '' : 'none';
+  }
+
   private applyDifficulty(d: Difficulty): void {
     this.settings.difficulty = d;
     saveSettings(this.settings);
@@ -344,7 +354,7 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showMap(false);
     this.screens.showTouch(this.input.isTouch);
-    if (this.miniCanvas) this.miniCanvas.style.display = '';
+    this.setMinimapVisible(true);
     this.phase = 'playing';
     this.deathHandled = false;
     this.winHandled = false;
@@ -623,7 +633,8 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
-    if (this.miniCanvas) this.miniCanvas.style.display = '';
+    this.setMinimapVisible(false);
+    this.hud.clear();
     this.input.releaseLock();
   }
 
@@ -653,7 +664,8 @@ export class Game {
     this.screens.showDeathRow(false);
     this.screens.showMap(false);
     this.screens.showTouch(false);
-    if (this.miniCanvas) this.miniCanvas.style.display = 'none';
+    this.setMinimapVisible(false);
+    this.hud.clear();
     this.input.releaseLock();
     ed.show();
   }
@@ -788,15 +800,16 @@ export class Game {
     const moving = Math.abs(sim.player.x - (this.lastPx ?? sim.player.x)) + Math.abs(sim.player.z - (this.lastPz ?? sim.player.z)) > 0.001;
     this.lastPx = sim.player.x; this.lastPz = sim.player.z;
 
-    this.renderer.update(dtReal, sim, moving);
-    if (this.phase !== 'editing') {
+    if (this.showInGameHud) {
+      this.renderer.update(dtReal, sim, moving);
       this.hud.draw(sim, { fullMapOpen: this.phase === 'map', paused: this.phase === 'paused' });
-    }
-    if (this.miniCanvas && this.phase !== 'title' && this.phase !== 'editing') {
-      this.hud.drawMinimap(sim, 0, false);
-    }
-    if (this.phase === 'map') {
-      this.hud.drawMinimap(sim, 0, true);
+      this.setMinimapVisible(true);
+      if (this.miniCanvas) this.hud.drawMinimap(sim, 0, false);
+      if (this.phase === 'map') this.hud.drawMinimap(sim, 0, true);
+    } else {
+      this.setMinimapVisible(false);
+      this.hud.clear();
+      this.renderer.render();
     }
   };
 
@@ -822,6 +835,8 @@ export class Game {
     }
     this.input.releaseLock();
     this.audio.stopLoops();
+    this.setMinimapVisible(false);
+    this.hud.clear();
   }
 
   private showVictory(): void {
@@ -963,6 +978,7 @@ export class Game {
         this.ensureEditor().loadBlueprint(bp);
         this.openEditor();
       },
+      editorShare: () => this.editor?.sharePayload() ?? null,
       stampEditorRoom: (opts: { x: number; z: number; w: number; h: number }) => {
         const ed = this.ensureEditor();
         const room = ed.doc.stampRoom({ x: opts.x, z: opts.z, w: opts.w, h: opts.h, kind: 'spine' });

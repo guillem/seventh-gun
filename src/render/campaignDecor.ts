@@ -17,7 +17,7 @@ export const CAMPAIGN_AMBIENT: Record<CampaignArtId, [number, number, number]> =
   gullet: [0.30, 0.10, 0.12],
   catacombs: [0.16, 0.16, 0.15],
   pit: [0.20, 0.18, 0.10],
-  spire: [0.16, 0.14, 0.24],
+  spire: [0.20, 0.18, 0.16],
   ward: [0.12, 0.20, 0.20],
   sanctum: [0.18, 0.10, 0.22],
 };
@@ -27,7 +27,7 @@ export const CAMPAIGN_FOG: Record<CampaignArtId, number> = {
   gullet: 0x16080c,
   catacombs: 0x0e0d0b,
   pit: 0x141208,
-  spire: 0x0c0a14,
+  spire: 0x161410,
   ward: 0x0a1212,
   sanctum: 0x100814,
 };
@@ -37,7 +37,7 @@ export const CAMPAIGN_DOOR_EMISSIVE: Record<CampaignArtId, number> = {
   gullet: 0x3a0810,
   catacombs: 0x2a2418,
   pit: 0x3a3010,
-  spire: 0x2a1840,
+  spire: 0x5a3a18,
   ward: 0x103030,
   sanctum: 0x2a1050,
 };
@@ -215,7 +215,7 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
       push({ kind: 'decal', decalId: 'spire-floor-numeral', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.7 });
     }
     for (const s of slotsFor(SPINE, 4, 2)) {
-      push({ kind: 'banner', decalId: 'spire-dish', x: s.x, y: 2.4, z: s.z, yaw: s.yaw, w: 0.7, h: 2.2, color: 0x3a2c4a });
+      push({ kind: 'banner', decalId: 'spire-dish', x: s.x, y: 2.4, z: s.z, yaw: s.yaw, w: 0.7, h: 2.2, color: 0x4a3a28 });
     }
   } else if (artId === 'ward') {
     for (const s of slotsFor(WORK, 3, 0)) {

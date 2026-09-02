@@ -106,6 +106,23 @@ export function enemyVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCent
   return { yMin: 0.1, yMax: def.height + 0.15, yCenter: def.height * 0.6 };
 }
 
+/**
+ * XZ gun-test radius. Movement / AI / body-blocking keep `def.radius`.
+ * Crawler mesh (abdomen + head + legs) overhangs 0.5u — look-down at the
+ * visible front must still connect.
+ */
+export function enemyGunRadius(def: EnemyDef): number {
+  if (def.type === 'crawler') return 0.95;
+  return def.radius + 0.12;
+}
+
+/** Vertical gun-test slab. Grounded feet/legs sit on the floor (yMin 0). */
+export function enemyGunVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCenter: number } {
+  const v = enemyVolumeY(def);
+  if (def.flying) return v;
+  return { yMin: 0, yMax: v.yMax, yCenter: v.yCenter };
+}
+
 /** Distance at which an idle enemy hears a noise of the given loudness. */
 export function noiseHearRadius(loudness: number, hearRange: number): number {
   return loudness * 0.45 + hearRange;

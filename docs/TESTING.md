@@ -12,8 +12,10 @@
   8 pellets / ~5.7° cone), chaingun bloom, projectile identity
   (nails straight/fast, grenades arc), rail pierce, Seventh multi-kill splash,
   power ladder, dry-fire no-spam, starting stacks. Close crawler look-down
-  hits / over-head and floor-in-front miss; husk at range; wisp torso vs
-  above-head. `tests/unit/physics.test.ts` — 3D cylinder ray (not closest-XZ).
+  hits / over-head and floor-in-front miss; nearly-horizontal close shot;
+  playtest pose (~3u ahead, look-down through the visible front);
+  husk at range; wisp torso vs above-head. `tests/unit/physics.test.ts` —
+  3D cylinder ray (not closest-XZ); floor clip; gun radius vs visible crawler.
 - `tests/unit/sim.test.ts` — difficulty multipliers, determinism (snapshot
   equality over scripted input), wake conditions, no attacks through closed
   doors, dodgeable projectiles, death lockout, win path.
@@ -37,7 +39,8 @@
 - `tests/unit/editor.test.ts` — new maps include a START room that cannot
   be erased; stamp rooms + L-link + gun + enemies compiles / encodes /
   decodes / validates; erase will not drop the only start; economy
-  warning is non-blocking; library upsert/cap/quota.
+  warning is non-blocking; library upsert/cap/quota; START-only WIPs still
+  encode `SGMAP.v1.` despite VALIDATE errors.
 - `tests/unit/sim.test.ts` — also visual LOS: opening a door reveals
   immediately while collision still waits for `offset >= 0.65`.
 - `tests/unit/campaignArt.test.ts` — `campaignArtIdFromIndex(1)==='foundry'`,
@@ -77,8 +80,8 @@ RETRY MAP + COPY LINK, CAMPAIGN begin / startCampaign(n) / death retry /
 continue after completeMap, campaign screen lists 7 named maps and
 winning map 1 unlocks map 2, completing map 7 shows THE SEVENTH IS SILENT,
 campaign SKILL does not start a maze, Foundry does not log `campaign:` seeds,
-maze / `#m=` `state().campaign` is null (campaign has artId), editor `?edit=1` chrome + visible canvas +
-START room + `loadBlueprint` / PLAYTEST, mobile touch HUD with ≥44px FIRE
+maze / `#m=` `state().campaign` is null (campaign has artId), quit-to-title MAP LOG hides HEALTH/minimap, editor `?edit=1` chrome + visible canvas +
+START room + `loadBlueprint` / PLAYTEST, COPY LINK on a START-only invalid map emits `SGMAP` / `#m=`, mobile touch HUD with ≥44px FIRE
 button (title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR),
 FIRE latches and unlatches.
 

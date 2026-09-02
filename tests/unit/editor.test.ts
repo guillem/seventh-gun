@@ -174,6 +174,15 @@ describe('map library', () => {
     expect(() => upsertLibrary({ title: 'Z', code: 'SGMAP.v1.z' }, storage)).not.toThrow();
   });
 
+  it('START-only maps still encode a share code despite VALIDATE errors', () => {
+    const doc = new EditorDoc();
+    const { errors } = doc.validate();
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some(e => /arena/i.test(e))).toBe(true);
+    const code = doc.encode();
+    expect(code.startsWith('SGMAP.v1.')).toBe(true);
+  });
+
   it('builds a .sgmap filename from the title', () => {
     expect(filenameFromTitle('TIN HALL')).toBe('tin-hall.sgmap');
     expect(filenameFromTitle('')).toBe('untitled.sgmap');

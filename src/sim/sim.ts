@@ -9,7 +9,10 @@ import type {
 import { generateMap } from './mapgen';
 import { DIFFICULTIES } from './difficulty';
 import { WEAPONS, weapon } from './weapons';
-import { DEATH_NOISE_RADIUS, ENEMIES, enemyVolumeY, noiseHearRadius, type EnemyDef } from './enemyTypes';
+import {
+  DEATH_NOISE_RADIUS, ENEMIES, enemyGunRadius, enemyGunVolumeY, enemyVolumeY,
+  noiseHearRadius, type EnemyDef,
+} from './enemyTypes';
 import {
   isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
@@ -313,6 +316,7 @@ export class Sim {
     this.emitNoise(p.x, p.z, w.loudness);
     this.events.push({ t: 'shot', gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
 
+    // Same basis as the camera (y = PLAYER_EYE, YXZ yaw/pitch, look -Z).
     const dirX = -Math.sin(p.yaw) * Math.cos(p.pitch);
     const dirY = Math.sin(p.pitch);
     const dirZ = -Math.cos(p.yaw) * Math.cos(p.pitch);
@@ -376,15 +380,22 @@ export class Sim {
     damage: number, pierce: boolean, w: (typeof WEAPONS)[number], visual: boolean,
   ) {
     const wall = raycastWall(this, ox, oz, dirX, dirZ, 120);
-    const maxD = Math.min(wall.dist, 120);
-    // gather enemy hits along the ray (3D cylinder, not closest-XZ-then-Y)
+    let maxD = Math.min(wall.dist, 120);
+    // Floor occludes: a look-down ray must not continue underground and
+    // clip a body whose XZ disc sits past the impact. Body hits that occur
+    // before y=0 still count.
+    if (dirY < -1e-8) {
+      const tFloor = (0 - oy) / dirY;
+      if (tFloor > 0) maxD = Math.min(maxD, tFloor);
+    }
+    // gather enemy hits along the ray (3D cylinder vs visible gun volume)
     const hits: { e: EnemyEnt; t: number }[] = [];
     for (const e of this.enemies) {
       if (e.dead) continue;
-      const vol = enemyVolumeY(e.def);
+      const vol = enemyGunVolumeY(e.def);
       const t = raycastCylinder(
         ox, oy, oz, dirX, dirY, dirZ,
-        e.x, e.z, e.def.radius + 0.12,
+        e.x, e.z, enemyGunRadius(e.def),
         vol.yMin, vol.yMax, maxD,
       );
       if (t === null) continue;
@@ -464,8 +475,8 @@ export class Sim {
           let best: EnemyEnt | null = null;
           for (const e of this.enemies) {
             if (e.dead) continue;
-            const vol = enemyVolumeY(e.def);
-            const rr = e.def.radius + p.radius;
+            const vol = enemyGunVolumeY(e.def);
+            const rr = enemyGunRadius(e.def) + p.radius;
             const y0 = vol.yMin - p.radius, y1 = vol.yMax + p.radius;
             let t: number | null;
             if (span < 1e-12) {

@@ -67,6 +67,16 @@ export class Hud {
     this.lowHealthPulse += dt;
   }
 
+  /** Wipe the overlay so title / map-log / campaign never leak HEALTH etc. */
+  clear(): void {
+    const W = window.innerWidth, H = window.innerHeight;
+    this.g.clearRect(0, 0, W, H);
+    if (this.miniCtx && this.miniCanvas) {
+      this.miniCtx.setTransform(1, 0, 0, 1, 0, 0);
+      this.miniCtx.clearRect(0, 0, this.miniCanvas.width, this.miniCanvas.height);
+    }
+  }
+
   draw(sim: Sim, opts: { fullMapOpen: boolean; paused: boolean }): void {
     const g = this.g;
     const W = window.innerWidth, H = window.innerHeight;

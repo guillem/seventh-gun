@@ -247,6 +247,40 @@ test.describe('desktop', () => {
     expect(state.seed).toBe('maplog-e2e');
   });
 
+  test('Quit then MAP LOG hides HEALTH / minimap', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
+    await page.locator('#seed-input').fill('hud-leak-e2e');
+    await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
+      return s?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: { pause: () => void } }).__GAME__.pause());
+    await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
+    await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
+    await page.getByRole('button', { name: 'MAP LOG' }).click();
+    await expect(page.locator('#maplog-screen')).toBeVisible();
+    await page.waitForTimeout(80);
+    const leak = await page.evaluate(() => {
+      const mini = document.getElementById('minimap') as HTMLCanvasElement | null;
+      const hud = document.getElementById('hud') as HTMLCanvasElement | null;
+      const miniShown = !!mini && mini.style.display !== 'none' && mini.offsetParent !== null;
+      let hudInk = false;
+      if (hud) {
+        const g = hud.getContext('2d')!;
+        const d = g.getImageData(0, 0, hud.width, hud.height).data;
+        for (let i = 3; i < d.length; i += 16) {
+          if (d[i] > 12) { hudInk = true; break; }
+        }
+      }
+      return { miniShown, hudInk, phase: (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase };
+    });
+    expect(leak.phase).not.toBe('playing');
+    expect(leak.miniShown).toBe(false);
+    expect(leak.hudInk).toBe(false);
+  });
+
   test('E opens a door (door state changes, becomes passable)', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-door'));

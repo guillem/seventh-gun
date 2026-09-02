@@ -1027,237 +1027,221 @@ function pitRimRust(): HTMLCanvasElement {
 }
 
 // ================================================================ 5. SPIRE
-// cold grey composite, copper traces, elevation marks, antenna lattice
+// cold stone / copper ascent: masonry, elevation marks, antenna lattice
+// (not neon circuit panels, not a mesh ceiling, not a purple numeric wall)
 
 function spireWall(): HTMLCanvasElement {
   const { c, g } = canvas(128);
   const rng = seed('spire', 'wall');
-  g.fillStyle = '#2e343a';
+  g.fillStyle = '#3a3c3e';
   g.fillRect(0, 0, 128, 128);
-  // chamfered composite panels
-  for (let y = 0; y < 128; y += 64) {
-    for (let x = 0; x < 128; x += 64) {
-      const pg = g.createLinearGradient(x, y, x, y + 64);
-      pg.addColorStop(0, '#5a636b');
-      pg.addColorStop(0.6, '#474f57');
-      pg.addColorStop(1, '#39424a');
+  // ashlar masonry — staggered cold stone courses, mortar not panel seams
+  const courses = [0, 20, 42, 62, 84, 106];
+  for (let i = 0; i < courses.length; i++) {
+    const y = courses[i];
+    const h = (courses[i + 1] ?? 128) - y;
+    const stagger = (i % 2) * 16;
+    for (let x = -stagger; x < 128; x += 32) {
+      const shade = 0.86 + rng() * 0.18;
+      const r = (72 * shade) | 0, gv = (74 * shade) | 0, b = (76 * shade) | 0;
+      const pg = g.createLinearGradient(x, y, x, y + h);
+      pg.addColorStop(0, `rgb(${r + 10},${gv + 10},${b + 8})`);
+      pg.addColorStop(1, `rgb(${r - 8},${gv - 8},${b - 6})`);
       g.fillStyle = pg;
-      g.beginPath();
-      g.moveTo(x + 9, y + 3); g.lineTo(x + 55, y + 3); g.lineTo(x + 61, y + 9);
-      g.lineTo(x + 61, y + 55); g.lineTo(x + 55, y + 61); g.lineTo(x + 9, y + 61);
-      g.lineTo(x + 3, y + 55); g.lineTo(x + 3, y + 9);
-      g.closePath(); g.fill();
-      g.strokeStyle = '#1d2227';
-      g.lineWidth = 2;
-      g.stroke();
-      g.fillStyle = 'rgba(226,238,248,0.10)';
-      g.fillRect(x + 9, y + 4, 46, 2);
+      g.fillRect(x + 1, y + 1, 30, h - 2);
+      g.fillStyle = 'rgba(210,208,200,0.10)';
+      g.fillRect(x + 3, y + 2, 24, 1);
+      g.fillStyle = 'rgba(18,16,14,0.28)';
+      g.fillRect(x + 2, y + h - 3, 26, 1);
     }
   }
-  // copper traces — warm metal, never neon
+  g.fillStyle = '#2a2c2e';
+  for (const y of courses) g.fillRect(0, y, 128, 2);
   wrapDraw(g, 128, (gg) => {
-    const r2 = seed('spire', 'trace');
-    for (let i = 0; i < 8; i++) {
-      let x = 8 + r2() * 112, y = 8 + r2() * 112;
-      gg.strokeStyle = '#c07a3c';
-      gg.lineWidth = 1.6;
-      gg.beginPath(); gg.moveTo(x, y);
-      for (let s = 0; s < 4; s++) {
-        if (r2() > 0.5) x += (r2() > 0.5 ? 1 : -1) * (8 + r2() * 22);
-        else y += (r2() > 0.5 ? 1 : -1) * (8 + r2() * 22);
-        gg.lineTo(x, y);
-      }
-      gg.stroke();
-      gg.fillStyle = '#e0a05a';
-      gg.beginPath(); gg.arc(x, y, 2.4, 0, Math.PI * 2); gg.fill();
-    }
+    gg.fillStyle = '#2a2c2e';
+    for (let x = 0; x < 128; x += 32) gg.fillRect(x, 0, 2, 128);
   });
-  // elevation tick ladder up the seam
-  g.fillStyle = '#9fb0bd';
-  for (let y = 4; y < 128; y += 8) g.fillRect(62, y, y % 32 === 4 ? 8 : 4, 2);
-  g.fillStyle = '#cddae4';
-  segDigit(g, 7, 70, 8, 9, 15, 2);
-  // antenna lattice recess
-  g.fillStyle = '#12171b';
-  g.fillRect(84, 76, 38, 44);
-  g.strokeStyle = '#8b98a3';
-  g.lineWidth = 1.4;
-  for (let i = 0; i < 5; i++) {
-    g.beginPath();
-    g.moveTo(84, 76 + i * 11); g.lineTo(122, 87 + i * 11);
-    g.moveTo(122, 76 + i * 11); g.lineTo(84, 87 + i * 11);
-    g.stroke();
+  // copper weather band — a single horizontal strap, not a circuit trace
+  g.fillStyle = '#6a3e22';
+  g.fillRect(0, 60, 128, 5);
+  g.fillStyle = '#b8733a';
+  g.fillRect(0, 61, 128, 2);
+  g.fillStyle = '#d4a06a';
+  g.fillRect(0, 61, 128, 1);
+  for (const x of [8, 40, 72, 104]) rivet(g, x, 62, 2, '#e0b07a', '#4a2814');
+  // carved elevation marks on a stone pilaster
+  g.fillStyle = '#4e5052';
+  g.fillRect(4, 0, 14, 128);
+  g.fillStyle = '#2e3032';
+  g.fillRect(5, 0, 1, 128); g.fillRect(16, 0, 1, 128);
+  g.fillStyle = '#c4b49a';
+  for (let y = 6; y < 128; y += 10) g.fillRect(7, y, y % 40 === 6 ? 9 : 5, 2);
+  g.fillStyle = '#b8733a';
+  g.fillRect(8, 8, 6, 2);
+  // antenna lattice in a recessed masonry window (copper wires, stone frame)
+  g.fillStyle = '#1c1d1e';
+  g.fillRect(86, 78, 36, 42);
+  g.strokeStyle = '#5c4030';
+  g.lineWidth = 3;
+  g.strokeRect(86, 78, 36, 42);
+  g.strokeStyle = '#b8733a';
+  g.lineWidth = 1.3;
+  for (let i = 1; i < 4; i++) {
+    g.beginPath(); g.moveTo(86 + i * 9, 78); g.lineTo(86 + i * 9, 120); g.stroke();
+    g.beginPath(); g.moveTo(86, 78 + i * 10); g.lineTo(122, 78 + i * 10); g.stroke();
   }
-  g.strokeStyle = '#aab7c2';
-  g.lineWidth = 2;
-  g.strokeRect(84, 76, 38, 44);
-  noise(g, 128, rng, 700, 0.05);
+  speckle(g, 128, rng, 40, 'rgba(20,18,16,0.45)', 1, 3);
+  noise(g, 128, rng, 650, 0.05);
   return c;
 }
 
 function spireFloor(): HTMLCanvasElement {
   const { c, g } = canvas(128);
   const rng = seed('spire', 'floor');
-  g.fillStyle = '#333b42';
+  g.fillStyle = '#3e3f41';
   g.fillRect(0, 0, 128, 128);
-  // perforated deck plate
-  for (let y = 4; y < 128; y += 8) {
-    for (let x = 4 + ((y / 8) % 2 ? 4 : 0); x < 128; x += 8) {
-      g.fillStyle = 'rgba(12,16,20,0.65)';
-      g.beginPath(); g.arc(x, y, 1.8, 0, Math.PI * 2); g.fill();
-      g.fillStyle = 'rgba(190,206,220,0.10)';
-      g.beginPath(); g.arc(x - 0.6, y - 0.6, 0.9, 0, Math.PI * 2); g.fill();
+  // worn stone flags
+  for (let y = 0; y < 128; y += 32) {
+    for (let x = 0; x < 128; x += 32) {
+      const shade = 0.88 + rng() * 0.16;
+      g.fillStyle = `rgb(${(68 * shade) | 0},${(66 * shade) | 0},${(62 * shade) | 0})`;
+      g.fillRect(x + 2, y + 2, 28, 28);
+      g.fillStyle = 'rgba(200,196,186,0.08)';
+      g.fillRect(x + 3, y + 3, 20, 2);
     }
   }
-  // copper inlay seams on the 64 grid
-  for (const p of [0, 64]) {
-    g.fillStyle = '#1a2026';
-    g.fillRect(p, 0, 5, 128); g.fillRect(0, p, 128, 5);
-    g.fillStyle = '#b3743a';
-    g.fillRect(p + 2, 0, 1.5, 128); g.fillRect(0, p + 2, 128, 1.5);
+  g.fillStyle = '#2a2b2c';
+  for (let i = 0; i < 128; i += 32) {
+    g.fillRect(i, 0, 2, 128); g.fillRect(0, i, 128, 2);
   }
-  // anti-slip tread strips
-  for (const ty of [26, 90]) {
-    g.fillStyle = 'rgba(150,166,178,0.18)';
-    g.fillRect(0, ty, 128, 7);
-    g.fillStyle = 'rgba(10,14,18,0.5)';
-    for (let x = 0; x < 128; x += 6) g.fillRect(x, ty, 3, 7);
-  }
-  noise(g, 128, rng, 650, 0.05);
+  // copper inlay cross — drainage, not a tech grid
+  g.fillStyle = '#5a3218';
+  g.fillRect(62, 0, 5, 128); g.fillRect(0, 62, 128, 5);
+  g.fillStyle = '#b8733a';
+  g.fillRect(63, 0, 2, 128); g.fillRect(0, 63, 128, 2);
+  speckle(g, 128, rng, 28, 'rgba(22,20,18,0.5)', 1, 4);
+  noise(g, 128, rng, 600, 0.05);
   return c;
 }
 
 function spireCeiling(): HTMLCanvasElement {
   const { c, g } = canvas(64);
   const rng = seed('spire', 'ceil');
-  g.fillStyle = '#1b2126';
+  g.fillStyle = '#2c2d2e';
   g.fillRect(0, 0, 64, 64);
-  // truss lattice with a cold light strip
-  g.strokeStyle = '#59656f';
+  // stone coffer — not a wire mesh / truss lattice
+  g.fillStyle = '#242526';
+  g.fillRect(8, 8, 48, 48);
+  g.strokeStyle = '#4a4c4e';
   g.lineWidth = 3;
-  for (let i = 0; i < 4; i++) {
-    g.beginPath();
-    g.moveTo(i * 16, 0); g.lineTo(i * 16 + 16, 64);
-    g.moveTo(i * 16 + 16, 0); g.lineTo(i * 16, 64);
-    g.stroke();
-  }
-  const strip = g.createLinearGradient(0, 26, 0, 38);
-  strip.addColorStop(0, 'rgba(206,230,255,0.10)');
-  strip.addColorStop(0.5, 'rgba(226,242,255,0.55)');
-  strip.addColorStop(1, 'rgba(206,230,255,0.10)');
-  g.fillStyle = strip;
-  g.fillRect(0, 26, 64, 12);
-  g.fillStyle = '#39424a';
-  g.fillRect(0, 24, 64, 2); g.fillRect(0, 38, 64, 2);
-  noise(g, 64, rng, 300, 0.05);
+  g.strokeRect(8, 8, 48, 48);
+  g.fillStyle = '#363738';
+  g.fillRect(14, 14, 36, 36);
+  // copper tie rod across the vault
+  g.fillStyle = '#6a3e22';
+  g.fillRect(0, 30, 64, 5);
+  g.fillStyle = '#b8733a';
+  g.fillRect(0, 31, 64, 2);
+  for (const x of [12, 32, 52]) rivet(g, x, 32, 2, '#e0b07a', '#4a2814');
+  noise(g, 64, rng, 280, 0.05);
   return c;
 }
 
 function spireDoor(): HTMLCanvasElement {
   const { c, g } = canvas(128);
   const rng = seed('spire', 'door');
-  g.fillStyle = '#20262c';
+  g.fillStyle = '#2a2b2c';
   g.fillRect(0, 0, 128, 128);
-  // two chamfered leaves meeting on a centre seam
-  for (const lx of [2, 66]) {
-    const pg = g.createLinearGradient(lx, 0, lx + 60, 0);
-    pg.addColorStop(0, '#4c555d');
-    pg.addColorStop(0.5, '#616b74');
-    pg.addColorStop(1, '#39424a');
+  // two masonry leaves, copper hinge straps — stone, not a purple terminal
+  for (const lx of [4, 66]) {
+    const pg = g.createLinearGradient(lx, 0, lx + 58, 0);
+    pg.addColorStop(0, '#5a5c5e');
+    pg.addColorStop(0.5, '#4a4c4e');
+    pg.addColorStop(1, '#3a3c3e');
     g.fillStyle = pg;
-    g.beginPath();
-    g.moveTo(lx + 8, 2); g.lineTo(lx + 60, 2); g.lineTo(lx + 60, 126);
-    g.lineTo(lx + 8, 126); g.lineTo(lx, 118); g.lineTo(lx, 10);
-    g.closePath(); g.fill();
-    g.strokeStyle = '#161b20';
+    g.fillRect(lx, 4, 58, 120);
+    g.strokeStyle = '#1c1d1e';
     g.lineWidth = 2;
-    g.stroke();
+    g.strokeRect(lx, 4, 58, 120);
+    // mortar courses on the leaf
+    g.fillStyle = 'rgba(24,22,20,0.45)';
+    for (let y = 16; y < 120; y += 14) g.fillRect(lx + 4, y, 50, 1);
   }
-  g.fillStyle = '#0e1216';
+  g.fillStyle = '#1a1b1c';
   g.fillRect(62, 0, 4, 128);
-  // copper trace jumping the seam
-  g.strokeStyle = '#c07a3c';
-  g.lineWidth = 2;
-  g.beginPath();
-  g.moveTo(20, 96); g.lineTo(52, 96); g.lineTo(52, 72); g.lineTo(76, 72); g.lineTo(76, 100); g.lineTo(108, 100);
-  g.stroke();
-  g.fillStyle = '#e0a05a';
-  for (const [px, py] of [[20, 96], [108, 100], [64, 72]] as const) {
-    g.beginPath(); g.arc(px, py, 3, 0, Math.PI * 2); g.fill();
+  // copper straps
+  for (const sy of [18, 96]) {
+    g.fillStyle = '#6a3e22';
+    g.fillRect(10, sy, 108, 10);
+    g.fillStyle = '#b8733a';
+    g.fillRect(10, sy + 2, 108, 5);
+    for (const x of [18, 44, 84, 110]) rivet(g, x, sy + 5, 2.4, '#e0b07a', '#4a2814');
   }
-  // elevation readout window
-  g.fillStyle = '#0a1014';
-  g.fillRect(34, 24, 60, 30);
-  g.strokeStyle = '#8b98a3';
+  // carved elevation plaque (incised stone, not a glowing 7-segment readout)
+  g.fillStyle = '#323436';
+  g.fillRect(40, 36, 48, 36);
+  g.strokeStyle = '#b8733a';
   g.lineWidth = 2;
-  g.strokeRect(34, 24, 60, 30);
-  g.fillStyle = '#9ad8ff';
-  segDigit(g, 1, 42, 30, 12, 18, 3);
-  segDigit(g, 8, 60, 30, 12, 18, 3);
-  segDigit(g, 3, 78, 30, 12, 18, 3);
-  // mag clamps top and bottom
-  for (const cy of [8, 116]) {
-    g.fillStyle = '#788692';
-    g.fillRect(50, cy, 28, 6);
-    g.fillStyle = '#c07a3c';
-    g.fillRect(56, cy + 2, 16, 2);
-  }
-  noise(g, 128, rng, 500, 0.05);
+  g.strokeRect(40, 36, 48, 36);
+  g.fillStyle = '#c4b49a';
+  g.fillRect(50, 42, 6, 24);
+  g.fillRect(50, 42, 22, 6);
+  g.fillRect(66, 42, 6, 24);
+  g.fillStyle = '#8a7a62';
+  g.fillRect(44, 66, 40, 2);
+  noise(g, 128, rng, 480, 0.05);
   return c;
 }
 
 function spireFloorNumeral(): HTMLCanvasElement {
   const { c, g } = canvas(64);
-  // level plate: big seven-segment 7 on a bracket
-  g.fillStyle = 'rgba(28,34,40,0.9)';
+  // landing plaque: carved masonry 7, copper frame
+  g.fillStyle = 'rgba(48,46,42,0.92)';
   g.fillRect(8, 10, 48, 44);
-  g.strokeStyle = '#c07a3c';
+  g.strokeStyle = '#b8733a';
   g.lineWidth = 2.5;
   g.strokeRect(8, 10, 48, 44);
-  g.fillStyle = '#dfeaf4';
-  segDigit(g, 7, 22, 16, 22, 32, 5);
-  g.fillStyle = '#c07a3c';
+  g.fillStyle = '#c4b49a';
+  g.fillRect(18, 16, 28, 6);
+  g.fillRect(36, 16, 7, 30);
+  g.fillStyle = '#6a3e22';
   g.fillRect(14, 50, 36, 2);
   return c;
 }
 
 function spireVisorStripe(): HTMLCanvasElement {
   const { c, g } = canvas(64);
-  // sensor visor: copper bezel, cold slit
-  g.fillStyle = '#39424a';
+  // observation slit in masonry, copper bezel — dark, not a neon visor
+  g.fillStyle = '#4a4c4e';
   g.beginPath();
   g.moveTo(2, 26); g.lineTo(62, 22); g.lineTo(62, 42); g.lineTo(2, 38);
   g.closePath(); g.fill();
-  const slit = g.createLinearGradient(0, 28, 0, 38);
-  slit.addColorStop(0, 'rgba(180,220,255,0.35)');
-  slit.addColorStop(0.5, '#dff2ff');
-  slit.addColorStop(1, 'rgba(120,170,220,0.3)');
-  g.fillStyle = slit;
-  g.fillRect(7, 28, 50, 8);
-  g.fillStyle = '#c07a3c';
+  g.fillStyle = '#1a1612';
+  g.fillRect(8, 28, 48, 8);
+  g.fillStyle = '#b8733a';
   g.fillRect(2, 22, 4, 18); g.fillRect(58, 20, 4, 20);
-  g.fillStyle = 'rgba(20,28,34,0.7)';
-  for (let x = 10; x < 58; x += 8) g.fillRect(x, 28, 2, 8);
+  g.fillStyle = 'rgba(180,150,100,0.18)';
+  g.fillRect(8, 30, 48, 2);
   return c;
 }
 
 function spireDish(): HTMLCanvasElement {
   const { c, g } = canvas(64);
-  // parabolic dish on a strut
-  g.fillStyle = '#8d99a4';
+  // tarnished copper dish on a masonry strut (roof antenna)
+  g.fillStyle = '#8a5a32';
   g.beginPath(); g.ellipse(30, 26, 22, 20, -0.3, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#5b666f';
+  g.fillStyle = '#5a3418';
   g.beginPath(); g.ellipse(30, 26, 15, 13, -0.3, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = '#c07a3c';
+  g.strokeStyle = '#c48a4a';
   g.lineWidth = 2;
   g.beginPath(); g.ellipse(30, 26, 22, 20, -0.3, 0, Math.PI * 2); g.stroke();
   g.beginPath(); g.moveTo(30, 26); g.lineTo(50, 12); g.stroke();
-  g.fillStyle = '#e0a05a';
+  g.fillStyle = '#d4a06a';
   g.beginPath(); g.arc(50, 12, 3.5, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#6f7a85';
+  g.fillStyle = '#4a4c4e';
   g.fillRect(27, 44, 6, 18);
   g.fillRect(18, 60, 24, 4);
-  g.strokeStyle = '#6f7a85';
+  g.strokeStyle = '#4a4c4e';
   g.lineWidth = 2;
   g.beginPath(); g.moveTo(30, 44); g.lineTo(18, 60); g.moveTo(30, 44); g.lineTo(42, 60); g.stroke();
   return c;
@@ -1762,7 +1746,7 @@ export const CAMPAIGN_PACK_MARKERS: Record<CampaignArtId, string> = {
   gullet: 'mucosa-bile-peristalsis',
   catacombs: 'ossuary-bone-inlay',
   pit: 'gantry-ochre-sky',
-  spire: 'copper-traces-lattice',
+  spire: 'masonry-copper-ascent',
   ward: 'quarantine-cracked-tile',
   sanctum: 'gold-void-heptagram',
 };
