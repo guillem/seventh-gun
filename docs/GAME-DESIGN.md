@@ -48,8 +48,10 @@ Start: pistol + 70 bullets.
 | Fiend | 240 | 2.7 | fireball burst ×2 | 16×2 + 1.8u splash | campaign-only (Pit / Ward / Sanctum) |
 
 Living enemies are solid cylinders (`def.radius` + player radius 0.55u);
-death ragdolls are not. Flying wisps still collide in XZ when the eye
-overlaps their volume. Gun tests (hitscan and player projectiles) are a
+death ragdolls are not. Flying wisps still collide in XZ, because their
+hover volume (`[1.75, 2.85]`) overlaps the player's body column
+(`0 .. PLAYER_HEIGHT`) — the eye at 1.7u sits just under it.
+Gun tests (hitscan and player projectiles) are a
 real 3D ray vs that cylinder (XZ circle × [yMin, yMax]) — look-down
 shots on a crawler at your feet connect if the reticle is on the body.
 Wisp volume is centered on `hoverY` (visible torso), not stacked above

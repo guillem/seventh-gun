@@ -43,13 +43,34 @@ persistent guns/ammo, intermissions, continue key `seventh-gun.campaign`.
 Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
 `seventh-gun.mymaps`, URL/code/file export.
 
+## Campaign artwork (PR 5)
+
+Campaign-only texture packs + extra artwork: painted generators
+(`campaignTextures.ts`) + extra/hero placement (`campaignDecor.ts`), placed
+from room kinds. Maze `textures.ts` untouched; maze / `#m=` keep the four
+shared themes.
+
+## Enemy feel (PR 6)
+
+Living enemies are solid cylinders (ragdolls are not), gunshots and
+death-cries stay audible for `NOISE_TTL`, and the campaign-only Fiend.
+`GEN_VERSION` unchanged.
+
+## Enemy skins + projectile sprites (PR 7)
+
+Richer per-species skins in `textures.ts`; bolt/orb sprites in
+`projectiles.ts`.
+
+## 3D cylinder hitscan (PR 8)
+
+`raycastCylinder` in `physics.ts`; hitscan and player projectiles sweep a
+real XZ-circle × Y-slab volume so look-down shots on a close crawler connect.
+
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from
   `docs/GAME-DESIGN.md` numbers.
 - Perf pass on phones during the arena wave (pixel ratio / draw calls).
 - Netlify site + deploy previews wired to the repo; CI on GitHub Actions
   running `npm test` + `npm run test:e2e` per PR.
-- Campaign-only texture packs + extra artwork (this PR): Opus painted
-  generators + extra/hero placement. Maze `textures.ts` untouched.
 - Cosmetic depth: per-theme ambience layers, more decoration variety,
   intermission text between gun finds.

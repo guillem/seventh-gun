@@ -45,6 +45,13 @@
   is a no-op.
 - `tests/unit/campaignTextures.test.ts` — Opus pack markers, extraDecal
   ids, 29 hero plates, maze `textures.ts` untouched.
+- `tests/unit/enemyFeel.test.ts` — living bodies block the player (ragdolls
+  do not), gunshot / death-cry wake within `noiseHearRadius` and not across
+  the whole 88×88 map, `NOISE_TTL` is not a 0.2s blink, Fiend is campaign-only
+  (`generateMap` never places one; Pit / Ward / Sanctum do, Foundry does not)
+  while the blueprint validator still accepts `fiend` for authored maps.
+- `tests/unit/enemyArt.test.ts` — a texture is painted and cached for every
+  skin including the fiend; per-species palette rules asserted against the source.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
