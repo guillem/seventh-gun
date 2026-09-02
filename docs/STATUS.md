@@ -1,26 +1,26 @@
 # STATUS
 
-Updated: 2026-09-02 -- secrets v1 on `feat/secrets`. Do not merge from this agent.
+Updated: 2026-09-02 — experimental PBR look-dev on `feat/lookdev-pbr`. **DO NOT MERGE. Not shipping.**
 
-GEN_VERSION still 4. Mapgen shuffle untouched. Maze `generateMap` places no secrets.
+GEN_VERSION still 4. Mapgen, codec, gameplay, input, collisions, physics, campaign, secrets, editor untouched.
 
-## State: campaign secrets v1
+## State: experimental look-dev (pass 1)
 
-Fifteen authored secret rooms across the seven campaign maps (2 / 2 / 2 / 2 / 2 / 2 / 3). Four kinds: plate-use, plate-shoot, remote-use, remote-shoot. Plates are 3-cell WALL-textured slabs; found = true the frame they start opening (0.7s slide). Enemies never open them.
+World floors/walls/ceilings and wall-textured secret plates use `MeshStandardMaterial` with existing canvas albedo + procedural roughness. Vertex `bakeColor` is off so it cannot fight real lights. Dim hemisphere/ambient fill + up to 8 overhead `PointLight`s from existing `RoomLight` positions (cool-biased, 0–1 shadow caster; shadows off in `?e2e=1`). Maze vs campaign keep their albedo packs; roughness scalars differ per theme.
 
-Powerups: WARD 10s (incoming 0, #38C8FF), WRATH 20s (outgoing ×3, #A24BFF), SEVENFOLD 7s (outgoing ×7, #4DFF9B, Sanctum choir only). Two tracks; WARD+WRATH stack; damage track newest wins; not carried between maps.
+Emissive FX, sky, seal, lamp decals, additive cracks stay Basic. Enemies/pickups that would go black under PBR use Standard; eyes/glows stay Basic.
 
-Fog: `secretCell` mask so unfound secret cells are never explored; `exploredPct` excludes secret cells forever. Pre-secret lights/decors hashes frozen via public-grid cosmetics snapshot.
-
-Codec: `FLAG_SECRETS` (1<<6) after lights. `ROOM_KINDS` secret = 6, `PICKUP_KINDS` powerup = 4. Old SGMAP.v1 still decodes.
+This is lighting/material quality only. No subway set dressing, no heavy post, no WebGPU, no sim refactors.
 
 ## Open / next
 
-- Human playtest of secret hints (crack vs lever vs sigil) on a Deploy Preview.
-- Balance still wants a human Normal run against the maze 20-30 min target.
+- Human look-dev on a Deploy Preview (Foundry → Sanctum + maze).
+- Do **not** merge until look is signed off; keep this experimental.
+- Secret-hint playtest and Normal maze balance still outstanding from secrets v1.
 
 ## Where things are
 
+- Look-dev PBR: src/render/world.ts, renderer.ts, textures.ts, campaignTextures.ts, campaignDecor.ts (shelves); enemies/pickups materials only
 - Balance numbers: src/sim weapons, enemyTypes, difficulty, powerups + GAME-DESIGN.md
 - Generator: src/sim/mapgen.ts (bump GEN_VERSION on any change)
 - Secrets: src/sim/powerups.ts + GameMap.secrets; authored in src/campaign/maps/*.json

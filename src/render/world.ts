@@ -1,18 +1,18 @@
-// Builds the static world from the map: merged per-theme geometry with baked
-// per-vertex light, decal planes, doors, the arena seal, sky dome.
+// Builds the static world from the map: merged per-theme PBR geometry, a few
+// real lights (look-dev), decal planes, doors, the arena seal, sky dome.
 // Campaign runs swap the theme atlas for getCampaignTextures(artId) and add
 // extra artwork; maze / #m= keep the shared four-theme look.
 import * as THREE from 'three';
 import { CELL, CEIL_H, WALL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
-import { getTextures } from './textures';
+import { getTextures, MAZE_PBR } from './textures';
 import {
   getCampaignTextures,
   SECRET_HINT_COLORS,
   type CampaignArtId, type CampaignTextureLib,
 } from './campaignTextures';
 import {
-  applyCampaignDecor, CAMPAIGN_AMBIENT, CAMPAIGN_DOOR_EMISSIVE,
+  applyCampaignDecor, CAMPAIGN_DOOR_EMISSIVE,
 } from './campaignDecor';
 import { applyRadialFog } from './radialFog';
 
@@ -50,26 +50,53 @@ function pushQuad(
   }
 }
 
-function bakeColor(
-  lights: GameMap['lights'],
-  x: number, y: number, z: number,
-  ambient: THREE.Color,
-  skyLit: boolean,
-): THREE.Color {
-  const out = ambient.clone();
-  if (skyLit) out.add(new THREE.Color(0.32, 0.28, 0.34));
-  for (const L of lights) {
-    const d = Math.hypot(L.x - x, L.z - z) + Math.abs(L.y - y) * 0.4;
-    if (d > L.radius) continue;
-    const f = (1 - d / L.radius) ** 1.6 * L.intensity;
-    out.r += L.color[0] * f;
-    out.g += L.color[1] * f;
-    out.b += L.color[2] * f;
-  }
-  out.r = Math.min(1.15, out.r);
-  out.g = Math.min(1.15, out.g);
-  out.b = Math.min(1.15, out.b);
-  return out;
+
+function worldStandard(opts: {
+  map: THREE.Texture;
+  roughnessMap: THREE.Texture;
+  roughness: number;
+  metalness: number;
+  side?: THREE.Side;
+}): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({
+    map: opts.map,
+    roughnessMap: opts.roughnessMap,
+    roughness: opts.roughness,
+    metalness: opts.metalness,
+    fog: true,
+    side: opts.side ?? THREE.FrontSide,
+  });
+  applyRadialFog(mat);
+  return mat;
+}
+
+const MAX_OVERHEADS = 8;
+const MAX_SHADOWS = 1;
+
+/** Dim fill lives on the renderer. Here: a few cool overheads from RoomLight positions. */
+function attachLookdevLights(group: THREE.Group, map: GameMap): void {
+  const ranked = map.lights.slice().sort((a, b) => {
+    const coolA = a.color[2] - a.color[0];
+    const coolB = b.color[2] - b.color[0];
+    if (coolB !== coolA) return coolB - coolA;
+    return b.intensity - a.intensity;
+  });
+  const picked = ranked.slice(0, MAX_OVERHEADS);
+  picked.forEach((L, i) => {
+    const dist = Math.min(16, Math.max(8, L.radius * 1.25));
+    const intensity = 10 + L.intensity * 8;
+    const color = new THREE.Color().setRGB(L.color[0], L.color[1], L.color[2]);
+    const light = new THREE.PointLight(color, intensity, dist, 2);
+    light.position.set(L.x, L.y, L.z);
+    if (i < MAX_SHADOWS) {
+      light.castShadow = true;
+      light.shadow.mapSize.set(512, 512);
+      light.shadow.camera.near = 0.3;
+      light.shadow.camera.far = dist;
+      light.shadow.bias = -0.02;
+    }
+    group.add(light);
+  });
 }
 
 function roomThemeAt(map: GameMap, cx: number, cz: number): { theme: Theme; outdoor: boolean } {
@@ -108,15 +135,9 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     return buckets.get(kind)!;
   };
 
-  const themeAmbient: Record<Theme, THREE.Color> = {
-    industrial: new THREE.Color(0.22, 0.24, 0.22),
-    organic: new THREE.Color(0.26, 0.13, 0.13),
-    stone: new THREE.Color(0.18, 0.21, 0.25),
-    tech: new THREE.Color(0.18, 0.17, 0.27),
-  };
-  const campAmb = resolved
-    ? new THREE.Color().fromArray(CAMPAIGN_AMBIENT[resolved])
-    : null;
+  // Vertex bake is skipped: real lights drive MeshStandardMaterial.
+  const WHITE = new THREE.Color(1, 1, 1);
+  const WHITE4 = [WHITE, WHITE, WHITE, WHITE];
 
   const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -126,28 +147,19 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       const { theme, outdoor } = roomThemeAt(map, cx, cz);
       const x0 = cx * CELL, x1 = x0 + CELL;
       const z0 = cz * CELL, z1 = z0 + CELL;
-      const amb = campAmb ?? themeAmbient[theme];
       const surf = camp ? 'campaign' : theme;
 
       // floor (winding faces UP: cross((b-a),(c-b)) = +Y)
       {
         const m = bucket(`floor:${surf}`);
-        const c00 = bakeColor(map.lights, x0, 0, z0, amb, outdoor);
-        const c10 = bakeColor(map.lights, x1, 0, z0, amb, outdoor);
-        const c11 = bakeColor(map.lights, x1, 0, z1, amb, outdoor);
-        const c01 = bakeColor(map.lights, x0, 0, z1, amb, outdoor);
         pushQuad(m, V(x0, 0, z1), V(x1, 0, z1), V(x1, 0, z0), V(x0, 0, z0),
-          V(0, 1, 0), 1, 1, [c01, c11, c10, c00]);
+          V(0, 1, 0), 1, 1, WHITE4);
       }
       // ceiling (indoor only)
       if (!outdoor) {
         const m = bucket(`ceil:${surf}`);
-        const c00 = bakeColor(map.lights, x0, CEIL_H, z0, amb, false);
-        const c10 = bakeColor(map.lights, x1, CEIL_H, z0, amb, false);
-        const c11 = bakeColor(map.lights, x1, CEIL_H, z1, amb, false);
-        const c01 = bakeColor(map.lights, x0, CEIL_H, z1, amb, false);
         pushQuad(m, V(x0, CEIL_H, z0), V(x1, CEIL_H, z0), V(x1, CEIL_H, z1), V(x0, CEIL_H, z1),
-          V(0, -1, 0), 1, 1, [c00, c10, c11, c01]);
+          V(0, -1, 0), 1, 1, WHITE4);
       }
       // walls toward solid neighbors
       const solidAt = (x: number, z: number) =>
@@ -159,7 +171,6 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
         [1, 0, V(-1, 0, 0)],
       ];
       const m = bucket(`wall:${surf}`);
-      const bake = (p: THREE.Vector3) => bakeColor(map.lights, p.x, p.y, p.z, amb, outdoor);
       for (const [dx, dz, n] of sides) {
         if (!solidAt(cx + dx, cz + dz)) continue;
         let a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, d: THREE.Vector3;
@@ -172,7 +183,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
         } else {
           a = V(x1, 0, z0); b = V(x1, 0, z1); c = V(x1, WALL_H, z1); d = V(x1, WALL_H, z0);
         }
-        pushQuad(m, a, b, c, d, n, 1, WALL_H / CELL, [bake(a), bake(b), bake(c), bake(d)]);
+        pushQuad(m, a, b, c, d, n, 1, WALL_H / CELL, WHITE4);
       }
     }
   }
@@ -186,24 +197,31 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     geo.setAttribute('position', new THREE.Float32BufferAttribute(m.pos, 3));
     geo.setAttribute('normal', new THREE.Float32BufferAttribute(m.norm, 3));
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(m.uv, 2));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(m.col, 3));
     disposables.push(geo);
-    const texture = camp
+    const albedo = camp
       ? (type === 'floor' ? camp.floors : type === 'ceil' ? camp.ceilings : camp.walls)
       : type === 'floor' ? tex.floors[theme]
         : type === 'ceil' ? tex.ceilings[theme]
           : tex.walls[theme];
-    const wallRepeat = type === 'wall' ? 1 : 1;
-    const mat = new THREE.MeshBasicMaterial({
-      map: texture, vertexColors: true, fog: true,
+    const roughnessMap = camp
+      ? (type === 'floor' ? camp.roughnessFloors : type === 'ceil' ? camp.roughnessCeilings : camp.roughnessWalls)
+      : type === 'floor' ? tex.roughness.floors[theme]
+        : type === 'ceil' ? tex.roughness.ceilings[theme]
+          : tex.roughness.walls[theme];
+    const mazePbr = themeStr === 'campaign' ? null : MAZE_PBR[theme];
+    const mat = worldStandard({
+      map: albedo,
+      roughnessMap,
+      roughness: camp ? camp.pbrRoughness : mazePbr!.roughness,
+      metalness: camp ? camp.pbrMetalness : mazePbr!.metalness,
       // floors/ceilings are single-sided quads seen from one side; DoubleSide
       // removes any chance of a culled surface showing the sky through it
       side: type === 'wall' ? THREE.FrontSide : THREE.DoubleSide,
     });
-    applyRadialFog(mat);
-    void wallRepeat;
     const mesh = new THREE.Mesh(geo, mat);
     mesh.frustumCulled = true;
+    mesh.receiveShadow = true;
+    mesh.castShadow = type === 'wall';
     group.add(mesh);
   }
 
@@ -242,13 +260,18 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       d.axis === 'x' ? CELL * 3 : 0.5,
     );
     disposables.push(geo);
-    const mat = new THREE.MeshLambertMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       map: camp?.door ?? tex.door,
+      roughness: camp ? Math.min(0.85, camp.pbrRoughness + 0.05) : 0.58,
+      metalness: camp ? camp.pbrMetalness : 0.08,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
+      fog: true,
     });
     applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     group.add(mesh);
     doorMeshes.set(d.id, mesh);
   }
@@ -265,10 +288,17 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     );
     disposables.push(geo);
     const wallTex = camp?.walls ?? tex.walls[theme];
-    const mat = new THREE.MeshLambertMaterial({ map: wallTex });
-    applyRadialFog(mat);
+    const plateRough = camp?.roughnessWalls ?? tex.roughness.walls[theme];
+    const mat = worldStandard({
+      map: wallTex,
+      roughnessMap: plateRough,
+      roughness: camp ? camp.pbrRoughness : MAZE_PBR[theme].roughness,
+      metalness: camp ? camp.pbrMetalness : MAZE_PBR[theme].metalness,
+    });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(s.x, (WALL_H * 0.72) / 2, s.z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     group.add(mesh);
     plateMeshes.set(s.id, mesh);
 
@@ -381,6 +411,8 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   if (camp && resolved) {
     applyCampaignDecor(group, map, resolved, camp, disposables);
   }
+
+  attachLookdevLights(group, map);
 
   return {
     group,

@@ -597,11 +597,14 @@ export function applyCampaignDecor(
     if (e.kind === 'shelf') {
       const geo = new THREE.BoxGeometry(e.w, e.h, 0.34);
       disposables.push(geo);
-      const mat = new THREE.MeshBasicMaterial({
+      const mat = new THREE.MeshStandardMaterial({
         map: tex, color: e.color ?? 0xc8b890, fog: true,
+        roughness: 0.72, metalness: 0.08,
       });
       applyRadialFog(mat);
       const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       const depth = 0.2;
       mesh.position.set(e.x + Math.sin(e.yaw) * depth, e.y, e.z + Math.cos(e.yaw) * depth);
       mesh.rotation.y = e.yaw;

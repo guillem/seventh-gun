@@ -58,7 +58,7 @@ export class PickupRenderer {
     if (p.kind === 'medikit') {
       const kit = new THREE.Mesh(
         new THREE.BoxGeometry(0.55, 0.3, 0.45),
-        new THREE.MeshLambertMaterial({ color: 0xd8d5c8 }),
+        new THREE.MeshStandardMaterial({ color: 0xd8d5c8, roughness: 0.55, metalness: 0.05 }),
       );
       kit.position.y = 0.32;
       g.add(kit);
@@ -68,18 +68,18 @@ export class PickupRenderer {
       const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.24, 0.02), new THREE.MeshBasicMaterial({ color: 0xd22a2a }));
       crossV.position.set(0, 0.34, 0.235);
       g.add(crossV);
-      const latch = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.02), new THREE.MeshLambertMaterial({ color: 0x777770 }));
+      const latch = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.02), new THREE.MeshStandardMaterial({ color: 0x777770, roughness: 0.5, metalness: 0.2 }));
       latch.position.set(0, 0.48, 0.23);
       g.add(latch);
     } else if (p.kind === 'ammo') {
       const color = AMMO_COLOR[p.ammoType ?? 'bullets'];
       const crate = new THREE.Mesh(
         new THREE.BoxGeometry(0.6, 0.42, 0.5),
-        new THREE.MeshLambertMaterial({ color: 0x4a4438 }),
+        new THREE.MeshStandardMaterial({ color: 0x4a4438, roughness: 0.8, metalness: 0.04 }),
       );
       crate.position.y = 0.26;
       g.add(crate);
-      const lid = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.1, 0.54), new THREE.MeshLambertMaterial({ color: 0x3a352c }));
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.1, 0.54), new THREE.MeshStandardMaterial({ color: 0x3a352c, roughness: 0.75, metalness: 0.04 }));
       lid.position.y = 0.5;
       g.add(lid);
       const band = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 0.52), new THREE.MeshBasicMaterial({ color }));
@@ -91,7 +91,7 @@ export class PickupRenderer {
     } else if (p.kind === 'gun') {
       const pedestal = new THREE.Mesh(
         new THREE.CylinderGeometry(0.32, 0.42, 0.55, 10),
-        new THREE.MeshLambertMaterial({ color: 0x3a3f4a }),
+        new THREE.MeshStandardMaterial({ color: 0x3a3f4a, roughness: 0.5, metalness: 0.25 }),
       );
       pedestal.position.y = 0.27;
       g.add(pedestal);
@@ -111,19 +111,19 @@ export class PickupRenderer {
       g.userData.spin = gun;
     } else if (p.kind === 'key') {
       const key = new THREE.Group();
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.045, 8, 16), new THREE.MeshLambertMaterial({ color: 0xd8c07a, emissive: 0x40320a }));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.045, 8, 16), new THREE.MeshStandardMaterial({ color: 0xd8c07a, emissive: 0x40320a, roughness: 0.45, metalness: 0.35 }));
       key.add(ring);
-      const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.05), new THREE.MeshLambertMaterial({ color: 0xd8c07a, emissive: 0x40320a }));
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.05), new THREE.MeshStandardMaterial({ color: 0xd8c07a, emissive: 0x40320a, roughness: 0.45, metalness: 0.35 }));
       shaft.position.y = -0.24;
       key.add(shaft);
-      const tooth1 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.05), new THREE.MeshLambertMaterial({ color: 0xd8c07a }));
+      const tooth1 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.05), new THREE.MeshStandardMaterial({ color: 0xd8c07a, roughness: 0.45, metalness: 0.35 }));
       tooth1.position.set(0.06, -0.34, 0);
       key.add(tooth1);
       const tooth2 = tooth1.clone();
       tooth2.position.y = -0.24;
       key.add(tooth2);
       // skull on the bow
-      const skull = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), new THREE.MeshLambertMaterial({ color: 0xe8dfc8 }));
+      const skull = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), new THREE.MeshStandardMaterial({ color: 0xe8dfc8, roughness: 0.65, metalness: 0.05 }));
       skull.position.y = 0.02;
       key.add(skull);
       key.position.y = 0.9;
@@ -189,7 +189,7 @@ export class PickupRenderer {
         spin.rotation.y += dt * (p.kind === 'gun' ? 1.4 : 2.2);
         spin.position.y = baseY + Math.sin(this.time * 2.4 + p.id) * 0.08;
       }
-      const crate = mesh.children.find(c => c instanceof THREE.Mesh && (c.material as THREE.MeshLambertMaterial)?.color?.r === 0.29) as THREE.Mesh | undefined;
+      const crate = mesh.children.find(c => c instanceof THREE.Mesh && (c.material as THREE.MeshStandardMaterial)?.color?.r === 0.29) as THREE.Mesh | undefined;
       if (crate && p.kind === 'ammo') crate.rotation.y = Math.sin(this.time * 0.8 + p.id) * 0.2;
     }
   }

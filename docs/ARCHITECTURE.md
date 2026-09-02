@@ -71,8 +71,11 @@ secret cells forever.
 
 - Native-resolution WebGL (no low-res blit/upscale). Nearest-filtered canvas
   textures with nearest-mipmap filtering: crunchy but not muddy.
-- World geometry is merged per-theme `BufferGeometry` with baked per-vertex
-  light colors (room lights) + black fog: cheap, Quake-ish. Campaign runs
+- World geometry is merged per-theme `BufferGeometry`. **Experimental look-dev
+  (not shipping):** `MeshStandardMaterial` + canvas albedo + procedural
+  roughness, real overhead lights from `RoomLight` positions, no vertex bake.
+  Shipping main still documented as baked-vertex + MeshBasic until this lands.
+  Campaign runs
   (`runKind === 'campaign'`) bind
   `getCampaignTextures(artId)` for walls/floors/ceilings/door/sky and add
   renderer-only extras from `campaignDecor.ts`. Hero plates come from

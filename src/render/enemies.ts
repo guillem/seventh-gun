@@ -22,8 +22,8 @@ export interface EnemyRig {
   shadow: THREE.Mesh;
 }
 
-function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshLambertMaterial {
-  const m = new THREE.MeshLambertMaterial({ map: skin, color });
+function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshStandardMaterial {
+  const m = new THREE.MeshStandardMaterial({ map: skin, color, roughness: 0.78, metalness: 0.04 });
   applyRadialFog(m);
   return m;
 }

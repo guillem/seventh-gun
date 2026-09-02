@@ -27,6 +27,37 @@ function toTexture(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
   return t;
 }
 
+/** Grayscale procedural roughness (linear, not sRGB). Maze themes differ. */
+function roughnessCanvas(seed: string, lo: number, hi: number, size = 64): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng(seed).float;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const n = rng() * rng(); // bias a bit toward lo
+      const v = Math.round((lo + n * (hi - lo)) * 255);
+      g.fillStyle = `rgb(${v},${v},${v})`;
+      g.fillRect(x, y, 1, 1);
+    }
+  }
+  return c;
+}
+
+function toRoughness(c: HTMLCanvasElement): THREE.Texture {
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestMipmapLinearFilter;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
+
+export const MAZE_PBR: Record<'industrial' | 'organic' | 'stone' | 'tech', { roughness: number; metalness: number }> = {
+  industrial: { roughness: 0.62, metalness: 0.12 },
+  organic: { roughness: 0.84, metalness: 0.0 },
+  stone: { roughness: 0.88, metalness: 0.02 },
+  tech: { roughness: 0.42, metalness: 0.18 },
+};
+
 function noise(g: Ctx, size: number, rng: () => number, amount: number, alpha: number): void {
   for (let i = 0; i < amount; i++) {
     const x = rng() * size, y = rng() * size;
@@ -1150,6 +1181,11 @@ export interface TextureLib {
   walls: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
   floors: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
   ceilings: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+  roughness: {
+    walls: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+    floors: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+    ceilings: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+  };
   door: THREE.Texture;
   sky: THREE.Texture;
   decals: Record<'rune' | 'skull' | 'tendrils' | 'pentagram' | 'lamp', THREE.Texture>;
@@ -1182,6 +1218,26 @@ export function getTextures(): TextureLib {
       organic: toTexture(ceilingDark('#2c1012')),
       stone: toTexture(ceilingDark('#191b1f')),
       tech: toTexture(ceilingDark('#17141f')),
+    },
+    roughness: {
+      walls: {
+        industrial: toRoughness(roughnessCanvas('rough-w-ind', 0.42, 0.78)),
+        organic: toRoughness(roughnessCanvas('rough-w-org', 0.62, 0.95)),
+        stone: toRoughness(roughnessCanvas('rough-w-sto', 0.72, 0.98)),
+        tech: toRoughness(roughnessCanvas('rough-w-tech', 0.28, 0.58)),
+      },
+      floors: {
+        industrial: toRoughness(roughnessCanvas('rough-f-ind', 0.48, 0.82)),
+        organic: toRoughness(roughnessCanvas('rough-f-org', 0.70, 0.96)),
+        stone: toRoughness(roughnessCanvas('rough-f-sto', 0.75, 0.98)),
+        tech: toRoughness(roughnessCanvas('rough-f-tech', 0.32, 0.62)),
+      },
+      ceilings: {
+        industrial: toRoughness(roughnessCanvas('rough-c-ind', 0.55, 0.88)),
+        organic: toRoughness(roughnessCanvas('rough-c-org', 0.68, 0.96)),
+        stone: toRoughness(roughnessCanvas('rough-c-sto', 0.78, 0.98)),
+        tech: toRoughness(roughnessCanvas('rough-c-tech', 0.40, 0.70)),
+      },
     },
     door: toTexture(doorTexture()),
     sky: (() => {

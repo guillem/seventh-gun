@@ -46,6 +46,8 @@ export class GameRenderer {
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
+    this.renderer.shadowMap.enabled = !e2e;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
     this.camera.rotation.order = 'YXZ';
@@ -53,11 +55,11 @@ export class GameRenderer {
 
     this.scene.fog = new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
 
-    // lighting for dynamic meshes (enemies/pickups/doors)
-    this.scene.add(new THREE.AmbientLight(0x77706d, 1.35));
-    const hemi = new THREE.HemisphereLight(0x5a4850, 0x2a2226, 0.7);
+    // dim fill — world surfaces are MeshStandard now; overheads live in buildWorld
+    this.scene.add(new THREE.AmbientLight(0x6a7380, 0.22));
+    const hemi = new THREE.HemisphereLight(0x7a8aa8, 0x1c1612, 0.38);
     this.scene.add(hemi);
-    this.torch = new THREE.PointLight(0xffd9a0, 26, 14, 1.8);
+    this.torch = new THREE.PointLight(0xffd9a0, 16, 12, 2);
     this.scene.add(this.torch);
 
     // viewmodel pass lights

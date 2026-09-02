@@ -79,3 +79,8 @@ real XZ-circle × Y-slab volume so look-down shots on a close crawler connect.
 
 15 authored pockets, four plate/remote kinds, WARD/WRATH/SEVENFOLD
 powerups, fog leak closed. Maze mode unchanged (`GEN_VERSION` 4).
+
+## Experimental look-dev (pass 1, not shipping)
+
+PBR materials + a few lights on world surfaces. Subway clip is a lighting
+reference only. Do not merge until look is signed off.

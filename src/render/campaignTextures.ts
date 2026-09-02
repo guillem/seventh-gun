@@ -25,6 +25,29 @@ function toTiled(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
   return t;
 }
 
+function roughnessCanvas(seed: string, lo: number, hi: number, size = 64): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng(seed).float;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const n = rng() * rng();
+      const v = Math.round((lo + n * (hi - lo)) * 255);
+      g.fillStyle = `rgb(${v},${v},${v})`;
+      g.fillRect(x, y, 1, 1);
+    }
+  }
+  return c;
+}
+
+function toRoughness(c: HTMLCanvasElement): THREE.Texture {
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestMipmapLinearFilter;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
+
 function toDecal(c: HTMLCanvasElement): THREE.Texture {
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;
@@ -1743,12 +1766,28 @@ export interface CampaignTextureLib {
   walls: THREE.Texture;
   floors: THREE.Texture;
   ceilings: THREE.Texture;
+  roughnessWalls: THREE.Texture;
+  roughnessFloors: THREE.Texture;
+  roughnessCeilings: THREE.Texture;
+  pbrRoughness: number;
+  pbrMetalness: number;
   door: THREE.Texture;
   sky?: THREE.Texture;
   extraDecals: { id: string; tex: THREE.Texture }[];
   /** Optional ClampToEdge plates. Missing → sibling / getCampaignHeroDecals(); empty → no-op. */
   heroDecals?: CampaignHeroDecal[];
 }
+
+/** Per-theme PBR scalars. Albedo packs stay unique; roughness may differ. */
+export const CAMPAIGN_PBR: Record<CampaignArtId, { roughness: number; metalness: number; lo: number; hi: number }> = {
+  foundry: { roughness: 0.70, metalness: 0.16, lo: 0.48, hi: 0.86 },
+  gullet: { roughness: 0.90, metalness: 0.0, lo: 0.72, hi: 0.98 },
+  catacombs: { roughness: 0.92, metalness: 0.02, lo: 0.76, hi: 0.99 },
+  pit: { roughness: 0.78, metalness: 0.08, lo: 0.55, hi: 0.90 },
+  spire: { roughness: 0.74, metalness: 0.06, lo: 0.52, hi: 0.88 },
+  ward: { roughness: 0.46, metalness: 0.04, lo: 0.30, hi: 0.62 },
+  sanctum: { roughness: 0.38, metalness: 0.12, lo: 0.18, hi: 0.52 },
+};
 
 // Cheap identity strings the unit test can read without a canvas.
 export const CAMPAIGN_PACK_MARKERS: Record<CampaignArtId, string> = {
@@ -1789,7 +1828,8 @@ export function campaignArtIdFromSeed(seed: string): CampaignArtId | undefined {
     : undefined;
 }
 
-type PackBuilder = () => CampaignTextureLib;
+type CampaignAlbedoPack = Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'pbrRoughness' | 'pbrMetalness'>;
+type PackBuilder = () => CampaignAlbedoPack;
 
 const BUILDERS: Record<CampaignArtId, PackBuilder> = {
   foundry: () => ({
@@ -1874,10 +1914,22 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
 
 const packCache = new Map<CampaignArtId, CampaignTextureLib>();
 
+function withPbr(id: CampaignArtId, pack: Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'pbrRoughness' | 'pbrMetalness'>): CampaignTextureLib {
+  const spec = CAMPAIGN_PBR[id];
+  return {
+    ...pack,
+    roughnessWalls: toRoughness(roughnessCanvas(`camp-rough-w-${id}`, spec.lo, spec.hi)),
+    roughnessFloors: toRoughness(roughnessCanvas(`camp-rough-f-${id}`, Math.min(0.99, spec.lo + 0.06), Math.min(1, spec.hi + 0.04))),
+    roughnessCeilings: toRoughness(roughnessCanvas(`camp-rough-c-${id}`, Math.min(0.99, spec.lo + 0.10), Math.min(1, spec.hi + 0.05))),
+    pbrRoughness: spec.roughness,
+    pbrMetalness: spec.metalness,
+  };
+}
+
 export function getCampaignTextures(id: CampaignArtId): CampaignTextureLib {
   const hit = packCache.get(id);
   if (hit) return hit;
-  const built = BUILDERS[id]();
+  const built = withPbr(id, BUILDERS[id]());
   packCache.set(id, built);
   return built;
 }
