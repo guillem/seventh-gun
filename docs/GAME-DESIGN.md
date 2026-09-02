@@ -80,7 +80,10 @@ available damage ≥ 2.2× total enemy HP across a 300-seed sweep.
 
 ## Campaign (seven maps)
 
-One authored campaign. Difficulty scales combat numbers only (same as
+One authored campaign. The campaign screen lists all seven maps by name.
+Map 1 is always playable; map N unlocks after winning N−1. Clicking an
+unlocked map starts it with the incoming loadout below; CONTINUE uses the
+carried guns/ammo. Difficulty scales combat numbers only (same as
 `Sim.fromMap`), not enemy counts or ammo amounts. Incoming loadout is the
 retry snapshot; HP = 100 at each map start; the key does not persist.
 

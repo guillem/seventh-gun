@@ -43,7 +43,10 @@ app (Game, input, debug API)
 
 88×88 cell grid, 1 cell = 2 world units (`CELL`). Rooms are cell rects with
 theme/outdoor/kind; corridors are 3-cell-wide carved rects. Dynamic solidity:
-closed doors and the arena seal (see `physics.ts: isSolidCell`). A* on the
+closed doors and the arena seal (see `physics.ts: isSolidCell`). Visual
+LOS (`hasVisualLineOfSight`) treats a door as see-through as soon as it
+starts opening so enemies already in the world do not pop in after the
+slab lifts; collision still uses `offset < 0.65`. A* on the
 grid for enemy chase paths (4-dir, staggered repaths).
 
 Authored maps use three layers: `MapBlueprint` (cell-int document) →
@@ -61,7 +64,8 @@ hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
 - World geometry is merged per-theme `BufferGeometry` with baked per-vertex
   light colors (room lights) + black fog: cheap, Quake-ish.
 - Enemies/viewmodels/pickups are procedural Three meshes (no sprites, no
-  billboards) with blob contact shadows.
+  billboards) with blob contact shadows. Enemy/pickup programs are
+  compiled at `setRun` so the first door reveal does not hitch.
 - Viewmodels render in a second pass after `clearDepth()` so they never clip
   into walls; muzzle flash lives in the same pass, a point light in the world.
 - Fog of war: sim tracks explored cells; minimap/full map draw from that.

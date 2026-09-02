@@ -53,14 +53,19 @@ Unspecified things got decided; this is the record.
   compiled at module load. Player keeps guns and ammo; HP resets to 100
   each map; the Bone Key does not persist. Difficulty is chosen on the
   campaign panel and locked until quit+restart. Progress key
-  `seventh-gun.campaign` (`{ difficulty, nextMap, loadout }`); CONTINUE
-  when `nextMap` is 2–7. Quitting mid-map does not advance `nextMap`.
+  `seventh-gun.campaign` (`{ difficulty, nextMap, loadout, unlocked? }`).
+  Map 1 is always playable; map N unlocks after winning N−1. CONTINUE
+  when `nextMap` is 2–7 (carried loadout). Clicking an unlocked map
+  starts it with that map’s incoming loadout. Replays never rewind
+  `nextMap` / `unlocked`. Quitting mid-map does not advance `nextMap`.
   Death retries the map with the entry loadout. Maps 1–6 intermission;
   map 7 is campaign victory (“THE SEVENTH IS SILENT”), not maze GAME OVER.
   Cosmetics are baked into the shipped blueprints. Campaign runs are not
   written to the map log.
 - **Editor**: authors a `MapBlueprint` (rooms + 3-wide corridor rects +
-  entities), never a raw bitmap. Title **EDITOR** / `?edit=1`. PLAYTEST
+  entities), never a raw bitmap. New maps stamp a labeled START room on
+  the visible 88×88 grid; ROOM is click-drag (a plain click does not
+  stamp). Title **EDITOR** / `?edit=1`. PLAYTEST
   uses `Sim.fromMap` (pistol loadout unless all-guns toggle). Esc from
   playtest returns to the editor; TITLE abandons. Library key
   `seventh-gun.mymaps`, cap 40. Share via `#m=` / `SGMAP.v1.` / `.sgmap`.

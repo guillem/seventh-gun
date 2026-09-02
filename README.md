@@ -17,7 +17,8 @@ seal on the finale arena. Clear the arena to win.
   race a friend. **MAP LOG** on the title screen remembers seeds you already
   played (time, skill, won/died/quit) so you can replay without writing
   the code down. Stored in this browser only.
-- **CAMPAIGN** is seven authored maps. The guns stay with you; HP resets
+- **CAMPAIGN** is seven authored maps listed by name. Map 1 is always
+  open; each win unlocks the next. The guns stay with you; HP resets
   each map. Progress is saved in this browser (`CONTINUE` from map 2 on).
 - Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
   if you don't.

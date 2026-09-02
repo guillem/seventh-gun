@@ -25,10 +25,14 @@
   maze-sized payload ≲ 2 KB, zlib deflate-raw when the body is large.
 - `tests/unit/campaign.test.ts` — all 7 DSLs compile + validate + economy
   floor; map 1 shotgun unseals; map 6 key unseals (guns do not); loadout
-  carry; retry restores entry loadout; key does not persist; continue key.
-- `tests/unit/editor.test.ts` — stamp rooms + L-link + gun + enemies
-  compiles / encodes / decodes / validates; erase will not drop the only
-  start; economy warning is non-blocking; library upsert/cap/quota.
+  carry; retry restores entry loadout; key does not persist; continue key;
+  unlock rules (map 1 open, N unlocks N+1, replay does not rewind).
+- `tests/unit/editor.test.ts` — new maps include a START room that cannot
+  be erased; stamp rooms + L-link + gun + enemies compiles / encodes /
+  decodes / validates; erase will not drop the only start; economy
+  warning is non-blocking; library upsert/cap/quota.
+- `tests/unit/sim.test.ts` — also visual LOS: opening a door reveals
+  immediately while collision still waits for `offset >= 0.65`.
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
@@ -46,10 +50,11 @@ replayed (rig-reuse regression, checks rig `rotX` via `debugInfo`), Tab map
 open/close with fog of war, E opens a door, MAP LOG records a quit and
 PLAY replays the same seed, authored map via `startMap` / `#m=` with
 RETRY MAP + COPY LINK, CAMPAIGN begin / startCampaign(n) / death retry /
-continue after completeMap, editor `?edit=1` chrome + `loadBlueprint` /
-PLAYTEST, mobile touch HUD with ≥44px FIRE button
-(title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR), FIRE latches
-and unlatches.
+continue after completeMap, campaign screen lists 7 named maps and
+winning map 1 unlocks map 2, editor `?edit=1` chrome + visible canvas +
+START room + `loadBlueprint` / PLAYTEST, mobile touch HUD with ≥44px FIRE
+button (title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR),
+FIRE latches and unlatches.
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production

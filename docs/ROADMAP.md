@@ -35,8 +35,8 @@ cosmetic regen.
 
 ## Campaign (PR 3)
 
-Title **CAMPAIGN**: seven authored maps, persistent guns/ammo, intermissions,
-continue key `seventh-gun.campaign`.
+Title **CAMPAIGN**: seven named map buttons with unlock-after-win,
+persistent guns/ammo, intermissions, continue key `seventh-gun.campaign`.
 
 ## Level editor (PR 4)
 

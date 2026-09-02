@@ -1,8 +1,8 @@
 # STATUS
 
-Updated: 2026-09-01 — PR 4 rebase onto campaign (`feat/editor` on `79d572f`).
+Updated: 2026-09-02 — campaign / editor polish (`feat/campaign-editor-polish`).
 
-## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign + editor
+## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign + editor + polish
 
 Full loop works end to end: title (seed + skill) → run the maze → find
 guns 2–7 in route order → the Seventh shatters the arena seal → clear the
@@ -14,104 +14,61 @@ New Maze. Desktop + phone viewports verified.
 - Netlify: LIVE at https://seventh-gun.netlify.app — repo linked, deployment
   current. Local folder linked via `netlify link` (`.netlify/` is gitignored).
 - Maze `generateMap` is unchanged (`GEN_VERSION` still 4). Do not bump it
-  for campaign or editor work.
+  for campaign or editor work. No JSON campaign map rewrites in this PR
+  (another agent is redesigning those).
 - Title chrome: **MAP LOG**, **CAMPAIGN**, **EDITOR** share one `.row`
   (`button.big`, same tap size as ENTER THE MAZE) so 390×844 still fits.
-- Suites after rebase onto campaign (`79d572f`): `npm test` 73/73
-  (64 campaign + 9 editor), `npm run test:e2e` 51 passed (+3 mobile-only
-  skips), `tsc --noEmit` clean. Maze sweep unchanged. Campaign, `#m=`,
-  and editor e2e stay green. Mobile FIRE ≥44px; 390×844 title panel
-  still fits MAP LOG + CAMPAIGN + EDITOR.
-- Deploy Preview (PR #5): https://deploy-preview-5--seventh-gun.netlify.app
-  — rebuilds after this rebase. Leave the PR open; do not merge.
+- Debug (`?e2e=1`): `startCampaign(n)`, `completeMap()`, `campaign`,
+  `loadBlueprint`, `openEditor`, `stampEditorRoom`.
 
-## Campaign (PR 3)
+## Campaign menu + unlocks
 
-Title **CAMPAIGN** (same `button.big` tap size as **ENTER THE MAZE**).
-Seven authored maps compiled from JSON DSL at module load (`src/campaign/`).
+Title **CAMPAIGN** opens a panel with the difficulty picker and **seven
+named map buttons**:
 
-- Persistence: `src/app/campaignProgress.ts`, localStorage key
-  `seventh-gun.campaign`. Record
-  `{ difficulty, nextMap: 1..8, loadout, mapStartedAt? }` (`nextMap` 8 =
-  finished). CONTINUE when `nextMap` is 2–7. Starting a new campaign
-  overwrites. Quitting mid-map does not advance `nextMap`. Fail soft on
-  quota. Never imported from `src/sim/`.
-- Loadout: guns + ammo persist; HP = 100 at each map start; Bone Key does
-  not persist. Difficulty chosen on the campaign panel, locked until
-  quit+restart. Combat scaling only (same as `Sim.fromMap`).
-- Maps 1–6: intermission (title + flavor + CONTINUE). Map 7: campaign
-  victory “THE SEVENTH IS SILENT” / “You ended it.” — not maze GAME OVER.
-- Death: 2s lockout then RETRY MAP (entry loadout, not mid-map pickups) /
-  QUIT TO TITLE. Pause hides NEW MAZE.
-- Cosmetics are baked into the shipped blueprints; `compileBlueprint`
-  skips regen when lights/decors are present.
-- Campaign runs are not written to the map log.
-- Debug (`?e2e=1`): `startCampaign(n)`, `completeMap()`, `campaign`.
-- Incoming loadout table (also the retry snapshot) lives in each map JSON
-  as `incomingGuns` / `incomingAmmo`.
+1 THE FOUNDRY · 2 THE GULLET · 3 THE CATACOMBS · 4 THE PIT ·
+5 THE SPIRE · 6 THE WARD · 7 THE SANCTUM
 
-| # | Title | Rooms / enemies (compiled) | Unseal |
-|---|---|---|---|
-| 1 | THE FOUNDRY | 7 / 22 | shotgun |
-| 2 | THE GULLET | 8 / 31 | chaingun |
-| 3 | THE CATACOMBS | 8 / 31 | spiker |
-| 4 | THE PIT | 9 / 36 | bile |
-| 5 | THE SPIRE | 9 / 38 | sunlance |
-| 6 | THE WARD | 12 / 46 | Bone Key |
-| 7 | THE SANCTUM | 11 / 48 | The Seventh |
+- Map 1 is always playable. Map N unlocks only after winning map N−1.
+  Locked buttons stay visible as `name + LOCKED` and are disabled.
+  Unlocked buttons start that map with its incoming loadout (same table
+  as grok-plan §5.1 / each map JSON). Replays are allowed; they do not
+  rewind `nextMap` or the carried CONTINUE loadout.
+- Persistence: `src/app/campaignProgress.ts`, key `seventh-gun.campaign`.
+  Record `{ difficulty, nextMap: 1..8, loadout, unlocked?: 1..7, mapStartedAt? }`.
+  `unlocked` is stored; old saves derive `unlocked = min(7, nextMap)`.
+  First visit: only Foundry unlocked. `nextMap` 8 = finished.
+- **BEGIN** still starts a fresh campaign at map 1 (overwrites). **CONTINUE**
+  (when `nextMap` is 2–7) uses the carried loadout.
+- Winning map N still writes `applyMapWin` (unlocks N+1, advances CONTINUE
+  only when that map was the frontier) and shows intermission / finale.
 
-## Map log (PR 1)
+## Editor (usable 88×88)
 
-- Persistence: `src/app/mapLog.ts`, localStorage key `seventh-gun.maplog`.
-  Cap 200, newest-first, fail soft on quota. Maze runs only.
+- New maps stamp a labeled **START** room (`DEFAULT_START_ROOM` at 36,36
+  8×8) so the grid is never empty. Erase will not remove the only start.
+- Canvas paints a readable 88×88 cell grid (minor + every-8 major lines,
+  field stroke). Layout uses CSS pixels + `dpr` transform so clicks match
+  the painted cells (the old device-pixel origin made the grey square
+  unclickable / disappear on first paint-before-layout).
+- ROOM is click-drag; a 1×1 click does not stamp. Status line is the
+  current tool hint (e.g. “ROOM — drag to stamp a room”).
+- 2D editor still never requests pointer lock. `show()` double-paints on
+  rAF so the canvas has non-zero backing size after flex layout.
 
-## Authored maps (PR 2)
+## Enemy reveal
 
-Shareable compact maps. Campaign ships baked blueprints; the editor
-authors user maps in the same format.
-
-- Layers: `MapBlueprint` → `compileBlueprint` → `GameMap`. Sim consumes
-  `GameMap` only. Maze `generateMap(seed)` is unchanged (`GEN_VERSION` still 4).
-- Codec: `src/sim/mapcodec.ts`, prefix `SGMAP.v1.`, version `MAP_CODEC_VERSION = 1`.
-  Share URLs: `https://<origin>/#m=SGMAP.v1.<payload>` (hash, not query).
-  `#m=` wins over `?seed=`. Cosmetics (lights/decors) are stripped from share
-  URLs and regenerated via `placeCosmetics(makeRng('cos|' + cosmeticSeed))`.
-- `Sim.fromMap(map, difficulty, opts?)`. Difficulty only scales combat.
-- Victory/death for a URL map: **RETRY MAP** / **TITLE** + **COPY LINK** +
-  **SAVE TO LIBRARY**.
-- Authored / campaign / editor-playtest runs are not written to the map log.
-
-## Editor (PR 4)
-
-In-browser 2D author of a `MapBlueprint` (rooms + 3-wide corridor rects +
-entities). Never a raw bitmap. 88×88, `CELL=2`. Reuses PR 2
-`compileBlueprint` / `mapcodec` / `mapShare`.
-
-- Title **EDITOR** (same `button.big` tap size, shared `.row` with MAP LOG
-  and CAMPAIGN). `?edit=1` also opens it. `#m=` still wins on boot.
-- Tools: room stamp, corridor (3-wide rect or click two rooms to L-link),
-  erase (will not orphan the only start), door, seal override (else inferred),
-  entity stamps (enemies, medikit, ammo, gun 2–7, key, player start),
-  seal-break picker, title, cosmetic seed + RND (preview dots, not painted).
-- PLAYTEST = compile + `Sim.fromMap` (fresh pistol unless “start with all
-  guns”). Esc returns to the editor. TITLE abandons to the title screen.
-  Playtest is not written to the map log. Pointer lock matches maze;
-  the 2D editor never requests it.
-- Persistence: localStorage `seventh-gun.mymaps`,
-  `{ id, title, savedAt, code }`, cap 40. SAVE / LIBRARY / LOAD.
-- Export: COPY LINK (`origin/#m=` + encode(stripCosmetics)), COPY CODE
-  `SGMAP.v1.…`, DOWNLOAD `title.sgmap`. Import: paste code or drop `.sgmap`.
-- Received URL maps can **SAVE TO LIBRARY** from pause / victory / death.
-- Validate runs PR 2 validators; errors block PLAYTEST/EXPORT; economy
-  warning (2.2×) does not.
-- Files: `src/editor/model.ts` (pure), `src/editor/view.ts` (canvas+DOM),
-  `src/editor/library.ts`. Debug (`?e2e=1`): `loadBlueprint`, `openEditor`.
+Meshes are created and GPU-compiled at `setRun` (`prefetchDynamicMeshes`).
+Renderer visibility uses `hasVisualLineOfSight`: a door that has started
+opening does not occlude. Collision / AI / pathing still treat
+`offset < 0.65` as solid. Sim stays deterministic. Same path for maze,
+campaign, and `#m=` maps.
 
 ## Open / next
 
+- Another agent is rewriting the seven campaign JSON maps — do not
+  redesign those here.
 - Balance still wants a human Normal run against the maze 20–30 min target.
-- Optional: CI workflow running both suites per PR; phone perf check
-  during the arena wave.
 
 ## Where things are
 
