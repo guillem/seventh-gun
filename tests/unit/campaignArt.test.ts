@@ -182,9 +182,12 @@ describe('hero decals', () => {
       { id: 'hero-pit', tex: fakeTex, hint: 'pit-rim' },
     ]);
     expect(p).not.toBeNull();
-    const dPit = Math.hypot(p!.x - pit.cx, p!.z - pit.cz);
-    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
-    expect(dPit).toBeLessThan(dArena);
+    const pad = 2.5;
+    const inRect = (r: typeof pit, slop: number) =>
+      p!.x >= r.x * 2 - slop && p!.x <= (r.x + r.w) * 2 + slop &&
+      p!.z >= r.z * 2 - slop && p!.z <= (r.z + r.h) * 2 + slop;
+    expect(inRect(pit, pad)).toBe(true);
+    expect(inRect(arena, 0)).toBe(false);
   });
 
   it('places the sanctum-apse hero on the far choir wall, not the arena', () => {

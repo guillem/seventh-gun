@@ -403,8 +403,9 @@ export function planHeroPlacement(
   let preferFarthest = true;
   if (hint === 'pit-rim') {
     room = pitRimRoom(map);
-    from = startRef(map);
-    preferFarthest = false;
+    const arena = arenaRoomOf(map);
+    from = arena ? { x: arena.cx, z: arena.cz } : startRef(map);
+    preferFarthest = true;
   } else if (hint === 'sanctum-apse') {
     room = apseRoomOf(map);
     from = startRef(map);
