@@ -1,6 +1,8 @@
 # STATUS
 
-Updated: 2026-09-02 — campaign / editor polish (`feat/campaign-editor-polish`).
+Updated: 2026-09-02 — campaign / editor polish (`feat/campaign-editor-polish`,
+PR #8). Suites: `npm test` 79/79, `npm run test:e2e` 55 passed
+(+3 mobile-only skips), `tsc --noEmit` clean.
 
 ## State: initial version + bugfixes #1–2 + map log + authored-map codec + campaign + editor + polish
 
