@@ -48,11 +48,16 @@ export function installRadialFog(): void {
 // else that includes fog_vertex) compile radial even if applyRadialFog is missed.
 installRadialFog();
 
+// r171 Material.copy clones userData but not onBeforeCompile. A userData
+// flag would skip the hook on clones; track instances instead.
+const patched = new WeakSet<THREE.Material>();
+
 export function applyRadialFog(mat: THREE.Material): void {
   installRadialFog();
-  if (mat.userData.radialFog) return;
+  if (patched.has(mat)) return;
   const foggy = (mat as THREE.MeshBasicMaterial).fog;
   if (foggy === false) return;
+  patched.add(mat);
   mat.userData.radialFog = true;
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader, renderer) => {

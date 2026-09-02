@@ -34,7 +34,7 @@ describe('radial fog', () => {
     expect(STOCK_FOG_VERTEX).toMatch(/vFogDepth\s*=\s*-\s*mvPosition\.z\s*;/);
     expect(STOCK_FOG_VERTEX).not.toContain('length( mvPosition.xyz )');
 
-    for (const kind of ['basic', 'lambert', 'phong', 'standard'] as const) {
+    for (const kind of ['basic', 'lambert', 'phong', 'standard', 'physical'] as const) {
       const vert = ShaderLib[kind].vertexShader;
       expect(vert, kind).toContain('#include <fog_vertex>');
       expect(vert, kind).not.toMatch(/vFogDepth\s*=\s*-\s*mvPosition\.z/);
@@ -65,7 +65,8 @@ describe('radial fog', () => {
       { name: 'basic', mat: new THREE.MeshBasicMaterial({ fog: true }), vert: ShaderLib.basic.vertexShader },
       { name: 'lambert', mat: new THREE.MeshLambertMaterial({ fog: true }), vert: ShaderLib.lambert.vertexShader },
       { name: 'phong', mat: new THREE.MeshPhongMaterial({ fog: true }), vert: ShaderLib.phong.vertexShader },
-      { name: 'standard', mat: new THREE.MeshStandardMaterial({ fog: true }), vert: ShaderLib.standard.vertexShader },
+      { name: 'standard', mat: new THREE.MeshStandardMaterial({ fog: true }), vert: ShaderLib.physical.vertexShader },
+      { name: 'physical', mat: new THREE.MeshPhysicalMaterial({ fog: true }), vert: ShaderLib.physical.vertexShader },
     ];
     for (const { name, mat, vert } of kinds) {
       applyRadialFog(mat);
@@ -85,8 +86,9 @@ describe('radial fog', () => {
     const mat = new THREE.MeshLambertMaterial({ fog: true });
     applyRadialFog(mat);
     const clone = mat.clone();
-    const out = compileHook(clone, ShaderLib.lambert.vertexShader);
-    expect(out).toContain('length( mvPosition.xyz )');
+    // r171 copy() clones userData, not onBeforeCompile — must still hook.
+    applyRadialFog(clone);
+    expect(compileHook(clone, ShaderLib.lambert.vertexShader)).toContain('length( mvPosition.xyz )');
 
     const late = new THREE.MeshPhongMaterial({ fog: true });
     const group = new THREE.Group();
@@ -94,6 +96,9 @@ describe('radial fog', () => {
     applyRadialFogDeep(group);
     expect(late.userData.radialFog).toBe(true);
     expect(compileHook(late, ShaderLib.phong.vertexShader)).toContain('length( mvPosition.xyz )');
+
+    // Un-hooked materials still compile radial via the patched ShaderChunk.
+    expect(resolveIncludes(ShaderLib.basic.vertexShader)).toContain('length( mvPosition.xyz )');
   });
 
   it('is wired into world, enemy, campaign, pickup, and fx materials', () => {
