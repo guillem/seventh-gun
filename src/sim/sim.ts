@@ -235,21 +235,10 @@ export class Sim {
     p.fireCd = Math.max(0, p.fireCd - dt);
     p.dryCd = Math.max(0, p.dryCd - dt);
     p.useCd = Math.max(0, p.useCd - dt);
-    const w = weapon(p.gun);
     if (!input.fire) p.bloom = Math.max(0, p.bloom - dt * 0.9);
 
     // firing
-    if (input.fire && p.fireCd <= 0) {
-      if (p.ammo[w.ammo] <= 0) {
-        if (p.dryCd <= 0) {
-          this.events.push({ t: 'dryfire', gun: p.gun });
-          p.dryCd = 0.45;
-        }
-        p.fireCd = 0.25;
-      } else {
-        this.fireWeapon();
-      }
-    }
+    if (input.fire) this.tryFire();
 
     // use (doors)
     if (input.use && p.useCd <= 0) {
@@ -307,6 +296,27 @@ export class Sim {
   }
 
   // ------------------------------------------------------------- weapons
+  /**
+   * Fire with the current player yaw/pitch (same basis as the camera).
+   * No movement or AI — used by the posed debug click path so a freeze
+   * screenshot can still register a hit.
+   */
+  tryFire() {
+    if (this.phase !== 'playing') return;
+    const p = this.player;
+    if (p.fireCd > 0) return;
+    const w = weapon(p.gun);
+    if (p.ammo[w.ammo] <= 0) {
+      if (p.dryCd <= 0) {
+        this.events.push({ t: 'dryfire', gun: p.gun });
+        p.dryCd = 0.45;
+      }
+      p.fireCd = 0.25;
+      return;
+    }
+    this.fireWeapon();
+  }
+
   fireWeapon() {
     const p = this.player;
     const w = weapon(p.gun);
@@ -380,19 +390,23 @@ export class Sim {
     damage: number, pierce: boolean, w: (typeof WEAPONS)[number], visual: boolean,
   ) {
     const wall = raycastWall(this, ox, oz, dirX, dirZ, 120);
-    let maxD = Math.min(wall.dist, 120);
-    // Floor occludes: a look-down ray must not continue underground and
-    // clip a body whose XZ disc sits past the impact. Body hits that occur
-    // before y=0 still count.
+    const maxD = Math.min(wall.dist, 120);
+    // Floor does not occlude enemy tests. Grounded bodies sit on y=0; a
+    // steep look-down at the wall–floor junction (live playtest) intersects
+    // the floor plane in front of the disc and used to eat the shot.
+    // Tracer / miss visual still stops at the floor so the streak does not
+    // continue underground.
+    let tracerD = maxD;
     if (dirY < -1e-8) {
       const tFloor = (0 - oy) / dirY;
-      if (tFloor > 0) maxD = Math.min(maxD, tFloor);
+      if (tFloor > 0) tracerD = Math.min(tracerD, tFloor);
     }
     // gather enemy hits along the ray (3D cylinder vs visible gun volume)
     const hits: { e: EnemyEnt; t: number }[] = [];
     for (const e of this.enemies) {
       if (e.dead) continue;
-      const vol = enemyGunVolumeY(e.def);
+      const distXZ = Math.hypot(e.x - ox, e.z - oz);
+      const vol = enemyGunVolumeY(e.def, distXZ);
       const t = raycastCylinder(
         ox, oy, oz, dirX, dirY, dirZ,
         e.x, e.z, enemyGunRadius(e.def),
@@ -415,7 +429,7 @@ export class Sim {
       if (!pierce) break;
     }
     if (visual) {
-      const endT = pierce ? maxD : (hitAny && hits.length ? hits[0].t : maxD);
+      const endT = pierce ? tracerD : (hitAny && hits.length ? hits[0].t : tracerD);
       if (w.id === 6) {
         this.events.push({ t: 'beam', x0: ox, z0: oz, x1: ox + dirX * endT, z1: oz + dirZ * endT });
       } else {
@@ -475,7 +489,8 @@ export class Sim {
           let best: EnemyEnt | null = null;
           for (const e of this.enemies) {
             if (e.dead) continue;
-            const vol = enemyGunVolumeY(e.def);
+            const distXZ = Math.hypot(e.x - p.x, e.z - p.z);
+            const vol = enemyGunVolumeY(e.def, distXZ);
             const rr = enemyGunRadius(e.def) + p.radius;
             const y0 = vol.yMin - p.radius, y1 = vol.yMax + p.radius;
             let t: number | null;

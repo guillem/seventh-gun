@@ -53,9 +53,11 @@ hover volume (`[1.75, 2.85]`) overlaps the player's body column
 (`0 .. PLAYER_HEIGHT`) — the eye at 1.7u sits just under it.
 Gun tests (hitscan and player projectiles) use `enemyGunRadius` /
 `enemyGunVolumeY` so the crawler's visible mesh (legs / abdomen / head
-overhanging `def.radius` 0.5) still counts. Look-down at a crawler ~3u
-ahead that fills the lower view connects; the floor (y=0) occludes a ray
-that has not already hit a body.
+overhanging `def.radius` 0.5) still counts. At close range (≤6u) the
+grounded gun slab lofts to eye height: a level or shallow look-down
+(pitch 0 / −8° / −16°) at a crawler 3.2u ahead connects even when the
+crosshair sits on the wall above the body. Walls still occlude; the
+floor plane does not eat a look-down that already has the body in view.
 Wisp volume is centered on `hoverY` (visible torso), not stacked above
 the head.
 

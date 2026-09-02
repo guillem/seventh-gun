@@ -1,33 +1,42 @@
 # STATUS
 
-Updated: 2026-09-02 — PR: playtest fixes (crawler gun test, spire masonry,
-HUD leak, editor COPY LINK). Do not merge from this agent.
+Updated: 2026-09-02 — PR: playtest fixes (crawler close-range loft, spire
+masonry, HUD leak, editor COPY LINK). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 162/162. `npm run test:e2e` 67 passed / 3 skipped.
 `GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
 ## State: four live-playtest bugs
 
-### 1. Point-blank crawler miss (P0)
+### 1. Point-blank crawler miss (P0) — second live fail
 
-Playtest: crawler ~3.2u ahead, look-down filling the lower view, pistol
-spent a bullet, 0 kills, then melee. Hitscan was already a 3D cylinder vs
-`enemyVolumeY` (`yMin` 0.1, `def.radius + 0.12`). Still missed because
-the crawler *mesh* (head at local +z 0.5, abdomen, legs) overhangs
-`def.radius` 0.5, so a downward pitch that clips the visible front
-punched y=0 in front of the collision cylinder.
+First preview still missed: pose dist 3.2, look down, real click, ammo
+210→209, KILLS 0, HP 100→90. Same at pitch 16 and 8. The radius bump
+(0.95) was not enough.
+
+Causes that remain after the disc bump:
+
+- A level / shallow look-down (pitch 0 / −8°) at 3.2u flies over visual
+  `yMax` ~1.15 while the crawler fills the lower 75° FOV (crosshair on
+  the wall above it). Playtesters click “at” the on-screen body.
+- Steep look-down at the wall–floor junction (the attached shots):
+  floor-plane clip (`tFloor` before cylinder enter past ~39°) ate the
+  shot. Grounded bodies sit on that floor.
+- `pose()` froze the sim, so look + click did not reach `step` until
+  unfreeze (pitchDelta dump / melee).
 
 Gun test only (movement / AI still use `def.radius`):
 
-- `enemyGunRadius` / `enemyGunVolumeY` — crawler gun disc 0.95u, grounded
-  `yMin` 0 (feet on the floor).
-- Hitscan clips at the floor (`y=0`) so a look-down does not continue
-  underground. Body hits before the floor still count.
-- Aim origin stays the camera (`PLAYER_EYE` 1.7, same YXZ basis).
-- Unit tests: ~3u look-down through the visible front; thorax aim; nearly-
-  horizontal close shot; floor-in-front still misses.
+- `enemyGunRadius` crawler disc 1.1u.
+- `enemyGunVolumeY(def, distXZ)` — grounded `yMin` 0; at dist ≤ 6u the
+  slab lofts to `PLAYER_EYE + 0.2` so pitch 0 / −8° / −16° at 3.2u hit.
+- Hitscan / player projectiles pass XZ dist into the volume. Walls still
+  occlude; the floor plane does **not** clip enemy tests (tracer only).
+- Frozen pose still applies look and `tryFire()` / `G.shoot()` along the
+  current camera forward (no AI).
+- Unit: dist 3.2 at 0 / −8 / −16 plus steep floor-under-body; over-head
+  and floor-in-front still miss. E2E: pose + `look(0, -16)` + `shoot()`.
 
-### 2. Spire art (P1)
+### 2. Spire art (P1) — playtest PASS
 
 `getCampaignTextures('spire')` read as maze-tech (orange circuit traces,
 mesh ceiling, purple 7-seg door). Repainted wall/floor/ceiling/door/decals
@@ -36,7 +45,7 @@ weather strap, antenna lattice in a stone window). Maze `textures.ts`
 untouched. Marker `masonry-copper-ascent`. One-line lighting: spire fog /
 ambient / door emissive / dish banner were purple — now cold stone/copper.
 
-### 3. HUD leak (P1)
+### 3. HUD leak (P1) — playtest PASS
 
 Quit to title left HEALTH / bullets / minimap drawing because `hud.draw`
 ran whenever phase was not `editing`, and `toTitle` re-showed the
@@ -45,7 +54,7 @@ paused (title, maplog, campaign, editor, dead, won). Sim is kept for
 retry; it is not stepped or drawn as in-game. Campaign SKILL still does
 not start a maze (`onSkillClick` host `diff-row` + `runKind==='maze'`).
 
-### 4. Editor COPY LINK (P1)
+### 4. Editor COPY LINK (P1) — playtest PASS
 
 VALIDATE errors blocked COPY LINK / COPY CODE / DOWNLOAD. PLAYTEST still
 uses `blocked()`. Share/export emit `#m=` / `SGMAP` for the current

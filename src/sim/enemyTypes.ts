@@ -1,5 +1,5 @@
 // Enemy archetypes — organic / biomechanic alien demons.
-import type { EnemyType, ProjectileKind } from './types';
+import { PLAYER_EYE, type EnemyType, type ProjectileKind } from './types';
 
 export interface EnemyDef {
   type: EnemyType;
@@ -112,15 +112,33 @@ export function enemyVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCent
  * visible front must still connect.
  */
 export function enemyGunRadius(def: EnemyDef): number {
-  if (def.type === 'crawler') return 0.95;
+  if (def.type === 'crawler') return 1.1;
   return def.radius + 0.12;
 }
 
-/** Vertical gun-test slab. Grounded feet/legs sit on the floor (yMin 0). */
-export function enemyGunVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCenter: number } {
+/**
+ * Close enough that a floor crawler fills the lower half of a 75° camera
+ * while the crosshair sits on the wall above it (live playtest dist 3.2).
+ */
+export const CLOSE_GUN_LOFT_DIST = 6;
+
+/**
+ * Vertical gun-test slab. Grounded feet/legs sit on the floor (yMin 0).
+ * At close range the slab lofts to eye height so a level or shallow
+ * look-down (pitch 0 / −8° / −16°) still connects — the body is on
+ * screen; the reticle is not on the mesh.
+ */
+export function enemyGunVolumeY(
+  def: EnemyDef,
+  distXZ = 99,
+): { yMin: number; yMax: number; yCenter: number } {
   const v = enemyVolumeY(def);
   if (def.flying) return v;
-  return { yMin: 0, yMax: v.yMax, yCenter: v.yCenter };
+  let yMax = v.yMax;
+  if (distXZ <= CLOSE_GUN_LOFT_DIST) {
+    yMax = Math.max(yMax, PLAYER_EYE + 0.2);
+  }
+  return { yMin: 0, yMax, yCenter: v.yCenter };
 }
 
 /** Distance at which an idle enemy hears a noise of the given loudness. */

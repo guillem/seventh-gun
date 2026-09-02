@@ -748,7 +748,22 @@ export class Game {
       return;
     }
 
-    if (this.isPlayingLike && !this.freeze) {
+    if (this.isPlayingLike && this.freeze) {
+      // Pose freeze: no movement / AI, but look + fire still use the camera
+      // forward. Live playtest was looking down at a posed crawler and the
+      // click never reached sim.step (ammo only dropped after unfreeze, by
+      // which time pitchDelta had dumped and/or the floor ate the shot).
+      const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
+      sim.player.yaw = polled.yaw;
+      sim.player.pitch = polled.pitch;
+      if (polled.switchGun && sim.player.owned[polled.switchGun]) {
+        sim.player.gun = polled.switchGun;
+      }
+      if (polled.fire) {
+        sim.tryFire();
+        for (const e of sim.takeEvents()) this.handleEvent(e);
+      }
+    } else if (this.isPlayingLike && !this.freeze) {
       // wheel gun cycling
       const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
       if (polled.wheel !== 0) {
@@ -933,6 +948,7 @@ export class Game {
           ammo: { ...p.ammo },
           pos: { x: +p.x.toFixed(2), z: +p.z.toFixed(2) },
           yaw: +p.yaw.toFixed(3),
+          pitch: +p.pitch.toFixed(3),
           seed: this.seed,
           kind: this.runKind,
           difficulty: this.settings.difficulty,
@@ -988,6 +1004,22 @@ export class Game {
       openEditor: () => this.openEditor(),
       give: (gun: number) => { this.sim?.giveGun(gun); },
       fire: (hold = true) => { this.input.setFire(hold); },
+      /** One posed shot along the current camera forward (works while frozen). */
+      shoot: () => {
+        const sim = this.sim;
+        if (!sim || this.phase !== 'playing') return { ok: false };
+        const bullets = sim.player.ammo.bullets;
+        sim.tryFire();
+        const evs = sim.takeEvents();
+        for (const e of evs) this.handleEvent(e);
+        return {
+          ok: true,
+          spent: sim.player.ammo.bullets < bullets,
+          hit: evs.some(e => e.t === 'hitEnemy'),
+          killed: evs.some(e => e.t === 'hitEnemy' && e.killed),
+          kills: sim.killCount,
+        };
+      },
       inputKey: (code: string, down: boolean) => {
         if (down) this.input['keys'].add(code);
         else this.input['keys'].delete(code);
@@ -1057,13 +1089,14 @@ export class Game {
       },
       pause: () => this.togglePause(),
       toggleMap: () => this.toggleMap(!this.screens.isMapOpen()),
-      pose: (opts: { gun?: number; fire?: boolean; enemy?: string; yaw?: number; dist?: number }): unknown => {
+      pose: (opts: { gun?: number; fire?: boolean; enemy?: string; yaw?: number; pitch?: number; dist?: number }): unknown => {
         // screenshot helper: freeze a composition
         const sim = this.sim;
         if (!sim) return 'no-sim';
         const p = sim.player;
         if (opts.gun) sim.giveGun(opts.gun);
         if (opts.yaw !== undefined) p.yaw = (opts.yaw * Math.PI) / 180;
+        if (opts.pitch !== undefined) p.pitch = (opts.pitch * Math.PI) / 180;
         if (opts.fire) this.renderer.fireVisual(p.gun, p.yaw, p.pitch, p.x, p.z);
         let placed: { id: number; type: string; x: number; z: number } | null = null;
         if (opts.enemy) {
@@ -1081,7 +1114,13 @@ export class Game {
           }
         }
         this.freeze = true;
-        return { player: { x: +p.x.toFixed(1), z: +p.z.toFixed(1), yaw: +p.yaw.toFixed(2) }, placed };
+        return {
+          player: {
+            x: +p.x.toFixed(1), z: +p.z.toFixed(1),
+            yaw: +p.yaw.toFixed(2), pitch: +p.pitch.toFixed(3),
+          },
+          placed,
+        };
       },
       unfreeze: () => { this.freeze = false; },
       snapshot: () => this.snapshotDataUrl(),

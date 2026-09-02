@@ -67,7 +67,7 @@ describe('raycastCylinder', () => {
   it('playtest pose: look-down that still clips the visible crawler body hits', () => {
     const dist = 3.2;
     const gunR = enemyGunRadius(crawler);
-    const gv = enemyGunVolumeY(crawler);
+    const gv = enemyGunVolumeY(crawler, dist);
     // Visible head/thorax ~0.65u closer than the origin; aim at the floor-hugging
     // front of that mesh (the lower-view fill), not the collision-cylinder center.
     const visFront = dist - 0.65;
@@ -80,10 +80,25 @@ describe('raycastCylinder', () => {
     expect(yAt).toBeLessThanOrEqual(gv.yMax);
   });
 
+  for (const pitchDeg of [0, -8, -16] as const) {
+    it(`playtest pose: dist 3.2, pitch ${pitchDeg}° intersects the lofted gun disc`, () => {
+      const dist = 3.2;
+      const gunR = enemyGunRadius(crawler);
+      const gv = enemyGunVolumeY(crawler, dist);
+      const pitch = (pitchDeg * Math.PI) / 180;
+      const dx = 0;
+      const dy = Math.sin(pitch);
+      const dz = -Math.cos(pitch);
+      const t = raycastCylinder(0, PLAYER_EYE, 0, dx, dy, dz, 0, -dist, gunR, gv.yMin, gv.yMax, 120);
+      expect(t, `pitch ${pitchDeg}° must hit`).not.toBeNull();
+      expect(t!).toBeGreaterThanOrEqual(0);
+    });
+  }
+
   it('floor plane clips a look-down that would only hit underground', () => {
     const dist = 3.2;
     const gunR = enemyGunRadius(crawler);
-    const gv = enemyGunVolumeY(crawler);
+    const gv = enemyGunVolumeY(crawler, dist);
     const floorD = 1.0;
     const [dx, dy, dz] = dirTo(0, 0 - PLAYER_EYE, -floorD);
     const tFloor = (0 - PLAYER_EYE) / dy;

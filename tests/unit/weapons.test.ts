@@ -266,7 +266,6 @@ describe('flying enemy hitboxes track the visible body', () => {
 
 describe('grounded close-range hitscan is a 3D cylinder test', () => {
   const vol = enemyVolumeY(ENEMIES.crawler);
-  const gunVol = enemyGunVolumeY(ENEMIES.crawler);
   const gunR = enemyGunRadius(ENEMIES.crawler);
   // Against the body: living collision keeps this gap. Old closest-XZ-then-Y
   // sampled the floor (y < yMin) on a steep look-down and missed.
@@ -294,14 +293,36 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
   });
 
   it('nearly-horizontal close shot hits', () => {
-    // Eye is 1.7u; crawler yMax is ~1.15. A true pitch-0 shot always flies
-    // over. "Nearly horizontal" here is a shallow look-down (~12°) at ~3u
-    // that still clips the visible top of the body.
     const dist = 3.2;
     const { sim, crawler } = crawlerAhead(dist);
     expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
     sim.step(input({ fire: true, pitch: -0.22 }));
     expect(crawler.hp, 'nearly-horizontal close shot must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
+  // Live playtest (PR17): pose dist 3.2, crawler in the lower FOV, click.
+  // Pitch 0 / −8° / −16° all put the body on screen while the crosshair
+  // sits on the wall above it. Same numbers as the human report.
+  for (const pitchDeg of [0, -8, -16] as const) {
+    it(`playtest pose: dist 3.2, pitch ${pitchDeg}° hits`, () => {
+      const dist = 3.2;
+      const { sim, crawler } = crawlerAhead(dist);
+      expect(hasLineOfSight(sim, sim.player.x, sim.player.z, crawler.x, crawler.z)).toBe(true);
+      const pitch = (pitchDeg * Math.PI) / 180;
+      sim.step(input({ fire: true, pitch }));
+      expect(crawler.hp, `pitch ${pitchDeg}° at 3.2u must connect`)
+        .toBe(crawler.maxHp - WEAPONS[0].damage);
+    });
+  }
+
+  it('playtest pose: steep look-down at the floor under the crawler hits', () => {
+    // Screenshot pose: crosshair on the wall–floor junction beyond the body.
+    // Floor-plane clip used to eat this before the cylinder.
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    sim.step(input({ fire: true, pitch: aimPitchAt(0, dist) }));
+    expect(crawler.hp, 'look-down at the floor under the body must connect')
+      .toBe(crawler.maxHp - WEAPONS[0].damage);
   });
 
   it('playtest pose: crawler ~3u ahead, look-down through the visible front hits', () => {
@@ -325,9 +346,18 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
   });
 
   it('aiming well above the crawler head misses', () => {
-    const { sim, crawler } = closeCrawler();
-    sim.step(input({ fire: true, pitch: aimPitchAt(vol.yMax + 0.8, D) }));
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    const loft = enemyGunVolumeY(ENEMIES.crawler, dist);
+    sim.step(input({ fire: true, pitch: aimPitchAt(loft.yMax + 0.8, dist) }));
     expect(crawler.hp, 'shot clearly over the head must miss').toBe(crawler.maxHp);
+  });
+
+  it('looking up (+16°) at a floor crawler 3.2u ahead misses', () => {
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    sim.step(input({ fire: true, pitch: (16 * Math.PI) / 180 }));
+    expect(crawler.hp, 'look-up must miss the floor body').toBe(crawler.maxHp);
   });
 
   it('aiming into the floor in front of a crawler misses', () => {

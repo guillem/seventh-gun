@@ -4,11 +4,12 @@
 import { test, expect } from '@playwright/test';
 import { encodeBlueprint } from '../../src/sim/mapcodec';
 import { stripCosmetics } from '../../src/sim/blueprint';
-import { tinyGunSealBlueprint } from '../helpers/authoredMaps';
+import { tinyCrawlerPlaytestBlueprint, tinyGunSealBlueprint } from '../helpers/authoredMaps';
 
 const BASE = '/?e2e=1';
 const TINY_BP = tinyGunSealBlueprint();
 const TINY_CODE = encodeBlueprint(stripCosmetics(TINY_BP));
+const CRAWLER_BP = tinyCrawlerPlaytestBlueprint();
 
 test.describe('desktop', () => {
   test('boots to title and starts a run', async ({ page }) => {
@@ -71,6 +72,56 @@ test.describe('desktop', () => {
     await page.evaluate(() => (window as unknown as { __GAME__: { fire: (v: boolean) => void } }).__GAME__.fire(false));
     const hp = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { hp: number } } }).__GAME__.state().hp);
     expect(hp).toBe(100);
+  });
+
+  test('playtest pose: crawler at 3.2u, look-down, click registers a hit', async ({ page }) => {
+    // Same numbers as the live preview: pose dist 3.2, downward pitch that
+    // puts the crawler in the lower FOV, then a real click (not a unit ray).
+    // Pointer-lock mousemove is flaky; fire goes through G.shoot() / G.fire
+    // while frozen so the crawler stays at 3.2.
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, CRAWLER_BP);
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+
+    const posed = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
+          look: (yaw: number, pitch: number) => void;
+          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number };
+        };
+      }).__GAME__;
+      const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
+      G.look(0, -16);
+      const s = G.state();
+      return { placed: placed.placed, ammo: s.ammo.bullets, kills: s.kills, hp: s.hp, pitch: s.pitch };
+    });
+    expect(posed.placed?.type).toBe('crawler');
+    expect(posed.pitch).toBeCloseTo(-16 * Math.PI / 180, 2);
+
+    // Real canvas click (mousedown is pointer-lock gated) plus shoot() so the
+    // posed camera forward is what the sim fires.
+    const canvas = page.locator('canvas').first();
+    await canvas.click({ position: { x: 400, y: 300 } }).catch(() => undefined);
+    const after = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          shoot: () => { spent?: boolean; hit?: boolean; killed?: boolean };
+          fire: (v: boolean) => void;
+          state: () => { ammo: { bullets: number }; kills: number; hp: number };
+        };
+      }).__GAME__;
+      G.fire(true);
+      const shot = G.shoot();
+      G.fire(false);
+      return { ...G.state(), shot };
+    });
+    expect(after.ammo.bullets, 'pistol must spend a round').toBe(posed.ammo - 1);
+    expect(after.hp, 'frozen pose must not let the crawler melee').toBe(posed.hp);
+    expect(after.shot.hit || after.shot.killed || after.kills > posed.kills,
+      'look-down click at 3.2u must register a hit or kill').toBeTruthy();
   });
 
   test('gun pickup grants the gun and a usable ammo stack', async ({ page }) => {

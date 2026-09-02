@@ -32,6 +32,20 @@ export function tinyGunSealBlueprint(): MapBlueprint {
   };
 }
 
+/** Start room + a crawler behind the first door (spawn-safe). Pose teleports it. */
+export function tinyCrawlerPlaytestBlueprint(): MapBlueprint {
+  const bp = tinyGunSealBlueprint();
+  return {
+    ...bp,
+    title: 'CRAWL POSE',
+    cosmeticSeed: 1017,
+    enemies: [
+      ...bp.enemies,
+      { type: 'crawler', x: 21, z: 24, yaw: 0, roomId: 1 },
+    ],
+  };
+}
+
 export function tinyKeySealBlueprint(): MapBlueprint {
   const bp = tinyGunSealBlueprint();
   return {
