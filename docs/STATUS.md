@@ -1,71 +1,37 @@
 # STATUS
 
-Updated: 2026-09-02 — PR: playtest fixes (look-down aim sign, crawler
-loft, spire, HUD, editor COPY LINK). Do not merge from this agent.
+Updated: 2026-09-02 -- PR: fog / sky / wall-decal clamp. Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 173/173. `npm run test:e2e` 71 passed / 3 skipped.
-`GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
+GEN_VERSION still 4. Mapgen shuffle untouched.
 
-## State: four live-playtest bugs
+## State: three live-playtest visual bugs (THE SPIRE)
 
-### 1. Point-blank crawler miss (P0) — second live fail
+### 1. Hero / extra decals hanging past the wall corner (P1)
 
-Fourth live pass: pitch IS in sim (player.pitch === camera.rotation.x
-=== +0.384 after “look-down 22°”). The shot still missed: crawler
-(15, 67.8) from player (15, 71), hp 18→18, ammo 300→299.
+A large grey+orange circuit-eye painting floated past the wall into empty space. planCampaignExtras and planHeroPlacements now clamp both width and height to the contiguous wall face (wallFaceExtent + clampToWallFace): inset from corners, below CEIL_H, above the floor. A thin corridor shrinks the quad instead of letting it hang.
 
-`dirY = +sin(pitch)` aims **up**. A look-down of +22° must be
-`dirY = −sin(pitch)` so the ray is at y≈0.5 at t=3.2 (inside the body).
-`getWorldDirection()` follows Three.js (+X looks up) and agreed with
-the bad sign. Euler XYZ vs YXZ is a wash at yaw 0.
+### 2. Depth fog (P1)
 
-Gun test only:
+THREE.Fog uses camera-Z, so the hallway center went black while wall/ceiling corners stayed bright, and a sideways glance un-hid distant enemies. applyRadialFog rewrites fog depth to radial length on world, enemy, and decal materials that use scene.fog. Near/far and campaign fog colors are unchanged (maze and campaign).
 
-- `aimDirFromLook`: +pitch = look-down, `dirY = −sin(pitch)`.
-- Camera stores `rotation.order = 'YXZ'` and `rotation.x = −pitch`.
-- `debugInfo.lastAimDir` {dirX,dirY,dirZ,at32y,toCrawler} on fire.
-- E2E: `pose` + `look(0, 22)` + InputManager `mousedown` asserts
-  crawler hp dropped and `lastAimDir.dirY < 0`.
+### 3. Sky black arch / black bands (P1)
 
-### 2. Spire art (P1) — playtest PASS
-
-`getCampaignTextures('spire')` read as maze-tech (orange circuit traces,
-mesh ceiling, purple 7-seg door). Repainted wall/floor/ceiling/door/decals
-as cold stone/copper ascent (ashlar masonry, elevation marks, copper
-weather strap, antenna lattice in a stone window). Maze `textures.ts`
-untouched. Marker `masonry-copper-ascent`. One-line lighting: spire fog /
-ambient / door emissive / dish banner were purple — now cold stone/copper.
-
-### 3. HUD leak (P1) — playtest PASS
-
-Quit to title left HEALTH / bullets / minimap drawing because `hud.draw`
-ran whenever phase was not `editing`, and `toTitle` re-showed the
-minimap canvas. Hide in-game HUD whenever phase is not playing / map /
-paused (title, maplog, campaign, editor, dead, won). Sim is kept for
-retry; it is not stepped or drawn as in-game. Campaign SKILL still does
-not start a maze (`onSkillClick` host `diff-row` + `runKind==='maze'`).
-
-### 4. Editor COPY LINK (P1) — playtest PASS
-
-VALIDATE errors blocked COPY LINK / COPY CODE / DOWNLOAD. PLAYTEST still
-uses `blocked()`. Share/export emit `#m=` / `SGMAP` for the current
-blueprint; toast warns if the map has errors. Unit + e2e: START-only
-editor encodes `SGMAP.v1.` / `#m=`.
+SphereGeometry(380) plus a poorly wrapped sky looked like a small painted disc on a huge canvas (black bands) and clipped at the map edge (black horizon arch). Sky canvases fill the full 512 square, wrap is ClampToEdge, fog:false stays, and the dome follows the camera so the far hemisphere never crosses camera.far.
 
 ## Open / next
 
-- Balance still wants a human Normal run against the maze 20–30 min target.
+- Balance still wants a human Normal run against the maze 20-30 min target.
 - Human playtest of this PR on the Netlify preview (do not merge).
 
 ## Where things are
 
-- Balance numbers: `src/sim/{weapons,enemyTypes,difficulty}.ts` + GAME-DESIGN.md
-- Generator: `src/sim/mapgen.ts` (bump `GEN_VERSION` on any change)
-- Campaign: `src/campaign/` + `src/app/campaignProgress.ts`
-- Campaign art: `src/render/campaignTextures.ts` + `src/render/campaignDecor.ts`
-  (hooked from `world.ts` / `renderer.ts` / `game.ts`; campaign-only)
-- Enemy skins: `src/render/textures.ts`; bolt sprites: `src/render/projectiles.ts`
-- Enemy meshes / collision: `src/render/enemies.ts` + `src/sim/{physics,sim,enemyTypes}.ts`
-- Map log: `src/app/mapLog.ts` + title wiring in `src/ui/screens.ts` / `src/app/game.ts`
-- Editor: `src/editor/{model,view,library}.ts` — title EDITOR / `?edit=1`
-- Debug API: `src/app/game.ts getDebugApi()` — `?e2e=1` only
+- Balance numbers: src/sim weapons, enemyTypes, difficulty + GAME-DESIGN.md
+- Generator: src/sim/mapgen.ts (bump GEN_VERSION on any change)
+- Campaign: src/campaign/ + src/app/campaignProgress.ts
+- Campaign art: src/render/campaignTextures.ts + src/render/campaignDecor.ts
+- Radial fog: src/render/radialFog.ts
+- Enemy skins: src/render/textures.ts; bolt sprites: src/render/projectiles.ts
+- Enemy meshes: src/render/enemies.ts + src/sim physics/sim/enemyTypes
+- Map log: src/app/mapLog.ts + title wiring in screens.ts / game.ts
+- Editor: src/editor -- title EDITOR / ?edit=1
+- Debug API: src/app/game.ts getDebugApi() -- ?e2e=1 only

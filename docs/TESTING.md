@@ -51,7 +51,7 @@
   `CAMPAIGN_HERO_MARKERS` land via hint (arena-back-wall / pit-floor-idol /
   apse-altar). `resolveHeroDecals` prefers `lib.heroDecals`, then sibling
   `CAMPAIGN_HERO_DECALS`, then `getCampaignHeroDecals()`; empty pack field
-  is a no-op.
+  is a no-op. Wall extras/heroes clamp to the contiguous face (inset, CEIL_H).
 - `tests/unit/campaignTextures.test.ts` — Opus pack markers, extraDecal
   ids, 29 hero plates, maze `textures.ts` untouched.
 - `tests/unit/enemyFeel.test.ts` — living bodies block the player (ragdolls
@@ -113,3 +113,4 @@ screenshots for screens/touch UI.
 
 Re-run the aesthetic eyeball pass on the Netlify deploy preview; the metrics
 prove presence/clearance, not beauty.
+- tests/unit/radialFog.test.ts -- onBeforeCompile rewrites vFogDepth to length(mvPosition.xyz); fog:false skipped.

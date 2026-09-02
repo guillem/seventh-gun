@@ -103,7 +103,7 @@ describe('campaign art source', () => {
 
   it('gives the pit an overcast sky and leaves the maze door alone', () => {
     expect(src).toContain('function pitSky(');
-    expect(src).toContain('sky: toTiled(pitSky())');
+    expect(src).toContain('sky: toSky(pitSky())');
     // maze door signature: orange rune circle + bone teeth. Must not be cloned.
     expect(src).not.toContain('#ff7a1a');
     expect(src).not.toContain('doorTexture');

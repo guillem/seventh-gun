@@ -13,6 +13,7 @@ import {
 import {
   applyCampaignDecor, CAMPAIGN_AMBIENT, CAMPAIGN_DOOR_EMISSIVE,
 } from './campaignDecor';
+import { applyRadialFog } from './radialFog';
 
 interface QuadMesh {
   pos: number[];
@@ -90,6 +91,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   group: THREE.Group;
   doorMeshes: Map<number, THREE.Mesh>;
   sealMesh: THREE.Group;
+  sky: THREE.Mesh | null;
   dispose: () => void;
 } {
   const tex = getTextures();
@@ -196,6 +198,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       // removes any chance of a culled surface showing the sky through it
       side: type === 'wall' ? THREE.FrontSide : THREE.DoubleSide,
     });
+    applyRadialFog(mat);
     void wallRepeat;
     const mesh = new THREE.Mesh(geo, mat);
     mesh.frustumCulled = true;
@@ -215,6 +218,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       depthWrite: false,
       fog: true,
     });
+    applyRadialFog(mat);
     if (d.kind === 'lamp') {
       mat.color = new THREE.Color(2.2, 1.9, 1.4); // emissive lamp
     }
@@ -240,6 +244,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       map: camp?.door ?? tex.door,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
     });
+    applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
@@ -276,14 +281,22 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     group.add(sealMesh);
   }
 
-  // sky dome
+  // Sky dome: texture must fill the canvas (equirect) so the sphere is not a
+  // small painted disc on black. Follows the camera so map-edge views never
+  // clip a far hemisphere past camera.far (that clip is the black horizon arch).
+  let sky: THREE.Mesh | null = null;
   {
     const geo = new THREE.SphereGeometry(380, 24, 16);
     disposables.push(geo);
+    const skyMap = camp?.sky ?? tex.sky;
+    skyMap.wrapS = THREE.ClampToEdgeWrapping;
+    skyMap.wrapT = THREE.ClampToEdgeWrapping;
     const mat = new THREE.MeshBasicMaterial({
-      map: camp?.sky ?? tex.sky, side: THREE.BackSide, fog: false,
+      map: skyMap, side: THREE.BackSide, fog: false, depthWrite: false,
     });
-    const sky = new THREE.Mesh(geo, mat);
+    sky = new THREE.Mesh(geo, mat);
+    sky.frustumCulled = false;
+    sky.renderOrder = -1;
     group.add(sky);
   }
 
@@ -295,6 +308,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     group,
     doorMeshes,
     sealMesh,
+    sky,
     dispose: () => { for (const g of disposables) g.dispose(); },
   };
 }
