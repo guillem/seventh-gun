@@ -7,7 +7,7 @@ type GameApi = {
     phase: string;
     kind?: string;
     seed?: string;
-    campaign?: { map: number; nextMap: number; owned: boolean[] } | null;
+    campaign?: { map: number; nextMap: number; owned: boolean[]; artId?: string } | null;
   };
   startCampaign: (n?: number) => void;
   completeMap: () => void;
@@ -30,6 +30,7 @@ test.describe('campaign desktop', () => {
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     expect(state.kind).toBe('campaign');
     expect(state.campaign?.map).toBe(1);
+    expect(state.campaign?.artId).toBe('foundry');
   });
 
   test('campaign screen lists seven named maps; map 2 unlocks after winning map 1', async ({ page }) => {

@@ -96,9 +96,11 @@ function collectWallSlots(map: GameMap, room: Room): WallSlot[] {
   return out;
 }
 
-function takeStride<T>(items: T[], stride: number, offset = 0): T[] {
+function takeStride<T>(items: T[], stride: number, offset = 0, max = 18): T[] {
   const out: T[] = [];
-  for (let i = offset; i < items.length; i += Math.max(1, stride)) out.push(items[i]);
+  for (let i = offset; i < items.length && out.length < max; i += Math.max(1, stride)) {
+    out.push(items[i]);
+  }
   return out;
 }
 
@@ -127,13 +129,13 @@ const SIDE: RoomKind[] = ['spur', 'vault'];
 export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPlacement[] {
   const extras: ExtraPlacement[] = [];
   const push = (e: ExtraPlacement) => {
-    if (extras.length < 72) extras.push(e);
+    if (extras.length < 96) extras.push(e);
   };
 
-  const slotsFor = (kinds: RoomKind[], stride: number, offset = 0): WallSlot[] => {
+  const slotsFor = (kinds: RoomKind[], stride: number, offset = 0, max = 18): WallSlot[] => {
     const slots: WallSlot[] = [];
     for (const r of roomsOf(map, kinds)) slots.push(...collectWallSlots(map, r));
-    return takeStride(slots, stride, offset);
+    return takeStride(slots, stride, offset, max);
   };
 
   if (artId === 'foundry') {
@@ -166,14 +168,14 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
       }
     }
   } else if (artId === 'catacombs') {
-    for (const s of slotsFor(WORK, 3, 0)) {
-      push({ kind: 'decal', decalId: 'epitaph', x: s.x, y: 1.85, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
-    }
-    for (const s of slotsFor(WORK, 3, 1)) {
+    for (const s of slotsFor(WORK, 3, 1, 12)) {
       push({ kind: 'shelf', decalId: 'ossuary', x: s.x, y: 1.2, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
       push({ kind: 'shelf', decalId: 'ossuary', x: s.x, y: 2.35, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
     }
-    for (const s of slotsFor(SIDE, 2, 0)) {
+    for (const s of slotsFor(WORK, 3, 0, 14)) {
+      push({ kind: 'decal', decalId: 'epitaph', x: s.x, y: 1.85, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
+    }
+    for (const s of slotsFor(SIDE, 2, 0, 10)) {
       push({ kind: 'decal', decalId: 'femur', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.45 });
     }
   } else if (artId === 'pit') {
