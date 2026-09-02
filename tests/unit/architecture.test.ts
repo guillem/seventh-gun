@@ -15,6 +15,8 @@ function walk(dir: string): string[] {
 
 describe('architecture guards', () => {
   const simFiles = walk(join(process.cwd(), 'src', 'sim'));
+  const campaignFiles = walk(join(process.cwd(), 'src', 'campaign'));
+  const editorModel = join(process.cwd(), 'src', 'editor', 'model.ts');
 
   it('sim directory exists and has sources', () => {
     expect(simFiles.length).toBeGreaterThan(5);
@@ -42,6 +44,19 @@ describe('architecture guards', () => {
     for (const f of simFiles) {
       const src = readFileSync(f, 'utf8');
       expect(src, `${f} imports render`).not.toMatch(/from\s+['"]\.\.\/(render|ui|audio|app)/);
+    }
+  });
+
+  it('campaign and editor model stay pure (no Math.random / DOM / localStorage / three)', () => {
+    expect(campaignFiles.length).toBeGreaterThan(0);
+    for (const f of [...campaignFiles, editorModel]) {
+      const src = readFileSync(f, 'utf8');
+      expect(src, `${f} uses Math.random`).not.toContain('Math.random');
+      expect(src, `${f} touches document`).not.toMatch(/\bdocument\b/);
+      expect(src, `${f} touches window`).not.toMatch(/\bwindow\b/);
+      expect(src, `${f} touches localStorage`).not.toContain('localStorage');
+      expect(src, `${f} must not import three`).not.toMatch(/from\s+['"]three/);
+      expect(src, `${f} must not use THREE.`).not.toMatch(/THREE\./);
     }
   });
 });

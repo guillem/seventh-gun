@@ -40,7 +40,11 @@ Unspecified things got decided; this is the record.
   soft. Record `{ seed, difficulty, startedAt, genVersion, outcome?,
   durationSec?, kills? }`. Persistence in `src/app/mapLog.ts`, never sim.
   Campaign, editor playtest, and `#m=` runs are not logged. Loader
-  ignores unknown fields so later `kind` can be added.
+  ignores unknown fields so later `kind` can be added, and drops
+  existing entries whose seed starts with `campaign:`. Title SKILL
+  rebuilds a maze only when the last run was a maze; campaign SKILL
+  never calls `startRun`. Campaign art packs bind only when
+  `runKind === 'campaign'`.
 - **Authored maps**: compact `SGMAP.v1.` binary, shared as `#m=` (hash, not
   query). `#m=` wins if `?seed=` is also present. Share URLs strip
   lights/decors; decoder regenerates from `cosmeticSeed`. Campaign files

@@ -50,7 +50,3 @@ export function makeRng(seedStr: string): Rng {
     setState(s: number[]) { a = s[0] >>> 0; b = s[1] >>> 0; c = s[2] >>> 0; d = s[3] >>> 0; },
   };
 }
-
-export function hashString(str: string): number {
-  return fnv1a(str);
-}

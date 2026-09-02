@@ -1,7 +1,7 @@
 // Seeded maze generator: a spine of rooms start -> arena with turning
 // 3-cell-wide corridors, loot spurs, one optional vault (key door), a couple
 // of alternate links, and a sealed finale arena.
-import { makeRng, type Rng } from './rng';
+import { makeRng } from './rng';
 import { CELL, GRID_W, GRID_H, GEN_VERSION, cellToWorld } from './types';
 import type {
   GameMap, Room, RoomLight, Decor, DoorDef, SealDef, PickupDef, EnemySpawn,
@@ -9,7 +9,6 @@ import type {
 } from './types';
 import { DIFFICULTIES } from './difficulty';
 import { WEAPONS } from './weapons';
-import { ENEMIES } from './enemyTypes';
 
 export interface MapGenStats {
   spineRooms: number;
@@ -185,7 +184,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
     return d;
   }
 
-  function placeAnnex(_rng: Rng, from: Room, w: number, h: number, kind: Room['kind'], theme: Theme, len = 6): Room | null {
+  function placeAnnex(from: Room, w: number, h: number, kind: Room['kind'], theme: Theme, len = 6): Room | null {
     // try all four directions
     const dirs: Dir[] = [{ x: 1, z: 0 }, { x: -1, z: 0 }, { x: 0, z: 1 }, { x: 0, z: -1 }];
     for (const d of dirs) {
@@ -226,7 +225,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
     for (const host of hosts) {
       for (const [w, h] of [[16, 14], [15, 13], [13, 12]] as [number, number][]) {
         for (const len of [6, 8, 5]) {
-          const arena = placeAnnex(rng, host, w, h, 'arena', 'tech', len);
+          const arena = placeAnnex(host, w, h, 'arena', 'tech', len);
           if (arena) { antechamber = host; arenaRoom = arena; break outer; }
         }
       }
@@ -244,7 +243,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
   for (let i = 0; i < spurCount + 4 && spursPlaced < spurCount; i++) {
     const host = rng.pick(spurHosts);
     if (!host) break;
-    const spur = placeAnnex(rng, host, 6 + rng.int(3), 6 + rng.int(3), 'spur', rng.pick(['organic', 'stone', 'industrial'] as Theme[]));
+    const spur = placeAnnex(host, 6 + rng.int(3), 6 + rng.int(3), 'spur', rng.pick(['organic', 'stone', 'industrial'] as Theme[]));
     if (spur) spursPlaced++;
     if (spur && !vaultRoom && spursPlaced >= 2) vaultRoom = spur;
   }
@@ -281,7 +280,7 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
 
   // ---- doors ----
   const doors: DoorDef[] = [];
-  function tryDoor(r: Room, axis: 'x' | 'z', locked: boolean): boolean {
+  function tryDoor(r: Room, locked: boolean): boolean {
     // place a door in the corridor cell just outside room r's edge, on its route entry
     // find the edge with floor continuing outward
     const cands: DoorDef[] = [];
@@ -322,17 +321,17 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
     doorRooms.add(pickA); doorRooms.add(pickB);
   }
   let doorsPlaced = 0;
-  for (const r of doorRooms) { if (tryDoor(r, 'x', false)) doorsPlaced++; }
+  for (const r of doorRooms) { if (tryDoor(r, false)) doorsPlaced++; }
   // key door on vault spur (if vault exists)
   let keyDoorPlaced = false;
-  if (vaultRoom) keyDoorPlaced = tryDoor(vaultRoom, 'x', true);
+  if (vaultRoom) keyDoorPlaced = tryDoor(vaultRoom, true);
   if (!keyDoorPlaced && vaultRoom) { /* vault open, still fine */ }
   // ensure at least 2 doors exist
   if (doorsPlaced < 2) {
     for (const r of spineRooms) {
       if (doorsPlaced >= 2) break;
       if (doorRooms.has(r)) continue;
-      if (tryDoor(r, 'x', false)) doorsPlaced++;
+      if (tryDoor(r, false)) doorsPlaced++;
     }
   }
   doors.forEach((d, i) => { d.id = i; });
@@ -568,7 +567,6 @@ export function generateMap(seed: string, difficulty: Difficulty): GameMap {
     const p = r.routeDist / Math.max(1, maxDist);
     const area = r.w * r.h;
     let count = Math.round((area / 22) * (0.7 + p * 0.8) * diff.enemyCount);
-    if (r.kind === 'vault') count += 2;
     count = Math.max(1, Math.min(7, count));
     for (let i = 0; i < count; i++) spawnEnemy(typeForProgress(p), r);
   }

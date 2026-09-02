@@ -7,7 +7,7 @@ import { CELL, CEIL_H, WALL_H } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
 import { getTextures } from './textures';
 import {
-  campaignArtIdFromSeed, getCampaignTextures,
+  getCampaignTextures,
   type CampaignArtId, type CampaignTextureLib,
 } from './campaignTextures';
 import {
@@ -93,7 +93,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   dispose: () => void;
 } {
   const tex = getTextures();
-  const resolved = artId ?? campaignArtIdFromSeed(map.seed);
+  const resolved = artId;
   const camp: CampaignTextureLib | null = resolved ? getCampaignTextures(resolved) : null;
   const group = new THREE.Group();
   const disposables: THREE.BufferGeometry[] = [];

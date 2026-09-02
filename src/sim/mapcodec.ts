@@ -86,7 +86,12 @@ class Writer {
   f32(n: number) { this.grow(4); this.view.setFloat32(this.i, n, true); this.i += 4; }
   bytes(b: Uint8Array) { this.grow(b.length); this.buf.set(b, this.i); this.i += b.length; }
   str(s: string) {
-    const enc = new TextEncoder().encode(s.slice(0, 255));
+    let enc = new TextEncoder().encode(s);
+    if (enc.length > 255) {
+      let end = 255;
+      while (end > 0 && (enc[end] & 0xc0) === 0x80) end--;
+      enc = enc.subarray(0, end);
+    }
     this.u8(enc.length);
     this.bytes(enc);
   }

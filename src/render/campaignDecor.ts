@@ -505,15 +505,6 @@ export function planHeroPlacements(
   return out;
 }
 
-/** @deprecated use planHeroPlacements — kept for a single-quad fallback. */
-export function planHeroPlacement(
-  map: GameMap,
-  artId: CampaignArtId,
-  heroes: CampaignHeroDecal[],
-): ExtraPlacement | null {
-  return planHeroPlacements(map, artId, heroes)[0] ?? null;
-}
-
 function decalTex(lib: CampaignTextureLib, id: string | undefined): THREE.Texture | undefined {
   if (!id) return undefined;
   return lib.extraDecals.find(d => d.id === id)?.tex;

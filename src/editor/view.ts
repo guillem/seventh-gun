@@ -3,7 +3,7 @@ import { ENEMY_TYPES, ROOM_KINDS, THEMES } from '../sim/blueprint';
 import type { MapBlueprint } from '../sim/blueprint';
 import { AMMO_TYPES } from '../sim/weapons';
 import { GRID_H, GRID_W, type AmmoType, type EnemyType, type Room, type Theme } from '../sim/types';
-import { decodeShareCodeSync, encodeShareCodeSync, shareUrlFromCode } from '../app/mapShare';
+import { decodeShareCode, encodeShareCode, shareUrlFromCode } from '../app/mapShare';
 import { MAP_CODE_PREFIX } from '../sim/mapcodec';
 import {
   EditorDoc,
@@ -236,12 +236,12 @@ export class EditorView {
       this.paint();
       this.setStatus(`new map · ${TOOL_HINTS[this.tool]}`);
     });
-    this.root.querySelector('#editor-save')!.addEventListener('click', () => this.saveCurrent());
+    this.root.querySelector('#editor-save')!.addEventListener('click', () => { void this.saveCurrent(); });
     this.root.querySelector('#editor-lib-btn')!.addEventListener('click', () => this.openLibrary());
     this.root.querySelector('#editor-lib-back')!.addEventListener('click', () => this.libPanel.classList.add('hidden'));
     this.root.querySelector('#editor-copy-link')!.addEventListener('click', () => { void this.exportLink(); });
     this.root.querySelector('#editor-copy-code')!.addEventListener('click', () => { void this.exportCode(); });
-    this.root.querySelector('#editor-download')!.addEventListener('click', () => this.download());
+    this.root.querySelector('#editor-download')!.addEventListener('click', () => { void this.download(); });
     this.root.querySelector('#editor-import-btn')!.addEventListener('click', () => {
       this.importArea.value = '';
       this.importPanel.classList.remove('hidden');
@@ -467,9 +467,9 @@ export class EditorView {
     this.host?.playtest(this.doc.snapshot(), this.allGuns);
   }
 
-  private saveCurrent(): void {
+  private async saveCurrent(): Promise<void> {
     try {
-      const code = encodeShareCodeSync(this.doc.bp);
+      const code = await encodeShareCode(this.doc.bp);
       const title = this.doc.bp.title ?? 'UNTITLED';
       const list = upsertLibrary({ id: this.doc.libraryId ?? undefined, title, code });
       this.doc.libraryId = list[0]?.id ?? this.doc.libraryId;
@@ -511,13 +511,16 @@ export class EditorView {
       const load = document.createElement('button');
       load.textContent = 'LOAD';
       load.addEventListener('click', () => {
-        try {
-          this.loadBlueprint(decodeShareCodeSync(e.code), e.id);
-          this.libPanel.classList.add('hidden');
-          this.host?.toast('loaded');
-        } catch {
-          this.host?.toast('could not load');
-        }
+        void (async () => {
+          try {
+            const bp = await decodeShareCode(e.code);
+            this.loadBlueprint(bp, e.id);
+            this.libPanel.classList.add('hidden');
+            this.host?.toast('loaded');
+          } catch {
+            this.host?.toast('could not load');
+          }
+        })();
       });
       actions.append(load);
       row.append(meta, actions);
@@ -533,13 +536,15 @@ export class EditorView {
       this.host?.toast('not an SGMAP code');
       return;
     }
-    try {
-      this.loadBlueprint(decodeShareCodeSync(code));
-      this.importPanel.classList.add('hidden');
-      this.host?.toast('imported');
-    } catch {
-      this.host?.toast('could not import');
-    }
+    void (async () => {
+      try {
+        this.loadBlueprint(await decodeShareCode(code));
+        this.importPanel.classList.add('hidden');
+        this.host?.toast('imported');
+      } catch {
+        this.host?.toast('could not import');
+      }
+    })();
   }
 
   private async importFile(file: File): Promise<void> {
@@ -553,7 +558,7 @@ export class EditorView {
 
   private async exportLink(): Promise<void> {
     if (this.blocked()) return;
-    const code = encodeShareCodeSync(this.doc.bp);
+    const code = await encodeShareCode(this.doc.bp);
     const url = shareUrlFromCode(code);
     const ok = this.host ? await this.host.copyText(url) : false;
     this.host?.toast(ok ? 'link copied' : 'could not copy');
@@ -561,14 +566,14 @@ export class EditorView {
 
   private async exportCode(): Promise<void> {
     if (this.blocked()) return;
-    const code = encodeShareCodeSync(this.doc.bp);
+    const code = await encodeShareCode(this.doc.bp);
     const ok = this.host ? await this.host.copyText(code) : false;
     this.host?.toast(ok ? 'code copied' : 'could not copy');
   }
 
-  private download(): void {
+  private async download(): Promise<void> {
     if (this.blocked()) return;
-    const code = encodeShareCodeSync(this.doc.bp);
+    const code = await encodeShareCode(this.doc.bp);
     const name = filenameFromTitle(this.doc.bp.title ?? 'untitled');
     const blob = new Blob([code], { type: 'text/plain' });
     const a = document.createElement('a');

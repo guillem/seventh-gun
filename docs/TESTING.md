@@ -8,7 +8,8 @@
   courtyards/rooms/loot present, ammo economy ≥ 2.2× enemy HP, seed
   reproducibility, layout identical across difficulties.
 - `tests/unit/weapons.test.ts` — personality contract: pistol accuracy,
-  shotgun pellet scatter + falloff, chaingun bloom, projectile identity
+  shotgun pellet scatter + falloff (including yaw-45° horizontal spread,
+  8 pellets / ~5.7° cone), chaingun bloom, projectile identity
   (nails straight/fast, grenades arc), rail pierce, Seventh multi-kill splash,
   power ladder, dry-fire no-spam, starting stacks. Close crawler look-down
   hits / over-head and floor-in-front miss; husk at range; wisp torso vs
@@ -18,13 +19,17 @@
   doors, dodgeable projectiles, death lockout, win path.
 - `tests/unit/architecture.test.ts` — sim stays headless: no three imports,
   no Math.random, no DOM/window/localStorage, no imports from render/ui.
+  Same purity walk covers `src/campaign` and `src/editor/model.ts`.
 - `tests/unit/mapLog.test.ts` — prepend newest-first, cap 200 (drop oldest),
-  parse missing/unknown fields, ignore quota errors via injected fake storage.
+  parse missing/unknown fields, ignore quota errors via injected fake storage,
+  refuse `campaign:` seeds, ignore poisoned log entries, campaign / editor /
+  `#m=` are not loggable after a maze run.
 - `tests/unit/blueprint.test.ts` — compile a tiny handmade map (connectivity,
   spawn-safe, gun-seal / key-seal), `Sim.fromMap` determinism, easy-vs-hard
   positions identical with different HP.
 - `tests/unit/mapcodec.test.ts` — binary round-trip including 60+ enemies,
-  maze-sized payload ≲ 2 KB, zlib deflate-raw when the body is large.
+  maze-sized payload ≲ 2 KB, zlib deflate-raw when the body is large,
+  title truncated at 255 UTF-8 bytes (emoji-heavy round-trip).
 - `tests/unit/campaign.test.ts` — all 7 DSLs compile + validate + economy
   floor; map 1 shotgun unseals; map 6 key unseals (guns do not); loadout
   carry; retry restores entry loadout; key does not persist; continue key;
@@ -70,7 +75,9 @@ open/close with fog of war, E opens a door, MAP LOG records a quit and
 PLAY replays the same seed, authored map via `startMap` / `#m=` with
 RETRY MAP + COPY LINK, CAMPAIGN begin / startCampaign(n) / death retry /
 continue after completeMap, campaign screen lists 7 named maps and
-winning map 1 unlocks map 2, editor `?edit=1` chrome + visible canvas +
+winning map 1 unlocks map 2, completing map 7 shows THE SEVENTH IS SILENT,
+campaign SKILL does not start a maze, Foundry does not log `campaign:` seeds,
+maze / `#m=` `state().campaign` is null (campaign has artId), editor `?edit=1` chrome + visible canvas +
 START room + `loadBlueprint` / PLAYTEST, mobile touch HUD with ≥44px FIRE
 button (title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR),
 FIRE latches and unlatches.

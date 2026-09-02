@@ -23,6 +23,7 @@ test.describe('desktop', () => {
     expect(state.hp).toBe(100);
     expect(state.gun).toBe(1);
     expect((state.owned as boolean[])[0]).toBe(true);
+    expect(state.campaign).toBeNull();
   });
 
   test('WASD walks the way you look (W forward, A/D strafe)', async ({ page }) => {
@@ -313,9 +314,10 @@ test.describe('desktop', () => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string; kind?: string } } }).__GAME__?.state();
       return s?.phase === 'playing' && s.kind === 'map';
     }, null, { timeout: 10000 });
-    const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { kind: string; sealIntact: boolean } } }).__GAME__.state());
+    const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { kind: string; sealIntact: boolean; campaign: unknown } } }).__GAME__.state());
     expect(state.kind).toBe('map');
     expect(state.sealIntact).toBe(true);
+    expect(state.campaign).toBeNull();
   });
 
   test('authored-map death offers RETRY MAP / TITLE, not a new maze', async ({ page }) => {

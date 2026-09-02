@@ -155,7 +155,7 @@ export class Screens {
             <button id="p-save">SAVE TO LIBRARY</button>
             <button id="p-editor" class="hidden">BACK TO EDITOR</button>
           </div>
-          <div class="hints">TAB map · E use doors · the key opens the vault, never the arena</div>
+          <div class="hints" id="pause-hints">TAB map · E use doors · the key opens the vault, never the arena</div>
         </div>
       </div>
     `);
@@ -301,12 +301,13 @@ export class Screens {
     });
   }
 
-  setDifficulties(current: Difficulty, cb: (d: Difficulty) => void): void {
+  setDifficulties(current: Difficulty, cb: (d: Difficulty, host: string) => void): void {
     for (const key of Object.keys(this.diffButtons)) {
       const b = this.diffButtons[key];
       const on = b.dataset.diff === current;
       b.classList.toggle('active', on);
-      b.onclick = () => cb(b.dataset.diff as Difficulty);
+      const host = key.split(':')[0];
+      b.onclick = () => cb(b.dataset.diff as Difficulty, host);
     }
   }
 
@@ -335,10 +336,6 @@ export class Screens {
     } else {
       this.mapLog.classList.add('hidden');
     }
-  }
-
-  isMapLogOpen(): boolean {
-    return !this.mapLog.classList.contains('hidden');
   }
 
   showPause(show: boolean): void {
@@ -394,7 +391,6 @@ export class Screens {
     mute: () => void;
     openMapLog: () => void;
     openCampaign: () => void;
-    openEditor?: () => void;
   }): void {
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
@@ -404,8 +400,6 @@ export class Screens {
       .addEventListener('click', handlers.openMapLog);
     (this.title.querySelector('#campaign-btn') as HTMLButtonElement)
       .addEventListener('click', handlers.openCampaign);
-    const ed = this.title.querySelector('#editor-btn') as HTMLButtonElement | null;
-    if (ed && handlers.openEditor) ed.addEventListener('click', handlers.openEditor);
     const vs = this.title.querySelector('#volume-slider') as HTMLInputElement;
     vs.addEventListener('input', () => handlers.volume(Number(vs.value) / 100));
   }
@@ -561,6 +555,12 @@ export class Screens {
     this.deathSaveBtn.classList.toggle('hidden', kind !== 'map');
     this.winCopyRow.classList.toggle('hidden', kind !== 'map');
     this.pauseMapRow.classList.toggle('hidden', kind !== 'map');
+    const hints = this.pause.querySelector('#pause-hints') as HTMLElement | null;
+    if (hints) {
+      hints.textContent = kind === 'maze'
+        ? 'TAB map · E use doors · the key opens the vault, never the arena'
+        : 'TAB map · E use doors';
+    }
   }
 
   setPlaytestMode(on: boolean): void {
@@ -616,10 +616,6 @@ export class Screens {
       });
       this.campaignMaps.appendChild(b);
     }
-  }
-
-  isCampaignOpen(): boolean {
-    return !this.campaign.classList.contains('hidden');
   }
 
   bindCampaign(handlers: {

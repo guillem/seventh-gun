@@ -14,12 +14,14 @@ import {
   loadMapLog,
   prependMapLog,
   patchLatestMapLog,
+  shouldLogRun,
   type MapLogEntry,
   type MapLogOutcome,
 } from './mapLog';
 import {
   copyText,
   decodeShareCode,
+  encodeShareCode,
   encodeShareCodeSync,
   parseMapHash,
   shareUrlFromCode,
@@ -93,7 +95,7 @@ export class Game {
     this.screens.setVolumeSlider(this.settings.volume);
     this.screens.setSensSlider(this.settings.sensitivity);
     this.screens.setMuteLabel(this.settings.muted);
-    this.screens.setDifficulties(this.settings.difficulty, (d) => this.setDifficulty(d));
+    this.screens.setDifficulties(this.settings.difficulty, (d, host) => this.onSkillClick(d, host));
     this.screens.setRunKind('maze');
 
     const hashCode = parseMapHash(window.location.hash);
@@ -179,7 +181,7 @@ export class Game {
       newMaze: () => this.secondaryCurrent(),
     });
     this.screens.bindCopyLink(() => { void this.copyShareLink(); });
-    this.screens.bindSaveLibrary(() => this.saveAuthoredToLibrary());
+    this.screens.bindSaveLibrary(() => { void this.saveAuthoredToLibrary(); });
     this.screens.bindBackToEditor(() => this.returnToEditor());
     this.screens.setTouchUi({
       fire: (down) => this.input.setFire(down),
@@ -238,11 +240,19 @@ export class Game {
     return this.phase === 'playing' || this.phase === 'map';
   }
 
-  private setDifficulty(d: Difficulty): void {
+  private applyDifficulty(d: Difficulty): void {
     this.settings.difficulty = d;
     saveSettings(this.settings);
-    this.screens.setDifficulties(d, (dd) => this.setDifficulty(dd));
-    if (this.phase === 'title' && this.sim) this.startRun(this.seed); // rebuild economy
+    this.screens.setDifficulties(d, (dd, host) => this.onSkillClick(dd, host));
+  }
+
+  /** Title SKILL may rebuild a maze. Campaign SKILL only stores the setting. */
+  private onSkillClick(d: Difficulty, host: string): void {
+    this.applyDifficulty(d);
+    if (host !== 'diff-row') return;
+    if (this.phase === 'title' && this.sim && this.runKind === 'maze') {
+      this.startRun(this.seed);
+    }
   }
 
   // ------------------------------------------------------------------ run flow
@@ -259,13 +269,17 @@ export class Game {
     this.seed = seed;
     this.sim = new Sim(seed, this.settings.difficulty);
     const startedAt = Date.now();
-    this.runLog = { seed, difficulty: this.settings.difficulty, startedAt };
-    prependMapLog({
-      seed,
-      difficulty: this.settings.difficulty,
-      startedAt,
-      genVersion: GEN_VERSION,
-    });
+    if (shouldLogRun('maze', seed)) {
+      this.runLog = { seed, difficulty: this.settings.difficulty, startedAt };
+      prependMapLog({
+        seed,
+        difficulty: this.settings.difficulty,
+        startedAt,
+        genVersion: GEN_VERSION,
+      });
+    } else {
+      this.runLog = null;
+    }
     this.beginPlay('Find the seven guns. The Seventh unseals the arena.');
   }
 
@@ -287,6 +301,11 @@ export class Game {
     this.runKind = 'map';
     this.authoredBlueprint = bp;
     this.shareCode = code ?? encodeShareCodeSync(bp);
+    if (!code) {
+      void encodeShareCode(bp).then((c) => {
+        if (this.authoredBlueprint === bp) this.shareCode = c;
+      });
+    }
     this.fromEditor = !!opts?.playtest;
     this.playtestAllGuns = !!opts?.allGuns;
     this.screens.setRunKind('map');
@@ -331,6 +350,7 @@ export class Game {
     this.winHandled = false;
     this.hud.showMessage(message);
     this.audio.unlock().then(() => this.audio.startAmbient());
+    this.input.paused = false;
     if (!this.input.isTouch) this.input.requestLock();
   }
 
@@ -403,7 +423,7 @@ export class Game {
     if (!isMapUnlocked(n, progress)) return;
     const cm = campaignMap(n);
     if (!cm) return;
-    if (progress) this.setDifficulty(progress.difficulty);
+    if (progress) this.applyDifficulty(progress.difficulty);
     this.startCampaignMap(cm.index, cm.incomingLoadout);
   }
 
@@ -429,7 +449,7 @@ export class Game {
       this.beginCampaign();
       return;
     }
-    this.setDifficulty(progress.difficulty);
+    this.applyDifficulty(progress.difficulty);
     this.startCampaignMap(progress.nextMap, progress.loadout);
   }
 
@@ -547,9 +567,7 @@ export class Game {
   }
 
   private playFromLog(entry: MapLogEntry): void {
-    this.settings.difficulty = entry.difficulty;
-    saveSettings(this.settings);
-    this.screens.setDifficulties(entry.difficulty, (d) => this.setDifficulty(d));
+    this.applyDifficulty(entry.difficulty);
     this.screens.seedInput.value = entry.seed;
     this.screens.showMapLog(false);
     this.startRun(entry.seed);
@@ -593,6 +611,7 @@ export class Game {
     this.screens.setPlaytestMode(false);
     this.editor?.hide();
     this.phase = 'title';
+    this.input.paused = false;
     this.audio.stopLoops();
     this.screens.showPause(false);
     this.screens.showMap(false);
@@ -652,13 +671,13 @@ export class Game {
     this.openEditor();
   }
 
-  private saveAuthoredToLibrary(): void {
+  private async saveAuthoredToLibrary(): Promise<void> {
     if (!this.authoredBlueprint) {
       this.screens.showToast('no map');
       return;
     }
     try {
-      const code = this.shareCode ?? encodeShareCodeSync(this.authoredBlueprint);
+      const code = this.shareCode ?? await encodeShareCode(this.authoredBlueprint);
       upsertLibrary({ title: this.authoredBlueprint.title ?? 'UNTITLED', code });
       this.screens.showToast('saved');
     } catch {
@@ -669,6 +688,7 @@ export class Game {
   private togglePause(): void {
     if (this.phase === 'playing') {
       this.phase = 'paused';
+      this.input.paused = true;
       this.screens.showPause(true);
       this.input.releaseLock();
     } else if (this.phase === 'paused') {
@@ -679,6 +699,7 @@ export class Game {
   private resume(): void {
     if (this.phase !== 'paused') return;
     this.phase = 'playing';
+    this.input.paused = false;
     this.screens.showPause(false);
     if (!this.input.isTouch) this.input.requestLock();
   }
@@ -917,7 +938,7 @@ export class Game {
         };
       },
       startRun: (seed?: string, difficulty?: Difficulty) => {
-        if (difficulty) this.setDifficulty(difficulty);
+        if (difficulty) this.applyDifficulty(difficulty);
         this.startRun(seed ?? randomSeed());
       },
       startMap: (input: MapBlueprint | string) => {

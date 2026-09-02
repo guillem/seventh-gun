@@ -97,8 +97,6 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
 };
 
-export const ENEMY_ORDER: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
-
 /** Vertical hit volume in world Y. Flying bodies are centered on hoverY (visible torso), not stacked above the head. */
 export function enemyVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCenter: number } {
   if (def.flying) {

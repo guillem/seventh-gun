@@ -107,5 +107,18 @@ describe('mapcodec', () => {
     expect(isCompressedCode(code)).toBe(false);
     expect(decodeBlueprint(code).enemies.length).toBe(80);
   });
+
+  it('truncates titles to 255 UTF-8 bytes, not JS characters', () => {
+    const emoji = '💀🎸🔥'.repeat(40); // 120 chars, 480 UTF-8 bytes
+    expect(emoji.length).toBeLessThan(255);
+    expect(new TextEncoder().encode(emoji).length).toBeGreaterThan(255);
+    const bp = { ...tinyGunSealBlueprint(), title: emoji };
+    const code = encodeBlueprint(stripCosmetics(bp));
+    const back = decodeBlueprint(code);
+    expect(back.title).toBeTruthy();
+    expect(new TextEncoder().encode(back.title!).length).toBeLessThanOrEqual(255);
+    expect(back.title!.includes('💀')).toBe(true);
+    expect(back.title!.includes('\uFFFD')).toBe(false);
+  });
 });
 

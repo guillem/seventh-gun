@@ -6,6 +6,7 @@ import {
   parseMapLogEntry,
   prependMapLog,
   patchLatestMapLog,
+  shouldLogRun,
   type MapLogStorage,
 } from '../../src/app/mapLog';
 import { GEN_VERSION } from '../../src/sim/types';
@@ -133,6 +134,35 @@ describe('map log', () => {
     expect(log[0].durationSec).toBe(9);
     expect(log[0].kills).toBe(4);
     expect(log[1].outcome).toBeUndefined();
+  });
+
+  it('does not log campaign seeds, and ignores poisoned campaign: entries on load', () => {
+    const storage = memoryStorage({
+      [MAP_LOG_KEY]: JSON.stringify([
+        { seed: 'campaign:01-foundry', difficulty: 'hard', startedAt: 9, genVersion: 4 },
+        { seed: 'real-maze', difficulty: 'normal', startedAt: 8, genVersion: 4 },
+      ]),
+    });
+    expect(loadMapLog(storage).map((e) => e.seed)).toEqual(['real-maze']);
+    const after = prependMapLog(
+      { seed: 'campaign:03-catacombs', difficulty: 'easy', startedAt: 10 },
+      storage,
+    );
+    expect(after.map((e) => e.seed)).toEqual(['real-maze']);
+    expect(loadMapLog(storage).some((e) => e.seed.startsWith('campaign:'))).toBe(false);
+  });
+
+  it('campaign / editor playtest / #m= runs are not loggable even after a maze run', () => {
+    expect(shouldLogRun('maze', 'alpha')).toBe(true);
+    expect(shouldLogRun('maze', 'campaign:01-foundry')).toBe(false);
+    expect(shouldLogRun('campaign', 'campaign:01-foundry')).toBe(false);
+    expect(shouldLogRun('map', 'the-foundry')).toBe(false);
+    expect(shouldLogRun('map', 'untitled')).toBe(false);
+    const storage = memoryStorage();
+    prependMapLog({ seed: 'alpha', difficulty: 'normal', startedAt: 1 }, storage);
+    prependMapLog({ seed: 'campaign:01-foundry', difficulty: 'hard', startedAt: 2 }, storage);
+    expect(loadMapLog(storage)).toHaveLength(1);
+    expect(loadMapLog(storage)[0].seed).toBe('alpha');
   });
 
   it('returns empty when storage throws on read', () => {
