@@ -72,8 +72,8 @@ secret cells forever.
 - Native-resolution WebGL (no low-res blit/upscale). Nearest-filtered canvas
   textures with nearest-mipmap filtering: crunchy but not muddy.
 - World geometry is merged per-theme `BufferGeometry`. **Experimental look-dev
-  (not shipping):** `MeshStandardMaterial` + canvas albedo + procedural
-  roughness, real overhead lights from `RoomLight` positions, no vertex bake.
+  (not shipping):** `MeshStandardMaterial` + 512px enriched canvas albedo +
+  matte roughness/bump, raised fill + soft no-shadow overheads, no vertex bake.
   Shipping main still documented as baked-vertex + MeshBasic until this lands.
   Campaign runs
   (`runKind === 'campaign'`) bind

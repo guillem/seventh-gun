@@ -1,12 +1,14 @@
 # STATUS
 
-Updated: 2026-09-02 — experimental PBR look-dev on `feat/lookdev-pbr`. **DO NOT MERGE. Not shipping.**
+Updated: 2026-09-02 — experimental PBR look-dev pass 2 on `feat/lookdev-pbr`. **DO NOT MERGE. Not shipping.**
 
 GEN_VERSION still 4. Mapgen, codec, gameplay, input, collisions, physics, campaign, secrets, editor untouched.
 
-## State: experimental look-dev (pass 1)
+## State: experimental look-dev (pass 2 — still experimental)
 
-World floors/walls/ceilings and wall-textured secret plates use `MeshStandardMaterial` with existing canvas albedo + procedural roughness. Vertex `bakeColor` is off so it cannot fight real lights. Dim hemisphere/ambient fill + up to 8 overhead `PointLight`s from existing `RoomLight` positions (cool-biased, 0–1 shadow caster; shadows off in `?e2e=1`). Maze vs campaign keep their albedo packs; roughness scalars differ per theme.
+Playtest of deploy-preview-20: too dark, too shiny, lights too spotty, canvases too low-res/simple.
+
+World floors/walls/ceilings and wall-textured secret plates use `MeshStandardMaterial` with 512px enriched canvas albedo, procedural matte roughness, and a cheap bump map. Vertex `bakeColor` stays off. Hemisphere/ambient fill is raised so corners stay readable. Up to 12 soft overhead `PointLight`s (wide distance, low intensity, **zero shadows**). Camera torch is a dim local fill, not a flashlight. `envMapIntensity` is low. Maze vs campaign keep their albedo packs; roughness is worn plaster/tile, metalness near 0.
 
 Emissive FX, sky, seal, lamp decals, additive cracks stay Basic. Enemies/pickups that would go black under PBR use Standard; eyes/glows stay Basic.
 

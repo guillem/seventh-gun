@@ -1,5 +1,5 @@
-// Builds the static world from the map: merged per-theme PBR geometry, a few
-// real lights (look-dev), decal planes, doors, the arena seal, sky dome.
+// Builds the static world from the map: merged per-theme PBR geometry, soft
+// no-shadow look-dev lights, decal planes, doors, the arena seal, sky dome.
 // Campaign runs swap the theme atlas for getCampaignTextures(artId) and add
 // extra artwork; maze / #m= keep the shared four-theme look.
 import * as THREE from 'three';
@@ -54,6 +54,7 @@ function pushQuad(
 function worldStandard(opts: {
   map: THREE.Texture;
   roughnessMap: THREE.Texture;
+  bumpMap?: THREE.Texture;
   roughness: number;
   metalness: number;
   side?: THREE.Side;
@@ -61,8 +62,11 @@ function worldStandard(opts: {
   const mat = new THREE.MeshStandardMaterial({
     map: opts.map,
     roughnessMap: opts.roughnessMap,
+    bumpMap: opts.bumpMap,
+    bumpScale: opts.bumpMap ? 0.18 : 0,
     roughness: opts.roughness,
     metalness: opts.metalness,
+    envMapIntensity: 0.12,
     fog: true,
     side: opts.side ?? THREE.FrontSide,
   });
@@ -70,10 +74,9 @@ function worldStandard(opts: {
   return mat;
 }
 
-const MAX_OVERHEADS = 8;
-const MAX_SHADOWS = 1;
+const MAX_OVERHEADS = 6;
 
-/** Dim fill lives on the renderer. Here: a few cool overheads from RoomLight positions. */
+/** Fill lives on the renderer. Soft, wide, no-shadow overheads so rooms are not flashlight pools. */
 function attachLookdevLights(group: THREE.Group, map: GameMap): void {
   const ranked = map.lights.slice().sort((a, b) => {
     const coolA = a.color[2] - a.color[0];
@@ -82,19 +85,13 @@ function attachLookdevLights(group: THREE.Group, map: GameMap): void {
     return b.intensity - a.intensity;
   });
   const picked = ranked.slice(0, MAX_OVERHEADS);
-  picked.forEach((L, i) => {
-    const dist = Math.min(16, Math.max(8, L.radius * 1.25));
-    const intensity = 10 + L.intensity * 8;
+  picked.forEach((L) => {
+    const dist = Math.min(32, Math.max(18, L.radius * 2.4));
+    const intensity = 1.8 + L.intensity * 1.6;
     const color = new THREE.Color().setRGB(L.color[0], L.color[1], L.color[2]);
-    const light = new THREE.PointLight(color, intensity, dist, 2);
+    const light = new THREE.PointLight(color, intensity, dist, 1.15);
     light.position.set(L.x, L.y, L.z);
-    if (i < MAX_SHADOWS) {
-      light.castShadow = true;
-      light.shadow.mapSize.set(512, 512);
-      light.shadow.camera.near = 0.3;
-      light.shadow.camera.far = dist;
-      light.shadow.bias = -0.02;
-    }
+    light.castShadow = false;
     group.add(light);
   });
 }
@@ -208,10 +205,16 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       : type === 'floor' ? tex.roughness.floors[theme]
         : type === 'ceil' ? tex.roughness.ceilings[theme]
           : tex.roughness.walls[theme];
+    const bumpMap = camp
+      ? (type === 'floor' ? camp.bumpFloors : type === 'ceil' ? camp.bumpCeilings : camp.bumpWalls)
+      : type === 'floor' ? tex.bump.floors[theme]
+        : type === 'ceil' ? tex.bump.ceilings[theme]
+          : tex.bump.walls[theme];
     const mazePbr = themeStr === 'campaign' ? null : MAZE_PBR[theme];
     const mat = worldStandard({
       map: albedo,
       roughnessMap,
+      bumpMap,
       roughness: camp ? camp.pbrRoughness : mazePbr!.roughness,
       metalness: camp ? camp.pbrMetalness : mazePbr!.metalness,
       // floors/ceilings are single-sided quads seen from one side; DoubleSide
@@ -220,8 +223,8 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.frustumCulled = true;
-    mesh.receiveShadow = true;
-    mesh.castShadow = type === 'wall';
+    mesh.receiveShadow = false;
+    mesh.castShadow = false;
     group.add(mesh);
   }
 
@@ -262,16 +265,17 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     disposables.push(geo);
     const mat = new THREE.MeshStandardMaterial({
       map: camp?.door ?? tex.door,
-      roughness: camp ? Math.min(0.85, camp.pbrRoughness + 0.05) : 0.58,
-      metalness: camp ? camp.pbrMetalness : 0.08,
+      roughness: camp ? Math.min(0.94, camp.pbrRoughness + 0.06) : 0.88,
+      metalness: camp ? Math.min(0.06, camp.pbrMetalness) : 0.04,
+      envMapIntensity: 0.12,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
       fog: true,
     });
     applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     group.add(mesh);
     doorMeshes.set(d.id, mesh);
   }
@@ -289,16 +293,18 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     disposables.push(geo);
     const wallTex = camp?.walls ?? tex.walls[theme];
     const plateRough = camp?.roughnessWalls ?? tex.roughness.walls[theme];
+    const plateBump = camp?.bumpWalls ?? tex.bump.walls[theme];
     const mat = worldStandard({
       map: wallTex,
       roughnessMap: plateRough,
+      bumpMap: plateBump,
       roughness: camp ? camp.pbrRoughness : MAZE_PBR[theme].roughness,
       metalness: camp ? camp.pbrMetalness : MAZE_PBR[theme].metalness,
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(s.x, (WALL_H * 0.72) / 2, s.z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     group.add(mesh);
     plateMeshes.set(s.id, mesh);
 

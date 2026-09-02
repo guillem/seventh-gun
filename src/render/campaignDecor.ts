@@ -599,12 +599,12 @@ export function applyCampaignDecor(
       disposables.push(geo);
       const mat = new THREE.MeshStandardMaterial({
         map: tex, color: e.color ?? 0xc8b890, fog: true,
-        roughness: 0.72, metalness: 0.08,
+        roughness: 0.90, metalness: 0.04, envMapIntensity: 0.12,
       });
       applyRadialFog(mat);
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
       const depth = 0.2;
       mesh.position.set(e.x + Math.sin(e.yaw) * depth, e.y, e.z + Math.cos(e.yaw) * depth);
       mesh.rotation.y = e.yaw;

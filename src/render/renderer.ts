@@ -46,7 +46,8 @@ export class GameRenderer {
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
-    this.renderer.shadowMap.enabled = !e2e;
+    // Look-dev pass 2: no shadow maps (they blotched the floors as flashlight pools).
+    this.renderer.shadowMap.enabled = false;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
@@ -55,11 +56,13 @@ export class GameRenderer {
 
     this.scene.fog = new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
 
-    // dim fill — world surfaces are MeshStandard now; overheads live in buildWorld
-    this.scene.add(new THREE.AmbientLight(0x6a7380, 0.22));
-    const hemi = new THREE.HemisphereLight(0x7a8aa8, 0x1c1612, 0.38);
+    // Bright fill so unlit corners stay readable (closer to old baked, not night).
+    this.scene.add(new THREE.AmbientLight(0x8a93a0, 0.92));
+    const hemi = new THREE.HemisphereLight(0xc4cde0, 0x4a4238, 1.15);
     this.scene.add(hemi);
-    this.torch = new THREE.PointLight(0xffd9a0, 16, 12, 2);
+    // Soft local fill, not a camera-glued spotlight.
+    this.torch = new THREE.PointLight(0xffe8cc, 2.0, 20, 1.25);
+    this.torch.castShadow = false;
     this.scene.add(this.torch);
 
     // viewmodel pass lights
@@ -202,6 +205,7 @@ export class GameRenderer {
     }
     if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
     this.torch.position.copy(this.camera.position);
+    this.torch.position.y += 0.45;
 
     // gun switch visual
     this.setGun(p.gun);

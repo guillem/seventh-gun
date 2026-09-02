@@ -27,22 +27,64 @@ function toTexture(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
   return t;
 }
 
-/** Grayscale procedural roughness (linear, not sRGB). Maze themes differ. */
-function roughnessCanvas(seed: string, lo: number, hi: number, size = 64): HTMLCanvasElement {
+type WearMode = 'masonry' | 'organic' | 'panel';
+
+/** Worn concrete/tile/plaster — matte grout/wear, not glitter. White = rough. */
+function roughnessCanvas(seed: string, lo: number, hi: number, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
   const { c, g } = canvas(size);
   const rng = makeRng(seed).float;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const n = rng() * rng(); // bias a bit toward lo
-      const v = Math.round((lo + n * (hi - lo)) * 255);
-      g.fillStyle = `rgb(${v},${v},${v})`;
-      g.fillRect(x, y, 1, 1);
+  const base = Math.max(lo, 0.72);
+  const bv = Math.round(base * 255);
+  g.fillStyle = `rgb(${bv},${bv},${bv})`;
+  g.fillRect(0, 0, size, size);
+  const cells = mode === 'organic' ? 0 : mode === 'panel' ? 4 : 8;
+  if (cells > 0) {
+    const step = size / cells;
+    const grout = Math.round(Math.min(1, hi) * 255);
+    g.fillStyle = `rgb(${grout},${grout},${grout})`;
+    for (let i = 0; i <= cells; i++) {
+      g.fillRect(i * step - 1, 0, 2, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
     }
+  }
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * size, y = rng() * size, rad = 6 + rng() * 22;
+    const v = Math.round((base + rng() * (hi - base)) * 255);
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, `rgba(${v},${v},${v},0.35)`);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
   }
   return c;
 }
 
-function toRoughness(c: HTMLCanvasElement): THREE.Texture {
+function bumpCanvas(seed: string, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng(seed).float;
+  g.fillStyle = '#c8c8c8';
+  g.fillRect(0, 0, size, size);
+  if (mode !== 'organic') {
+    const cells = mode === 'panel' ? 4 : 8;
+    const step = size / cells;
+    g.fillStyle = '#7a7a7a';
+    for (let i = 0; i <= cells; i++) {
+      g.fillRect(i * step - 1, 0, 2, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
+    }
+  }
+  for (let i = 0; i < 12; i++) {
+    const x = rng() * size, y = rng() * size, rad = 4 + rng() * 18;
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, 'rgba(90,90,90,0.45)');
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  return c;
+}
+
+function toLinearMap(c: HTMLCanvasElement): THREE.Texture {
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;
   t.minFilter = THREE.NearestMipmapLinearFilter;
@@ -51,11 +93,77 @@ function toRoughness(c: HTMLCanvasElement): THREE.Texture {
   return t;
 }
 
+function toRoughness(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
+function toBump(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
+
+/** Upsample painterly 64/128 canvases and add wear in the same theme. */
+function enrichAlbedo(src: HTMLCanvasElement, size: number, seed: string, mode: WearMode): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng('wear-' + seed).float;
+  g.imageSmoothingEnabled = false;
+  if (typeof g.drawImage === 'function') g.drawImage(src, 0, 0, size, size);
+  else { g.fillStyle = '#808080'; g.fillRect(0, 0, size, size); }
+  const cells = 8;
+  const cell = size / cells;
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const a = 0.04 + rng() * 0.07;
+      const rv = (20 + rng() * 40) | 0, gv = (14 + rng() * 28) | 0, b = (10 + rng() * 24) | 0;
+      g.fillStyle = `rgba(${rv},${gv},${b},${a})`;
+      g.fillRect(x * cell, y * cell, cell, cell);
+    }
+  }
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * size, y = rng() * size, rad = 10 + rng() * 40;
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, `rgba(36,24,16,${0.10 + rng() * 0.16})`);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  if (mode !== 'organic') {
+    const n = mode === 'panel' ? 4 : 8;
+    const step = size / n;
+    g.strokeStyle = 'rgba(0,0,0,0.16)';
+    g.lineWidth = 1;
+    for (let i = 0; i <= n; i++) {
+      g.beginPath(); g.moveTo(i * step, 0); g.lineTo(i * step, size); g.stroke();
+      if (mode !== 'panel') {
+        g.beginPath(); g.moveTo(0, i * step); g.lineTo(size, i * step); g.stroke();
+      }
+    }
+    g.strokeStyle = 'rgba(255,245,230,0.07)';
+    for (let i = 0; i < 8; i++) {
+      const x = rng() * size, y = rng() * size;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10 + rng() * 24, y + (rng() - 0.5) * 5); g.stroke();
+    }
+  } else {
+    g.strokeStyle = 'rgba(80,30,28,0.18)';
+    g.lineWidth = 1.5;
+    for (let i = 0; i < 6; i++) {
+      g.beginPath();
+      g.moveTo(rng() * size, rng() * size);
+      g.bezierCurveTo(rng() * size, rng() * size, rng() * size, rng() * size, rng() * size, rng() * size);
+      g.stroke();
+    }
+  }
+  noise(g, size, rng, Math.floor(size * 2), 0.05);
+  return c;
+}
+
+function toSurf(c: HTMLCanvasElement, seed: string, mode: WearMode, size = 512): THREE.Texture {
+  return toTexture(enrichAlbedo(c, size, seed, mode));
+}
+
 export const MAZE_PBR: Record<'industrial' | 'organic' | 'stone' | 'tech', { roughness: number; metalness: number }> = {
-  industrial: { roughness: 0.62, metalness: 0.12 },
-  organic: { roughness: 0.84, metalness: 0.0 },
-  stone: { roughness: 0.88, metalness: 0.02 },
-  tech: { roughness: 0.42, metalness: 0.18 },
+  industrial: { roughness: 0.90, metalness: 0.04 },
+  organic: { roughness: 0.94, metalness: 0.0 },
+  stone: { roughness: 0.95, metalness: 0.0 },
+  tech: { roughness: 0.84, metalness: 0.05 },
+};
+
+const MAZE_WEAR: Record<'industrial' | 'organic' | 'stone' | 'tech', WearMode> = {
+  industrial: 'panel', organic: 'organic', stone: 'masonry', tech: 'panel',
 };
 
 function noise(g: Ctx, size: number, rng: () => number, amount: number, alpha: number): void {
@@ -1186,6 +1294,11 @@ export interface TextureLib {
     floors: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
     ceilings: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
   };
+  bump: {
+    walls: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+    floors: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+    ceilings: Record<'industrial' | 'organic' | 'stone' | 'tech', THREE.Texture>;
+  };
   door: THREE.Texture;
   sky: THREE.Texture;
   decals: Record<'rune' | 'skull' | 'tendrils' | 'pentagram' | 'lamp', THREE.Texture>;
@@ -1202,41 +1315,61 @@ export function getTextures(): TextureLib {
   if (cached) return cached;
   cached = {
     walls: {
-      industrial: toTexture(wallIndustrial()),
-      organic: toTexture(wallOrganic()),
-      stone: toTexture(wallStone()),
-      tech: toTexture(wallTech()),
+      industrial: toSurf(wallIndustrial(), 'w-ind', 'panel'),
+      organic: toSurf(wallOrganic(), 'w-org', 'organic'),
+      stone: toSurf(wallStone(), 'w-sto', 'masonry'),
+      tech: toSurf(wallTech(), 'w-tech', 'panel'),
     },
     floors: {
-      industrial: toTexture(floorIndustrial()),
-      organic: toTexture(floorOrganic()),
-      stone: toTexture(floorStone()),
-      tech: toTexture(floorTech()),
+      industrial: toSurf(floorIndustrial(), 'f-ind', 'panel'),
+      organic: toSurf(floorOrganic(), 'f-org', 'organic'),
+      stone: toSurf(floorStone(), 'f-sto', 'masonry'),
+      tech: toSurf(floorTech(), 'f-tech', 'panel'),
     },
     ceilings: {
-      industrial: toTexture(ceilingDark('#232621')),
-      organic: toTexture(ceilingDark('#2c1012')),
-      stone: toTexture(ceilingDark('#191b1f')),
-      tech: toTexture(ceilingDark('#17141f')),
+      industrial: toSurf(ceilingDark('#232621'), 'c-ind', 'panel'),
+      organic: toSurf(ceilingDark('#2c1012'), 'c-org', 'organic'),
+      stone: toSurf(ceilingDark('#191b1f'), 'c-sto', 'masonry'),
+      tech: toSurf(ceilingDark('#17141f'), 'c-tech', 'panel'),
     },
     roughness: {
       walls: {
-        industrial: toRoughness(roughnessCanvas('rough-w-ind', 0.42, 0.78)),
-        organic: toRoughness(roughnessCanvas('rough-w-org', 0.62, 0.95)),
-        stone: toRoughness(roughnessCanvas('rough-w-sto', 0.72, 0.98)),
-        tech: toRoughness(roughnessCanvas('rough-w-tech', 0.28, 0.58)),
+        industrial: toRoughness(roughnessCanvas('rough-w-ind', 0.78, 0.98, 128, 'panel')),
+        organic: toRoughness(roughnessCanvas('rough-w-org', 0.82, 0.99, 128, 'organic')),
+        stone: toRoughness(roughnessCanvas('rough-w-sto', 0.84, 0.99, 128, 'masonry')),
+        tech: toRoughness(roughnessCanvas('rough-w-tech', 0.74, 0.94, 128, 'panel')),
       },
       floors: {
-        industrial: toRoughness(roughnessCanvas('rough-f-ind', 0.48, 0.82)),
-        organic: toRoughness(roughnessCanvas('rough-f-org', 0.70, 0.96)),
-        stone: toRoughness(roughnessCanvas('rough-f-sto', 0.75, 0.98)),
-        tech: toRoughness(roughnessCanvas('rough-f-tech', 0.32, 0.62)),
+        industrial: toRoughness(roughnessCanvas('rough-f-ind', 0.80, 0.98, 128, 'panel')),
+        organic: toRoughness(roughnessCanvas('rough-f-org', 0.84, 0.99, 128, 'organic')),
+        stone: toRoughness(roughnessCanvas('rough-f-sto', 0.86, 0.99, 128, 'masonry')),
+        tech: toRoughness(roughnessCanvas('rough-f-tech', 0.76, 0.95, 128, 'panel')),
       },
       ceilings: {
-        industrial: toRoughness(roughnessCanvas('rough-c-ind', 0.55, 0.88)),
-        organic: toRoughness(roughnessCanvas('rough-c-org', 0.68, 0.96)),
-        stone: toRoughness(roughnessCanvas('rough-c-sto', 0.78, 0.98)),
-        tech: toRoughness(roughnessCanvas('rough-c-tech', 0.40, 0.70)),
+        industrial: toRoughness(roughnessCanvas('rough-c-ind', 0.82, 0.98, 128, 'panel')),
+        organic: toRoughness(roughnessCanvas('rough-c-org', 0.84, 0.99, 128, 'organic')),
+        stone: toRoughness(roughnessCanvas('rough-c-sto', 0.86, 0.99, 128, 'masonry')),
+        tech: toRoughness(roughnessCanvas('rough-c-tech', 0.78, 0.96, 128, 'panel')),
+      },
+    },
+    bump: {
+      walls: {
+        industrial: toBump(bumpCanvas('bump-w-ind', 128, 'panel')),
+        organic: toBump(bumpCanvas('bump-w-org', 128, 'organic')),
+        stone: toBump(bumpCanvas('bump-w-sto', 128, 'masonry')),
+        tech: toBump(bumpCanvas('bump-w-tech', 128, 'panel')),
+      },
+      floors: {
+        industrial: toBump(bumpCanvas('bump-f-ind', 128, 'panel')),
+        organic: toBump(bumpCanvas('bump-f-org', 128, 'organic')),
+        stone: toBump(bumpCanvas('bump-f-sto', 128, 'masonry')),
+        tech: toBump(bumpCanvas('bump-f-tech', 128, 'panel')),
+      },
+      ceilings: {
+        industrial: toBump(bumpCanvas('bump-c-ind', 128, 'panel')),
+        organic: toBump(bumpCanvas('bump-c-org', 128, 'organic')),
+        stone: toBump(bumpCanvas('bump-c-sto', 128, 'masonry')),
+        tech: toBump(bumpCanvas('bump-c-tech', 128, 'panel')),
       },
     },
     door: toTexture(doorTexture()),

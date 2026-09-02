@@ -25,21 +25,64 @@ function toTiled(c: HTMLCanvasElement, repeat = 1): THREE.Texture {
   return t;
 }
 
-function roughnessCanvas(seed: string, lo: number, hi: number, size = 64): HTMLCanvasElement {
+type WearMode = 'masonry' | 'organic' | 'panel';
+
+/** Worn concrete/tile/plaster — matte grout/wear, not glitter. White = rough. */
+function roughnessCanvas(seed: string, lo: number, hi: number, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
   const { c, g } = canvas(size);
   const rng = makeRng(seed).float;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const n = rng() * rng();
-      const v = Math.round((lo + n * (hi - lo)) * 255);
-      g.fillStyle = `rgb(${v},${v},${v})`;
-      g.fillRect(x, y, 1, 1);
+  const base = Math.max(lo, 0.72);
+  const bv = Math.round(base * 255);
+  g.fillStyle = `rgb(${bv},${bv},${bv})`;
+  g.fillRect(0, 0, size, size);
+  const cells = mode === 'organic' ? 0 : mode === 'panel' ? 4 : 8;
+  if (cells > 0) {
+    const step = size / cells;
+    const grout = Math.round(Math.min(1, hi) * 255);
+    g.fillStyle = `rgb(${grout},${grout},${grout})`;
+    for (let i = 0; i <= cells; i++) {
+      g.fillRect(i * step - 1, 0, 2, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
     }
+  }
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * size, y = rng() * size, rad = 6 + rng() * 22;
+    const v = Math.round((base + rng() * (hi - base)) * 255);
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, `rgba(${v},${v},${v},0.35)`);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
   }
   return c;
 }
 
-function toRoughness(c: HTMLCanvasElement): THREE.Texture {
+function bumpCanvas(seed: string, size = 128, mode: WearMode = 'masonry'): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng(seed).float;
+  g.fillStyle = '#c8c8c8';
+  g.fillRect(0, 0, size, size);
+  if (mode !== 'organic') {
+    const cells = mode === 'panel' ? 4 : 8;
+    const step = size / cells;
+    g.fillStyle = '#7a7a7a';
+    for (let i = 0; i <= cells; i++) {
+      g.fillRect(i * step - 1, 0, 2, size);
+      if (mode !== 'panel') g.fillRect(0, i * step - 1, size, 2);
+    }
+  }
+  for (let i = 0; i < 12; i++) {
+    const x = rng() * size, y = rng() * size, rad = 4 + rng() * 18;
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, 'rgba(90,90,90,0.45)');
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  return c;
+}
+
+function toLinearMap(c: HTMLCanvasElement): THREE.Texture {
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;
   t.minFilter = THREE.NearestMipmapLinearFilter;
@@ -47,6 +90,69 @@ function toRoughness(c: HTMLCanvasElement): THREE.Texture {
   t.colorSpace = THREE.NoColorSpace;
   return t;
 }
+
+function toRoughness(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
+function toBump(c: HTMLCanvasElement): THREE.Texture { return toLinearMap(c); }
+
+/** Upsample painterly 64/128 canvases and add wear in the same theme. */
+function enrichAlbedo(src: HTMLCanvasElement, size: number, seed: string, mode: WearMode): HTMLCanvasElement {
+  const { c, g } = canvas(size);
+  const rng = makeRng('camp-tex-wear-' + seed).float;
+  g.imageSmoothingEnabled = false;
+  if (typeof g.drawImage === 'function') g.drawImage(src, 0, 0, size, size);
+  else { g.fillStyle = '#808080'; g.fillRect(0, 0, size, size); }
+  const cells = 8;
+  const cell = size / cells;
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const a = 0.04 + rng() * 0.07;
+      const rv = (20 + rng() * 40) | 0, gv = (14 + rng() * 28) | 0, b = (10 + rng() * 24) | 0;
+      g.fillStyle = `rgba(${rv},${gv},${b},${a})`;
+      g.fillRect(x * cell, y * cell, cell, cell);
+    }
+  }
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * size, y = rng() * size, rad = 10 + rng() * 40;
+    const pg = g.createRadialGradient(x, y, 0, x, y, rad);
+    pg.addColorStop(0, `rgba(36,24,16,${0.10 + rng() * 0.16})`);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = pg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+  }
+  if (mode !== 'organic') {
+    const n = mode === 'panel' ? 4 : 8;
+    const step = size / n;
+    g.strokeStyle = 'rgba(0,0,0,0.16)';
+    g.lineWidth = 1;
+    for (let i = 0; i <= n; i++) {
+      g.beginPath(); g.moveTo(i * step, 0); g.lineTo(i * step, size); g.stroke();
+      if (mode !== 'panel') {
+        g.beginPath(); g.moveTo(0, i * step); g.lineTo(size, i * step); g.stroke();
+      }
+    }
+    g.strokeStyle = 'rgba(255,245,230,0.07)';
+    for (let i = 0; i < 8; i++) {
+      const x = rng() * size, y = rng() * size;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10 + rng() * 24, y + (rng() - 0.5) * 5); g.stroke();
+    }
+  } else {
+    g.strokeStyle = 'rgba(80,30,28,0.18)';
+    g.lineWidth = 1.5;
+    for (let i = 0; i < 6; i++) {
+      g.beginPath();
+      g.moveTo(rng() * size, rng() * size);
+      g.bezierCurveTo(rng() * size, rng() * size, rng() * size, rng() * size, rng() * size, rng() * size);
+      g.stroke();
+    }
+  }
+  noise(g, size, rng, Math.floor(size * 2), 0.05);
+  return c;
+}
+
+function toTiledSurf(c: HTMLCanvasElement, seed: string, mode: WearMode, size = 512): THREE.Texture {
+  return toTiled(enrichAlbedo(c, size, seed, mode));
+}
+
 
 function toDecal(c: HTMLCanvasElement): THREE.Texture {
   const t = new THREE.CanvasTexture(c);
@@ -1769,6 +1875,9 @@ export interface CampaignTextureLib {
   roughnessWalls: THREE.Texture;
   roughnessFloors: THREE.Texture;
   roughnessCeilings: THREE.Texture;
+  bumpWalls: THREE.Texture;
+  bumpFloors: THREE.Texture;
+  bumpCeilings: THREE.Texture;
   pbrRoughness: number;
   pbrMetalness: number;
   door: THREE.Texture;
@@ -1780,13 +1889,18 @@ export interface CampaignTextureLib {
 
 /** Per-theme PBR scalars. Albedo packs stay unique; roughness may differ. */
 export const CAMPAIGN_PBR: Record<CampaignArtId, { roughness: number; metalness: number; lo: number; hi: number }> = {
-  foundry: { roughness: 0.70, metalness: 0.16, lo: 0.48, hi: 0.86 },
-  gullet: { roughness: 0.90, metalness: 0.0, lo: 0.72, hi: 0.98 },
-  catacombs: { roughness: 0.92, metalness: 0.02, lo: 0.76, hi: 0.99 },
-  pit: { roughness: 0.78, metalness: 0.08, lo: 0.55, hi: 0.90 },
-  spire: { roughness: 0.74, metalness: 0.06, lo: 0.52, hi: 0.88 },
-  ward: { roughness: 0.46, metalness: 0.04, lo: 0.30, hi: 0.62 },
-  sanctum: { roughness: 0.38, metalness: 0.12, lo: 0.18, hi: 0.52 },
+  foundry: { roughness: 0.90, metalness: 0.06, lo: 0.78, hi: 0.97 },
+  gullet: { roughness: 0.95, metalness: 0.0, lo: 0.84, hi: 0.99 },
+  catacombs: { roughness: 0.95, metalness: 0.0, lo: 0.84, hi: 0.99 },
+  pit: { roughness: 0.91, metalness: 0.03, lo: 0.78, hi: 0.97 },
+  spire: { roughness: 0.92, metalness: 0.02, lo: 0.80, hi: 0.98 },
+  ward: { roughness: 0.88, metalness: 0.02, lo: 0.76, hi: 0.97 },
+  sanctum: { roughness: 0.84, metalness: 0.04, lo: 0.72, hi: 0.94 },
+};
+
+const CAMPAIGN_WEAR: Record<CampaignArtId, WearMode> = {
+  foundry: 'panel', gullet: 'organic', catacombs: 'masonry', pit: 'panel',
+  spire: 'masonry', ward: 'masonry', sanctum: 'masonry',
 };
 
 // Cheap identity strings the unit test can read without a canvas.
@@ -1828,14 +1942,14 @@ export function campaignArtIdFromSeed(seed: string): CampaignArtId | undefined {
     : undefined;
 }
 
-type CampaignAlbedoPack = Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'pbrRoughness' | 'pbrMetalness'>;
+type CampaignAlbedoPack = Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'bumpWalls' | 'bumpFloors' | 'bumpCeilings' | 'pbrRoughness' | 'pbrMetalness'>;
 type PackBuilder = () => CampaignAlbedoPack;
 
 const BUILDERS: Record<CampaignArtId, PackBuilder> = {
   foundry: () => ({
-    walls: toTiled(foundryWall()),
-    floors: toTiled(foundryFloor()),
-    ceilings: toTiled(foundryCeiling()),
+    walls: toTiledSurf(foundryWall(), 'foundry-wall', 'panel'),
+    floors: toTiledSurf(foundryFloor(), 'foundry-floor', 'panel'),
+    ceilings: toTiledSurf(foundryCeiling(), 'foundry-ceil', 'panel'),
     door: toTiled(foundryDoor()),
     extraDecals: [
       { id: 'foundry-furnace-stencil', tex: toDecal(foundryFurnaceStencil()) },
@@ -1844,9 +1958,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   gullet: () => ({
-    walls: toTiled(gulletWall()),
-    floors: toTiled(gulletFloor()),
-    ceilings: toTiled(gulletCeiling()),
+    walls: toTiledSurf(gulletWall(), 'gullet-wall', 'organic'),
+    floors: toTiledSurf(gulletFloor(), 'gullet-floor', 'organic'),
+    ceilings: toTiledSurf(gulletCeiling(), 'gullet-ceil', 'organic'),
     door: toTiled(gulletDoor()),
     extraDecals: [
       { id: 'gullet-sphincter-ring', tex: toDecal(gulletSphincterRing()) },
@@ -1855,9 +1969,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   catacombs: () => ({
-    walls: toTiled(catacombsWall()),
-    floors: toTiled(catacombsFloor()),
-    ceilings: toTiled(catacombsCeiling()),
+    walls: toTiledSurf(catacombsWall(), 'catacombs-wall', 'masonry'),
+    floors: toTiledSurf(catacombsFloor(), 'catacombs-floor', 'masonry'),
+    ceilings: toTiledSurf(catacombsCeiling(), 'catacombs-ceil', 'masonry'),
     door: toTiled(catacombsDoor()),
     extraDecals: [
       { id: 'catacombs-stacked-skulls', tex: toDecal(catacombsStackedSkulls()) },
@@ -1866,9 +1980,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   pit: () => ({
-    walls: toTiled(pitWall()),
-    floors: toTiled(pitFloor()),
-    ceilings: toTiled(pitCeiling()),
+    walls: toTiledSurf(pitWall(), 'pit-wall', 'panel'),
+    floors: toTiledSurf(pitFloor(), 'pit-floor', 'panel'),
+    ceilings: toTiledSurf(pitCeiling(), 'pit-ceil', 'panel'),
     door: toTiled(pitDoor()),
     sky: toSky(pitSky()),
     extraDecals: [
@@ -1878,9 +1992,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   spire: () => ({
-    walls: toTiled(spireWall()),
-    floors: toTiled(spireFloor()),
-    ceilings: toTiled(spireCeiling()),
+    walls: toTiledSurf(spireWall(), 'spire-wall', 'masonry'),
+    floors: toTiledSurf(spireFloor(), 'spire-floor', 'masonry'),
+    ceilings: toTiledSurf(spireCeiling(), 'spire-ceil', 'masonry'),
     door: toTiled(spireDoor()),
     extraDecals: [
       { id: 'spire-floor-numeral', tex: toDecal(spireFloorNumeral()) },
@@ -1889,9 +2003,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   ward: () => ({
-    walls: toTiled(wardWall()),
-    floors: toTiled(wardFloor()),
-    ceilings: toTiled(wardCeiling()),
+    walls: toTiledSurf(wardWall(), 'ward-wall', 'masonry'),
+    floors: toTiledSurf(wardFloor(), 'ward-floor', 'masonry'),
+    ceilings: toTiledSurf(wardCeiling(), 'ward-ceil', 'masonry'),
     door: toTiled(wardDoor()),
     extraDecals: [
       { id: 'ward-biohazard', tex: toDecal(wardBiohazard()) },
@@ -1900,9 +2014,9 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     ],
   }),
   sanctum: () => ({
-    walls: toTiled(sanctumWall()),
-    floors: toTiled(sanctumFloor()),
-    ceilings: toTiled(sanctumCeiling()),
+    walls: toTiledSurf(sanctumWall(), 'sanctum-wall', 'masonry'),
+    floors: toTiledSurf(sanctumFloor(), 'sanctum-floor', 'masonry'),
+    ceilings: toTiledSurf(sanctumCeiling(), 'sanctum-ceil', 'masonry'),
     door: toTiled(sanctumDoor()),
     extraDecals: [
       { id: 'sanctum-heptagram', tex: toDecal(sanctumHeptagram()) },
@@ -1914,13 +2028,17 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
 
 const packCache = new Map<CampaignArtId, CampaignTextureLib>();
 
-function withPbr(id: CampaignArtId, pack: Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'pbrRoughness' | 'pbrMetalness'>): CampaignTextureLib {
+function withPbr(id: CampaignArtId, pack: Omit<CampaignTextureLib, 'roughnessWalls' | 'roughnessFloors' | 'roughnessCeilings' | 'bumpWalls' | 'bumpFloors' | 'bumpCeilings' | 'pbrRoughness' | 'pbrMetalness'>): CampaignTextureLib {
   const spec = CAMPAIGN_PBR[id];
+  const wear = CAMPAIGN_WEAR[id];
   return {
     ...pack,
-    roughnessWalls: toRoughness(roughnessCanvas(`camp-rough-w-${id}`, spec.lo, spec.hi)),
-    roughnessFloors: toRoughness(roughnessCanvas(`camp-rough-f-${id}`, Math.min(0.99, spec.lo + 0.06), Math.min(1, spec.hi + 0.04))),
-    roughnessCeilings: toRoughness(roughnessCanvas(`camp-rough-c-${id}`, Math.min(0.99, spec.lo + 0.10), Math.min(1, spec.hi + 0.05))),
+    roughnessWalls: toRoughness(roughnessCanvas(`camp-rough-w-${id}`, spec.lo, spec.hi, 128, wear)),
+    roughnessFloors: toRoughness(roughnessCanvas(`camp-rough-f-${id}`, Math.min(0.99, spec.lo + 0.04), Math.min(1, spec.hi + 0.02), 128, wear)),
+    roughnessCeilings: toRoughness(roughnessCanvas(`camp-rough-c-${id}`, Math.min(0.99, spec.lo + 0.06), Math.min(1, spec.hi + 0.02), 128, wear)),
+    bumpWalls: toBump(bumpCanvas(`camp-tex-bump-w-${id}`, 128, wear)),
+    bumpFloors: toBump(bumpCanvas(`camp-tex-bump-f-${id}`, 128, wear)),
+    bumpCeilings: toBump(bumpCanvas(`camp-tex-bump-c-${id}`, 128, wear)),
     pbrRoughness: spec.roughness,
     pbrMetalness: spec.metalness,
   };

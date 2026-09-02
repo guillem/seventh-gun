@@ -5,8 +5,9 @@ Unspecified things got decided; this is the record.
 - **Title**: *SEVENTH GUN* — the win condition is literally finding the 7th
   gun; the name teaches the objective.
 - **Stack**: Vite 6 + TypeScript strict + Three.js (historically Lambert/Basic,
-  blob shadows only). **Experimental / DO NOT MERGE:** pass-1 PBR look-dev uses
-  MeshStandard + a few PointLights and 0–1 shadow map; blob shadows remain.
+  blob shadows only). **Experimental / DO NOT MERGE:** pass-2 PBR look-dev uses
+  MeshStandard + raised hemi/ambient fill, soft no-shadow PointLights, matte
+  roughness, 512px enriched canvases; blob shadows remain.
   Vitest, Playwright.
 - **Sim/render split**: hard boundary, sim is pure TS. See ARCHITECTURE.
 - **Geometry**: 88×88 cells, CELL=2u, corridors 3 cells wide, walls 6u tall,
