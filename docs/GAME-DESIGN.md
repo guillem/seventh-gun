@@ -45,13 +45,20 @@ Start: pistol + 70 bullets.
 | Slab | 110 | 2.3 | fireball 11 u/s | 20 + 2.6u splash | brute, 2.2s interval |
 | Wisp | 34 | 4.6 | bolt burst ×3 | 6×3 | hovers at 2.3u, strafes |
 | Hierophant | 170 | 3.4 | orb burst ×3 | 12×3 | elite, 2.4s interval |
+| Fiend | 240 | 2.7 | fireball burst ×2 | 16×2 + 1.8u splash | campaign-only (Pit / Ward / Sanctum) |
+
+Living enemies are solid cylinders (`def.radius` + player radius 0.55u);
+death ragdolls are not. Flying wisps still collide in XZ when the eye
+overlaps their volume. Wisp hitscan/projectile volume is centered on
+`hoverY` (visible torso), not stacked above the head.
 
 All projectiles are dodgeable; aim error scales with distance (×0.55–2.2 of
 per-type accuracy) and difficulty. Sight: 18–28u range, ~100–150° cone.
-Hearing: gunshots wake enemies within loudness (18–40u per gun) + margin.
-Proximity wake 4–6u. Closed doors and the seal block LOS, hitscan,
-projectiles AND rendering. Enemies path by A* (4-dir, staggered repaths),
-never open doors.
+Hearing: gunshots (hitscan and projectile) and death-cries last 1.6s.
+Hear distance is `loudness * 0.45 + hearRange` — same room / adjacent
+corridor, not the whole 88×88 map. Proximity wake 4–6u. Closed doors and
+the seal block LOS, hitscan, projectiles AND rendering. Enemies path by A*
+(4-dir, staggered repaths), never open doors.
 
 Arena wave (Normal): 2 hierophants, 3 slabs, 4 crawlers, 3 husks, 2 wisps.
 
@@ -86,6 +93,8 @@ unlocked map starts it with the incoming loadout below; CONTINUE uses the
 carried guns/ammo. Difficulty scales combat numbers only (same as
 `Sim.fromMap`), not enemy counts or ammo amounts. Incoming loadout is the
 retry snapshot; HP = 100 at each map start; the key does not persist.
+Fiends (campaign-only) are stamped on later maps (Pit / Ward / Sanctum),
+never Foundry, and never by `generateMap`.
 
 | Map | Title | Enter with | Unseal / new gun |
 |---|---|---|---|
@@ -99,4 +108,5 @@ retry snapshot; HP = 100 at each map start; the key does not persist.
 
 Campaign economy: incoming reference ammo + this map's pickups ≥ 2.2×
 total enemy HP on Normal, counting owned guns plus the gun this map awards
-(map 6: guns 1–6 only).
+(map 6: guns 1–6 only). Later maps may include Fiends; incoming loadouts
+are unchanged.

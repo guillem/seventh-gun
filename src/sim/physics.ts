@@ -47,6 +47,22 @@ export function moveCircle(state: Sim, x: number, z: number, dx: number, dz: num
   return { x: nx, z: nz };
 }
 
+/** Push circle `r` out of another circle, still sliding on walls. Deterministic. */
+export function pushCircleOut(
+  state: Sim,
+  x: number, z: number, r: number,
+  ox: number, oz: number, orad: number,
+): { x: number; z: number } {
+  const dx = x - ox, dz = z - oz;
+  const minD = r + orad;
+  const d2 = dx * dx + dz * dz;
+  if (d2 >= minD * minD) return { x, z };
+  if (d2 < 1e-8) return moveCircle(state, x, z, minD, 0, r);
+  const d = Math.sqrt(d2);
+  const push = minD - d;
+  return moveCircle(state, x, z, (dx / d) * push, (dz / d) * push, r);
+}
+
 /** Grid DDA raycast. Returns distance to wall (or maxDist) and hit point. */
 export function raycastWall(
   state: Sim, x0: number, z0: number, dirX: number, dirZ: number, maxDist: number,

@@ -76,6 +76,8 @@
     { "type": "slab", "room": "arena", "n": 2 },
     { "type": "wisp", "room": "arena", "n": 2 },
     { "type": "husk", "room": "arena", "n": 3 },
-    { "type": "crawler", "room": "arena", "n": 2 }
+    { "type": "crawler", "room": "arena", "n": 2 },
+    { "type": "fiend", "room": "pit", "n": 1 },
+    { "type": "fiend", "room": "stair", "n": 1 }
   ]
 }

@@ -77,6 +77,8 @@
     { "type": "slab", "room": "arena", "n": 3 },
     { "type": "wisp", "room": "arena", "n": 4 },
     { "type": "husk", "room": "arena", "n": 4 },
-    { "type": "crawler", "room": "arena", "n": 4 }
+    { "type": "crawler", "room": "arena", "n": 4 },
+    { "type": "fiend", "room": "foyer", "n": 1 },
+    { "type": "fiend", "room": "cells", "n": 1 }
   ]
 }

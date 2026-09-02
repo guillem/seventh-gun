@@ -68,14 +68,32 @@ function buildHusk(tex: ReturnType<typeof getTextures>): EnemyRig {
     sp.position.set(0.34 * s, 1.42, 0);
     sp.rotation.z = -0.5 * s;
     body.add(sp);
+    const pad = box(0.22, 0.16, 0.28, cloth);
+    pad.position.set(0.4 * s, 1.4, 0.02);
+    pad.rotation.z = -0.25 * s;
+    body.add(pad);
+  }
+  // exposed spine / feeding tube down the back
+  const spine = cyl(0.045, 0.035, 0.7, cloth, 6);
+  spine.position.set(0, 1.05, -0.18);
+  spine.rotation.x = 0.18;
+  body.add(spine);
+  for (let i = 0; i < 3; i++) {
+    const ring = cyl(0.07, 0.07, 0.04, skin, 6);
+    ring.position.set(0, 1.28 - i * 0.18, -0.16 - i * 0.03);
+    body.add(ring);
   }
   // head with FACE on +z
   const head = new THREE.Group();
   const skull = box(0.3, 0.32, 0.3, skin);
   head.add(skull);
-  const jaw = box(0.22, 0.1, 0.18, skin);
-  jaw.position.set(0, -0.18, 0.05);
+  const jaw = box(0.26, 0.14, 0.22, skin);
+  jaw.position.set(0, -0.22, 0.08);
   head.add(jaw);
+  const mandible = box(0.18, 0.08, 0.2, skin);
+  mandible.position.set(0, -0.32, 0.12);
+  mandible.rotation.x = 0.35;
+  head.add(mandible);
   const mouth = box(0.18, 0.05, 0.04, new THREE.MeshBasicMaterial({ color: 0x1a0505 }));
   mouth.position.set(0, -0.13, 0.15);
   head.add(mouth);
@@ -213,20 +231,29 @@ function buildSlab(tex: ReturnType<typeof getTextures>): EnemyRig {
   group.add(yawGroup);
   yawGroup.add(body);
 
-  // massive torso
-  const torso = box(1.15, 1.05, 0.7, hide);
-  torso.position.y = 1.55;
+  // massive plated torso — bulky brute, single breastplate (no chest-sphere pair)
+  const torso = box(1.22, 1.1, 0.76, hide);
+  torso.position.y = 1.52;
   body.add(torso);
-  const pecs = sph(0.32, hide2, 8);
-  pecs.position.set(-0.28, 1.78, 0.32);
-  body.add(pecs);
-  const pecs2 = pecs.clone();
-  pecs2.position.x = 0.28;
-  body.add(pecs2);
-  // gut
-  const gut = sph(0.48, hide, 9);
-  gut.scale.set(1, 0.85, 0.8);
-  gut.position.set(0, 1.0, 0.16);
+  const breastplate = box(1.02, 0.72, 0.18, hide2);
+  breastplate.position.set(0, 1.68, 0.44);
+  body.add(breastplate);
+  const collar = box(0.7, 0.16, 0.4, hide2);
+  collar.position.set(0, 2.12, 0.12);
+  body.add(collar);
+  const sternum = box(0.16, 0.78, 0.12, hide);
+  sternum.position.set(0, 1.58, 0.54);
+  body.add(sternum);
+  for (const s of [-1, 1]) {
+    const pauldron = box(0.52, 0.34, 0.58, hide);
+    pauldron.position.set(0.88 * s, 2.14, -0.08);
+    pauldron.rotation.z = -0.48 * s;
+    pauldron.rotation.x = 0.15;
+    body.add(pauldron);
+  }
+  // armored gut
+  const gut = box(0.95, 0.55, 0.55, hide);
+  gut.position.set(0, 0.98, 0.08);
   body.add(gut);
   // back spikes
   for (let i = 0; i < 4; i++) {
@@ -380,6 +407,12 @@ function buildHierophant(tex: ReturnType<typeof getTextures>): EnemyRig {
   const chest = box(0.56, 0.5, 0.36, carapace);
   chest.position.y = 1.72;
   body.add(chest);
+  // robe plates — silhouette, not a new type
+  for (let i = 0; i < 3; i++) {
+    const plate = box(0.42 - i * 0.04, 0.28, 0.08, bone);
+    plate.position.set(0, 1.55 - i * 0.32, 0.28);
+    body.add(plate);
+  }
   // bone collar
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.07, 6, 12), bone);
   collar.rotation.x = Math.PI / 2;
@@ -403,6 +436,16 @@ function buildHierophant(tex: ReturnType<typeof getTextures>): EnemyRig {
     horn.position.set(0.17 * s, 0.22, -0.02);
     horn.rotation.z = -0.85 * s;
     head.add(horn);
+  }
+  // crown / horns-lite
+  const crown = box(0.34, 0.08, 0.28, bone);
+  crown.position.set(0, 0.2, 0);
+  head.add(crown);
+  for (const s of [-1, 0, 1]) {
+    const tine = cone(0.03, 0.16, bone, 5);
+    tine.position.set(0.1 * s, 0.3, -0.04);
+    tine.rotation.z = -0.2 * s;
+    head.add(tine);
   }
   const eyes: THREE.Mesh[] = [];
   for (const s of [-1, 1]) {
@@ -442,6 +485,104 @@ function buildHierophant(tex: ReturnType<typeof getTextures>): EnemyRig {
   return { group, yawGroup, body, head, eyes, legs, arms, extras, eyeMat: (eyes[0].material as THREE.MeshBasicMaterial), baseY: 0, radius: 0.72, height: 2.5, shadow };
 }
 
+function buildFiend(tex: ReturnType<typeof getTextures>): EnemyRig {
+  const hide = mat(tex.skins.fiend);
+  const hide2 = mat(tex.skins.fiend, 0xaa5533);
+  const hornMat = new THREE.MeshLambertMaterial({ color: 0x2a1810 });
+  const group = new THREE.Group();
+  const yawGroup = new THREE.Group();
+  const body = new THREE.Group();
+  group.add(yawGroup);
+  yawGroup.add(body);
+
+  const torso = box(0.95, 1.05, 0.58, hide);
+  torso.position.y = 1.65;
+  body.add(torso);
+  const plate = box(0.7, 0.55, 0.14, hide2);
+  plate.position.set(0, 1.78, 0.32);
+  body.add(plate);
+  const gut = box(0.78, 0.5, 0.48, hide);
+  gut.position.set(0, 1.05, 0.06);
+  body.add(gut);
+
+  for (const s of [-1, 1]) {
+    const pad = box(0.32, 0.22, 0.4, hide2);
+    pad.position.set(0.58 * s, 2.12, 0);
+    pad.rotation.z = -0.3 * s;
+    body.add(pad);
+  }
+
+  const head = new THREE.Group();
+  const skull = box(0.36, 0.38, 0.36, hide);
+  head.add(skull);
+  const snout = box(0.22, 0.16, 0.28, hide2);
+  snout.position.set(0, -0.08, 0.22);
+  head.add(snout);
+  for (const s of [-1, 1]) {
+    const horn = cone(0.07, 0.55, hornMat, 6);
+    horn.position.set(0.2 * s, 0.34, -0.04);
+    horn.rotation.z = -0.55 * s;
+    horn.rotation.x = -0.35;
+    head.add(horn);
+  }
+  const eyes: THREE.Mesh[] = [];
+  for (const s of [-1, 1]) {
+    const { mesh } = eyeMesh(0.055, 0xff3311);
+    mesh.position.set(0.1 * s, 0.06, 0.18);
+    head.add(mesh);
+    eyes.push(mesh);
+  }
+  const maw = box(0.2, 0.06, 0.05, new THREE.MeshBasicMaterial({ color: 0x1a0505 }));
+  maw.position.set(0, -0.14, 0.36);
+  head.add(maw);
+  head.position.set(0, 2.38, 0.06);
+  body.add(head);
+
+  const arms: THREE.Object3D[] = [];
+  for (const s of [-1, 1]) {
+    const shoulder = new THREE.Group();
+    shoulder.position.set(0.58 * s, 2.08, 0);
+    const upper = cyl(0.12, 0.1, 0.7, hide);
+    upper.position.y = -0.35;
+    shoulder.add(upper);
+    const claw = box(0.22, 0.28, 0.22, hide2);
+    claw.position.y = -0.78;
+    shoulder.add(claw);
+    body.add(shoulder);
+    arms.push(shoulder);
+  }
+  const legs: THREE.Object3D[] = [];
+  for (const s of [-1, 1]) {
+    const hip = new THREE.Group();
+    hip.position.set(0.24 * s, 0.85, 0);
+    const thigh = cyl(0.14, 0.11, 0.5, hide);
+    thigh.position.y = -0.25;
+    hip.add(thigh);
+    const shin = cyl(0.1, 0.12, 0.48, hide2);
+    shin.position.y = -0.7;
+    hip.add(shin);
+    const hoof = box(0.22, 0.12, 0.34, hornMat);
+    hoof.position.set(0, -0.96, 0.06);
+    hip.add(hoof);
+    body.add(hip);
+    legs.push(hip);
+  }
+
+  const tail = cone(0.08, 0.7, hide, 6);
+  tail.position.set(0, 0.85, -0.4);
+  tail.rotation.x = 1.1;
+  body.add(tail);
+
+  body.rotation.x = 0.08;
+  const shadow = shadowMesh(0.95);
+  group.add(shadow);
+  return {
+    group, yawGroup, body, head, eyes, legs, arms, extras: [tail],
+    eyeMat: (eyes[0].material as THREE.MeshBasicMaterial),
+    baseY: 0, radius: 0.85, height: 2.8, shadow,
+  };
+}
+
 function shadowMesh(r: number): THREE.Mesh {
   const tex = getTextures();
   const m = new THREE.Mesh(
@@ -473,6 +614,7 @@ export class EnemyRenderer {
       case 'slab': return buildSlab(tex);
       case 'wisp': return buildWisp(tex);
       case 'hierophant': return buildHierophant(tex);
+      case 'fiend': return buildFiend(tex);
       default: return buildHusk(tex);
     }
   }
@@ -554,7 +696,10 @@ export class EnemyRenderer {
           arm.rotation.x = 0.3 - Math.sin(e.animPhase * 7 + i * Math.PI) * 0.4 * speedNorm;
         });
         rig.body.position.y = rig.baseY + Math.abs(Math.sin(e.animPhase * 7)) * 0.045 * speedNorm;
-        if (e.type === 'slab') rig.body.rotation.x = 0.12 + Math.sin(e.animPhase * 3) * 0.02;
+        if (e.type === 'slab') rig.body.rotation.x = 0.06 + Math.sin(e.animPhase * 3) * 0.02;
+        if (e.type === 'fiend') {
+          rig.extras.forEach(t => { t.rotation.x = 1.1 + Math.sin(e.animPhase * 3) * 0.12 * speedNorm; });
+        }
       }
 
       // attack windup: rear back, eyes flare
@@ -572,7 +717,7 @@ export class EnemyRenderer {
         rig.body.rotation.x = 0.3;
         rig.eyeMat.color.setRGB(2, 0.6, 0.4);
       } else {
-        rig.body.rotation.x = e.type === 'slab' ? 0.12 : 0;
+        rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
       }
       void camera;
     }

@@ -84,6 +84,34 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
     attackInterval: 2.4, windup: 0.5, reaction: 0.45, accuracy: 0.06, painChance: 0.3, painTime: 0.36,
     scoreWeight: 5,
   },
+  // Campaign-only brute. generateMap must never pick this type.
+  fiend: {
+    type: 'fiend', name: 'Fiend', hp: 240, speed: 2.7, radius: 0.85, height: 2.8,
+    flying: false, hoverY: 0,
+    sightRange: 26, sightFov: 1.0, hearRange: 32, wakeRadius: 6,
+    attackRange: 18, attackMinRange: 0,
+    projectile: 'fireball', projSpeed: 12, projGravity: 0, projRadius: 0.4,
+    burst: 2, burstGap: 0.28, damage: 16, splashRadius: 1.8,
+    attackInterval: 2.0, windup: 0.5, reaction: 0.55, accuracy: 0.065, painChance: 0.28, painTime: 0.38,
+    scoreWeight: 4,
+  },
 };
 
-export const ENEMY_ORDER: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant'];
+export const ENEMY_ORDER: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
+
+/** Vertical hit volume in world Y. Flying bodies are centered on hoverY (visible torso), not stacked above the head. */
+export function enemyVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCenter: number } {
+  if (def.flying) {
+    const half = def.height * 0.5;
+    return { yMin: def.hoverY - half, yMax: def.hoverY + half, yCenter: def.hoverY };
+  }
+  return { yMin: 0.1, yMax: def.height + 0.15, yCenter: def.height * 0.6 };
+}
+
+/** Distance at which an idle enemy hears a noise of the given loudness. */
+export function noiseHearRadius(loudness: number, hearRange: number): number {
+  return loudness * 0.45 + hearRange;
+}
+
+/** Death-cry loudness at the corpse — same-room neighbors, not the whole map. */
+export const DEATH_NOISE_RADIUS = 16;

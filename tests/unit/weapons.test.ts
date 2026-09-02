@@ -180,7 +180,9 @@ function aimPitchAt(h: number, d: number): number {
 
 describe('flying enemy hitboxes track the visible body', () => {
   const D = 5; // wisp placed 5 units ahead (start room clearance, same as other tests)
-  const bodyY = ENEMIES.wisp.hoverY + ENEMIES.wisp.height * 0.5;
+  // Visible torso is the octahedron centered on hoverY, not a volume stacked above the head.
+  const torsoY = ENEMIES.wisp.hoverY;
+  const aboveHeadY = ENEMIES.wisp.hoverY + ENEMIES.wisp.height * 0.5 + 0.45;
 
   function wispSim(): { sim: Sim; wisp: EnemyEnt } {
     const sim = freshSim();
@@ -189,14 +191,21 @@ describe('flying enemy hitboxes track the visible body', () => {
     return { sim, wisp: sim.enemies[sim.enemies.length - 1] };
   }
 
-  it('hitscan aimed at the hovering body hits', () => {
+  it('hitscan through the visible torso registers', () => {
     const { sim, wisp } = wispSim();
     expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);
-    sim.step(input({ fire: true, pitch: aimPitchAt(bodyY, D) }));
-    expect(wisp.hp, 'shot at the visible body must connect').toBe(wisp.maxHp - WEAPONS[0].damage);
+    sim.step(input({ fire: true, pitch: aimPitchAt(torsoY, D) }));
+    expect(wisp.hp, 'shot through the visible torso must connect').toBe(wisp.maxHp - WEAPONS[0].damage);
     const hit = sim.takeEvents().find((ev): ev is Extract<SimEvent, { t: 'hitEnemy' }> => ev.t === 'hitEnemy');
     expect(hit, 'hit puff must spawn on the body, not near the floor').toBeTruthy();
-    expect(hit?.y).toBeGreaterThanOrEqual(ENEMIES.wisp.hoverY);
+    expect(hit?.y).toBeCloseTo(torsoY, 5);
+  });
+
+  it('a shot clearly above the head misses', () => {
+    const { sim, wisp } = wispSim();
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: aimPitchAt(aboveHeadY, D) }));
+    expect(wisp.hp, 'shot above the head must miss').toBe(wisp.maxHp);
   });
 
   it('aiming under the body (the old floor band) no longer connects', () => {
@@ -210,7 +219,7 @@ describe('flying enemy hitboxes track the visible body', () => {
   it('spiker nail aimed at the body connects in flight', () => {
     const { sim, wisp } = wispSim();
     sim.giveGun(4);
-    for (let i = 0; i < 40; i++) sim.step(input({ fire: i === 0, pitch: aimPitchAt(bodyY, D) }));
+    for (let i = 0; i < 40; i++) sim.step(input({ fire: i === 0, pitch: aimPitchAt(torsoY, D) }));
     expect(wisp.hp, 'nail through the hovering body must connect').toBeLessThan(wisp.maxHp);
   });
 });
