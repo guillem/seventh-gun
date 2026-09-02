@@ -11,7 +11,7 @@ import type {
 
 export const THEMES: Theme[] = ['industrial', 'organic', 'stone', 'tech'];
 export const ROOM_KINDS: Room['kind'][] = ['start', 'spine', 'spur', 'arena', 'antechamber', 'vault'];
-export const ENEMY_TYPES: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant'];
+export const ENEMY_TYPES: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
 export const PICKUP_KINDS: PickupDef['kind'][] = ['medikit', 'ammo', 'gun', 'key'];
 
 export interface BlueprintRoom {
@@ -385,7 +385,10 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
   };
 
   for (const p of bp.pickups) checkEntityCell(`${p.kind} pickup`, p.x, p.z, p.roomId);
-  for (const e of bp.enemies) checkEntityCell(`${e.type} enemy`, e.x, e.z, e.roomId);
+  for (const e of bp.enemies) {
+    if (!ENEMY_TYPES.includes(e.type)) errors.push(`unknown enemy type '${e.type}'`);
+    checkEntityCell(`${e.type} enemy`, e.x, e.z, e.roomId);
+  }
 
   if (bp.playerStart && !isFloor(bp.playerStart.x, bp.playerStart.z)) {
     errors.push('playerStart is not on floor');

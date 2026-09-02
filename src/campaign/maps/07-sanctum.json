@@ -81,6 +81,8 @@
     { "type": "slab", "room": "arena", "n": 3 },
     { "type": "crawler", "room": "arena", "n": 4 },
     { "type": "husk", "room": "arena", "n": 3 },
-    { "type": "wisp", "room": "arena", "n": 2 }
+    { "type": "wisp", "room": "arena", "n": 2 },
+    { "type": "fiend", "room": "nave", "n": 1 },
+    { "type": "fiend", "room": "choir", "n": 1 }
   ]
 }

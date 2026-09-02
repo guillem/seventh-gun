@@ -1,7 +1,7 @@
 // The deterministic, headless simulation. Pure TypeScript: no DOM, no renderer.
 import { makeRng, type Rng } from './rng';
 import {
-  CELL, GEN_VERSION,
+  CELL, GEN_VERSION, NOISE_TTL, PLAYER_EYE, PLAYER_HEIGHT, PLAYER_RADIUS,
 } from './types';
 import type {
   AmmoType, Difficulty, EnemyType, GameMap, PickupDef, PlayerLoadout, SimEvent,
@@ -9,9 +9,9 @@ import type {
 import { generateMap } from './mapgen';
 import { DIFFICULTIES } from './difficulty';
 import { WEAPONS, weapon } from './weapons';
-import { ENEMIES, type EnemyDef } from './enemyTypes';
+import { DEATH_NOISE_RADIUS, ENEMIES, enemyVolumeY, noiseHearRadius, type EnemyDef } from './enemyTypes';
 import {
-  isSolidCell, circleFits, moveCircle, raycastWall, hasLineOfSight, findPath, roomAt,
+  isSolidCell, moveCircle, pushCircleOut, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
 
 export const STEP_DT = 1 / 60;
@@ -224,8 +224,9 @@ export class Sim {
     let dz = fz * input.moveZ + rz * input.moveX;
     const len = Math.hypot(dx, dz);
     if (len > 1) { dx /= len; dz /= len; }
-    const moved = moveCircle(this, p.x, p.z, dx * speed * dt, dz * speed * dt, 0.55);
+    const moved = moveCircle(this, p.x, p.z, dx * speed * dt, dz * speed * dt, PLAYER_RADIUS);
     p.x = moved.x; p.z = moved.z;
+    this.separatePlayerFromEnemies();
 
     // cooldowns
     p.fireCd = Math.max(0, p.fireCd - dt);
@@ -309,13 +310,13 @@ export class Sim {
     const diff = DIFFICULTIES[this.difficulty];
     p.ammo[w.ammo] -= 1;
     p.fireCd = w.fireInterval;
-    this.lastNoise = { x: p.x, z: p.z, radius: w.loudness, time: this.time };
+    this.emitNoise(p.x, p.z, w.loudness);
     this.events.push({ t: 'shot', gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
 
     const dirX = -Math.sin(p.yaw) * Math.cos(p.pitch);
     const dirY = Math.sin(p.pitch);
     const dirZ = -Math.cos(p.yaw) * Math.cos(p.pitch);
-    const eye = 1.7;
+    const eye = PLAYER_EYE;
 
     if (w.hitscan) {
       for (let pellet = 0; pellet < w.pellets; pellet++) {
@@ -390,8 +391,8 @@ export class Sim {
       const r = e.def.radius + 0.12;
       if (d2 > r * r) continue;
       const yAt = oy + dirY * t;
-      const base = e.def.flying ? e.def.hoverY : 0;
-      if (yAt < base + 0.1 || yAt > base + e.def.height + 0.15) continue;
+      const vol = enemyVolumeY(e.def);
+      if (yAt < vol.yMin || yAt > vol.yMax) continue;
       hits.push({ e, t });
     }
     hits.sort((a, b) => a.t - b.t);
@@ -420,8 +421,9 @@ export class Sim {
   damageEnemy(e: EnemyEnt, damage: number, _t: number) {
     if (e.dead) return;
     e.hp -= damage;
+    const vol = enemyVolumeY(e.def);
     this.events.push({
-      t: 'hitEnemy', x: e.x, y: (e.def.flying ? e.def.hoverY : 0) + e.def.height * 0.6, z: e.z,
+      t: 'hitEnemy', x: e.x, y: vol.yCenter, z: e.z,
       killed: e.hp <= 0, type: e.type,
     });
     if (e.hp <= 0) {
@@ -429,6 +431,7 @@ export class Sim {
       e.deathTime = this.time;
       e.state = 'idle';
       this.killCount++;
+      this.emitNoise(e.x, e.z, DEATH_NOISE_RADIUS);
       this.events.push({ t: 'enemyDeath', type: e.type, id: e.id, x: e.x, z: e.z });
       return;
     }
@@ -463,8 +466,8 @@ export class Sim {
             if (e.dead) continue;
             const dx = e.x - nx, dz = e.z - nz;
             const rr = e.def.radius + p.radius;
-            const base = e.def.flying ? e.def.hoverY : 0;
-            if (dx * dx + dz * dz < rr * rr && ny > base + 0.1 && ny < base + e.def.height + p.radius) {
+            const vol = enemyVolumeY(e.def);
+            if (dx * dx + dz * dz < rr * rr && ny + p.radius > vol.yMin && ny - p.radius < vol.yMax) {
               impacted = true;
               if (p.splashRadius <= 0) this.damageEnemy(e, p.damage, 0);
               break;
@@ -472,8 +475,8 @@ export class Sim {
           }
         } else {
           const dx = this.player.x - nx, dz = this.player.z - nz;
-          const rr = 0.55 + p.radius;
-          if (dx * dx + dz * dz < rr * rr && ny > 0.2 && ny < 1.9) {
+          const rr = PLAYER_RADIUS + p.radius;
+          if (dx * dx + dz * dz < rr * rr && ny > 0.2 && ny < PLAYER_HEIGHT) {
             impacted = true;
             if (p.splashRadius <= 0) this.damagePlayer(p.damage, p.x, p.z);
           }
@@ -542,6 +545,38 @@ export class Sim {
     this.events.push({ t: 'enemyAlert', type: e.type, id: e.id, x: e.x, z: e.z });
   }
 
+  emitNoise(x: number, z: number, radius: number) {
+    this.lastNoise = { x, z, radius, time: this.time };
+  }
+
+  hearsNoise(e: EnemyEnt): boolean {
+    const n = this.lastNoise;
+    if (!n || e.dead) return false;
+    if (this.time - n.time > NOISE_TTL) return false;
+    const nd = Math.hypot(n.x - e.x, n.z - e.z);
+    return nd < noiseHearRadius(n.radius, e.def.hearRange);
+  }
+
+  /** Living grounded enemies always block. Flying wisps block in XZ when the eye is in (or overlaps) their volume. Ragdolls do not. */
+  enemySolidVsPlayer(e: EnemyEnt): boolean {
+    if (e.dead) return false;
+    if (!e.def.flying) return true;
+    const vol = enemyVolumeY(e.def);
+    if (PLAYER_EYE >= vol.yMin && PLAYER_EYE <= vol.yMax) return true;
+    return vol.yMin < PLAYER_HEIGHT && vol.yMax > 0.05;
+  }
+
+  separatePlayerFromEnemies() {
+    const p = this.player;
+    for (let pass = 0; pass < 2; pass++) {
+      for (const e of this.enemies) {
+        if (!this.enemySolidVsPlayer(e)) continue;
+        const out = pushCircleOut(this, p.x, p.z, PLAYER_RADIUS, e.x, e.z, e.def.radius);
+        p.x = out.x; p.z = out.z;
+      }
+    }
+  }
+
   canSeePlayer(e: EnemyEnt): boolean {
     const p = this.player;
     const dx = p.x - e.x, dz = p.z - e.z;
@@ -570,10 +605,7 @@ export class Sim {
         case 'idle': {
           if (dist < e.def.wakeRadius) { this.wake(e); break; }
           if (this.canSeePlayer(e)) { this.wake(e); break; }
-          if (this.lastNoise && this.time - this.lastNoise.time < 0.2) {
-            const nd = Math.hypot(this.lastNoise.x - e.x, this.lastNoise.z - e.z);
-            if (nd < this.lastNoise.radius + e.def.hearRange * 0.3) this.wake(e);
-          }
+          if (this.hearsNoise(e)) this.wake(e);
           break;
         }
         case 'alert': {
@@ -673,12 +705,25 @@ export class Sim {
         }
       }
     }
+    // living enemies must not stack inside the player
+    for (const e of this.enemies) {
+      if (!this.enemySolidVsPlayer(e)) continue;
+      const dx = e.x - p.x, dz = e.z - p.z;
+      const rr = e.def.radius + PLAYER_RADIUS;
+      const d2 = dx * dx + dz * dz;
+      if (d2 >= rr * rr || d2 < 1e-8) continue;
+      const d = Math.sqrt(d2);
+      const push = (rr - d) * 0.65;
+      const mv = moveCircle(this, e.x, e.z, (dx / d) * push, (dz / d) * push, e.def.radius);
+      e.x = mv.x; e.z = mv.z;
+    }
+    this.separatePlayerFromEnemies();
   }
 
   enemyShoot(e: EnemyEnt) {
     const p = this.player;
     const def = e.def;
-    const shotY = def.flying ? def.hoverY + 0.4 : def.height * 0.72;
+    const shotY = def.flying ? enemyVolumeY(def).yCenter : def.height * 0.72;
     const dx = p.x - e.x, dz = p.z - e.z;
     const dist = Math.hypot(dx, dz);
     // aim at chest with slight lead

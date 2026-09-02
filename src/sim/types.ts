@@ -8,10 +8,18 @@ export const CEIL_H = 4.2;
 export const GEN_VERSION = 4;
 export const MAP_CODEC_VERSION = 1;
 
+/** Player capsule used for movement, projectile hits, and enemy body blocking. */
+export const PLAYER_RADIUS = 0.55;
+export const PLAYER_EYE = 1.7;
+export const PLAYER_HEIGHT = 1.9;
+
+/** Gunshot / death-cry events stay audible this long (not a single-frame blink). */
+export const NOISE_TTL = 1.6;
+
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export type Theme = 'industrial' | 'organic' | 'stone' | 'tech';
 export type AmmoType = 'bullets' | 'shells' | 'nails' | 'grenades' | 'cores' | 'void';
-export type EnemyType = 'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant';
+export type EnemyType = 'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant' | 'fiend';
 export type ProjectileKind = 'nail' | 'grenade' | 'voidorb' | 'plasma' | 'spit' | 'fireball' | 'bolt' | 'orb';
 
 export type SealBreak =

@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { CELL, WALL_H } from '../sim/types';
 import type { Sim } from '../sim/sim';
+import { enemyVolumeY } from '../sim/enemyTypes';
 import { buildWorld } from './world';
 import { EnemyRenderer } from './enemies';
 import { PickupRenderer } from './pickups';
@@ -256,7 +257,7 @@ export class GameRenderer {
     for (const e of sim.enemies) {
       const rig = this.enemies.rigs.get(e.id);
       if (!rig) continue;
-      center.set(e.x, e.def.height / 2 + (e.def.flying ? e.def.hoverY : 0), e.z);
+      center.set(e.x, enemyVolumeY(e.def).yCenter, e.z);
       size.set(e.def.radius * 2.5, e.def.height * 1.2, e.def.radius * 2.5);
       box.setFromCenterAndSize(center, size);
       const visible =

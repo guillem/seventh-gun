@@ -195,6 +195,7 @@ export class AudioEngine {
       slab: { f: 90, type: 'sawtooth', grit: 0.35 },
       wisp: { f: 820, type: 'sine', grit: 0.15 },
       hierophant: { f: 130, type: 'square', grit: 0.4 },
+      fiend: { f: 70, type: 'sawtooth', grit: 0.45 },
     };
     const s = spec[type];
     if (kind === 'alert') {
@@ -217,6 +218,7 @@ export class AudioEngine {
       case 'slab': this.tone('sine', 160, 60, 0.22, 0.4, 1); this.noise(0.15, 0.2, 'lowpass', 600, 1, 150); break;
       case 'wisp': this.tone('sine', 1500, 700, 0.09, 0.15); break;
       case 'hierophant': this.tone('sawtooth', 420, 160, 0.18, 0.25, 1); break;
+      case 'fiend': this.tone('sine', 140, 50, 0.24, 0.42, 1); this.noise(0.18, 0.22, 'lowpass', 500, 1, 140); break;
     }
   }
 

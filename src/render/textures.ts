@@ -2,6 +2,7 @@
 // crunchy but readable. Renderer-side only.
 import * as THREE from 'three';
 import { makeRng } from '../sim/rng';
+import type { EnemyType } from '../sim/types';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -678,6 +679,30 @@ function skinHierophant(): HTMLCanvasElement {
   return c;
 }
 
+function skinFiend(): HTMLCanvasElement {
+  const { c, g } = canvas(64);
+  const rng = makeRng('skin-fiend').float;
+  g.fillStyle = '#3a1610';
+  g.fillRect(0, 0, 64, 64);
+  for (let i = 0; i < 45; i++) {
+    g.fillStyle = `rgba(${90 + rng() * 50 | 0},${30 + rng() * 20 | 0},${20 + rng() * 16 | 0},0.5)`;
+    g.beginPath(); g.arc(rng() * 64, rng() * 64, 2 + rng() * 7, 0, Math.PI * 2); g.fill();
+  }
+  for (let i = 0; i < 8; i++) {
+    g.strokeStyle = 'rgba(20,8,6,0.7)';
+    g.lineWidth = 1.5 + rng();
+    g.beginPath();
+    g.moveTo(rng() * 64, rng() * 64);
+    g.lineTo(rng() * 64, rng() * 64);
+    g.stroke();
+  }
+  g.strokeStyle = 'rgba(180,50,20,0.4)';
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(8, 8); g.lineTo(56, 56); g.stroke();
+  noise(g, 64, rng, 320, 0.12);
+  return c;
+}
+
 // ---------------------------------------------------------------- registry
 
 export interface TextureLib {
@@ -691,7 +716,7 @@ export interface TextureLib {
   shadow: THREE.Texture;
   flash: THREE.Texture;
   glow: THREE.Texture;
-  skins: Record<'husk' | 'crawler' | 'slab' | 'wisp' | 'hierophant', THREE.Texture>;
+  skins: Record<EnemyType, THREE.Texture>;
 }
 
 let cached: TextureLib | null = null;
@@ -736,6 +761,7 @@ export function getTextures(): TextureLib {
       slab: toTexture(skinSlab()),
       wisp: toTexture(skinWisp()),
       hierophant: toTexture(skinHierophant()),
+      fiend: toTexture(skinFiend()),
     },
   };
   return cached;

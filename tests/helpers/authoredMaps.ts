@@ -49,7 +49,7 @@ export function tinyKeySealBlueprint(): MapBlueprint {
 export function crowdedBlueprint(): MapBlueprint {
   const bp = tinyGunSealBlueprint();
   const enemies = [...bp.enemies];
-  const types: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant'];
+  const types: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
   for (let i = 0; i < 62; i++) {
     const x = 47 + (i % 10);
     const z = 18 + ((i / 10) | 0);

@@ -168,6 +168,15 @@ export class FxRenderer {
   }
 
   // ------------------------------------------------------------- projectiles
+  private coronaSprite(color: number, size: number): THREE.Sprite {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: this.tex.glow, color, blending: THREE.AdditiveBlending,
+      transparent: true, depthWrite: false, fog: false,
+    }));
+    s.scale.setScalar(size);
+    return s;
+  }
+
   private buildProjectileMesh(kind: string): THREE.Object3D {
     const g = new THREE.Group();
     switch (kind) {
@@ -199,37 +208,79 @@ export class FxRenderer {
         break;
       }
       case 'plasma': {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshBasicMaterial({ color: 0x4dff6a }));
-        g.add(m);
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 8), new THREE.MeshBasicMaterial({ color: 0x4dff6a, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending }));
-        g.add(glow);
+        const core = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.1, 0),
+          new THREE.MeshBasicMaterial({ color: 0xd6ff9a, fog: false }),
+        );
+        g.add(core);
+        const bolt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.09, 0.42, 6),
+          new THREE.MeshBasicMaterial({ color: 0x4dff6a, fog: false }),
+        );
+        bolt.rotation.x = Math.PI / 2;
+        g.add(bolt);
+        g.add(this.coronaSprite(0x6dff88, 0.55));
         break;
       }
       case 'spit': {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 7), new THREE.MeshBasicMaterial({ color: 0xc8ff3a }));
-        m.scale.z = 1.5;
-        g.add(m);
+        const drop = new THREE.Mesh(
+          new THREE.ConeGeometry(0.1, 0.28, 6),
+          new THREE.MeshBasicMaterial({ color: 0xc8ff3a, fog: false }),
+        );
+        drop.rotation.x = Math.PI / 2;
+        g.add(drop);
+        const core = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.07, 0),
+          new THREE.MeshBasicMaterial({ color: 0xeeff88, fog: false }),
+        );
+        core.position.z = 0.06;
+        g.add(core);
+        g.add(this.coronaSprite(0xa8e030, 0.42));
         break;
       }
       case 'fireball': {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.3, 9, 8), new THREE.MeshBasicMaterial({ color: 0xff8a2a }));
-        g.add(m);
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.45, 9, 8), new THREE.MeshBasicMaterial({ color: 0xff5a1a, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending }));
-        g.add(glow);
+        const core = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.18, 0),
+          new THREE.MeshBasicMaterial({ color: 0xfff1a0, fog: false }),
+        );
+        g.add(core);
+        const jacket = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.28, 0),
+          new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, fog: false }),
+        );
+        g.add(jacket);
+        g.add(this.coronaSprite(0xff7a2a, 0.85));
         g.add(new THREE.PointLight(0xff7a2a, 22, 10, 1.8));
         break;
       }
       case 'bolt': {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 7), new THREE.MeshBasicMaterial({ color: 0x53e0ff }));
-        m.scale.z = 2.2;
-        g.add(m);
+        const shaft = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, 0.05, 0.48),
+          new THREE.MeshBasicMaterial({ color: 0xdeffff, fog: false }),
+        );
+        g.add(shaft);
+        const tip = new THREE.Mesh(
+          new THREE.ConeGeometry(0.06, 0.16, 5),
+          new THREE.MeshBasicMaterial({ color: 0x53e0ff, fog: false }),
+        );
+        tip.rotation.x = -Math.PI / 2;
+        tip.position.z = -0.28;
+        g.add(tip);
+        g.add(this.coronaSprite(0x7ae8ff, 0.5));
         break;
       }
       case 'orb': {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.17, 9, 8), new THREE.MeshBasicMaterial({ color: 0xc44dff }));
-        g.add(m);
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.28, 9, 8), new THREE.MeshBasicMaterial({ color: 0xc44dff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending }));
-        g.add(glow);
+        const core = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(0.12, 0),
+          new THREE.MeshBasicMaterial({ color: 0xf0c8ff, fog: false }),
+        );
+        g.add(core);
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.2, 0.03, 5, 12),
+          new THREE.MeshBasicMaterial({ color: 0xc44dff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.85, fog: false }),
+        );
+        g.add(ring);
+        g.add(this.coronaSprite(0xc44dff, 0.62));
         break;
       }
     }
@@ -258,7 +309,10 @@ export class FxRenderer {
         if (p.kind === 'nail') mesh.rotation.x = -Math.atan2(p.vy, hv);
       }
       if (p.kind === 'grenade') mesh.rotation.x += 0.3;
-      if (p.kind === 'voidorb') mesh.rotation.y += 0.2;
+      if (p.kind === 'voidorb' || p.kind === 'orb' || p.kind === 'fireball') mesh.rotation.y += 0.2;
+      if (p.kind === 'plasma' || p.kind === 'spit' || p.kind === 'bolt') {
+        mesh.rotation.x = -Math.atan2(p.vy, hv);
+      }
     }
   }
 
