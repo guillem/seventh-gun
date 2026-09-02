@@ -49,5 +49,7 @@ Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
 - Perf pass on phones during the arena wave (pixel ratio / draw calls).
 - Netlify site + deploy previews wired to the repo; CI on GitHub Actions
   running `npm test` + `npm run test:e2e` per PR.
+- Campaign-only texture packs + extra artwork (this PR): hook and
+  placement landed; painted 128px generators still stubs for Opus.
 - Cosmetic depth: per-theme ambience layers, more decoration variety,
   intermission text between gun finds.

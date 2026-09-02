@@ -1,9 +1,18 @@
 // Builds the static world from the map: merged per-theme geometry with baked
 // per-vertex light, decal planes, doors, the arena seal, sky dome.
+// Campaign runs swap the theme atlas for getCampaignTextures(artId) and add
+// extra artwork; maze / #m= keep the shared four-theme look.
 import * as THREE from 'three';
 import { CELL, CEIL_H, WALL_H } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
 import { getTextures } from './textures';
+import {
+  campaignArtIdFromSeed, getCampaignTextures,
+  type CampaignArtId, type CampaignTextureLib,
+} from './campaignTextures';
+import {
+  applyCampaignDecor, CAMPAIGN_AMBIENT, CAMPAIGN_DOOR_EMISSIVE,
+} from './campaignDecor';
 
 interface QuadMesh {
   pos: number[];
@@ -77,13 +86,15 @@ function roomThemeAt(map: GameMap, cx: number, cz: number): { theme: Theme; outd
   return { theme: best ? best.theme : 'stone', outdoor: false };
 }
 
-export function buildWorld(map: GameMap): {
+export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   group: THREE.Group;
   doorMeshes: Map<number, THREE.Mesh>;
   sealMesh: THREE.Group;
   dispose: () => void;
 } {
   const tex = getTextures();
+  const resolved = artId ?? campaignArtIdFromSeed(map.seed);
+  const camp: CampaignTextureLib | null = resolved ? getCampaignTextures(resolved) : null;
   const group = new THREE.Group();
   const disposables: THREE.BufferGeometry[] = [];
 
@@ -99,6 +110,9 @@ export function buildWorld(map: GameMap): {
     stone: new THREE.Color(0.18, 0.21, 0.25),
     tech: new THREE.Color(0.18, 0.17, 0.27),
   };
+  const campAmb = resolved
+    ? new THREE.Color().fromArray(CAMPAIGN_AMBIENT[resolved])
+    : null;
 
   const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -108,11 +122,12 @@ export function buildWorld(map: GameMap): {
       const { theme, outdoor } = roomThemeAt(map, cx, cz);
       const x0 = cx * CELL, x1 = x0 + CELL;
       const z0 = cz * CELL, z1 = z0 + CELL;
-      const amb = themeAmbient[theme];
+      const amb = campAmb ?? themeAmbient[theme];
+      const surf = camp ? 'campaign' : theme;
 
       // floor (winding faces UP: cross((b-a),(c-b)) = +Y)
       {
-        const m = bucket(`floor:${theme}`);
+        const m = bucket(`floor:${surf}`);
         const c00 = bakeColor(map.lights, x0, 0, z0, amb, outdoor);
         const c10 = bakeColor(map.lights, x1, 0, z0, amb, outdoor);
         const c11 = bakeColor(map.lights, x1, 0, z1, amb, outdoor);
@@ -122,7 +137,7 @@ export function buildWorld(map: GameMap): {
       }
       // ceiling (indoor only)
       if (!outdoor) {
-        const m = bucket(`ceil:${theme}`);
+        const m = bucket(`ceil:${surf}`);
         const c00 = bakeColor(map.lights, x0, CEIL_H, z0, amb, false);
         const c10 = bakeColor(map.lights, x1, CEIL_H, z0, amb, false);
         const c11 = bakeColor(map.lights, x1, CEIL_H, z1, amb, false);
@@ -139,8 +154,7 @@ export function buildWorld(map: GameMap): {
         [-1, 0, V(1, 0, 0)],
         [1, 0, V(-1, 0, 0)],
       ];
-      const wallTheme = theme;
-      const m = bucket(`wall:${wallTheme}`);
+      const m = bucket(`wall:${surf}`);
       const bake = (p: THREE.Vector3) => bakeColor(map.lights, p.x, p.y, p.z, amb, outdoor);
       for (const [dx, dz, n] of sides) {
         if (!solidAt(cx + dx, cz + dz)) continue;
@@ -170,9 +184,11 @@ export function buildWorld(map: GameMap): {
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(m.uv, 2));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(m.col, 3));
     disposables.push(geo);
-    const texture = type === 'floor' ? tex.floors[theme]
-      : type === 'ceil' ? tex.ceilings[theme]
-        : tex.walls[theme];
+    const texture = camp
+      ? (type === 'floor' ? camp.floors : type === 'ceil' ? camp.ceilings : camp.walls)
+      : type === 'floor' ? tex.floors[theme]
+        : type === 'ceil' ? tex.ceilings[theme]
+          : tex.walls[theme];
     const wallRepeat = type === 'wall' ? 1 : 1;
     const mat = new THREE.MeshBasicMaterial({
       map: texture, vertexColors: true, fog: true,
@@ -220,7 +236,10 @@ export function buildWorld(map: GameMap): {
       d.axis === 'x' ? CELL * 3 : 0.5,
     );
     disposables.push(geo);
-    const mat = new THREE.MeshLambertMaterial({ map: tex.door, emissive: new THREE.Color(0x2a1000) });
+    const mat = new THREE.MeshLambertMaterial({
+      map: camp?.door ?? tex.door,
+      emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
+    });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
@@ -261,9 +280,15 @@ export function buildWorld(map: GameMap): {
   {
     const geo = new THREE.SphereGeometry(380, 24, 16);
     disposables.push(geo);
-    const mat = new THREE.MeshBasicMaterial({ map: tex.sky, side: THREE.BackSide, fog: false });
+    const mat = new THREE.MeshBasicMaterial({
+      map: camp?.sky ?? tex.sky, side: THREE.BackSide, fog: false,
+    });
     const sky = new THREE.Mesh(geo, mat);
     group.add(sky);
+  }
+
+  if (camp && resolved) {
+    applyCampaignDecor(group, map, resolved, camp, disposables);
   }
 
   return {

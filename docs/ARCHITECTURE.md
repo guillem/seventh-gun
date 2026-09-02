@@ -62,7 +62,11 @@ hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
 - Native-resolution WebGL (no low-res blit/upscale). Nearest-filtered canvas
   textures with nearest-mipmap filtering: crunchy but not muddy.
 - World geometry is merged per-theme `BufferGeometry` with baked per-vertex
-  light colors (room lights) + black fog: cheap, Quake-ish.
+  light colors (room lights) + black fog: cheap, Quake-ish. Campaign runs
+  (`GameMap.seed` `campaign:…` / `runKind === 'campaign'`) bind
+  `getCampaignTextures(artId)` for walls/floors/ceilings/door/sky and add
+  renderer-only extras from `campaignDecor.ts`. Maze and `#m=` keep
+  `getTextures()` themes. Packs are cached. Painting stays canvas-only.
 - Enemies/viewmodels/pickups are procedural Three meshes (no sprites, no
   billboards) with blob contact shadows. Enemy/pickup programs are
   compiled at `setRun` so the first door reveal does not hitch.

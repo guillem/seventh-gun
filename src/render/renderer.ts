@@ -10,7 +10,13 @@ import { PickupRenderer } from './pickups';
 import { FxRenderer } from './fx';
 import { buildViewModel, type ViewModel } from './viewmodels';
 import { getTextures } from './textures';
+import { campaignArtIdFromSeed, type CampaignArtId } from './campaignTextures';
+import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
+
+const MAZE_FOG = 0x0b0709;
+const MAZE_FOG_NEAR = 10;
+const MAZE_FOG_FAR = 58;
 
 export class GameRenderer {
   renderer: THREE.WebGLRenderer;
@@ -42,7 +48,7 @@ export class GameRenderer {
     this.camera.rotation.order = 'YXZ';
     this.vmCamera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.02, 10);
 
-    this.scene.fog = new THREE.Fog(0x0b0709, 10, 58);
+    this.scene.fog = new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
 
     // lighting for dynamic meshes (enemies/pickups/doors)
     this.scene.add(new THREE.AmbientLight(0x77706d, 1.35));
@@ -87,7 +93,7 @@ export class GameRenderer {
     this.vmCamera.updateProjectionMatrix();
   }
 
-  setRun(sim: Sim): void {
+  setRun(sim: Sim, artId?: CampaignArtId): void {
     if (this.world) {
       this.scene.remove(this.world.group);
       this.world.dispose();
@@ -100,8 +106,12 @@ export class GameRenderer {
     this.enemies.syncStart(sim.enemies);
     this.pickups.dispose();
     this.pickups.syncStart(sim.pickups);
-    this.world = buildWorld(sim.map);
+    const resolved = artId ?? campaignArtIdFromSeed(sim.map.seed);
+    this.world = buildWorld(sim.map, resolved);
     this.scene.add(this.world.group);
+    this.scene.fog = resolved
+      ? new THREE.Fog(CAMPAIGN_FOG[resolved], 8, 52)
+      : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
     this.setGun(1);
     this.prefetchDynamicMeshes();
   }

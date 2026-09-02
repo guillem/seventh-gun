@@ -25,6 +25,7 @@ import {
   shareUrlFromCode,
 } from './mapShare';
 import { CAMPAIGN, campaignMap, snapshotLoadout } from '../campaign/index';
+import { campaignArtIdFromIndex } from '../render/campaignTextures';
 import {
   applyMapWin, canContinue, isMapUnlocked, loadCampaignProgress,
   saveCampaignProgress, unlockedThrough,
@@ -309,7 +310,10 @@ export class Game {
 
   private beginPlay(message: string): void {
     if (!this.sim) return;
-    this.renderer.setRun(this.sim);
+    this.renderer.setRun(
+      this.sim,
+      this.runKind === 'campaign' ? campaignArtIdFromIndex(this.campaignIndex) : undefined,
+    );
     this.editor?.hide();
     this.screens.showMapLog(false);
     this.screens.showCampaign(false);
@@ -908,6 +912,7 @@ export class Game {
             nextMap: loadCampaignProgress()?.nextMap ?? this.campaignIndex,
             unlocked: unlockedThrough(loadCampaignProgress()),
             owned: p.owned.slice(1, 8),
+            artId: campaignArtIdFromIndex(this.campaignIndex),
           } : null,
         };
       },

@@ -61,7 +61,10 @@ Unspecified things got decided; this is the record.
   Death retries the map with the entry loadout. Maps 1–6 intermission;
   map 7 is campaign victory (“THE SEVENTH IS SILENT”), not maze GAME OVER.
   Cosmetics are baked into the shipped blueprints. Campaign runs are not
-  written to the map log.
+  written to the map log. Campaign maps use dedicated canvas texture packs
+  (`src/render/campaignTextures.ts`) plus renderer-only extra decals/meshes
+  (`campaignDecor.ts`); maze / `#m=` keep the four shared themes. Extra art
+  is placed from room kinds — the seven JSON maps are not rewritten for art.
 - **Editor**: authors a `MapBlueprint` (rooms + 3-wide corridor rects +
   entities), never a raw bitmap. New maps stamp a labeled START room on
   the visible 88×88 grid; ROOM is click-drag (a plain click does not
