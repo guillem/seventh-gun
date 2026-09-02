@@ -3,6 +3,7 @@
 Updated: 2026-09-02 — PR #13 (`feat/enemy-art`) rebased onto `origin/main`
 after feel #12 merged (`3b63ea2`). Do not merge from this agent.
 
+`npx tsc --noEmit` clean. `npm test` 137/137. `npm run test:e2e` 55 passed / 3 skipped.
 `GEN_VERSION` still 4. Maze `generateMap` is unchanged (no Fiend in the maze).
 
 ## State: Opus enemy art on merged feel
