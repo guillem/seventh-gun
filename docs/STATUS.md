@@ -3,6 +3,7 @@
 Updated: 2026-09-02 — PR: playtest fixes (camera-aim fire, crawler loft,
 spire masonry, HUD leak, editor COPY LINK). Do not merge from this agent.
 
+`npx tsc --noEmit` clean. `npm test` 171/171. `npm run test:e2e` 71 passed / 3 skipped.
 `GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
 ## State: four live-playtest bugs
