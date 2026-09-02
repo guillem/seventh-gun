@@ -292,6 +292,21 @@ describe('grounded close-range hitscan is a 3D cylinder test', () => {
     expect(crawler.hp, 'reticle on the visible body must connect').toBe(crawler.maxHp - WEAPONS[0].damage);
   });
 
+  it('camera aimDir hits at 3.2u even when player.pitch is 0', () => {
+    // Live mouse look wrote the camera; fire used leftover player.pitch ≈ 0.
+    const dist = 3.2;
+    const { sim, crawler } = crawlerAhead(dist);
+    sim.player.pitch = 0;
+    const pitch = (-16 * Math.PI) / 180;
+    sim.tryFire({
+      dirX: 0,
+      dirY: Math.sin(pitch),
+      dirZ: -Math.cos(pitch),
+    });
+    expect(crawler.hp, 'hitscan must use the camera forward, not yaw-only')
+      .toBe(crawler.maxHp - WEAPONS[0].damage);
+  });
+
   it('nearly-horizontal close shot hits', () => {
     const dist = 3.2;
     const { sim, crawler } = crawlerAhead(dist);

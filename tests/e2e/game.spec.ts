@@ -74,11 +74,15 @@ test.describe('desktop', () => {
     expect(hp).toBe(100);
   });
 
-  test('playtest pose: crawler at 3.2u, look-down, click registers a hit', async ({ page }) => {
-    // Same numbers as the live preview: pose dist 3.2, downward pitch that
-    // puts the crawler in the lower FOV, then a real click (not a unit ray).
-    // Pointer-lock mousemove is flaky; fire goes through G.shoot() / G.fire
-    // while frozen so the crawler stays at 3.2.
+  test('playtest pose: crawler in lower FOV, real InputManager click hits', async ({ page }) => {
+    // Live miss: pose dist 3.2, crawler on the floor in the lower third,
+    // real mouse click, ammo spent, no hit. G.look()+G.shoot() was a false
+    // green — look() wrote sim.player.pitch that fire used, while mouse
+    // look only moved the camera.
+    //
+    // This path: no look(), no shoot(). Camera pitch is set by itself
+    // (player.pitch stays 0), then a canvas mousedown through InputManager
+    // and one tick. Pointer-lock mousemove is still not used.
     await page.goto(BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
@@ -89,36 +93,75 @@ test.describe('desktop', () => {
       const G = (window as unknown as {
         __GAME__: {
           pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
-          look: (yaw: number, pitch: number) => void;
-          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number };
+          setCameraPitch: (d: number) => void;
+          state: () => { ammo: { bullets: number }; kills: number; hp: number; pitch: number; camPitch: number };
+          debugInfo: () => { simEnemies: { type: string; hp: number; dead: boolean }[] };
         };
       }).__GAME__;
       const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
-      G.look(0, -16);
+      G.setCameraPitch(-16);
       const s = G.state();
-      return { placed: placed.placed, ammo: s.ammo.bullets, kills: s.kills, hp: s.hp, pitch: s.pitch };
+      const crawler = G.debugInfo().simEnemies.find(e => e.type === 'crawler' && !e.dead);
+      return {
+        placed: placed.placed, ammo: s.ammo.bullets, kills: s.kills, hp: s.hp,
+        playerPitch: s.pitch, camPitch: s.camPitch, crawlerHp: crawler?.hp ?? -1,
+      };
     });
     expect(posed.placed?.type).toBe('crawler');
-    expect(posed.pitch).toBeCloseTo(-16 * Math.PI / 180, 2);
+    expect(posed.playerPitch, 'must not call look() — player pitch stays 0').toBeCloseTo(0, 2);
+    expect(posed.camPitch, 'camera holds the mouse look-down').toBeCloseTo(-16 * Math.PI / 180, 2);
+    expect(posed.crawlerHp).toBeGreaterThan(0);
 
-    // Pointer-lock mousemove/click is flaky (and mousedown is lock-gated).
-    // G.shoot() is the same fireWeapon path as a click: current yaw/pitch,
-    // while frozen so the crawler stays at 3.2.
     const after = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      canvas?.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
       const G = (window as unknown as {
         __GAME__: {
-          shoot: () => { spent?: boolean; hit?: boolean; killed?: boolean };
+          tickNow: () => void;
           state: () => { ammo: { bullets: number }; kills: number; hp: number };
+          debugInfo: () => { simEnemies: { type: string; hp: number; dead: boolean }[] };
         };
       }).__GAME__;
-      const shot = G.shoot();
-      return { ...G.state(), shot };
+      G.tickNow();
+      document.dispatchEvent(new MouseEvent('mouseup', { button: 0, bubbles: true }));
+      const crawler = G.debugInfo().simEnemies.find(e => e.type === 'crawler');
+      return { ...G.state(), crawlerHp: crawler?.hp ?? 0, crawlerDead: !!crawler?.dead };
     });
-    expect(after.shot.spent || after.ammo.bullets === posed.ammo - 1,
-      'pistol must spend a round').toBeTruthy();
+    expect(after.ammo.bullets, 'pistol must spend a round').toBe(posed.ammo - 1);
     expect(after.hp, 'frozen pose must not let the crawler melee').toBe(posed.hp);
-    expect(after.shot.hit || after.shot.killed || after.kills > posed.kills,
-      'look-down shot at 3.2u must register a hit or kill').toBeTruthy();
+    expect(
+      after.crawlerDead || after.crawlerHp < posed.crawlerHp || after.kills > posed.kills,
+      'real InputManager click along camera pitch must register a hit',
+    ).toBeTruthy();
+  });
+
+  test('playtest pose: level camera, crawler in lower FOV, InputManager click hits', async ({ page }) => {
+    // Crosshair on the wall above a floor crawler at 3.2u (lower third).
+    await page.goto(BASE);
+    await page.evaluate((bp) => {
+      (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+    }, CRAWLER_BP);
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+
+    const result = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          pose: (o: { enemy: string; dist: number; yaw: number }) => { placed: { type: string } | null };
+          inputFire: () => { spent?: boolean; hit?: boolean; killed?: boolean };
+          state: () => { pitch: number; camPitch: number; hp: number };
+        };
+      }).__GAME__;
+      const placed = G.pose({ enemy: 'crawler', dist: 3.2, yaw: 0 });
+      const before = G.state();
+      const shot = G.inputFire();
+      return { placed: placed.placed, playerPitch: before.pitch, camPitch: before.camPitch, shot, hp: G.state().hp };
+    });
+    expect(result.placed?.type).toBe('crawler');
+    expect(result.playerPitch).toBeCloseTo(0, 2);
+    expect(result.camPitch).toBeCloseTo(0, 2);
+    expect(result.shot.spent, 'pistol must spend a round').toBeTruthy();
+    expect(result.shot.hit || result.shot.killed, 'level click at a lower-FOV crawler must hit').toBeTruthy();
+    expect(result.hp).toBe(100);
   });
 
   test('gun pickup grants the gun and a usable ammo stack', async ({ page }) => {

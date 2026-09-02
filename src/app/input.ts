@@ -30,6 +30,9 @@ export class InputManager {
   private onPointerLockChange: (() => void) | null = null;
   private onPauseToggle: (() => void) | null = null;
   private onMapToggle: (() => void) | null = null;
+  private onLook: ((dyaw: number, dpitch: number) => void) | null = null;
+  /** ?e2e=1: mousedown fires without pointer lock so Playwright can click. */
+  e2eClick = false;
   private stickBase: HTMLElement | null = null;
   private stickNub: HTMLElement | null = null;
 
@@ -46,10 +49,12 @@ export class InputManager {
     onPointerLockChange?: () => void;
     onPauseToggle?: () => void;
     onMapToggle?: () => void;
+    onLook?: (dyaw: number, dpitch: number) => void;
   }): void {
     this.onPointerLockChange = cbs.onPointerLockChange ?? null;
     this.onPauseToggle = cbs.onPauseToggle ?? null;
     this.onMapToggle = cbs.onMapToggle ?? null;
+    this.onLook = cbs.onLook ?? null;
   }
 
   requestLock(): void {
@@ -92,15 +97,23 @@ export class InputManager {
       this.onPointerLockChange?.();
     });
     this.canvas.addEventListener('mousedown', (e) => {
-      if (e.button === 0 && this.pointerLocked) this.state.fire = true;
+      if (e.button === 0 && (this.pointerLocked || this.e2eClick)) this.state.fire = true;
     });
     window.addEventListener('mouseup', (e) => {
       if (e.button === 0) this.state.fire = false;
     });
     document.addEventListener('mousemove', (e) => {
       if (!this.pointerLocked) return;
-      this.state.yawDelta -= e.movementX * 0.0022 * this.sensitivity;
-      this.state.pitchDelta -= e.movementY * 0.0022 * this.sensitivity;
+      const dyaw = -e.movementX * 0.0022 * this.sensitivity;
+      const dpitch = -e.movementY * 0.0022 * this.sensitivity;
+      // Camera owns look: apply immediately so the view and the next
+      // fire use the same pitch (live playtest: mouse look was on the
+      // camera while hitscan still used leftover player.pitch ≈ 0).
+      if (this.onLook) this.onLook(dyaw, dpitch);
+      else {
+        this.state.yawDelta += dyaw;
+        this.state.pitchDelta += dpitch;
+      }
     });
     window.addEventListener('wheel', (e) => {
       if (this.pointerLocked) {
@@ -145,8 +158,13 @@ export class InputManager {
             this.stickNub.style.transform = `translate(${dx * k}px, ${dy * k}px)`;
           }
         } else if (this.touchLook && t.identifier === this.touchLook.id) {
-          this.state.yawDelta -= (t.clientX - this.touchLook.lastX) * 0.005 * this.sensitivity;
-          this.state.pitchDelta -= (t.clientY - this.touchLook.lastY) * 0.005 * this.sensitivity;
+          const dyaw = -(t.clientX - this.touchLook.lastX) * 0.005 * this.sensitivity;
+          const dpitch = -(t.clientY - this.touchLook.lastY) * 0.005 * this.sensitivity;
+          if (this.onLook) this.onLook(dyaw, dpitch);
+          else {
+            this.state.yawDelta += dyaw;
+            this.state.pitchDelta += dpitch;
+          }
           this.touchLook.lastX = t.clientX;
           this.touchLook.lastY = t.clientY;
         }

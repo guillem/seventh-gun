@@ -136,7 +136,7 @@ export function enemyGunVolumeY(
   if (def.flying) return v;
   let yMax = v.yMax;
   if (distXZ <= CLOSE_GUN_LOFT_DIST) {
-    yMax = Math.max(yMax, PLAYER_EYE + 0.2);
+    yMax = Math.max(yMax, PLAYER_EYE + 0.35);
   }
   return { yMin: 0, yMax, yCenter: v.yCenter };
 }

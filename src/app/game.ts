@@ -2,6 +2,7 @@
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
+import { circleFits, hasLineOfSight } from '../sim/physics';
 import { GEN_VERSION, type SimEvent, type Difficulty, type PlayerLoadout } from '../sim/types';
 import { compileBlueprint, mapSeedFromTitle, type MapBlueprint } from '../sim/blueprint';
 import { decodeBlueprint } from '../sim/mapcodec';
@@ -82,6 +83,7 @@ export class Game {
     this.audio.setMuted(this.settings.muted);
     this.input = new InputManager(canvas, this.screens);
     this.input.sensitivity = this.settings.sensitivity;
+    this.input.e2eClick = debug;
 
     this.createMinimapCanvas();
     this.wireUi();
@@ -197,6 +199,12 @@ export class Game {
 
   private wireInput(): void {
     this.input.setCallbacks({
+      onLook: (dyaw, dpitch) => {
+        const cam = this.renderer.camera;
+        cam.rotation.order = 'YXZ';
+        cam.rotation.y += dyaw;
+        cam.rotation.x = Math.max(-1.45, Math.min(1.45, cam.rotation.x + dpitch));
+      },
       onPointerLockChange: () => {
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
           // First Esc is consumed by the browser to exit pointer lock (no keydown).
@@ -362,6 +370,28 @@ export class Game {
     this.audio.unlock().then(() => this.audio.startAmbient());
     this.input.paused = false;
     if (!this.input.isTouch) this.input.requestLock();
+    this.pushLookToCamera(this.sim.player.yaw, this.sim.player.pitch);
+  }
+
+  /** Mouse look writes the camera; copy that aim into the sim before fire/step. */
+  private pullAimFromCamera(sim: Sim): void {
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+    sim.player.yaw = cam.rotation.y;
+    sim.player.pitch = cam.rotation.x;
+  }
+
+  private pushLookToCamera(yaw: number, pitch: number): void {
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+    cam.rotation.y = yaw;
+    cam.rotation.x = pitch;
+  }
+
+  private cameraAimDir(): { dirX: number; dirY: number; dirZ: number } {
+    const v = new THREE.Vector3();
+    this.renderer.camera.getWorldDirection(v);
+    return { dirX: v.x, dirY: v.y, dirZ: v.z };
   }
 
   private retryCurrent(): void {
@@ -749,21 +779,19 @@ export class Game {
     }
 
     if (this.isPlayingLike && this.freeze) {
-      // Pose freeze: no movement / AI, but look + fire still use the camera
-      // forward. Live playtest was looking down at a posed crawler and the
-      // click never reached sim.step (ammo only dropped after unfreeze, by
-      // which time pitchDelta had dumped and/or the floor ate the shot).
+      // Pose freeze: no movement / AI. Aim is the camera (mouse look).
+      this.pullAimFromCamera(sim);
       const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
-      sim.player.yaw = polled.yaw;
-      sim.player.pitch = polled.pitch;
       if (polled.switchGun && sim.player.owned[polled.switchGun]) {
         sim.player.gun = polled.switchGun;
       }
       if (polled.fire) {
-        sim.tryFire();
+        sim.tryFire(this.cameraAimDir());
         for (const e of sim.takeEvents()) this.handleEvent(e);
       }
     } else if (this.isPlayingLike && !this.freeze) {
+      // Camera is look authority; copy it onto the player before stepping.
+      this.pullAimFromCamera(sim);
       // wheel gun cycling
       const polled = this.input.poll(sim.player.yaw, sim.player.pitch);
       if (polled.wheel !== 0) {
@@ -780,8 +808,9 @@ export class Game {
 
       const input = {
         moveX: polled.moveX, moveZ: polled.moveZ,
-        yaw: polled.yaw, pitch: polled.pitch,
+        yaw: sim.player.yaw, pitch: sim.player.pitch,
         fire: polled.fire, use: polled.use, switchGun,
+        aimDir: this.cameraAimDir(),
       };
       this.accumulator += dtReal;
       let steps = 0;
@@ -949,6 +978,8 @@ export class Game {
           pos: { x: +p.x.toFixed(2), z: +p.z.toFixed(2) },
           yaw: +p.yaw.toFixed(3),
           pitch: +p.pitch.toFixed(3),
+          camPitch: +this.renderer.camera.rotation.x.toFixed(3),
+          camYaw: +this.renderer.camera.rotation.y.toFixed(3),
           seed: this.seed,
           kind: this.runKind,
           difficulty: this.settings.difficulty,
@@ -1009,7 +1040,8 @@ export class Game {
         const sim = this.sim;
         if (!sim || this.phase !== 'playing') return { ok: false };
         const bullets = sim.player.ammo.bullets;
-        sim.tryFire();
+        this.pullAimFromCamera(sim);
+        sim.tryFire(this.cameraAimDir());
         const evs = sim.takeEvents();
         for (const e of evs) this.handleEvent(e);
         return {
@@ -1077,15 +1109,45 @@ export class Game {
       step: (n: number) => {
         const sim = this.sim;
         if (!sim) return;
-        for (let i = 0; i < n; i++) sim.step(emptyInput());
+        const yaw = sim.player.yaw, pitch = sim.player.pitch;
+        for (let i = 0; i < n; i++) sim.step({ ...emptyInput(), yaw, pitch });
         for (const e of sim.takeEvents()) this.handleEvent(e);
       },
       mapHash: () => this.mapHash(),
       look: (yawDeg: number, pitchDeg = 0) => {
         const sim = this.sim;
         if (!sim) return;
-        sim.player.yaw = (yawDeg * Math.PI) / 180;
-        sim.player.pitch = (pitchDeg * Math.PI) / 180;
+        const yaw = (yawDeg * Math.PI) / 180;
+        const pitch = (pitchDeg * Math.PI) / 180;
+        sim.player.yaw = yaw;
+        sim.player.pitch = pitch;
+        this.pushLookToCamera(yaw, pitch);
+      },
+      /** Set camera pitch only (player.pitch unchanged). Proves fire reads the camera. */
+      setCameraPitch: (pitchDeg: number) => {
+        const cam = this.renderer.camera;
+        cam.rotation.order = 'YXZ';
+        cam.rotation.x = (pitchDeg * Math.PI) / 180;
+      },
+      tickNow: () => { this.tick(performance.now()); },
+      /** InputManager fire + one tick (not G.shoot / look). */
+      inputFire: () => {
+        const sim = this.sim;
+        if (!sim || this.phase !== 'playing') return { ok: false };
+        const bullets = sim.player.ammo.bullets;
+        const kills = sim.killCount;
+        const hpSum = sim.enemies.reduce((s, e) => s + Math.max(0, e.hp), 0);
+        this.input.setFire(true);
+        this.tick(performance.now());
+        this.input.setFire(false);
+        const hpAfter = sim.enemies.reduce((s, e) => s + Math.max(0, e.hp), 0);
+        return {
+          ok: true,
+          spent: sim.player.ammo.bullets < bullets,
+          hit: hpAfter < hpSum || sim.killCount > kills,
+          killed: sim.killCount > kills,
+          kills: sim.killCount,
+        };
       },
       pause: () => this.togglePause(),
       toggleMap: () => this.toggleMap(!this.screens.isMapOpen()),
@@ -1097,20 +1159,31 @@ export class Game {
         if (opts.gun) sim.giveGun(opts.gun);
         if (opts.yaw !== undefined) p.yaw = (opts.yaw * Math.PI) / 180;
         if (opts.pitch !== undefined) p.pitch = (opts.pitch * Math.PI) / 180;
+        this.pushLookToCamera(p.yaw, p.pitch);
         if (opts.fire) this.renderer.fireVisual(p.gun, p.yaw, p.pitch, p.x, p.z);
         let placed: { id: number; type: string; x: number; z: number } | null = null;
         if (opts.enemy) {
           const e = sim.enemies.find(en => en.type === opts.enemy && !en.dead) ?? sim.enemies.find(en => !en.dead);
           if (e) {
-            const d = opts.dist ?? 5;
-            // teleport the ENEMY in front of the player (player may sit in a
-            // safe corner; moving them breaks the composition)
-            e.x = p.x - Math.sin(p.yaw) * d;
-            e.z = p.z - Math.cos(p.yaw) * d;
+            const want = opts.dist ?? 5;
+            // Prefer a floor cell with LOS so the posed body is not behind a
+            // wall the hitscan would eat (tight start-room corners).
+            let d = want;
+            for (const tryD of [want, want + 0.8, want - 0.5, 2.6, 4.0]) {
+              if (tryD < 1.2) continue;
+              const x = p.x - Math.sin(p.yaw) * tryD;
+              const z = p.z - Math.cos(p.yaw) * tryD;
+              if (circleFits(sim, x, z, e.def.radius) && hasLineOfSight(sim, p.x, p.z, x, z)) {
+                d = tryD;
+                e.x = x; e.z = z;
+                break;
+              }
+              e.x = x; e.z = z;
+            }
             e.yaw = p.yaw + Math.PI; // face the camera
             e.state = 'idle';
             e.awakened = false;
-            placed = { id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1) };
+            placed = { id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dist: +d.toFixed(2) } as { id: number; type: string; x: number; z: number };
           }
         }
         this.freeze = true;
@@ -1128,8 +1201,12 @@ export class Game {
         rigs: this.renderer.enemyRigInfo.slice(0, 8),
         muzzle: this.renderer.muzzleState,
         updateCount: this.renderer.enemyUpdateCount,
-        simEnemies: this.sim ? this.sim.enemies.slice(0, 5).map(e => ({ id: e.id, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dead: e.dead })) : [],
-        playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2) },
+        simEnemies: this.sim ? this.sim.enemies.slice(0, 8).map(e => ({
+          id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1),
+          dead: e.dead, hp: +e.hp.toFixed(1),
+        })) : [],
+        playerPos: { x: +this.sim!.player.x.toFixed(1), z: +this.sim!.player.z.toFixed(1), yaw: +this.sim!.player.yaw.toFixed(2), pitch: +this.sim!.player.pitch.toFixed(3) },
+        camera: { yaw: +this.renderer.camera.rotation.y.toFixed(3), pitch: +this.renderer.camera.rotation.x.toFixed(3) },
       }),
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
       setTouch: (v: boolean) => {

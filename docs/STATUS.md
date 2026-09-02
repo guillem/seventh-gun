@@ -1,41 +1,31 @@
 # STATUS
 
-Updated: 2026-09-02 — PR: playtest fixes (crawler close-range loft, spire
-masonry, HUD leak, editor COPY LINK). Do not merge from this agent.
+Updated: 2026-09-02 — PR: playtest fixes (camera-aim fire, crawler loft,
+spire masonry, HUD leak, editor COPY LINK). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 170/170. `npm run test:e2e` 69 passed / 3 skipped.
 `GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
 ## State: four live-playtest bugs
 
 ### 1. Point-blank crawler miss (P0) — second live fail
 
-First preview still missed: pose dist 3.2, look down, real click, ammo
-210→209, KILLS 0, HP 100→90. Same at pitch 16 and 8. The radius bump
-(0.95) was not enough.
+Third live pass still missed a **real mouse click** (fresh bundle):
+dist 3.2, crawler on the floor in the lower FOV, ammo 210→209, KILLS 0,
+then melee. `G.look()` + `G.shoot()` was a false green — that wrote
+`player.pitch` that `fireWeapon` already used.
 
-Causes that remain after the disc bump:
-
-- A level / shallow look-down (pitch 0 / −8°) at 3.2u flies over visual
-  `yMax` ~1.15 while the crawler fills the lower 75° FOV (crosshair on
-  the wall above it). Playtesters click “at” the on-screen body.
-- Steep look-down at the wall–floor junction (the attached shots):
-  floor-plane clip (`tFloor` before cylinder enter past ~39°) ate the
-  shot. Grounded bodies sit on that floor.
-- `pose()` froze the sim, so look + click did not reach `step` until
-  unfreeze (pitchDelta dump / melee).
+Real mouse look writes the **camera**. Hitscan now fires
+`camera.getWorldDirection()` after `pullAimFromCamera`. Renderer no
+longer slams `camera.rotation` from a stale `player.pitch`.
 
 Gun test only (movement / AI still use `def.radius`):
 
-- `enemyGunRadius` crawler disc 1.1u.
-- `enemyGunVolumeY(def, distXZ)` — grounded `yMin` 0; at dist ≤ 6u the
-  slab lofts to `PLAYER_EYE + 0.2` so pitch 0 / −8° / −16° at 3.2u hit.
-- Hitscan / player projectiles pass XZ dist into the volume. Walls still
-  occlude; the floor plane does **not** clip enemy tests (tracer only).
-- Frozen pose still applies look and `tryFire()` / `G.shoot()` along the
-  current camera forward (no AI).
-- Unit: dist 3.2 at 0 / −8 / −16 plus steep floor-under-body; over-head
-  and floor-in-front still miss. E2E: pose + `look(0, -16)` + `shoot()`.
+- Camera is look authority (mousemove `onLook` → camera Euler).
+- `sim.step` / `tryFire` take optional `aimDir` from the camera.
+- Close-range grounded loft to `PLAYER_EYE + 0.35` (dist ≤ 6u).
+- E2E: pose dist 3.2, `setCameraPitch(-16)` with **player.pitch still 0**,
+  canvas `mousedown` + `tickNow` (InputManager, not `look`/`shoot`).
+  Second e2e: level camera + `inputFire` (lower-FOV loft).
 
 ### 2. Spire art (P1) — playtest PASS
 

@@ -27,6 +27,8 @@ export interface SimInput {
   fire: boolean;
   use: boolean;
   switchGun: number | null;
+  /** Host camera forward (Three.js getWorldDirection). Overrides yaw/pitch aim. */
+  aimDir?: { dirX: number; dirY: number; dirZ: number };
 }
 
 export function emptyInput(): SimInput {
@@ -238,7 +240,7 @@ export class Sim {
     if (!input.fire) p.bloom = Math.max(0, p.bloom - dt * 0.9);
 
     // firing
-    if (input.fire) this.tryFire();
+    if (input.fire) this.tryFire(input.aimDir);
 
     // use (doors)
     if (input.use && p.useCd <= 0) {
@@ -301,7 +303,7 @@ export class Sim {
    * No movement or AI — used by the posed debug click path so a freeze
    * screenshot can still register a hit.
    */
-  tryFire() {
+  tryFire(aim?: { dirX: number; dirY: number; dirZ: number }) {
     if (this.phase !== 'playing') return;
     const p = this.player;
     if (p.fireCd > 0) return;
@@ -314,10 +316,10 @@ export class Sim {
       p.fireCd = 0.25;
       return;
     }
-    this.fireWeapon();
+    this.fireWeapon(aim);
   }
 
-  fireWeapon() {
+  fireWeapon(aim?: { dirX: number; dirY: number; dirZ: number }) {
     const p = this.player;
     const w = weapon(p.gun);
     const diff = DIFFICULTIES[this.difficulty];
@@ -326,10 +328,11 @@ export class Sim {
     this.emitNoise(p.x, p.z, w.loudness);
     this.events.push({ t: 'shot', gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
 
-    // Same basis as the camera (y = PLAYER_EYE, YXZ yaw/pitch, look -Z).
-    const dirX = -Math.sin(p.yaw) * Math.cos(p.pitch);
-    const dirY = Math.sin(p.pitch);
-    const dirZ = -Math.cos(p.yaw) * Math.cos(p.pitch);
+    // Camera-forward when the host passes it (mouse look lives on the
+    // Three.js camera). Headless tests omit it and use player yaw/pitch.
+    const dirX = aim ? aim.dirX : -Math.sin(p.yaw) * Math.cos(p.pitch);
+    const dirY = aim ? aim.dirY : Math.sin(p.pitch);
+    const dirZ = aim ? aim.dirZ : -Math.cos(p.yaw) * Math.cos(p.pitch);
     const eye = PLAYER_EYE;
 
     if (w.hitscan) {
@@ -410,7 +413,7 @@ export class Sim {
       const t = raycastCylinder(
         ox, oy, oz, dirX, dirY, dirZ,
         e.x, e.z, enemyGunRadius(e.def),
-        vol.yMin, vol.yMax, maxD,
+        vol.yMin, vol.yMax, maxD + 0.45,
       );
       if (t === null) continue;
       hits.push({ e, t });
