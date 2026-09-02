@@ -4,6 +4,9 @@ import { Sim, emptyInput } from '../../src/sim/sim';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import { generateMap } from '../../src/sim/mapgen';
 import type { SimInput } from '../../src/sim/sim';
+import { compileBlueprint } from '../../src/sim/blueprint';
+import { hasLineOfSight, hasVisualLineOfSight } from '../../src/sim/physics';
+import { tinyGunSealBlueprint } from '../helpers/authoredMaps';
 
 function input(partial: Partial<SimInput> = {}): SimInput {
   return { ...emptyInput(), ...partial };
@@ -145,5 +148,30 @@ describe('enemy behavior guarantees', () => {
     expect(sim.phase).toBe('won');
     const evs = sim.events.filter(e => e.t === 'won');
     expect(evs.length).toBe(1);
+  });
+});
+
+describe('visual LOS through opening doors', () => {
+  it('opening a door reveals immediately; collision still waits for the slab', () => {
+    const map = compileBlueprint(tinyGunSealBlueprint());
+    const sim = Sim.fromMap(map, 'normal', { rngKey: 'visual-door' });
+    const door = sim.doors[0];
+    expect(door).toBeTruthy();
+    const husk = sim.enemies.find(e => e.type === 'husk')!;
+    // player in the start room, looking at the husk behind the door
+    const start = sim.map.rooms.find(r => r.kind === 'start')!;
+    sim.player.x = start.cx;
+    sim.player.z = start.cz;
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(false);
+    expect(hasVisualLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(false);
+
+    door.opening = true;
+    door.offset = 0;
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(false);
+    expect(hasVisualLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(true);
+
+    door.offset = 0.7;
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(true);
+    expect(hasVisualLineOfSight(sim, sim.player.x, sim.player.z, husk.x, husk.z)).toBe(true);
   });
 });

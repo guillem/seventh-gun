@@ -3,11 +3,17 @@ import { CELL } from './types';
 import type { GameMap } from './types';
 import type { Sim } from './sim';
 
-export function isSolidCell(state: Sim, cx: number, cz: number): boolean {
+/** collision = gameplay solidity; visual = what the camera may see through. */
+export type SolidMode = 'collision' | 'visual';
+
+export function isSolidCell(state: Sim, cx: number, cz: number, mode: SolidMode = 'collision'): boolean {
   if (cx < 0 || cz < 0 || cx >= state.map.w || cz >= state.map.h) return true;
   if (state.map.grid[cz * state.map.w + cx] === 0) return true;
   for (const d of state.doors) {
-    if (d.offset < 0.65) {
+    const blocks = mode === 'visual'
+      ? !d.opening && d.offset <= 0
+      : d.offset < 0.65;
+    if (blocks) {
       for (const [x, z] of d.cells) if (x === cx && z === cz) return true;
     }
   }
@@ -44,6 +50,7 @@ export function moveCircle(state: Sim, x: number, z: number, dx: number, dz: num
 /** Grid DDA raycast. Returns distance to wall (or maxDist) and hit point. */
 export function raycastWall(
   state: Sim, x0: number, z0: number, dirX: number, dirZ: number, maxDist: number,
+  mode: SolidMode = 'collision',
 ): { dist: number; x: number; z: number; cell: [number, number] | null } {
   let cx = Math.floor(x0 / CELL), cz = Math.floor(z0 / CELL);
   const stepX = dirX > 0 ? 1 : -1;
@@ -56,7 +63,7 @@ export function raycastWall(
   let tMaxZ = dirZ !== 0
     ? ((dirZ > 0 ? (cz + 1) * CELL - z0 : z0 - cz * CELL) / Math.abs(dirZ))
     : Infinity;
-  if (isSolidCell(state, cx, cz)) return { dist: 0, x: x0, z: z0, cell: [cx, cz] };
+  if (isSolidCell(state, cx, cz, mode)) return { dist: 0, x: x0, z: z0, cell: [cx, cz] };
   let t = 0;
   for (let i = 0; i < 256; i++) {
     if (tMaxX < tMaxZ) {
@@ -65,7 +72,7 @@ export function raycastWall(
       t = tMaxZ; tMaxZ += tDeltaZ; cz += stepZ;
     }
     if (t > maxDist) return { dist: maxDist, x: x0 + dirX * maxDist, z: z0 + dirZ * maxDist, cell: null };
-    if (isSolidCell(state, cx, cz)) {
+    if (isSolidCell(state, cx, cz, mode)) {
       return { dist: t, x: x0 + dirX * t, z: z0 + dirZ * t, cell: [cx, cz] };
     }
   }
@@ -73,12 +80,20 @@ export function raycastWall(
 }
 
 /** Line of sight between two world points (ignores height). */
-export function hasLineOfSight(state: Sim, x0: number, z0: number, x1: number, z1: number): boolean {
+export function hasLineOfSight(
+  state: Sim, x0: number, z0: number, x1: number, z1: number,
+  mode: SolidMode = 'collision',
+): boolean {
   const dx = x1 - x0, dz = z1 - z0;
   const d = Math.hypot(dx, dz);
   if (d < 0.001) return true;
-  const hit = raycastWall(state, x0, z0, dx / d, dz / d, d);
+  const hit = raycastWall(state, x0, z0, dx / d, dz / d, d, mode);
   return hit.dist >= d - 0.01;
+}
+
+/** Same as LOS, but opening doors do not occlude (used by the renderer). */
+export function hasVisualLineOfSight(state: Sim, x0: number, z0: number, x1: number, z1: number): boolean {
+  return hasLineOfSight(state, x0, z0, x1, z1, 'visual');
 }
 
 /** A* pathfinding on the grid. Returns waypoints (world coords) or null. */
