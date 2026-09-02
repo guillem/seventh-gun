@@ -3,7 +3,7 @@
 Updated: 2026-09-02 — PR: close-range crawler hits (3D cylinder gun test).
 Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 151/151. E2E pending in this revision.
+`npx tsc --noEmit` clean. `npm test` 151/151. `npm run test:e2e` 55 passed / 3 skipped.
 `GEN_VERSION` still 4. Crawler look / AI / combat stats unchanged.
 
 ## State: hitscan is a real 3D cylinder test
