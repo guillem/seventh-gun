@@ -3,6 +3,8 @@
 Updated: 2026-09-02 — PR: campaign-only texture packs and extra artwork
 (`feat/campaign-art`). Do not merge from this agent.
 
+`npm test` 88/88 (was 79; +9 campaign art). `GEN_VERSION` still 4.
+
 ## State: campaign art hook on top of campaign + editor
 
 Maze / `#m=` / editor playtest still use the shared four-theme atlas
