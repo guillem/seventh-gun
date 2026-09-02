@@ -2,12 +2,13 @@
 // kinds already on the compiled map — does not rewrite JSON or generateMap.
 // Renderer-side only: extras never enter GameMap.decors.
 // extraDecals come from getCampaignTextures(id); hero plates from
-// getCampaignHeroDecals() / CAMPAIGN_HERO_MARKERS (hint-driven, ClampToEdge).
+// resolveHeroDecals (pack.heroDecals / CAMPAIGN_HERO_DECALS /
+// getCampaignHeroDecals). Missing or empty → no hero quads.
 import * as THREE from 'three';
 import { CELL, CEIL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room } from '../sim/types';
 import {
-  getCampaignHeroDecals,
+  resolveHeroDecals,
   type CampaignArtId, type CampaignHeroDecal, type CampaignTextureLib,
 } from './campaignTextures';
 
@@ -526,7 +527,7 @@ export function applyCampaignDecor(
   disposables: THREE.BufferGeometry[],
 ): number {
   const extras = planCampaignExtras(map, artId);
-  const heroes = planHeroPlacements(map, artId, getCampaignHeroDecals());
+  const heroes = planHeroPlacements(map, artId, resolveHeroDecals(artId, lib));
   const all = extras.concat(heroes);
   for (const e of all) {
     const tex = e.tex ?? decalTex(lib, e.decalId);

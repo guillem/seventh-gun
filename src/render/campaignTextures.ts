@@ -1752,6 +1752,8 @@ export interface CampaignTextureLib {
   door: THREE.Texture;
   sky?: THREE.Texture;
   extraDecals: { id: string; tex: THREE.Texture }[];
+  /** Optional ClampToEdge plates. Missing → sibling / getCampaignHeroDecals(); empty → no-op. */
+  heroDecals?: CampaignHeroDecal[];
 }
 
 // Cheap identity strings the unit test can read without a canvas.
@@ -4675,4 +4677,25 @@ export function getCampaignHeroDecals(): CampaignHeroDecal[] {
     hint: m.hint,
   }));
   return heroCache;
+}
+
+/**
+ * Sibling table a pack author can fill without putting `heroDecals` on the
+ * tiling lib. Prefer `lib.heroDecals` when that array is non-empty.
+ */
+export const CAMPAIGN_HERO_DECALS: Partial<Record<CampaignArtId, CampaignHeroDecal[]>> = {};
+
+export function resolveHeroDecals(
+  id: CampaignArtId,
+  lib?: CampaignTextureLib | null,
+): CampaignHeroDecal[] {
+  const fromLib = lib?.heroDecals;
+  if (fromLib && fromLib.length) {
+    return fromLib.filter(h => !h.map || h.map === id);
+  }
+  const fromSibling = CAMPAIGN_HERO_DECALS[id];
+  if (fromSibling && fromSibling.length) return fromSibling;
+  if (fromLib) return fromLib;
+  if (fromSibling) return fromSibling;
+  return getCampaignHeroDecals().filter(h => h.map === id);
 }

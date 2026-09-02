@@ -5,8 +5,9 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { CAMPAIGN } from '../../src/campaign/index';
 import { generateMap } from '../../src/sim/mapgen';
 import {
-  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_MARKERS,
+  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_DECALS, CAMPAIGN_HERO_MARKERS,
   campaignArtIdFromIndex, campaignArtIdFromSeed, getCampaignTextures,
+  resolveHeroDecals,
   type CampaignHeroDecal,
 } from '../../src/render/campaignTextures';
 import { planCampaignExtras, planHeroPlacements } from '../../src/render/campaignDecor';
@@ -208,5 +209,22 @@ describe('hero plates', () => {
   it('ignores a hero tagged for a different map', () => {
     const gulletOnly = fakeHeroes('gullet');
     expect(planHeroPlacements(CAMPAIGN[0].map, 'foundry', gulletOnly)).toEqual([]);
+  });
+
+  it('resolveHeroDecals prefers pack.heroDecals; empty pack field is a no-op', () => {
+    const pack = getCampaignTextures('foundry');
+    const only = [{ id: 'pack-only', tex: fakeTex, map: 'foundry' as const, hint: 'arena-back-wall' }];
+    expect(resolveHeroDecals('foundry', { ...pack, heroDecals: only }).map(h => h.id)).toEqual(['pack-only']);
+    expect(resolveHeroDecals('foundry', { ...pack, heroDecals: [] })).toEqual([]);
+  });
+
+  it('resolveHeroDecals falls through to painted plates when the pack omits heroDecals', () => {
+    const pack = getCampaignTextures('foundry');
+    expect(pack.heroDecals).toBeUndefined();
+    expect(CAMPAIGN_HERO_DECALS.foundry).toBeUndefined();
+    const ids = resolveHeroDecals('foundry', pack).map(h => h.id).sort();
+    expect(ids).toEqual(
+      CAMPAIGN_HERO_MARKERS.filter(h => h.map === 'foundry').map(h => h.id).sort(),
+    );
   });
 });

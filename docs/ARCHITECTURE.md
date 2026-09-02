@@ -66,8 +66,9 @@ hardcoded to gun 7. Share links live in the URL hash (`#m=SGMAP.v1.…`).
   (`GameMap.seed` `campaign:…` / `runKind === 'campaign'`) bind
   `getCampaignTextures(artId)` for walls/floors/ceilings/door/sky and add
   renderer-only extras from `campaignDecor.ts`. Hero plates come from
-  `getCampaignHeroDecals()` / `CAMPAIGN_HERO_MARKERS` (hint-driven
-  ClampToEdge quads). Maze and `#m=` keep
+  optional `CampaignTextureLib.heroDecals`, sibling `CAMPAIGN_HERO_DECALS`,
+  or `getCampaignHeroDecals()` / `CAMPAIGN_HERO_MARKERS` (hint-driven
+  ClampToEdge quads). Empty/missing is a no-op. Maze and `#m=` keep
   `getTextures()` themes. Packs are cached. Painting stays canvas-only.
 - Enemies/viewmodels/pickups are procedural Three meshes (no sprites, no
   billboards) with blob contact shadows. Enemy/pickup programs are

@@ -12,17 +12,19 @@ Opus packs from `feat/campaign-art-textures` (#11) replaced the stubs.
 Maze / `#m=` / editor playtest still use the shared four-theme atlas
 (`getTextures()`). Campaign runs swap walls/floors/ceilings/door (and pit
 sky) for `getCampaignTextures(artId)` and place extra decals / cheap
-meshes from that pack's `extraDecals`. Hero plates come from
+meshes from that pack's `extraDecals`. Hero plates come from optional
+`lib.heroDecals`, sibling `CAMPAIGN_HERO_DECALS`, or
 `getCampaignHeroDecals()` / `CAMPAIGN_HERO_MARKERS` (29 ClampToEdge
-256/512 paintings), placed from each plate's `hint`.
-`GEN_VERSION` is still 4. The seven JSON maps were not rewritten.
+256/512 paintings), placed from each plate's `hint`. Empty pack field is
+a no-op. `GEN_VERSION` is still 4. The seven JSON maps were not rewritten.
 
 - Repo: https://github.com/guillem/seventh-gun (`main`).
 - Netlify: LIVE at https://seventh-gun.netlify.app
 - Texture API: `src/render/campaignTextures.ts` (Opus painted generators).
   Public: `CAMPAIGN_ART_IDS`, `campaignArtIdFromIndex`,
   `campaignArtIdFromSeed`, `getCampaignTextures`, `getCampaignHeroDecals`,
-  `CAMPAIGN_HERO_MARKERS`, `CAMPAIGN_PACK_MARKERS`.
+  `resolveHeroDecals`, `CAMPAIGN_HERO_DECALS`, `CAMPAIGN_HERO_MARKERS`,
+  `CAMPAIGN_PACK_MARKERS`. Optional `CampaignTextureLib.heroDecals`.
 - Extra placement is renderer-side only (`src/render/campaignDecor.ts`),
   driven by map index + `GameMap` room kinds. Nothing is added to
   `generateMap` or `GameMap.decors`.
