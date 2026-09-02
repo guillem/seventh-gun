@@ -4,6 +4,7 @@ Updated: 2026-09-02 — PR: campaign-only texture packs and extra artwork
 (`feat/campaign-art`, #10). Do not merge from this agent.
 
 Opus packs from `feat/campaign-art-textures` (#11) replaced the stubs.
+`npx tsc --noEmit` clean. `npm test` 110/110. Existing e2e 55 passed / 3 skipped.
 `GEN_VERSION` still 4. Maze stays on `getTextures()`.
 
 ## State: Opus packs + extra / hero placement
