@@ -14,7 +14,7 @@ import { getTextures } from './textures';
 import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
-import { applyRadialFogDeep } from './radialFog';
+import { applyRadialFogDeep, installRadialFog } from './radialFog';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -41,6 +41,7 @@ export class GameRenderer {
   private baseFov = 75;
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
+    installRadialFog();
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !e2e, powerPreference: 'high-performance', preserveDrawingBuffer: e2e });
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);

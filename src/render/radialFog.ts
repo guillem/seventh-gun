@@ -1,13 +1,55 @@
-// THREE.Fog is a depth slab: vFogDepth = -mvPosition.z. Looking down a hall
-// fogs the vanishing point while wall/ceiling corners (smaller camera-Z)
-// stay bright, and a sideways glance un-fogs distant enemies. Replace with
-// radial distance so near/far + fog color stay the same in every direction.
-import type * as THREE from 'three';
+// THREE.Fog is a depth slab: the stock fog_vertex chunk assigns
+// `vFogDepth = - mvPosition.z` (camera-Z). Looking down a hall fogs the
+// vanishing point while wall/ceiling corners stay bright, and a sideways
+// glance un-fogs distant enemies.
+//
+// onBeforeCompile sees ShaderLib sources with `#include <fog_vertex>` still
+// unresolved — WebGLProgram expands chunks AFTER the callback. Replacing the
+// assignment string there is a no-op. Patch ShaderChunk.fog_vertex (so every
+// fog-using program gets Euclidean length) and also inject after the include
+// / regex-replace the assignment so cloned and late-created materials recompile.
+import * as THREE from 'three';
 
-const DEPTH = 'vFogDepth = - mvPosition.z;';
-const RADIAL = 'vFogDepth = length( mvPosition.xyz );';
+const FOG_INCLUDE = '#include <fog_vertex>';
+const DEPTH_ASSIGN = /(vFogDepth|fogDepth)\s*=\s*-\s*mvPosition\.z\s*;/g;
+
+export function fogDepthIdent(src: string): string {
+  if (/\bfogDepth\b/.test(src) && !/\bvFogDepth\b/.test(src)) return 'fogDepth';
+  return 'vFogDepth';
+}
+
+/** Rewrite a vertex shader or ShaderChunk.fog_vertex to radial distance. */
+export function rewriteFogVertexShader(src: string): string {
+  const ident = fogDepthIdent(src);
+  const radial = `${ident} = length( mvPosition.xyz );`;
+
+  let out = src.replace(DEPTH_ASSIGN, radial);
+
+  // Unresolved ShaderLib (what onBeforeCompile actually receives).
+  if (out.includes(FOG_INCLUDE) && !out.includes(radial)) {
+    out = out.replaceAll(
+      FOG_INCLUDE,
+      `${FOG_INCLUDE}\n#ifdef USE_FOG\n	${radial}\n#endif`,
+    );
+  }
+
+  return out;
+}
+
+let installed = false;
+
+export function installRadialFog(): void {
+  if (installed) return;
+  installed = true;
+  THREE.ShaderChunk.fog_vertex = rewriteFogVertexShader(THREE.ShaderChunk.fog_vertex);
+}
+
+// Patch the chunk at import so MeshLambert/Phong/Basic/Standard (and anything
+// else that includes fog_vertex) compile radial even if applyRadialFog is missed.
+installRadialFog();
 
 export function applyRadialFog(mat: THREE.Material): void {
+  installRadialFog();
   if (mat.userData.radialFog) return;
   const foggy = (mat as THREE.MeshBasicMaterial).fog;
   if (foggy === false) return;
@@ -15,17 +57,23 @@ export function applyRadialFog(mat: THREE.Material): void {
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader, renderer) => {
     prev.call(mat, shader, renderer);
-    shader.vertexShader = shader.vertexShader.replaceAll(DEPTH, RADIAL);
+    shader.vertexShader = rewriteFogVertexShader(shader.vertexShader);
   };
   const prevKey = mat.customProgramCacheKey.bind(mat);
   mat.customProgramCacheKey = () => prevKey() + '|radialFog';
+  mat.needsUpdate = true;
 }
 
 export function applyRadialFogDeep(root: THREE.Object3D): void {
+  installRadialFog();
   root.traverse(obj => {
-    const mesh = obj as THREE.Mesh;
-    if (!mesh.isMesh) return;
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const drawable = obj as THREE.Mesh | THREE.Sprite | THREE.Line | THREE.Points;
+    const ok = (drawable as THREE.Mesh).isMesh
+      || (drawable as THREE.Sprite).isSprite
+      || (drawable as THREE.Line).isLine
+      || (drawable as THREE.Points).isPoints;
+    if (!ok) return;
+    const mats = Array.isArray(drawable.material) ? drawable.material : [drawable.material];
     for (const m of mats) {
       if (m) applyRadialFog(m);
     }

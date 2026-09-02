@@ -4,6 +4,27 @@ import type { Sim } from '../sim/sim';
 import { WEAPONS, weapon } from '../sim/weapons';
 import { CELL } from '../sim/types';
 
+/** Gap between the health bar's right edge and gun slot 1. */
+export const HUD_HEALTH_SLOT_GAP = 10;
+
+export interface HudPanelLayout {
+  barX: number;
+  barW: number;
+  slotX0: number;
+  slotsW: number;
+  slotSize: number;
+}
+
+/** Health bar + 7-slot strip. Bar must stop before slot 1 at every panel width. */
+export function hudPanelLayout(panelW: number, panelX = 0): HudPanelLayout {
+  const slotsW = panelW * 0.42;
+  const slotX0 = panelX + panelW / 2 - slotsW / 2;
+  const slotSize = Math.min(44, (slotsW - 6 * 6) / 7);
+  const barX = panelX + 22 + panelW * 0.09;
+  const barW = Math.max(0, slotX0 - barX - HUD_HEALTH_SLOT_GAP);
+  return { barX, barW, slotX0, slotsW, slotSize };
+}
+
 const EPITAPHS = [
   'The maze keeps your boots.',
   'Should have packed the Seventh.',
@@ -197,7 +218,7 @@ export class Hud {
 
     // health (left)
     const healthFrac = Math.max(0, p.hp / p.maxHp);
-    const barW = panelW * 0.2;
+    const { barW, barX, slotX0, slotSize } = hudPanelLayout(panelW, panelX);
     g.font = 'bold 13px monospace';
     g.fillStyle = '#9aa08e';
     g.textAlign = 'left';
@@ -206,7 +227,6 @@ export class Hud {
     const hpf = p.hp > 50 ? '#e8e4c8' : p.hp > 25 ? '#ffb43a' : '#ff4a3a';
     g.fillStyle = hpf;
     g.fillText(String(Math.max(0, Math.ceil(p.hp))), panelX + 20, panelY + panelH - 16);
-    const barX = panelX + 22 + panelW * 0.09;
     g.fillStyle = '#11130f';
     g.fillRect(barX, panelY + panelH - 34, barW, 12);
     g.fillStyle = hpf;
@@ -224,9 +244,6 @@ export class Hud {
     g.fillText(String(p.ammo[w.ammo]), panelX + panelW - 20, panelY + panelH - 16);
 
     // 7 slots (center)
-    const slotsW = panelW * 0.42;
-    const slotX0 = panelX + panelW / 2 - slotsW / 2;
-    const slotSize = Math.min(44, (slotsW - 6 * 6) / 7);
     for (let i = 1; i <= 7; i++) {
       const owned = p.owned[i];
       const sel = p.gun === i;

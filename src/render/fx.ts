@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { getTextures } from './textures';
 import { getProjectileSprite, isProjectileKind, type ProjectileKind } from './projectiles';
 import type { ProjectileEnt } from '../sim/sim';
+import { applyRadialFogDeep } from './radialFog';
 
 // Energy bolts all share one recipe: a small solid core so the shot has a hard
 // centre, a painted additive corona billboard, and two shrinking trail puffs
@@ -210,6 +211,7 @@ export class FxRenderer {
       g.add(puff);
     }
     if (spec.light) g.add(new THREE.PointLight(spec.light[0], spec.light[1], spec.light[2], 1.8));
+    applyRadialFogDeep(g);
     return g;
   }
 
@@ -245,6 +247,7 @@ export class FxRenderer {
         break;
       }
     }
+    applyRadialFogDeep(g);
     return g;
   }
 

@@ -61,6 +61,12 @@
   while the blueprint validator still accepts `fiend` for authored maps.
 - `tests/unit/enemyArt.test.ts` — a texture is painted and cached for every
   skin including the fiend; per-species palette rules asserted against the source.
+- `tests/unit/radialFog.test.ts` — reads the real r171 `fog_vertex.glsl.js` +
+  ShaderLib (include still unresolved at onBeforeCompile); rewrite +
+  ShaderChunk patch to `length(mvPosition.xyz)` on Basic/Lambert/Phong/
+  Standard; clones / late meshes; fog:false skipped.
+- `tests/unit/hud.test.ts` — health bar ends before gun slot 1 at several
+  panel widths (the old `panelW * 0.2` bar overlaps).
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
@@ -113,4 +119,3 @@ screenshots for screens/touch UI.
 
 Re-run the aesthetic eyeball pass on the Netlify deploy preview; the metrics
 prove presence/clearance, not beauty.
-- tests/unit/radialFog.test.ts -- onBeforeCompile rewrites vFogDepth to length(mvPosition.xyz); fog:false skipped.
