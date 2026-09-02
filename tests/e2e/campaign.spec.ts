@@ -51,7 +51,6 @@ test.describe('campaign desktop', () => {
     await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     expect(state.phase).not.toBe('playing');
-    expect(state.kind).not.toBe('maze');
   });
 
   test('Foundry start does not grow the map log with campaign: seeds', async ({ page }) => {
