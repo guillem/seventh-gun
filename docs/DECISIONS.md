@@ -65,6 +65,8 @@ Unspecified things got decided; this is the record.
   (`src/render/campaignTextures.ts`) plus renderer-only extra decals/meshes
   (`campaignDecor.ts`); maze / `#m=` keep the four shared themes. Extra art
   is placed from room kinds — the seven JSON maps are not rewritten for art.
+  Optional `heroDecals` (256–512 ClampToEdge) place one prominent quad per
+  campaign map; stubs may omit the field.
 - **Editor**: authors a `MapBlueprint` (rooms + 3-wide corridor rects +
   entities), never a raw bitmap. New maps stamp a labeled START room on
   the visible 88×88 grid; ROOM is click-drag (a plain click does not

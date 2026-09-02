@@ -5,10 +5,11 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { CAMPAIGN } from '../../src/campaign/index';
 import { generateMap } from '../../src/sim/mapgen';
 import {
-  CAMPAIGN_ART_IDS, CAMPAIGN_DECAL_IDS,
+  CAMPAIGN_ART_IDS, CAMPAIGN_DECAL_IDS, CAMPAIGN_HERO_DECALS,
   campaignArtIdFromIndex, campaignArtIdFromSeed, getCampaignTextures,
+  resolveHeroDecals,
 } from '../../src/render/campaignTextures';
-import { planCampaignExtras } from '../../src/render/campaignDecor';
+import { planCampaignExtras, planHeroPlacement } from '../../src/render/campaignDecor';
 
 function installCanvasStub(): void {
   if (typeof document !== 'undefined') return;
@@ -112,6 +113,8 @@ describe('getCampaignTextures', () => {
     expect(a.door).toBeTruthy();
     expect(a.extraDecals.map(d => d.id)).toEqual(CAMPAIGN_DECAL_IDS.foundry);
     expect(a.extraDecals.every(d => d.tex)).toBe(true);
+    expect(a.heroDecals === undefined || a.heroDecals.length === 0).toBe(true);
+    expect(resolveHeroDecals('foundry', a)).toEqual([]);
   });
 
   it('pit ships an outdoor sky; packs differ from each other', () => {
@@ -139,5 +142,84 @@ describe('planCampaignExtras', () => {
     expect(foundry.some(e => e.decalId === 'furnace' || e.kind === 'chain')).toBe(true);
     expect(catacombs.some(e => e.kind === 'shelf')).toBe(true);
     expect(pit.some(e => e.kind === 'floor')).toBe(true);
+  });
+});
+
+describe('hero decals', () => {
+  const fakeTex = { wrapS: 0, wrapT: 0 } as unknown as import('three').Texture;
+
+  it('places nothing when the field is missing or empty', () => {
+    for (const m of CAMPAIGN) {
+      const artId = campaignArtIdFromIndex(m.index);
+      expect(planHeroPlacement(m.map, artId, [])).toBeNull();
+      expect(planHeroPlacement(m.map, artId, resolveHeroDecals(artId))).toBeNull();
+    }
+  });
+
+  it('places one arena-back quad on foundry when a hero is provided', () => {
+    const map = CAMPAIGN[0].map;
+    const arena = map.rooms.find(r => r.kind === 'arena')!;
+    const ante = map.rooms.find(r => r.kind === 'antechamber')!;
+    const p = planHeroPlacement(map, 'foundry', [
+      { id: 'hero-foundry', tex: fakeTex, hint: 'arena-back' },
+    ]);
+    expect(p).not.toBeNull();
+    expect(p!.kind).toBe('hero');
+    expect(p!.decalId).toBe('hero-foundry');
+    expect(p!.w).toBeGreaterThan(2);
+    expect(p!.h).toBeGreaterThan(2);
+    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
+    const dAnte = Math.hypot(p!.x - ante.cx, p!.z - ante.cz);
+    expect(dArena).toBeLessThan(dAnte);
+    expect(dArena).toBeLessThan(Math.max(arena.w, arena.h) * 2);
+  });
+
+  it('places the pit-rim hero on the outdoor courtyard, not the arena', () => {
+    const map = CAMPAIGN[3].map;
+    const pit = map.rooms.filter(r => r.outdoor).sort((a, b) => b.w * b.h - a.w * a.h)[0];
+    const arena = map.rooms.find(r => r.kind === 'arena')!;
+    const p = planHeroPlacement(map, 'pit', [
+      { id: 'hero-pit', tex: fakeTex, hint: 'pit-rim' },
+    ]);
+    expect(p).not.toBeNull();
+    const dPit = Math.hypot(p!.x - pit.cx, p!.z - pit.cz);
+    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
+    expect(dPit).toBeLessThan(dArena);
+  });
+
+  it('places the sanctum-apse hero on the far choir wall, not the arena', () => {
+    const map = CAMPAIGN[6].map;
+    const start = map.rooms.find(r => r.kind === 'start')!;
+    const arena = map.rooms.find(r => r.kind === 'arena')!;
+    const p = planHeroPlacement(map, 'sanctum', [
+      { id: 'hero-sanctum', tex: fakeTex, hint: 'sanctum-apse' },
+    ]);
+    expect(p).not.toBeNull();
+    const dStart = Math.hypot(p!.x - start.cx, p!.z - start.cz);
+    const dArena = Math.hypot(p!.x - arena.cx, p!.z - arena.cz);
+    expect(dStart).toBeGreaterThan(40);
+    expect(dArena).toBeGreaterThan(8);
+    // choir sits on the nave axis (x≈43); arena is far east (x≈79)
+    expect(Math.abs(p!.x - start.cx)).toBeLessThan(Math.abs(p!.x - arena.cx));
+  });
+
+  it('ignores a hero tagged for a different map', () => {
+    const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', [
+      { id: 'hero-gullet', tex: fakeTex, map: 'gullet', hint: 'arena-back' },
+    ]);
+    expect(p).toBeNull();
+  });
+
+  it('reads the sibling CAMPAIGN_HERO_DECALS table when the pack omits the field', () => {
+    CAMPAIGN_HERO_DECALS.foundry = [{ id: 'sibling-hero', tex: fakeTex, hint: 'arena-back' }];
+    try {
+      const resolved = resolveHeroDecals('foundry', getCampaignTextures('foundry'));
+      expect(resolved).toHaveLength(1);
+      expect(resolved[0].id).toBe('sibling-hero');
+      const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', resolved);
+      expect(p?.decalId).toBe('sibling-hero');
+    } finally {
+      delete CAMPAIGN_HERO_DECALS.foundry;
+    }
   });
 });

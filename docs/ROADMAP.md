@@ -50,6 +50,7 @@ Title **EDITOR** / `?edit=1`: 2D authoring of a `MapBlueprint`, library in
 - Netlify site + deploy previews wired to the repo; CI on GitHub Actions
   running `npm test` + `npm run test:e2e` per PR.
 - Campaign-only texture packs + extra artwork (this PR): hook and
-  placement landed; painted 128px generators still stubs for Opus.
+  placement landed; optional hero-decal hook (one quad / map) is a no-op
+  until Opus fills `heroDecals`. Painted 128px generators still stubs.
 - Cosmetic depth: per-theme ambience layers, more decoration variety,
   intermission text between gun finds.

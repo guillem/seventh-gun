@@ -5,10 +5,21 @@
 // so the renderer hook and extra-decal placement can land first.
 //
 // If you are Opus replacing this file: keep the public API below exactly.
+// Optional heroDecals (256–512 ClampToEdge) may live on the pack or on
+// CAMPAIGN_HERO_DECALS; missing/empty means no hero quad.
 import * as THREE from 'three';
 
 export const CAMPAIGN_ART_IDS = ['foundry', 'gullet', 'catacombs', 'pit', 'spire', 'ward', 'sanctum'] as const;
 export type CampaignArtId = typeof CAMPAIGN_ART_IDS[number];
+
+export interface CampaignHeroDecal {
+  id: string;
+  tex: THREE.Texture;
+  /** Pack or seed fragment, e.g. `foundry` or `01-foundry`. */
+  map?: string;
+  /** `arena-back` | `pit-rim` | `sanctum-apse` (substrings match). */
+  hint?: string;
+}
 
 export interface CampaignTextureLib {
   walls: THREE.Texture;
@@ -17,6 +28,25 @@ export interface CampaignTextureLib {
   door: THREE.Texture;
   sky?: THREE.Texture; // e.g. pit outdoor
   extraDecals: { id: string; tex: THREE.Texture }[];
+  /** Optional 256–512 ClampToEdge paintings. Missing/empty → no hero quad. */
+  heroDecals?: CampaignHeroDecal[];
+}
+
+/**
+ * Sibling table Opus can fill without changing getCampaignTextures().
+ * Prefer lib.heroDecals when that array is non-empty.
+ */
+export const CAMPAIGN_HERO_DECALS: Partial<Record<CampaignArtId, CampaignHeroDecal[]>> = {};
+
+export function resolveHeroDecals(
+  id: CampaignArtId,
+  lib?: CampaignTextureLib | null,
+): CampaignHeroDecal[] {
+  const fromLib = lib?.heroDecals;
+  if (fromLib && fromLib.length) return fromLib;
+  const fromSibling = CAMPAIGN_HERO_DECALS[id];
+  if (fromSibling && fromSibling.length) return fromSibling;
+  return fromLib ?? fromSibling ?? [];
 }
 
 export function campaignArtIdFromIndex(n: number): CampaignArtId {
@@ -50,6 +80,8 @@ export function getCampaignTextures(id: CampaignArtId): CampaignTextureLib {
 // OPUS TODO: replace buildStubPack + PALETTES with unique painted generators
 // per CampaignArtId (walls/floors/ceilings/door/sky/extraDecals). Keep the
 // extraDecal `id`s stable — placement in campaignDecor.ts keys off them.
+// Optional heroDecals: 256–512 ClampToEdge via toHeroTexture(); omit or
+// leave empty and the renderer places nothing.
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -101,6 +133,11 @@ function toTexture(c: HTMLCanvasElement, wrap = true): THREE.Texture {
   t.colorSpace = THREE.SRGBColorSpace;
   t.needsUpdate = true;
   return t;
+}
+
+/** Hero paintings: 256–512 canvas, ClampToEdge, no repeat. */
+export function toHeroTexture(c: HTMLCanvasElement): THREE.Texture {
+  return toTexture(c, false);
 }
 
 function hexRgb(hex: string): [number, number, number] {
@@ -199,5 +236,6 @@ function buildStubPack(id: CampaignArtId): CampaignTextureLib {
   if (p.sky) lib.sky = toTexture(stubSky(p.sky));
   // pit is outdoor — always ship a sky even if palette later drops the field
   if (id === 'pit' && !lib.sky) lib.sky = toTexture(stubSky('#3a4020'));
+  // heroDecals omitted — renderer treats missing as empty
   return lib;
 }
