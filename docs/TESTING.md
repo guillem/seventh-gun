@@ -10,7 +10,9 @@
 - `tests/unit/weapons.test.ts` — personality contract: pistol accuracy,
   shotgun pellet scatter + falloff, chaingun bloom, projectile identity
   (nails straight/fast, grenades arc), rail pierce, Seventh multi-kill splash,
-  power ladder, dry-fire no-spam, starting stacks.
+  power ladder, dry-fire no-spam, starting stacks. Close crawler look-down
+  hits / over-head and floor-in-front miss; husk at range; wisp torso vs
+  above-head. `tests/unit/physics.test.ts` — 3D cylinder ray (not closest-XZ).
 - `tests/unit/sim.test.ts` — difficulty multipliers, determinism (snapshot
   equality over scripted input), wake conditions, no attacks through closed
   doors, dodgeable projectiles, death lockout, win path.

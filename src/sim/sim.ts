@@ -11,7 +11,7 @@ import { DIFFICULTIES } from './difficulty';
 import { WEAPONS, weapon } from './weapons';
 import { DEATH_NOISE_RADIUS, ENEMIES, enemyVolumeY, noiseHearRadius, type EnemyDef } from './enemyTypes';
 import {
-  isSolidCell, moveCircle, pushCircleOut, raycastWall, hasLineOfSight, findPath, roomAt,
+  isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
 } from './physics';
 
 export const STEP_DT = 1 / 60;
@@ -379,20 +379,17 @@ export class Sim {
   ) {
     const wall = raycastWall(this, ox, oz, dirX, dirZ, 120);
     const maxD = Math.min(wall.dist, 120);
-    // gather enemy hits along the ray
+    // gather enemy hits along the ray (3D cylinder, not closest-XZ-then-Y)
     const hits: { e: EnemyEnt; t: number }[] = [];
     for (const e of this.enemies) {
       if (e.dead) continue;
-      const relX = e.x - ox, relZ = e.z - oz;
-      const t = relX * dirX + relZ * dirZ;
-      if (t < 0 || t > maxD + 1) continue;
-      const cx = ox + dirX * t, cz = oz + dirZ * t;
-      const d2 = (e.x - cx) * (e.x - cx) + (e.z - cz) * (e.z - cz);
-      const r = e.def.radius + 0.12;
-      if (d2 > r * r) continue;
-      const yAt = oy + dirY * t;
       const vol = enemyVolumeY(e.def);
-      if (yAt < vol.yMin || yAt > vol.yMax) continue;
+      const t = raycastCylinder(
+        ox, oy, oz, dirX, dirY, dirZ,
+        e.x, e.z, e.def.radius + 0.12,
+        vol.yMin, vol.yMax, maxD,
+      );
+      if (t === null) continue;
       hits.push({ e, t });
     }
     hits.sort((a, b) => a.t - b.t);
@@ -462,16 +459,33 @@ export class Sim {
 
       if (!impacted) {
         if (p.fromPlayer) {
+          const span = Math.hypot(nx - p.x, ny - p.y, nz - p.z);
+          const inv = span > 1e-12 ? 1 / span : 0;
+          const pdx = (nx - p.x) * inv, pdy = (ny - p.y) * inv, pdz = (nz - p.z) * inv;
+          let bestT = span;
+          let best: EnemyEnt | null = null;
           for (const e of this.enemies) {
             if (e.dead) continue;
-            const dx = e.x - nx, dz = e.z - nz;
-            const rr = e.def.radius + p.radius;
             const vol = enemyVolumeY(e.def);
-            if (dx * dx + dz * dz < rr * rr && ny + p.radius > vol.yMin && ny - p.radius < vol.yMax) {
-              impacted = true;
-              if (p.splashRadius <= 0) this.damageEnemy(e, p.damage, 0);
-              break;
+            const rr = e.def.radius + p.radius;
+            const y0 = vol.yMin - p.radius, y1 = vol.yMax + p.radius;
+            let t: number | null;
+            if (span < 1e-12) {
+              const dx = e.x - nx, dz = e.z - nz;
+              t = (dx * dx + dz * dz < rr * rr && ny >= y0 && ny <= y1) ? 0 : null;
+            } else {
+              t = raycastCylinder(p.x, p.y, p.z, pdx, pdy, pdz, e.x, e.z, rr, y0, y1, span);
             }
+            if (t !== null && t <= bestT) { bestT = t; best = e; }
+          }
+          if (best) {
+            if (span >= 1e-12) {
+              p.x += pdx * bestT;
+              p.y += pdy * bestT;
+              p.z += pdz * bestT;
+            }
+            impacted = true;
+            if (p.splashRadius <= 0) this.damageEnemy(best, p.damage, 0);
           }
         } else {
           const dx = this.player.x - nx, dz = this.player.z - nz;
