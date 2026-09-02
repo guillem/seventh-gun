@@ -3,6 +3,7 @@
 Updated: 2026-09-02 — PR: campaign-only texture packs and extra artwork
 (`feat/campaign-art`, #10). Do not merge from this agent.
 
+`npx tsc --noEmit` clean. `npm test` 94/94. Existing e2e 55 passed / 3 skipped.
 `GEN_VERSION` still 4. Maze stays on `getTextures()`.
 
 ## State: campaign art hook + optional hero decals
