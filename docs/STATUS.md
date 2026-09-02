@@ -3,7 +3,9 @@
 Updated: 2026-09-02 — PR: enemy feel (body collision, sound wake, meshes, Fiend).
 Do not merge from this agent.
 
+`npx tsc --noEmit` clean. `npm test` 123/123. `npm run test:e2e` 55 passed / 3 skipped.
 `GEN_VERSION` still 4. Maze `generateMap` is unchanged (no Fiend in the maze).
+Mobile FIRE ≥44px (e2e).
 
 ## State: player-feel pass on enemies
 

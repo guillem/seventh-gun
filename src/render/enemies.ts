@@ -231,27 +231,25 @@ function buildSlab(tex: ReturnType<typeof getTextures>): EnemyRig {
   group.add(yawGroup);
   yawGroup.add(body);
 
-  // massive plated torso — bulky brute, no chest-sphere pair
-  const torso = box(1.18, 1.08, 0.72, hide);
-  torso.position.y = 1.55;
+  // massive plated torso — bulky brute, single breastplate (no chest-sphere pair)
+  const torso = box(1.22, 1.1, 0.76, hide);
+  torso.position.y = 1.52;
   body.add(torso);
-  const sternum = box(0.22, 0.85, 0.18, hide2);
-  sternum.position.set(0, 1.58, 0.38);
+  const breastplate = box(1.02, 0.72, 0.18, hide2);
+  breastplate.position.set(0, 1.68, 0.44);
+  body.add(breastplate);
+  const collar = box(0.7, 0.16, 0.4, hide2);
+  collar.position.set(0, 2.12, 0.12);
+  body.add(collar);
+  const sternum = box(0.16, 0.78, 0.12, hide);
+  sternum.position.set(0, 1.58, 0.54);
   body.add(sternum);
   for (const s of [-1, 1]) {
-    const plate = box(0.46, 0.55, 0.12, hide2);
-    plate.position.set(0.34 * s, 1.72, 0.4);
-    plate.rotation.y = 0.18 * s;
-    body.add(plate);
-    const pauldron = box(0.42, 0.28, 0.5, hide);
-    pauldron.position.set(0.72 * s, 2.08, 0.02);
-    pauldron.rotation.z = -0.35 * s;
-    pauldron.rotation.x = -0.12;
+    const pauldron = box(0.52, 0.34, 0.58, hide);
+    pauldron.position.set(0.88 * s, 2.14, -0.08);
+    pauldron.rotation.z = -0.48 * s;
+    pauldron.rotation.x = 0.15;
     body.add(pauldron);
-    const pauldronCap = box(0.28, 0.1, 0.36, hide2);
-    pauldronCap.position.set(0.78 * s, 2.22, 0.04);
-    pauldronCap.rotation.z = -0.4 * s;
-    body.add(pauldronCap);
   }
   // armored gut
   const gut = box(0.95, 0.55, 0.55, hide);
@@ -698,7 +696,7 @@ export class EnemyRenderer {
           arm.rotation.x = 0.3 - Math.sin(e.animPhase * 7 + i * Math.PI) * 0.4 * speedNorm;
         });
         rig.body.position.y = rig.baseY + Math.abs(Math.sin(e.animPhase * 7)) * 0.045 * speedNorm;
-        if (e.type === 'slab') rig.body.rotation.x = 0.12 + Math.sin(e.animPhase * 3) * 0.02;
+        if (e.type === 'slab') rig.body.rotation.x = 0.06 + Math.sin(e.animPhase * 3) * 0.02;
         if (e.type === 'fiend') {
           rig.extras.forEach(t => { t.rotation.x = 1.1 + Math.sin(e.animPhase * 3) * 0.12 * speedNorm; });
         }
@@ -719,7 +717,7 @@ export class EnemyRenderer {
         rig.body.rotation.x = 0.3;
         rig.eyeMat.color.setRGB(2, 0.6, 0.4);
       } else {
-        rig.body.rotation.x = e.type === 'slab' ? 0.12 : e.type === 'fiend' ? 0.08 : 0;
+        rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
       }
       void camera;
     }
