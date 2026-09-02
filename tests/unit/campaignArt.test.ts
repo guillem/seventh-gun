@@ -10,7 +10,11 @@ import {
   resolveHeroDecals,
   type CampaignHeroDecal,
 } from '../../src/render/campaignTextures';
-import { planCampaignExtras, planHeroPlacements } from '../../src/render/campaignDecor';
+import { CEIL_H } from '../../src/sim/types';
+import {
+  planCampaignExtras, planHeroPlacements, clampToWallFace, wallFaceExtent,
+  type ExtraPlacement,
+} from '../../src/render/campaignDecor';
 
 function installCanvasStub(): void {
   if (typeof document !== 'undefined') return;
@@ -226,5 +230,55 @@ describe('hero plates', () => {
     expect(ids).toEqual(
       CAMPAIGN_HERO_MARKERS.filter(h => h.map === 'foundry').map(h => h.id).sort(),
     );
+  });
+});
+
+
+const CORNER_INSET = 0.18;
+const FLOOR_INSET = 0.08;
+const CEIL_INSET = 0.08;
+
+function isWallQuad(e: ExtraPlacement): boolean {
+  if (e.orient === 'floor' || e.orient === 'ceiling') return false;
+  if (e.kind === 'floor' || e.kind === 'chain') return false;
+  return true;
+}
+
+function assertFitsFace(map: (typeof CAMPAIGN)[number]['map'], e: ExtraPlacement, label: string): void {
+  expect(e.y - e.h / 2, `${label} floor`).toBeGreaterThanOrEqual(FLOOR_INSET - 1e-4);
+  expect(e.y + e.h / 2, `${label} ceil`).toBeLessThanOrEqual(CEIL_H - CEIL_INSET + 1e-4);
+  const face = wallFaceExtent(map, e.x, e.z, e.yaw);
+  if (!face) return;
+  if (face.max - face.min < 0.6) {
+    expect(e.w, `${label} thin`).toBeLessThanOrEqual(face.max - face.min + 1e-4);
+    return;
+  }
+  const along = face.axis === 'x' ? e.x : e.z;
+  expect(along - e.w / 2, `${label} past min`).toBeGreaterThanOrEqual(face.min + CORNER_INSET - 1e-4);
+  expect(along + e.w / 2, `${label} past max`).toBeLessThanOrEqual(face.max - CORNER_INSET + 1e-4);
+}
+
+describe('wall-face clamp', () => {
+  it('keeps extras and heroes on THE SPIRE inside the contiguous wall', () => {
+    const map = CAMPAIGN[4].map;
+    const extras = planCampaignExtras(map, 'spire');
+    const heroes = planHeroPlacements(map, 'spire', fakeHeroes('spire'));
+    const all = extras.concat(heroes);
+    expect(all.some(e => e.decalId === 'dish-eye' || e.decalId === 'lattice-totem')).toBe(true);
+    for (const e of all) {
+      if (!isWallQuad(e)) continue;
+      assertFitsFace(map, e, e.decalId ?? e.kind);
+    }
+  });
+
+  it('shrinks a too-wide hero on a one-cell wall face and insets from the corner', () => {
+    const map = CAMPAIGN[4].map;
+    // pick any wall extra as a location sample
+    const sample = planCampaignExtras(map, 'spire').find(isWallQuad);
+    expect(sample).toBeTruthy();
+    const huge = clampToWallFace(map, { ...sample!, w: 40, h: 20, y: 2 });
+    expect(huge.w).toBeLessThan(40);
+    expect(huge.h).toBeLessThanOrEqual(CEIL_H - FLOOR_INSET - CEIL_INSET + 1e-4);
+    assertFitsFace(map, huge, 'huge');
   });
 });

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { getTextures } from './textures';
 import type { EnemyEnt } from '../sim/sim';
 import { ENEMIES } from '../sim/enemyTypes';
+import { applyRadialFog, applyRadialFogDeep } from './radialFog';
 
 export interface EnemyRig {
   group: THREE.Group;       // positioned at feet, faces +z when yaw applied
@@ -22,7 +23,9 @@ export interface EnemyRig {
 }
 
 function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshLambertMaterial {
-  return new THREE.MeshLambertMaterial({ map: skin, color });
+  const m = new THREE.MeshLambertMaterial({ map: skin, color });
+  applyRadialFog(m);
+  return m;
 }
 
 function box(w: number, h: number, d: number, m: THREE.Material): THREE.Mesh {
@@ -40,6 +43,7 @@ function cone(r: number, h: number, m: THREE.Material, seg = 7): THREE.Mesh {
 
 function eyeMesh(r: number, color: number): { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial } {
   const m = new THREE.MeshBasicMaterial({ color });
+  applyRadialFog(m);
   return { mesh: sph(r, m, 6), mat: m };
 }
 
@@ -631,6 +635,7 @@ export class EnemyRenderer {
     for (const e of enemies) {
       if (!this.rigs.has(e.id)) {
         const rig = this.build(e.type);
+        applyRadialFogDeep(rig.group);
         this.rigs.set(e.id, rig);
         this.scene.add(rig.group);
       }

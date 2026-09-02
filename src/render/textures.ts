@@ -1184,7 +1184,11 @@ export function getTextures(): TextureLib {
       tech: toTexture(ceilingDark('#17141f')),
     },
     door: toTexture(doorTexture()),
-    sky: toTexture(skyTexture()),
+    sky: (() => {
+      const t = toTexture(skyTexture());
+      t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+      return t;
+    })(),
     decals: {
       rune: toTexture(decalRune()),
       skull: toTexture(decalSkull()),

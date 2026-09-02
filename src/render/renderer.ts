@@ -14,6 +14,7 @@ import { getTextures } from './textures';
 import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
+import { applyRadialFogDeep, installRadialFog } from './radialFog';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -40,6 +41,7 @@ export class GameRenderer {
   private baseFov = 75;
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
+    installRadialFog();
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !e2e, powerPreference: 'high-performance', preserveDrawingBuffer: e2e });
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -113,6 +115,7 @@ export class GameRenderer {
     this.scene.fog = resolved
       ? new THREE.Fog(CAMPAIGN_FOG[resolved], 8, 52)
       : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
+    applyRadialFogDeep(this.scene);
     this.setGun(1);
     this.prefetchDynamicMeshes();
   }
@@ -195,6 +198,7 @@ export class GameRenderer {
     } else {
       this.camera.rotation.z = 0;
     }
+    if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
     this.torch.position.copy(this.camera.position);
 
     // gun switch visual
@@ -292,5 +296,6 @@ export class GameRenderer {
   poseCamera(x: number, y: number, z: number, yaw: number, pitch: number): void {
     this.camera.position.set(x, y, z);
     this.camera.rotation.set(pitch, yaw, 0);
+    if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
   }
 }

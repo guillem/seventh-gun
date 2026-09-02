@@ -11,6 +11,7 @@ import {
   resolveHeroDecals,
   type CampaignArtId, type CampaignHeroDecal, type CampaignTextureLib,
 } from './campaignTextures';
+import { applyRadialFog } from './radialFog';
 
 export const CAMPAIGN_AMBIENT: Record<CampaignArtId, [number, number, number]> = {
   foundry: [0.30, 0.16, 0.09],
@@ -79,6 +80,73 @@ const DIRS: [number, number, number][] = [
 function solid(map: GameMap, x: number, z: number): boolean {
   return x < 0 || z < 0 || x >= map.w || z >= map.h || map.grid[z * map.w + x] === 0;
 }
+
+const CORNER_INSET = 0.18;
+const FLOOR_INSET = 0.08;
+const CEIL_INSET = 0.08;
+
+function yawToNormal(yaw: number): [number, number] {
+  let best: [number, number, number] = DIRS[0];
+  let bestErr = Infinity;
+  for (const d of DIRS) {
+    const a = yaw - d[2];
+    const err = Math.abs(Math.atan2(Math.sin(a), Math.cos(a)));
+    if (err < bestErr) {
+      bestErr = err;
+      best = d;
+    }
+  }
+  return [best[0], best[1]];
+}
+
+/** World-space span of the contiguous wall face under (x,z,yaw). */
+export function wallFaceExtent(
+  map: GameMap, x: number, z: number, yaw: number,
+): { min: number; max: number; axis: 'x' | 'z' } | null {
+  const [dx, dz] = yawToNormal(yaw);
+  const cx = Math.floor(x / CELL);
+  const cz = Math.floor(z / CELL);
+  const at = (gx: number, gz: number) => !solid(map, gx, gz) && solid(map, gx + dx, gz + dz);
+  if (!at(cx, cz)) return null;
+  const tx = dz !== 0 ? 1 : 0;
+  const tz = dx !== 0 ? 1 : 0;
+  let x0 = cx, z0 = cz, x1 = cx, z1 = cz;
+  while (at(x0 - tx, z0 - tz)) { x0 -= tx; z0 -= tz; }
+  while (at(x1 + tx, z1 + tz)) { x1 += tx; z1 += tz; }
+  if (tx === 1) {
+    return { min: cellToWorld(x0) - CELL / 2, max: cellToWorld(x1) + CELL / 2, axis: 'x' };
+  }
+  return { min: cellToWorld(z0) - CELL / 2, max: cellToWorld(z1) + CELL / 2, axis: 'z' };
+}
+
+export function clampToWallFace(map: GameMap, e: ExtraPlacement): ExtraPlacement {
+  if (e.orient === 'floor' || e.orient === 'ceiling') return e;
+  if (e.kind === 'floor' || e.kind === 'chain') return e;
+  const face = wallFaceExtent(map, e.x, e.z, e.yaw);
+  let w = e.w;
+  let h = e.h;
+  let x = e.x;
+  let y = e.y;
+  let z = e.z;
+  if (face) {
+    const avail = Math.max(0.2, face.max - face.min - CORNER_INSET * 2);
+    w = Math.min(w, avail);
+    const half = w / 2;
+    const lo = face.min + CORNER_INSET + half;
+    const hi = face.max - CORNER_INSET - half;
+    const along = face.axis === 'x' ? x : z;
+    const clamped = lo <= hi ? Math.min(hi, Math.max(lo, along)) : (face.min + face.max) / 2;
+    if (face.axis === 'x') x = clamped;
+    else z = clamped;
+  }
+  const yMin = FLOOR_INSET;
+  const yMax = CEIL_H - CEIL_INSET;
+  h = Math.min(h, Math.max(0.12, yMax - yMin));
+  if (y - h / 2 < yMin) y = yMin + h / 2;
+  if (y + h / 2 > yMax) y = yMax - h / 2;
+  return { ...e, x, y, z, w, h };
+}
+
 
 function nearExistingDecor(map: GameMap, x: number, z: number, min = 0.95): boolean {
   for (const d of map.decors) {
@@ -252,7 +320,7 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
     }
   }
 
-  return extras;
+  return extras.map(e => clampToWallFace(map, e));
 }
 
 export type HeroOrient = 'wall' | 'floor' | 'ceiling';
@@ -493,14 +561,14 @@ export function planHeroPlacements(
     }
     const slot = placeHeroOnWall(map, room, hero.hint, usedYaws);
     if (!slot) continue;
-    out.push({
+    out.push(clampToWallFace(map, {
       kind: 'hero',
       decalId: hero.id,
       tex: hero.tex,
       orient: 'wall',
       x: slot.x, y: slot.y, z: slot.z, yaw: slot.yaw,
       w: slot.w, h: slot.h,
-    });
+    }));
   }
   return out;
 }
@@ -532,6 +600,7 @@ export function applyCampaignDecor(
       const mat = new THREE.MeshBasicMaterial({
         map: tex, color: e.color ?? 0xc8b890, fog: true,
       });
+      applyRadialFog(mat);
       const mesh = new THREE.Mesh(geo, mat);
       const depth = 0.2;
       mesh.position.set(e.x + Math.sin(e.yaw) * depth, e.y, e.z + Math.cos(e.yaw) * depth);
@@ -552,6 +621,7 @@ export function applyCampaignDecor(
       side: THREE.DoubleSide,
       blending: e.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
+    applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
     if (e.kind === 'floor' || e.orient === 'floor') {
       mesh.rotation.x = -Math.PI / 2;

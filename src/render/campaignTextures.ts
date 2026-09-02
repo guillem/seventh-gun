@@ -34,6 +34,12 @@ function toDecal(c: HTMLCanvasElement): THREE.Texture {
   return t;
 }
 
+/** Equirect sky: clamp (never tile) so a sphere dome is one painted canvas, not a disc. */
+function toSky(c: HTMLCanvasElement): THREE.Texture {
+  const t = toDecal(c);
+  return t;
+}
+
 function noise(g: Ctx, size: number, rng: () => number, amount: number, alpha: number): void {
   for (let i = 0; i < amount; i++) {
     const v = rng() * 255 | 0;
@@ -880,6 +886,10 @@ function pitCeiling(): HTMLCanvasElement {
 function pitSky(): HTMLCanvasElement {
   const { c, g } = canvas(512);
   const rng = seed('pit', 'sky');
+  // Fill the whole canvas (equirect). A small painted disc leaves black bands
+  // on SphereGeometry; every texel must be a sky color.
+  g.fillStyle = '#7a6530';
+  g.fillRect(0, 0, 512, 512);
   // sick ochre overcast: no stars, no blue — a lid of dust
   const grd = g.createLinearGradient(0, 0, 0, 512);
   grd.addColorStop(0, '#3b2f16');
@@ -1809,7 +1819,7 @@ const BUILDERS: Record<CampaignArtId, PackBuilder> = {
     floors: toTiled(pitFloor()),
     ceilings: toTiled(pitCeiling()),
     door: toTiled(pitDoor()),
-    sky: toTiled(pitSky()),
+    sky: toSky(pitSky()),
     extraDecals: [
       { id: 'pit-crane-glyph', tex: toDecal(pitCraneGlyph()) },
       { id: 'pit-fall-hazard', tex: toDecal(pitFallHazard()) },

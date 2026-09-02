@@ -51,7 +51,7 @@
   `CAMPAIGN_HERO_MARKERS` land via hint (arena-back-wall / pit-floor-idol /
   apse-altar). `resolveHeroDecals` prefers `lib.heroDecals`, then sibling
   `CAMPAIGN_HERO_DECALS`, then `getCampaignHeroDecals()`; empty pack field
-  is a no-op.
+  is a no-op. Wall extras/heroes clamp to the contiguous face (inset, CEIL_H).
 - `tests/unit/campaignTextures.test.ts` — Opus pack markers, extraDecal
   ids, 29 hero plates, maze `textures.ts` untouched.
 - `tests/unit/enemyFeel.test.ts` — living bodies block the player (ragdolls
@@ -61,6 +61,12 @@
   while the blueprint validator still accepts `fiend` for authored maps.
 - `tests/unit/enemyArt.test.ts` — a texture is painted and cached for every
   skin including the fiend; per-species palette rules asserted against the source.
+- `tests/unit/radialFog.test.ts` — reads the real r171 `fog_vertex.glsl.js` +
+  ShaderLib (include still unresolved at onBeforeCompile); rewrite +
+  ShaderChunk patch to `length(mvPosition.xyz)` on Basic/Lambert/Phong/
+  Standard; clones / late meshes; fog:false skipped.
+- `tests/unit/hud.test.ts` — health bar ends before gun slot 1 at several
+  panel widths (the old `panelW * 0.2` bar overlaps).
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 

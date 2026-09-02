@@ -5,6 +5,7 @@ import { getTextures } from './textures';
 import { buildWorldGun } from './viewmodels';
 import type { PickupEnt } from '../sim/sim';
 import { AMMO_LABEL } from '../sim/weapons';
+import { applyRadialFogDeep } from './radialFog';
 
 const AMMO_COLOR: Record<string, number> = {
   bullets: 0xd8b23a, shells: 0xc4452a, nails: 0x9aa6ad,
@@ -132,6 +133,7 @@ export class PickupRenderer {
       g.add(glow);
       g.userData.spin = key;
     }
+    applyRadialFogDeep(g);
     return g;
   }
 
