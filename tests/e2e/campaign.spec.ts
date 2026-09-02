@@ -32,6 +32,41 @@ test.describe('campaign desktop', () => {
     expect(state.campaign?.map).toBe(1);
   });
 
+  test('campaign screen lists seven named maps; map 2 unlocks after winning map 1', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    const names = [
+      '1 THE FOUNDRY', '2 THE GULLET', '3 THE CATACOMBS', '4 THE PIT',
+      '5 THE SPIRE', '6 THE WARD', '7 THE SANCTUM',
+    ];
+    for (const name of names) {
+      await expect(page.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
+    }
+    await expect(page.getByRole('button', { name: /^1 THE FOUNDRY/ })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /2 THE GULLET/ })).toBeDisabled();
+    await expect(page.getByRole('button', { name: /2 THE GULLET/ })).toContainText('LOCKED');
+
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
+    await page.waitForFunction(() => {
+      return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
+    });
+    await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.completeMap());
+    await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible();
+    const camp = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.campaign());
+    expect(camp.nextMap).toBe(2);
+
+    await page.goto(BASE);
+    await page.getByRole('button', { name: 'CAMPAIGN' }).click();
+    await expect(page.getByRole('button', { name: /^2 THE GULLET/ })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /3 THE CATACOMBS/ })).toBeDisabled();
+    await page.getByRole('button', { name: /^2 THE GULLET/ }).click();
+    await page.waitForFunction(() => {
+      const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      return s?.phase === 'playing' && s.campaign?.map === 2;
+    });
+  });
+
   test('startCampaign(n) plays the chosen map', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => {

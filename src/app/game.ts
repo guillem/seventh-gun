@@ -26,7 +26,8 @@ import {
 } from './mapShare';
 import { CAMPAIGN, campaignMap, snapshotLoadout } from '../campaign/index';
 import {
-  canContinue, loadCampaignProgress, saveCampaignProgress,
+  applyMapWin, canContinue, isMapUnlocked, loadCampaignProgress,
+  saveCampaignProgress, unlockedThrough,
 } from './campaignProgress';
 import { EditorView } from '../editor/view';
 import { upsertLibrary } from '../editor/library';
@@ -154,6 +155,7 @@ export class Game {
       begin: () => this.beginCampaign(),
       continue: () => this.continueCampaign(),
       back: () => this.closeCampaign(),
+      playMap: (n) => this.playCampaignMap(n),
     });
     this.screens.bindIntermission(() => this.continueFromIntermission());
     this.screens.bindCampaignWin(() => this.toTitle());
@@ -388,7 +390,17 @@ export class Game {
     this.screens.showCampaign(true, {
       canContinue: !!next,
       nextTitle: next?.title,
+      unlockedThrough: unlockedThrough(progress),
     });
+  }
+
+  playCampaignMap(n: number): void {
+    const progress = loadCampaignProgress();
+    if (!isMapUnlocked(n, progress)) return;
+    const cm = campaignMap(n);
+    if (!cm) return;
+    if (progress) this.setDifficulty(progress.difficulty);
+    this.startCampaignMap(cm.index, cm.incomingLoadout);
   }
 
   private closeCampaign(): void {
@@ -402,6 +414,7 @@ export class Game {
       difficulty: this.settings.difficulty,
       nextMap: 1,
       loadout: first.incomingLoadout,
+      unlocked: 1,
     });
     this.startCampaignMap(1, first.incomingLoadout);
   }
@@ -445,6 +458,7 @@ export class Game {
       difficulty: this.settings.difficulty,
       nextMap: saved?.nextMap ?? cm.index,
       loadout: saved?.loadout ?? this.entryLoadout,
+      unlocked: unlockedThrough(saved),
       mapStartedAt: Date.now(),
     });
     this.beginPlay(cm.title);
@@ -509,12 +523,12 @@ export class Game {
     this.screens.showMapLog(false);
     this.screens.showMap(false);
     const loadout = snapshotLoadout(sim.player);
-    const nextMap = this.campaignIndex + 1;
-    saveCampaignProgress({
-      difficulty: this.settings.difficulty,
-      nextMap: Math.min(8, nextMap),
+    saveCampaignProgress(applyMapWin(
+      loadCampaignProgress(),
+      this.campaignIndex,
       loadout,
-    });
+      this.settings.difficulty,
+    ));
     if (this.campaignIndex >= 7) {
       this.screens.showCampaignWin(true, {
         title: cm.victoryTitle ?? 'THE SEVENTH IS SILENT',
@@ -864,6 +878,7 @@ export class Game {
             phase: 'editing',
             title: bp?.title ?? '',
             rooms: bp?.rooms.length ?? 0,
+            startRoom: !!bp?.rooms.some(r => r.kind === 'start'),
           };
         }
         const sim = this.sim;
@@ -891,6 +906,7 @@ export class Game {
           campaign: this.runKind === 'campaign' ? {
             map: this.campaignIndex,
             nextMap: loadCampaignProgress()?.nextMap ?? this.campaignIndex,
+            unlocked: unlockedThrough(loadCampaignProgress()),
             owned: p.owned.slice(1, 8),
           } : null,
         };
@@ -913,12 +929,19 @@ export class Game {
         return {
           map: this.runKind === 'campaign' ? this.campaignIndex : 0,
           nextMap: progress?.nextMap ?? 1,
+          unlocked: unlockedThrough(progress),
           owned: this.sim ? this.sim.player.owned.slice(1, 8) : [],
         };
       },
       loadBlueprint: (bp: MapBlueprint) => {
         this.ensureEditor().loadBlueprint(bp);
         this.openEditor();
+      },
+      stampEditorRoom: (opts: { x: number; z: number; w: number; h: number }) => {
+        const ed = this.ensureEditor();
+        const room = ed.doc.stampRoom({ x: opts.x, z: opts.z, w: opts.w, h: opts.h, kind: 'spine' });
+        ed.paint();
+        return room ? { id: room.id, kind: room.kind } : null;
       },
       openEditor: () => this.openEditor(),
       give: (gun: number) => { this.sim?.giveGun(gun); },

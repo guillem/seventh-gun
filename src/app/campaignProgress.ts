@@ -8,6 +8,8 @@ export interface CampaignProgress {
   difficulty: Difficulty;
   nextMap: number; // 1..8; 8 = finished
   loadout: PlayerLoadout;
+  /** Highest playable map 1..7. Derived from nextMap when missing. */
+  unlocked?: number;
   mapStartedAt?: number;
 }
 
@@ -71,6 +73,9 @@ export function parseCampaignProgress(raw: unknown): CampaignProgress | null {
     nextMap,
     loadout,
   };
+  if (typeof o.unlocked === 'number' && Number.isFinite(o.unlocked)) {
+    progress.unlocked = Math.max(1, Math.min(7, Math.floor(o.unlocked)));
+  }
   if (typeof o.mapStartedAt === 'number' && Number.isFinite(o.mapStartedAt)) {
     progress.mapStartedAt = o.mapStartedAt;
   }
@@ -112,4 +117,34 @@ export function clearCampaignProgress(storage?: CampaignStorage): void {
 
 export function canContinue(progress: CampaignProgress | null): boolean {
   return !!progress && progress.nextMap >= 2 && progress.nextMap <= 7;
+}
+
+/** Highest map the player may click. First visit: only map 1. */
+export function unlockedThrough(progress: CampaignProgress | null): number {
+  if (!progress) return 1;
+  const raw = typeof progress.unlocked === 'number' ? progress.unlocked : progress.nextMap;
+  return Math.max(1, Math.min(7, Math.floor(raw)));
+}
+
+export function isMapUnlocked(n: number, progress: CampaignProgress | null): boolean {
+  return n >= 1 && n <= 7 && n <= unlockedThrough(progress);
+}
+
+/** Persist a map win: unlock N+1, keep CONTINUE on the frontier, never rewind. */
+export function applyMapWin(
+  progress: CampaignProgress | null,
+  completed: number,
+  loadout: PlayerLoadout,
+  difficulty: Difficulty,
+): CampaignProgress {
+  const done = Math.max(1, Math.min(7, Math.floor(completed)));
+  const prevNext = progress?.nextMap ?? 1;
+  const unlocked = Math.min(7, Math.max(unlockedThrough(progress), done >= 7 ? 7 : done + 1));
+  const onFrontier = done >= prevNext;
+  return {
+    difficulty,
+    nextMap: onFrontier ? Math.min(8, done + 1) : prevNext,
+    loadout: onFrontier ? loadout : (progress?.loadout ?? loadout),
+    unlocked,
+  };
 }

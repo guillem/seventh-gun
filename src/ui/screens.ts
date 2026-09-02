@@ -3,6 +3,7 @@
 import { GEN_VERSION, type Difficulty } from '../sim/types';
 import { DIFFICULTIES, DIFFICULTY_ORDER } from '../sim/difficulty';
 import { formatRelativeTime, type MapLogEntry } from '../app/mapLog';
+import { CAMPAIGN } from '../campaign/index';
 
 export interface Settings {
   volume: number;
@@ -36,6 +37,8 @@ export class Screens {
   private mapLogList!: HTMLDivElement;
   private campaign!: HTMLDivElement;
   private campaignContinueBtn!: HTMLButtonElement;
+  private campaignMaps!: HTMLDivElement;
+  private onPlayCampaignMap: ((n: number) => void) | null = null;
   private intermission!: HTMLDivElement;
   private campaignWin!: HTMLDivElement;
   private deathNote!: HTMLDivElement;
@@ -211,6 +214,7 @@ export class Screens {
             <label>SKILL</label>
             <div class="diff-row" id="c-diff-row"></div>
           </div>
+          <div id="campaign-maps" class="campaign-maps"></div>
           <button id="campaign-begin" class="big">BEGIN</button>
           <div class="row hidden" id="campaign-continue-row">
             <button id="campaign-continue" class="big">CONTINUE</button>
@@ -245,6 +249,7 @@ export class Screens {
       this.intermission, this.campaignWin, this.mapOverlay, this.touch, this.toast,
     );
     this.campaignContinueBtn = this.campaign.querySelector('#campaign-continue')!;
+    this.campaignMaps = this.campaign.querySelector('#campaign-maps')!;
     this.mapLogList = this.mapLog.querySelector('#maplog-list')!;
 
     // wire refs
@@ -564,7 +569,11 @@ export class Screens {
     this.deathEditorBtn.classList.toggle('hidden', !on);
   }
 
-  showCampaign(show: boolean, opts?: { canContinue?: boolean; nextTitle?: string }): void {
+  showCampaign(show: boolean, opts?: {
+    canContinue?: boolean;
+    nextTitle?: string;
+    unlockedThrough?: number;
+  }): void {
     if (show) {
       this.title.classList.add('hidden');
       this.mapLog.classList.add('hidden');
@@ -576,8 +585,36 @@ export class Screens {
       } else {
         this.campaignContinueBtn.textContent = 'CONTINUE';
       }
+      this.renderCampaignMaps(opts?.unlockedThrough ?? 1);
     } else {
       this.campaign.classList.add('hidden');
+    }
+  }
+
+  private renderCampaignMaps(unlocked: number): void {
+    this.campaignMaps.replaceChildren();
+    for (const m of CAMPAIGN) {
+      const open = m.index <= unlocked;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'campaign-map';
+      b.dataset.map = String(m.index);
+      b.disabled = !open;
+      const name = document.createElement('span');
+      name.className = 'campaign-map-name';
+      name.textContent = `${m.index} ${m.title}`;
+      b.appendChild(name);
+      if (!open) {
+        const lock = document.createElement('span');
+        lock.className = 'campaign-map-lock';
+        lock.textContent = 'LOCKED';
+        b.appendChild(lock);
+      }
+      b.addEventListener('click', () => {
+        if (b.disabled) return;
+        this.onPlayCampaignMap?.(m.index);
+      });
+      this.campaignMaps.appendChild(b);
     }
   }
 
@@ -585,10 +622,16 @@ export class Screens {
     return !this.campaign.classList.contains('hidden');
   }
 
-  bindCampaign(handlers: { begin: () => void; continue: () => void; back: () => void }): void {
+  bindCampaign(handlers: {
+    begin: () => void;
+    continue: () => void;
+    back: () => void;
+    playMap: (n: number) => void;
+  }): void {
     this.campaign.querySelector('#campaign-begin')!.addEventListener('click', handlers.begin);
     this.campaignContinueBtn.addEventListener('click', handlers.continue);
     this.campaign.querySelector('#campaign-back')!.addEventListener('click', handlers.back);
+    this.onPlayCampaignMap = handlers.playMap;
   }
 
   showIntermission(show: boolean, title = '', lines: string[] = []): void {
