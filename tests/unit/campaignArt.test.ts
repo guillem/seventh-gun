@@ -5,7 +5,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { CAMPAIGN } from '../../src/campaign/index';
 import { generateMap } from '../../src/sim/mapgen';
 import {
-  CAMPAIGN_ART_IDS, CAMPAIGN_DECAL_IDS, CAMPAIGN_HERO_DECALS,
+  CAMPAIGN_ART_IDS, CAMPAIGN_HERO_DECALS,
   campaignArtIdFromIndex, campaignArtIdFromSeed, getCampaignTextures,
   resolveHeroDecals,
 } from '../../src/render/campaignTextures';
@@ -17,10 +17,20 @@ function installCanvasStub(): void {
     fillStyle: '',
     strokeStyle: '',
     lineWidth: 1,
+    lineCap: 'butt',
+    lineJoin: 'miter',
+    miterLimit: 10,
+    font: '10px sans-serif',
+    textAlign: 'start',
+    textBaseline: 'alphabetic',
     shadowColor: '',
     shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
     globalAlpha: 1,
     globalCompositeOperation: 'source-over',
+    imageSmoothingEnabled: false,
+    canvas: { width: 0, height: 0 },
     fillRect() {},
     strokeRect() {},
     clearRect() {},
@@ -29,23 +39,34 @@ function installCanvasStub(): void {
     moveTo() {},
     lineTo() {},
     arc() {},
+    arcTo() {},
     ellipse() {},
     fill() {},
     stroke() {},
+    bezierCurveTo() {},
+    quadraticCurveTo() {},
+    setLineDash() {},
+    getLineDash() { return []; },
     createLinearGradient() { return { addColorStop() {} }; },
     createRadialGradient() { return { addColorStop() {} }; },
+    createPattern() { return null; },
     save() {},
     restore() {},
     clip() {},
     rect() {},
-    quadraticCurveTo() {},
     setTransform() {},
+    resetTransform() {},
+    transform() {},
     translate() {},
     rotate() {},
     scale() {},
     drawImage() {},
     fillText() {},
+    strokeText() {},
     measureText() { return { width: 0 }; },
+    getImageData() { return { data: new Uint8ClampedArray(4), width: 1, height: 1 }; },
+    putImageData() {},
+    createImageData() { return { data: new Uint8ClampedArray(4), width: 1, height: 1 }; },
   };
   (globalThis as unknown as { document: { createElement: (tag: string) => unknown } }).document = {
     createElement(tag: string) {
@@ -111,10 +132,9 @@ describe('getCampaignTextures', () => {
     expect(a.floors).toBeTruthy();
     expect(a.ceilings).toBeTruthy();
     expect(a.door).toBeTruthy();
-    expect(a.extraDecals.map(d => d.id)).toEqual(CAMPAIGN_DECAL_IDS.foundry);
+    expect(a.extraDecals.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(a.extraDecals.map(d => d.id)).size).toBe(a.extraDecals.length);
     expect(a.extraDecals.every(d => d.tex)).toBe(true);
-    expect(a.heroDecals === undefined || a.heroDecals.length === 0).toBe(true);
-    expect(resolveHeroDecals('foundry', a)).toEqual([]);
   });
 
   it('pit ships an outdoor sky; packs differ from each other', () => {
@@ -139,7 +159,7 @@ describe('planCampaignExtras', () => {
     const foundry = planCampaignExtras(CAMPAIGN[0].map, 'foundry');
     const catacombs = planCampaignExtras(CAMPAIGN[2].map, 'catacombs');
     const pit = planCampaignExtras(CAMPAIGN[3].map, 'pit');
-    expect(foundry.some(e => e.decalId === 'furnace' || e.kind === 'chain')).toBe(true);
+    expect(foundry.some(e => e.decalId === 'foundry-furnace-stencil' || e.kind === 'chain')).toBe(true);
     expect(catacombs.some(e => e.kind === 'shelf')).toBe(true);
     expect(pit.some(e => e.kind === 'floor')).toBe(true);
   });
@@ -148,12 +168,19 @@ describe('planCampaignExtras', () => {
 describe('hero decals', () => {
   const fakeTex = { wrapS: 0, wrapT: 0 } as unknown as import('three').Texture;
 
-  it('places nothing when the field is missing or empty', () => {
+  it('places nothing when the caller passes an empty list', () => {
     for (const m of CAMPAIGN) {
       const artId = campaignArtIdFromIndex(m.index);
       expect(planHeroPlacement(m.map, artId, [])).toBeNull();
-      expect(planHeroPlacement(m.map, artId, resolveHeroDecals(artId))).toBeNull();
     }
+  });
+
+  it('resolves shipped hero plates and hangs one on foundry', () => {
+    const resolved = resolveHeroDecals('foundry');
+    expect(resolved.some(h => h.id === 'furnace-mouth')).toBe(true);
+    const p = planHeroPlacement(CAMPAIGN[0].map, 'foundry', resolved);
+    expect(p?.kind).toBe('hero');
+    expect(p?.decalId).toBe('furnace-mouth');
   });
 
   it('places one arena-back quad on foundry when a hero is provided', () => {

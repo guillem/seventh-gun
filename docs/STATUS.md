@@ -3,7 +3,7 @@
 Updated: 2026-09-02 — PR: campaign-only texture packs and extra artwork
 (`feat/campaign-art`, #10). Do not merge from this agent.
 
-`npx tsc --noEmit` clean. `npm test` 94/94. Existing e2e 55 passed / 3 skipped.
+Painted packs + hero plates taken from `feat/campaign-art-textures`.
 `GEN_VERSION` still 4. Maze stays on `getTextures()`.
 
 ## State: campaign art hook + optional hero decals
@@ -13,16 +13,18 @@ Maze / `#m=` / editor playtest still use the shared four-theme atlas
 sky) for `getCampaignTextures(artId)` and place extra decals / cheap
 meshes. Optional `heroDecals` (pack field or sibling `CAMPAIGN_HERO_DECALS`)
 place **one** prominent ClampToEdge quad per campaign map (arena back wall,
-pit rim, sanctum apse). Missing/empty → no hero; stubs stay valid.
+pit rim, sanctum apse). Empty list → no extra hero; shipped painters from
+`getCampaignHeroDecals()` fill the plates.
 `GEN_VERSION` is still 4. The seven JSON maps were not rewritten.
 
 - Repo: https://github.com/guillem/seventh-gun (`main`).
 - Netlify: LIVE at https://seventh-gun.netlify.app
-- Texture API lives in `src/render/campaignTextures.ts` (Opus owns the
-  painted 128px generators). This PR ships distinguishable tint/contrast
-  stubs plus `OPUS` TODOs so the hook can land first. If that file already
-  has real generators, do not replace them with stubs. `origin/feat/campaign-art-textures`
-  was not present; stubs kept.
+- Texture API lives in `src/render/campaignTextures.ts` — painted packs
+  taken from `origin/feat/campaign-art-textures` (not the tint stubs).
+  Extra placement is renderer-side only (`src/render/campaignDecor.ts`).
+  `getCampaignHeroDecals()` / optional `heroDecals` hang one ClampToEdge
+  plate per map (furnace mouth, pit rim, sanctum apse). Maze stays on
+  `getTextures()`.
 - Extra placement is renderer-side only (`src/render/campaignDecor.ts`),
   driven by map index + `GameMap` room kinds. Nothing is added to
   `generateMap` or `GameMap.decors`.
@@ -49,11 +51,9 @@ else arena-back. Debug (`?e2e=1`) campaign state includes `artId`.
 
 ## Open / next
 
-- Opus (or a follow-up) replaces the stub painters in
-  `campaignTextures.ts`. Keep `CAMPAIGN_ART_IDS`,
-  `campaignArtIdFromIndex`, `getCampaignTextures`, optional `heroDecals`
-  / `CAMPAIGN_HERO_DECALS` / `toHeroTexture`, and the extraDecal `id`s in
-  `CAMPAIGN_DECAL_IDS`.
+- Opus painters are in `campaignTextures.ts` (from `feat/campaign-art-textures`).
+  Keep `CAMPAIGN_ART_IDS`, `campaignArtIdFromIndex`, `getCampaignTextures`,
+  `getCampaignHeroDecals` / optional `heroDecals`, and extraDecal ids.
 - Balance still wants a human Normal run against the maze 20–30 min target.
 
 ## Where things are

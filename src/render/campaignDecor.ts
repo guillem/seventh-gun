@@ -145,84 +145,84 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
 
   if (artId === 'foundry') {
     for (const s of slotsFor(WORK, 3, 0)) {
-      push({ kind: 'decal', decalId: 'furnace', x: s.x, y: 1.7, z: s.z, yaw: s.yaw, w: CELL * 0.9, h: CELL * 0.9 });
+      push({ kind: 'decal', decalId: 'foundry-furnace-stencil', x: s.x, y: 1.7, z: s.z, yaw: s.yaw, w: CELL * 0.9, h: CELL * 0.9 });
     }
     for (const s of slotsFor(SPINE, 4, 1)) {
-      push({ kind: 'glow', decalId: 'slag', x: s.x, y: 1.15, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.55, color: 0xff6a18, additive: true });
+      push({ kind: 'glow', decalId: 'foundry-heat-warning', x: s.x, y: 1.15, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.55, color: 0xff6a18, additive: true });
     }
     for (const r of roomsOf(map, WORK)) {
       if (r.outdoor) continue;
       for (const p of hangPoints(r, 3)) {
-        push({ kind: 'chain', decalId: 'chain', x: p.x, y: CEIL_H - 0.85, z: p.z, yaw: 0.2, w: 0.16, h: 1.7, color: 0x3a2a22 });
+        push({ kind: 'chain', decalId: 'foundry-pour-ladle', x: p.x, y: CEIL_H - 0.85, z: p.z, yaw: 0.2, w: 0.16, h: 1.7, color: 0x3a2a22 });
       }
     }
   } else if (artId === 'gullet') {
     for (const s of slotsFor(WORK, 3, 0)) {
-      push({ kind: 'decal', decalId: 'membrane', x: s.x, y: 1.75, z: s.z, yaw: s.yaw, w: CELL, h: CELL });
+      push({ kind: 'decal', decalId: 'gullet-sphincter-ring', x: s.x, y: 1.75, z: s.z, yaw: s.yaw, w: CELL, h: CELL });
     }
     for (const s of slotsFor(SPINE, 4, 2)) {
-      push({ kind: 'decal', decalId: 'tooth', x: s.x, y: 2.15, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.55 });
+      push({ kind: 'decal', decalId: 'gullet-tooth-ridge', x: s.x, y: 2.15, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.55 });
     }
     for (const s of slotsFor(WORK, 5, 1)) {
-      push({ kind: 'glow', decalId: 'drip', x: s.x, y: 2.6, z: s.z, yaw: s.yaw, w: 0.35, h: 1.4, color: 0xc04038, additive: true });
+      push({ kind: 'glow', decalId: 'gullet-drip', x: s.x, y: 2.6, z: s.z, yaw: s.yaw, w: 0.35, h: 1.4, color: 0xc04038, additive: true });
     }
     for (const r of roomsOf(map, SPINE)) {
       if (r.outdoor) continue;
       for (const p of hangPoints(r, 3)) {
-        push({ kind: 'chain', decalId: 'membrane', x: p.x, y: CEIL_H - 0.7, z: p.z, yaw: 0.4, w: 0.5, h: 1.4, color: 0x6a2030 });
+        push({ kind: 'chain', decalId: 'gullet-sphincter-ring', x: p.x, y: CEIL_H - 0.7, z: p.z, yaw: 0.4, w: 0.5, h: 1.4, color: 0x6a2030 });
       }
     }
   } else if (artId === 'catacombs') {
     for (const s of slotsFor(WORK, 3, 1, 12)) {
-      push({ kind: 'shelf', decalId: 'ossuary', x: s.x, y: 1.2, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
-      push({ kind: 'shelf', decalId: 'ossuary', x: s.x, y: 2.35, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
+      push({ kind: 'shelf', decalId: 'catacombs-stacked-skulls', x: s.x, y: 1.2, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
+      push({ kind: 'shelf', decalId: 'catacombs-stacked-skulls', x: s.x, y: 2.35, z: s.z, yaw: s.yaw, w: 1.45, h: 0.1, color: 0xc8b890 });
     }
     for (const s of slotsFor(WORK, 3, 0, 14)) {
-      push({ kind: 'decal', decalId: 'epitaph', x: s.x, y: 1.85, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
+      push({ kind: 'decal', decalId: 'catacombs-epitaph', x: s.x, y: 1.85, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
     }
     for (const s of slotsFor(SIDE, 2, 0, 10)) {
-      push({ kind: 'decal', decalId: 'femur', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.45 });
+      push({ kind: 'decal', decalId: 'catacombs-bone-cross', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.45 });
     }
   } else if (artId === 'pit') {
     for (const s of slotsFor(WORK, 4, 0)) {
-      push({ kind: 'decal', decalId: 'rust', x: s.x, y: 1.6, z: s.z, yaw: s.yaw, w: CELL * 0.85, h: CELL * 0.85 });
+      push({ kind: 'decal', decalId: 'pit-rim-rust', x: s.x, y: 1.6, z: s.z, yaw: s.yaw, w: CELL * 0.85, h: CELL * 0.85 });
     }
     for (const r of map.rooms.filter(rm => rm.outdoor)) {
       const pts = hangPoints(r, 2);
       for (let i = 0; i < pts.length; i += 2) {
         const p = pts[i];
-        push({ kind: 'floor', decalId: 'grate', x: p.x, y: 0.03, z: p.z, yaw: 0, w: CELL * 1.4, h: CELL * 1.4, color: 0x3a4020 });
+        push({ kind: 'floor', decalId: 'pit-crane-glyph', x: p.x, y: 0.03, z: p.z, yaw: 0, w: CELL * 1.4, h: CELL * 1.4, color: 0x3a4020 });
       }
       for (let i = 1; i < pts.length; i += 3) {
         const p = pts[i];
-        push({ kind: 'floor', decalId: 'acid', x: p.x, y: 0.04, z: p.z, yaw: 0, w: CELL, h: CELL, color: 0xc8d040, additive: true });
+        push({ kind: 'floor', decalId: 'pit-fall-hazard', x: p.x, y: 0.04, z: p.z, yaw: 0, w: CELL, h: CELL, color: 0xc8d040, additive: true });
       }
     }
     for (const r of roomsOf(map, SPINE)) {
       if (r.outdoor) continue;
       for (const p of hangPoints(r, 3)) {
-        push({ kind: 'chain', decalId: 'grate', x: p.x, y: CEIL_H - 0.8, z: p.z, yaw: 0.15, w: 0.14, h: 1.6, color: 0x3a3220 });
+        push({ kind: 'chain', decalId: 'pit-crane-glyph', x: p.x, y: CEIL_H - 0.8, z: p.z, yaw: 0.15, w: 0.14, h: 1.6, color: 0x3a3220 });
       }
     }
   } else if (artId === 'spire') {
     for (const s of slotsFor(BIG, 3, 0)) {
-      push({ kind: 'glow', decalId: 'window', x: s.x, y: 2.1, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: 2.6, color: 0xd4a84a, additive: true });
+      push({ kind: 'glow', decalId: 'spire-visor-stripe', x: s.x, y: 2.1, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: 2.6, color: 0xd4a84a, additive: true });
     }
     for (const s of slotsFor(HALL, 4, 1)) {
-      push({ kind: 'decal', decalId: 'brass', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.7 });
+      push({ kind: 'decal', decalId: 'spire-floor-numeral', x: s.x, y: 1.55, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.7 });
     }
     for (const s of slotsFor(SPINE, 4, 2)) {
-      push({ kind: 'banner', decalId: 'banner', x: s.x, y: 2.4, z: s.z, yaw: s.yaw, w: 0.7, h: 2.2, color: 0x3a2c4a });
+      push({ kind: 'banner', decalId: 'spire-dish', x: s.x, y: 2.4, z: s.z, yaw: s.yaw, w: 0.7, h: 2.2, color: 0x3a2c4a });
     }
   } else if (artId === 'ward') {
     for (const s of slotsFor(WORK, 3, 0)) {
-      push({ kind: 'decal', decalId: 'chart', x: s.x, y: 1.8, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.65 });
+      push({ kind: 'decal', decalId: 'ward-cot-stencil', x: s.x, y: 1.8, z: s.z, yaw: s.yaw, w: CELL * 0.8, h: CELL * 0.65 });
     }
     for (const s of slotsFor(WORK, 4, 2)) {
-      push({ kind: 'decal', decalId: 'restraint', x: s.x, y: 1.5, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.9 });
+      push({ kind: 'decal', decalId: 'ward-biohazard', x: s.x, y: 1.5, z: s.z, yaw: s.yaw, w: CELL * 0.7, h: CELL * 0.9 });
     }
     for (const s of slotsFor(HALL, 3, 1)) {
-      push({ kind: 'glow', decalId: 'wardlamp', x: s.x, y: 3.15, z: s.z, yaw: s.yaw, w: CELL * 0.9, h: 0.22, color: 0x7ad0c8, additive: true });
+      push({ kind: 'glow', decalId: 'ward-key-sigil', x: s.x, y: 3.15, z: s.z, yaw: s.yaw, w: CELL * 0.9, h: 0.22, color: 0x7ad0c8, additive: true });
     }
     for (const s of slotsFor(SIDE, 2, 0)) {
       push({ kind: 'shelf', x: s.x, y: 1.05, z: s.z, yaw: s.yaw, w: 1.3, h: 0.08, color: 0x8aa0a0 });
@@ -230,14 +230,14 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
   } else {
     // sanctum
     for (const s of slotsFor(HALL, 3, 0)) {
-      push({ kind: 'decal', decalId: 'relic', x: s.x, y: 1.7, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
+      push({ kind: 'decal', decalId: 'sanctum-nave-saint-mark', x: s.x, y: 1.7, z: s.z, yaw: s.yaw, w: CELL * 0.75, h: CELL * 0.75 });
     }
     for (const s of slotsFor(SPINE, 4, 1)) {
-      push({ kind: 'banner', decalId: 'veil', x: s.x, y: 2.35, z: s.z, yaw: s.yaw, w: 0.85, h: 2.4, color: 0x4a2080 });
+      push({ kind: 'banner', decalId: 'sanctum-gun-7', x: s.x, y: 2.35, z: s.z, yaw: s.yaw, w: 0.85, h: 2.4, color: 0x4a2080 });
     }
     for (const r of roomsOf(map, RITUAL)) {
       push({
-        kind: 'floor', decalId: 'sigil',
+        kind: 'floor', decalId: 'sanctum-heptagram',
         x: r.cx, y: 0.03, z: r.cz, yaw: 0,
         w: Math.min(r.w, r.h) * CELL * 0.55,
         h: Math.min(r.w, r.h) * CELL * 0.55,
@@ -245,7 +245,7 @@ export function planCampaignExtras(map: GameMap, artId: CampaignArtId): ExtraPla
       });
     }
     for (const s of slotsFor(RITUAL, 4, 2)) {
-      push({ kind: 'glow', decalId: 'sigil', x: s.x, y: 2.0, z: s.z, yaw: s.yaw, w: CELL * 0.6, h: CELL * 0.6, color: 0xc46aff, additive: true });
+      push({ kind: 'glow', decalId: 'sanctum-heptagram', x: s.x, y: 2.0, z: s.z, yaw: s.yaw, w: CELL * 0.6, h: CELL * 0.6, color: 0xc46aff, additive: true });
     }
   }
 
@@ -263,18 +263,24 @@ function pickHeroDecal(
 ): CampaignHeroDecal | undefined {
   if (!heroes.length) return undefined;
   const seedL = seed.toLowerCase();
-  const match = heroes.find(h => {
+  const matches = heroes.filter(h => {
     if (!h.map) return true;
     const m = h.map.toLowerCase();
     return m === artId || seedL.includes(m) || m.includes(artId);
   });
-  return match;
+  if (!matches.length) return undefined;
+  const wanted = artId === 'pit' ? 'pit-rim' : artId === 'sanctum' ? 'sanctum-apse' : 'arena-back';
+  return matches.find(h => normalizeHeroHint(h.hint, artId) === wanted) ?? matches[0];
 }
 
 export function normalizeHeroHint(hint: string | undefined, artId: CampaignArtId): HeroHint {
   const h = (hint ?? '').toLowerCase();
-  if (/\brim\b/.test(h) || h.includes('pit-rim')) return 'pit-rim';
-  if (h.includes('apse') || h.includes('choir') || h.includes('narthex')) return 'sanctum-apse';
+  if (/\brim\b/.test(h) || h.includes('pit-rim') || h.includes('pit-floor') || h.includes('gantry')) {
+    return 'pit-rim';
+  }
+  if (h.includes('apse') || h.includes('choir') || h.includes('narthex') || h.includes('altar')) {
+    return 'sanctum-apse';
+  }
   if (h.includes('arena') || h.includes('back')) return 'arena-back';
   if (artId === 'pit') return 'pit-rim';
   if (artId === 'sanctum') return 'sanctum-apse';
@@ -441,7 +447,12 @@ export function planHeroPlacement(
 
 function decalTex(lib: CampaignTextureLib, id: string | undefined): THREE.Texture | undefined {
   if (!id) return undefined;
-  return lib.extraDecals.find(d => d.id === id)?.tex;
+  const exact = lib.extraDecals.find(d => d.id === id);
+  if (exact) return exact.tex;
+  const fuzzy = lib.extraDecals.find(d => d.id.includes(id) || id.includes(d.id));
+  if (fuzzy) return fuzzy.tex;
+  const tail = id.split('-').pop()!;
+  return lib.extraDecals.find(d => d.id.includes(tail))?.tex;
 }
 
 function heroTex(lib: CampaignTextureLib, artId: CampaignArtId, id: string | undefined): THREE.Texture | undefined {

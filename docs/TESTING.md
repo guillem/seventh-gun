@@ -36,8 +36,10 @@
 - `tests/unit/campaignArt.test.ts` — `campaignArtIdFromIndex(1)==='foundry'`,
   seed parse (`campaign:01-foundry` / maze seeds ignored), cached
   `getCampaignTextures` returns surfaces + extraDecals, placement is
-  per-map and does not mutate `GameMap.decors`. Missing `heroDecals` is
-  empty; injected heroes place one arena-back / pit-rim / sanctum-apse quad.
+  per-map and does not mutate `GameMap.decors`. Empty hero list is a no-op;
+  shipped / injected heroes place one arena-back / pit-rim / sanctum-apse quad.
+- `tests/unit/campaignTextures.test.ts` — pack markers, unique extraDecal ids,
+  hero roster (source-level, no canvas).
 
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
