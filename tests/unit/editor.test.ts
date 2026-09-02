@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { compileBlueprint, stripCosmetics, validateBlueprint } from '../../src/sim/blueprint';
 import { decodeBlueprint, encodeBlueprint } from '../../src/sim/mapcodec';
 import {
+  DEFAULT_START_ROOM,
   EditorDoc,
   corridorLegsBetween,
   economyWarning,
@@ -28,6 +29,8 @@ function memoryStorage(initial?: Record<string, string>): LibraryStorage & { dat
 }
 
 function stampTiny(doc: EditorDoc): void {
+  doc.bp.rooms = [];
+  delete doc.bp.playerStart;
   doc.setTitle('TIN HALL');
   doc.setCosmeticSeed(1001);
   doc.setSealBreak({ type: 'gun', gun: 2 });
@@ -46,6 +49,20 @@ function stampTiny(doc: EditorDoc): void {
 }
 
 describe('editor model', () => {
+  it('new maps start with a labeled START room that cannot be erased', () => {
+    const bp = emptyBlueprint();
+    expect(bp.rooms).toHaveLength(1);
+    expect(bp.rooms[0]).toMatchObject({ ...DEFAULT_START_ROOM, kind: 'start' });
+    expect(bp.playerStart).toEqual({
+      x: DEFAULT_START_ROOM.x + 4,
+      z: DEFAULT_START_ROOM.z + 4,
+      yaw: Math.PI / 2,
+    });
+    const doc = new EditorDoc();
+    expect(doc.eraseAt(DEFAULT_START_ROOM.x + 1, DEFAULT_START_ROOM.z + 1)).toBe('blocked-start');
+    expect(doc.bp.rooms.filter(r => r.kind === 'start')).toHaveLength(1);
+  });
+
   it('stamp rooms + link + gun + enemies compiles, encodes, decodes, validates', () => {
     const doc = new EditorDoc();
     stampTiny(doc);
@@ -91,14 +108,17 @@ describe('editor model', () => {
     expect(doc.bp.corridors).toEqual(legs);
   });
 
-  it('refuses to erase the only start once other rooms exist', () => {
+  it('refuses to erase the only start even after other rooms are gone', () => {
     const doc = new EditorDoc();
+    doc.bp.rooms = [];
     doc.stampRoom({ x: 4, z: 20, w: 7, h: 7, kind: 'start' });
     doc.stampRoom({ x: 16, z: 20, w: 7, h: 7, kind: 'spine' });
     expect(doc.eraseAt(6, 22)).toBe('blocked-start');
     expect(doc.bp.rooms.filter(r => r.kind === 'start')).toHaveLength(1);
     expect(doc.eraseAt(18, 22)).toBe('room');
-    expect(doc.eraseAt(6, 22)).toBe('room');
+    expect(doc.eraseAt(6, 22)).toBe('blocked-start');
+    expect(doc.bp.rooms).toHaveLength(1);
+    expect(doc.bp.rooms[0].kind).toBe('start');
   });
 
   it('economy warning does not become a blocking error', () => {

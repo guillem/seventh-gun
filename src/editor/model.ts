@@ -23,17 +23,32 @@ import { encodeBlueprint, decodeBlueprint } from '../sim/mapcodec';
 export const EDITOR_MIN_ROOM = 3;
 export const ECONOMY_FLOOR = 2.2;
 
+/** Default START room stamped onto every new editor map (cell ints). */
+export const DEFAULT_START_ROOM = { x: 36, z: 36, w: 8, h: 8 } as const;
+
 export function emptyBlueprint(): MapBlueprint {
+  const r = DEFAULT_START_ROOM;
   return {
     codec: 1,
     title: 'UNTITLED',
     cosmeticSeed: 1,
     sealBreak: { type: 'gun', gun: 2 },
-    rooms: [],
+    rooms: [{
+      id: 0,
+      x: r.x, z: r.z, w: r.w, h: r.h,
+      theme: 'industrial',
+      kind: 'start',
+      outdoor: false,
+    }],
     corridors: [],
     doors: [],
     pickups: [],
     enemies: [],
+    playerStart: {
+      x: r.x + Math.floor(r.w / 2),
+      z: r.z + Math.floor(r.h / 2),
+      yaw: Math.PI / 2,
+    },
   };
 }
 
@@ -378,7 +393,7 @@ export class EditorDoc {
     const room = this.roomAt(x, z);
     if (room) {
       const starts = this.bp.rooms.filter(r => r.kind === 'start');
-      if (room.kind === 'start' && starts.length <= 1 && this.bp.rooms.length > 1) {
+      if (room.kind === 'start' && starts.length <= 1) {
         return 'blocked-start';
       }
       this.bp.rooms = this.bp.rooms.filter(r => r.id !== room.id);
