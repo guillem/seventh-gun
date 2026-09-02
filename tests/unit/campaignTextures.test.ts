@@ -136,7 +136,7 @@ describe('maze art is untouched', () => {
 
 describe('campaign hero plates', () => {
   it('rosters at least twelve heroes with unique ids', () => {
-    expect(CAMPAIGN_HERO_MARKERS.length).toBeGreaterThanOrEqual(12);
+    expect(CAMPAIGN_HERO_MARKERS.length).toBeGreaterThanOrEqual(24);
     const ids = CAMPAIGN_HERO_MARKERS.map(h => h.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
@@ -167,6 +167,20 @@ describe('campaign hero plates', () => {
       ['gun-reliquary', 'sanctum', 'apse-altar', 512],
       ['demon-head', 'sanctum', 'nave-tympanum', 512],
       ['nave-rose', 'sanctum', 'rose-window', 256],
+      ['slag-titan', 'foundry', 'foundry-far-wall', 512],
+      ['hazard-gate', 'foundry', 'foundry-door-frame', 256],
+      ['tooth-gate', 'gullet', 'gullet-corridor-end', 512],
+      ['bile-pool', 'gullet', 'floor-decal', 256],
+      ['candle-crypt', 'catacombs', 'side-chapel', 512],
+      ['femur-wheel', 'catacombs', 'ceiling-rose', 256],
+      ['rust-sun', 'pit', 'sky-disc', 512],
+      ['hook-crown', 'pit', 'crane-hook', 256],
+      ['lattice-totem', 'spire', 'shaft-wall', 512],
+      ['elevation-stela', 'spire', 'landing-plaque', 256],
+      ['plague-seal', 'ward', 'ward-entry', 512],
+      ['key-rack', 'ward', 'nurse-station', 256],
+      ['seventh-seal', 'sanctum', 'floor-inlay', 512],
+      ['apse-glow', 'sanctum', 'apse-back', 256],
     ];
     for (const [id, map, hint, size] of expected) {
       const h = byId.get(id);
