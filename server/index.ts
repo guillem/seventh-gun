@@ -17,6 +17,10 @@ function intervalScheduler(): TickScheduler {
       if (handle) clearInterval(handle);
       handle = null;
     },
+    timeout(fn, ms) {
+      const id = setTimeout(fn, ms);
+      return () => clearTimeout(id);
+    },
   };
 }
 

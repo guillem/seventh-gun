@@ -315,8 +315,6 @@ export function generateArena(seed: string): GameMap {
     const sorted = rooms
       .slice()
       .sort((a, b) => (b.w * b.h) - (a.w * a.h));
-    const idMap = new Map<number, number>();
-    sorted.forEach((r, i) => idMap.set(r.id, i));
     const rooms2: Room[] = sorted.map((r, i) => ({
       ...r,
       id: i,
@@ -325,9 +323,6 @@ export function generateArena(seed: string): GameMap {
 
     // Re-derive slot->room id for new ids.
     // (Only needed for theme/courtyard; ids above were used just for edges.)
-    const roomIdByOld = (oldId: number) => idMap.get(oldId) ?? -1;
-    void roomIdByOld;
-
     const arenaRoomId = 0; // largest after sort
     const startRoomId = 0;
     const antechamberId = 0;

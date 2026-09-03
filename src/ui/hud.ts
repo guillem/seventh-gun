@@ -87,8 +87,10 @@ export class Hud {
     this.hurtDir = { angle: fromAngle, time: 1.1 };
   }
 
-  died(): void {
-    this.epitaph = EPITAPHS[Math.floor(Math.random() * EPITAPHS.length)];
+  died(opts?: { epitaph?: string }): void {
+    this.epitaph = opts?.epitaph !== undefined
+      ? opts.epitaph
+      : EPITAPHS[Math.floor(Math.random() * EPITAPHS.length)];
     this.bloodFlash = 1;
   }
 
@@ -172,9 +174,11 @@ export class Hud {
       g.font = `bold ${Math.min(64, W / 12)}px monospace`;
       g.textAlign = 'center';
       g.fillText('YOU DIED', W / 2, H * 0.42);
-      g.font = `italic ${Math.min(20, W / 40)}px monospace`;
-      g.fillStyle = 'rgba(255,150,150,0.8)';
-      g.fillText(this.epitaph, W / 2, H * 0.42 + 40);
+      if (this.epitaph) {
+        g.font = `italic ${Math.min(20, W / 40)}px monospace`;
+        g.fillStyle = 'rgba(255,150,150,0.8)';
+        g.fillText(this.epitaph, W / 2, H * 0.42 + 40);
+      }
       return;
     }
 

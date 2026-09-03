@@ -23,6 +23,7 @@ interface Rig {
   group: THREE.Group;
   body: THREE.Mesh;
   nameSprite: THREE.Sprite;
+  labelKey: string;
 }
 
 export class PlayerRenderer {
@@ -103,10 +104,13 @@ export class PlayerRenderer {
     nameSprite.position.y = PLAYER_HEIGHT + 0.45;
     nameSprite.scale.set(1.6, 0.4, 1);
     group.add(nameSprite);
-    return { id: p.id, group, body, nameSprite };
+    return { id: p.id, group, body, nameSprite, labelKey: '' };
   }
 
   private setName(rig: Rig, p: RemotePlayerPose): void {
+    const key = `${p.name}:${Math.round(p.hp / 5)}`;
+    if (rig.labelKey === key) return;
+    rig.labelKey = key;
     const c = document.createElement('canvas');
     c.width = 256; c.height = 64;
     const g = c.getContext('2d')!;

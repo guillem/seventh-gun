@@ -989,9 +989,6 @@ export class Game {
   private tickArena(dtReal: number): void {
     const client = this.arenaClient;
     if (!client) { this.renderer.render(); return; }
-    this.pullAimFromCameraArena();
-    const yaw = lookPitchFromThree(this.renderer.camera.rotation.x); // wait, yaw is rotation.y
-    void yaw;
     const cam = this.renderer.camera;
     cam.rotation.order = 'YXZ';
     const lookYaw = cam.rotation.y;
@@ -1008,6 +1005,11 @@ export class Game {
       switchGun: polled.switchGun,
     };
     client.stepLocal(dtReal, input);
+    const localShot = client.takeCosmeticShot();
+    if (localShot) {
+      this.audio.handleEvent({ t: 'shot', gun: localShot.gun, x: localShot.x, z: localShot.z, yaw: localShot.yaw });
+      this.renderer.fireVisual(localShot.gun, localShot.yaw, lookPitch, localShot.x, localShot.z);
+    }
     const view = client.worldView();
     for (const e of client.takeEvents()) this.handleArenaEvent(e, client.id);
     if (!view) { this.renderer.render(); return; }
@@ -1021,11 +1023,6 @@ export class Game {
     this.renderer.render();
   }
 
-  private pullAimFromCameraArena(): void {
-    const cam = this.renderer.camera;
-    cam.rotation.order = 'YXZ';
-  }
-
   private handleArenaEvent(e: ArenaEvent, selfId: number): void {
     const distGain = (x: number, z: number) => {
       const view = this.arenaClient?.worldView();
@@ -1036,9 +1033,15 @@ export class Game {
       return 1 - (d - 4) / 36;
     };
     if (e.t === 'shot') {
-      const gain = e.id === selfId ? 1 : distGain(e.x, e.z);
-      this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain);
-      if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, 0, e.x, e.z);
+      if (e.id === selfId && this.arenaClient?.shouldIgnoreEchoShot(e.id)) {
+        // Local muzzle + shot already played; still want tracers from the server.
+      } else {
+        const gain = e.id === selfId ? 1 : distGain(e.x, e.z);
+        this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain);
+        if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, 0, e.x, e.z);
+      }
+    } else if (e.t === 'hitPlayer') {
+      this.renderer.fx.blood(e.x, e.y, e.z, e.killed);
     } else if (e.t === 'dryfire' && e.id === selfId) {
       this.audio.handleEvent({ t: 'dryfire', gun: e.gun });
     } else if (e.t === 'explosion') {
@@ -1048,13 +1051,14 @@ export class Game {
       this.hud.playerHurt(e.damage, e.fromAngle);
       this.audio.handleEvent({ t: 'playerHurt', damage: e.damage, fromAngle: e.fromAngle });
     } else if (e.t === 'playerDie' && e.id === selfId) {
-      this.hud.died();
+      this.hud.died({ epitaph: '' });
       this.audio.handleEvent({ t: 'playerDie' });
     } else if (e.t === 'frag') {
       const roster = this.arenaClient?.roster() ?? [];
       const killer = roster.find((p) => p.id === e.killerId)?.name ?? '???';
       const victim = roster.find((p) => p.id === e.victimId)?.name ?? '???';
       this.hud.showMessage(e.suicide ? `${victim} ate it` : `${killer} fragged ${victim}`);
+      if (e.victimId === selfId && !e.suicide) this.hud.died({ epitaph: `FRAGGED BY ${killer}` });
     } else if (e.t === 'pickup') {
       this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label });
       this.hud.showMessage(e.label);

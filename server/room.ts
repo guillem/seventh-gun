@@ -12,6 +12,7 @@ export interface RoomSocket {
 export interface TickScheduler {
   start(fn: () => void, hz: number): void;
   stop(): void;
+  timeout(fn: () => void, ms: number): () => void;
 }
 
 const MAX_MSG = 2048;
@@ -25,6 +26,7 @@ interface SockState {
   msgTimes: number[];
   lastMsgAt: number;
   violations: number;
+  cancelJoinWatch: (() => void) | null;
 }
 
 export class ArenaRoom {
@@ -44,13 +46,23 @@ export class ArenaRoom {
   }
 
   onOpen(sock: RoomSocket): void {
-    this.socks.set(sock, {
+    const st: SockState = {
       sock,
       playerId: null,
       msgTimes: [],
       lastMsgAt: this.now(),
       violations: 0,
-    });
+      cancelJoinWatch: null,
+    };
+    this.socks.set(sock, st);
+    // Never-joined sockets must not keep the DO resident — empty or occupied.
+    st.cancelJoinWatch = this.schedule.timeout(() => {
+      const cur = this.socks.get(sock);
+      if (cur && cur.playerId == null) {
+        sock.close(4000, 'idle');
+        this.onClose(sock);
+      }
+    }, SOCKET_IDLE_S * 1000);
   }
 
   onMessage(sock: RoomSocket, text: string): void {
@@ -99,6 +111,7 @@ export class ArenaRoom {
   onClose(sock: RoomSocket): void {
     const st = this.socks.get(sock);
     if (!st) return;
+    st.cancelJoinWatch?.();
     this.socks.delete(sock);
     if (st.playerId != null && this.sim) this.sim.leave(st.playerId);
     if (this.playerCount === 0) this.shutdown();
@@ -123,6 +136,7 @@ export class ArenaRoom {
       }
     }
 
+    if (!this.sim) return;
     const events = this.sim.takeEvents();
     if (events.length) {
       this.broadcast({ v: 1, t: 'events', es: events });
@@ -146,6 +160,8 @@ export class ArenaRoom {
       return;
     }
     st.playerId = joined.id;
+    st.cancelJoinWatch?.();
+    st.cancelJoinWatch = null;
     const map = this.sim.map;
     this.send(st.sock, {
       v: 1,
@@ -170,6 +186,12 @@ export class ArenaRoom {
     this.seed = '';
     this.ticking = false;
     this.schedule.stop();
+    for (const st of [...this.socks.values()]) {
+      if (st.playerId != null) continue;
+      st.cancelJoinWatch?.();
+      this.socks.delete(st.sock);
+      st.sock.close(4000, 'idle');
+    }
   }
 
   private noteViolation(st: SockState): void {

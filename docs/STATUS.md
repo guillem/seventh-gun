@@ -11,15 +11,16 @@ Title **MULTIPLAYER ARENA** joins one global Cloudflare Durable Object room
 predict movement and interpolate others. Last player to leave deletes the
 map; next join reseeds.
 
-Combat helpers live in `src/sim/combat.ts` (shared with maze `Sim`). Golden
-hashes in `tests/unit/combatGolden.test.ts` were recorded **after** extraction
-(not a pre-extraction commit). Maze unit/e2e tests must stay green.
+Combat helpers live in `src/sim/combat.ts` (shared with maze `Sim`). The
+projectile-spreadDir pitch normalise vs pre-extraction is accepted
+(`DECISIONS.md`). Golden tape owns guns 1–7 with pitched aim.
 
 ## Open / next
 
 - Owner: Cloudflare Workers Builds on `guillem/seventh-gun`, first join from
   home to pin the DO in Europe.
 - Human two-window playtest (hitscan lead, spawn distances, pad pacing).
+- Owner: two-window playtest, then lattice density (#7) if maps feel samey.
 - Lag compensation is explicitly out of v1.
 
 ## Where things are

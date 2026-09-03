@@ -1,12 +1,12 @@
 import { makeRng, type Rng } from './rng';
 import { CELL, PLAYER_EYE, PLAYER_HEIGHT, PLAYER_RADIUS, type AmmoType, cellToWorld } from './types';
 import type { GameMap, PickupDef, ProjectileKind } from './types';
-import type { SimInput, Phase, PlayerState, DoorState, SecretState, PickupEnt, ProjectileEnt } from './sim';
-import { STEP_DT, emptyInput, type SimInput as SimInputType, type ProjectileEnt as ProjectileEntType } from './sim';
-import { weapon, WEAPONS, type WeaponDef } from './weapons';
+import type { SimInput } from './sim';
+import { STEP_DT, emptyInput } from './sim';
+import { WEAPONS, type WeaponDef } from './weapons';
 import { DIFFICULTIES } from './difficulty';
 import { aimDirFromLook } from './aim';
-import { circleFits, isSolidCell, moveCircle, pushCircleOut, type SolidState } from './physics';
+import { circleFits, moveCircle, pushCircleOut, type SolidState } from './physics';
 import { spreadDir, damageAtRange, sweepHitscan, integrateProjectile, splashFactors } from './combat';
 import { generateArena } from './arenagen';
 import type { PowerupState } from './powerups';
@@ -14,15 +14,12 @@ import { createPowerupState } from './powerups';
 import {
   ARENA_DEATH_LOCKOUT,
   ARENA_GEN_VERSION,
-  ARENA_GRID,
   ARENA_IDLE_S,
   ARENA_LAST_HIT_S,
   ARENA_MAX_PLAYERS,
   ARENA_MIN_SPAWN_DIST,
   ARENA_RESPAWN,
-  ARENA_SNAPSHOT_HZ,
   ARENA_SPAWN_PROTECT,
-  ARENA_TICK_HZ,
 } from './arenaConstants';
 
 export type ArenaWeaponId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -53,6 +50,7 @@ export interface ArenaPlayer {
   queued: SimInput[];
   queuedSeqs: number[];
   lastSeq: number;
+  lastQueuedSeq: number;
   idleFor: number;
   corpse: { x: number; z: number; yaw: number } | null;
   kicked: boolean;
@@ -87,12 +85,12 @@ export type ArenaEvent =
   | { t: 'spawnProjectile'; id: number; kind: ProjectileKind; x: number; y: number; z: number }
   | { t: 'explosion'; id: number; x: number; y: number; z: number; radius: number }
   | { t: 'playerHurt'; id: number; damage: number; fromAngle: number }
+  | { t: 'hitPlayer'; id: number; x: number; y: number; z: number; killed: boolean }
   | { t: 'playerDie'; id: number }
   | { t: 'playerSpawn'; id: number }
   | { t: 'frag'; killerId: number; victimId: number; suicide: boolean }
   | { t: 'pickup'; id: number; kind: PickupDef['kind']; label: string }
-  | { t: 'padRespawn'; id: number }
-  | { t: 'eventsVersion'; v: 1 }; // placeholder to keep union discriminated
+  | { t: 'padRespawn'; id: number };
 
 export interface ArenaSnapshot {
   tick: number;
@@ -111,7 +109,7 @@ export interface ArenaSnapshot {
     protect: number;
     frags: number;
     deaths: number;
-      lastSeq: number;
+    lastSeq: number;
     ammo: Record<AmmoType, number>;
   }[];
   projectiles: { id: number; kind: ProjectileKind; x: number; y: number; z: number }[];
@@ -221,6 +219,7 @@ export class ArenaSim implements SolidState {
       queued: [],
       queuedSeqs: [],
       lastSeq: 0,
+      lastQueuedSeq: 0,
       idleFor: 0,
       corpse: null,
       kicked: false,
@@ -242,19 +241,28 @@ export class ArenaSim implements SolidState {
   pushInput(id: number, seq: number, inputs: SimInput[]): void {
     const p = this.players.find((pp) => pp.id === id);
     if (!p) return;
-    // Clamp move input to [-1, 1]; yaw/pitch are camera authority.
-    const clamped = inputs.map((i) => ({
-      ...i,
-      moveX: Math.max(-1, Math.min(1, i.moveX)),
-      moveZ: Math.max(-1, Math.min(1, i.moveZ)),
-    }));
-    // Cap queued ticks so a slow client cannot build up latency.
-    for (const i of clamped) {
-      if (p.queued.length >= 8) break;
-      p.queued.push(i);
-      p.queuedSeqs.push(seq);
+    // `seq` is the first input; the rest are consecutive. Ignore anything
+    // already queued or consumed so a resend at real RTT is a no-op.
+    for (let i = 0; i < inputs.length; i++) {
+      const s = seq + i;
+      if (s <= p.lastQueuedSeq) continue;
+      p.lastQueuedSeq = s;
+      if (!p.alive) continue;
+      const raw = inputs[i]!;
+      const frame: SimInput = {
+        ...raw,
+        moveX: Math.max(-1, Math.min(1, raw.moveX)),
+        moveZ: Math.max(-1, Math.min(1, raw.moveZ)),
+        pitch: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, raw.pitch)),
+      };
+      if (p.queued.length >= 8) {
+        p.queued.shift();
+        p.queuedSeqs.shift();
+      }
+      p.queued.push(frame);
+      p.queuedSeqs.push(s);
+      p.input = frame;
     }
-    if (clamped.length) p.input = clamped[clamped.length - 1]!;
   }
 
   private weaponDamageBase(w: WeaponDef): number {
@@ -275,8 +283,10 @@ export class ArenaSim implements SolidState {
         continue;
       }
 
-      // Consume one queued input per tick if available.
-      if (p.queued.length) {
+      // Consume one queued input per tick; drain faster if the queue is
+      // backing up (workerd setInterval runs a bit under 60 Hz).
+      const take = p.queued.length > 4 ? 2 : 1;
+      for (let n = 0; n < take && p.queued.length; n++) {
         p.input = p.queued.shift()!;
         p.lastSeq = p.queuedSeqs.shift() ?? p.lastSeq;
       }
@@ -432,6 +442,7 @@ export class ArenaSim implements SolidState {
       }
       if (!living.length) nearest = ARENA_MIN_SPAWN_DIST + 1;
       if (nearest > bestDist) { bestDist = nearest; best = c; }
+      if (bestDist >= ARENA_MIN_SPAWN_DIST && i >= 3) break;
     }
 
     if (prev && best.cx === prev.cx && best.cz === prev.cz && this.spawnCells.length > 1) {
@@ -455,8 +466,8 @@ export class ArenaSim implements SolidState {
     p.input = { ...emptyInput(), yaw: p.yaw, pitch: p.pitch, switchGun: null };
     p.queued = [];
     p.queuedSeqs = [];
-    p.lastSeq = 0;
-    p.corpse = { x: p.x, z: p.z, yaw: p.yaw };
+    // Keep lastSeq / lastQueuedSeq so in-flight pre-death inputs cannot
+    // be replayed from the new spawn cell.
 
     this.events.push({ t: 'playerSpawn', id: p.id });
   }
@@ -555,11 +566,7 @@ export class ArenaSim implements SolidState {
     for (const v of living) {
       bodies.push({ id: v.id, x: v.x, z: v.z, radius: PLAYER_RADIUS, yMin: 0, yMax: PLAYER_HEIGHT });
     }
-    const { wall, hits, tracerEnd } = sweepHitscan(this, shooter.x, PLAYER_EYE, shooter.z, dirX, dirY, dirZ, 120, bodies);
-    if (wall.cell && (!hits.length || wall.dist <= hits[0].t + 0.05)) {
-      // No secrets in arena.
-      void 0;
-    }
+    const { hits, tracerEnd } = sweepHitscan(this, shooter.x, PLAYER_EYE, shooter.z, dirX, dirY, dirZ, 120, bodies);
 
     let hitAny = false;
     for (const h of hits) {
@@ -593,8 +600,11 @@ export class ArenaSim implements SolidState {
     while (rel < -Math.PI) rel += Math.PI * 2;
     this.events.push({ t: 'playerHurt', id: victim.id, damage: dmg, fromAngle: rel });
     if (dmg > 0) victim.lastHitBy = { id: fromId, at: this.time };
-
-    if (victim.hp <= 0) this.handleDeath(victim);
+    const killed = victim.hp <= 0;
+    this.events.push({
+      t: 'hitPlayer', id: victim.id, x: victim.x, y: PLAYER_HEIGHT * 0.55, z: victim.z, killed,
+    });
+    if (killed) this.handleDeath(victim);
   }
 
   private handleDeath(v: ArenaPlayer): void {
@@ -604,10 +614,16 @@ export class ArenaSim implements SolidState {
     this.events.push({ t: 'playerDie', id: v.id });
     v.deaths += 1;
 
-    const killer = v.lastHitBy && this.time - v.lastHitBy.at <= ARENA_LAST_HIT_S ? this.players.find((p) => p.id === v.lastHitBy!.id) : null;
-    if (killer && killer.id !== v.id) {
-      killer.frags += 1;
-      this.events.push({ t: 'frag', killerId: killer.id, victimId: v.id, suicide: false });
+    const credit = v.lastHitBy && this.time - v.lastHitBy.at <= ARENA_LAST_HIT_S
+      ? v.lastHitBy
+      : null;
+    if (credit && credit.id !== v.id) {
+      const killer = this.players.find((p) => p.id === credit.id);
+      if (killer) {
+        killer.frags += 1;
+        this.events.push({ t: 'frag', killerId: killer.id, victimId: v.id, suicide: false });
+      }
+      // Killer already left: no credit, no suicide penalty.
     } else {
       v.frags = Math.max(0, v.frags - 1);
       this.events.push({ t: 'frag', killerId: v.id, victimId: v.id, suicide: true });

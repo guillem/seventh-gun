@@ -32,4 +32,16 @@ describe('protocol guards', () => {
     expect(isServerMessage({ v: 1, t: 'full' })).toBe(true);
     expect(isServerMessage({ v: 1, t: 'kicked', reason: 'idle' })).toBe(true);
   });
+
+  it('rejects non-finite numbers and bad switchGun / seq', () => {
+    const base = { moveX: 0, moveZ: 1, yaw: 0, pitch: 0, fire: false };
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1, inputs: [{ ...base, yaw: NaN }] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1, inputs: [{ ...base, pitch: Infinity }] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1, inputs: [{ ...base, moveX: Number.NaN }] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: -1, inputs: [base] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1.5, inputs: [base] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1, inputs: [{ ...base, switchGun: 8 }] })).toBe(false);
+    expect(isClientMessage({ v: 1, t: 'input', seq: 1, inputs: [{ ...base, switchGun: 3 }] })).toBe(true);
+    expect(isClientMessage({ v: 1, t: 'ping', at: NaN })).toBe(false);
+  });
 });

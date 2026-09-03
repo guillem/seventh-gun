@@ -6,8 +6,6 @@ import { emptyInput, STEP_DT, type SimInput } from '../../src/sim/sim';
 import {
   ARENA_DEATH_LOCKOUT,
   ARENA_IDLE_S,
-  ARENA_LAST_HIT_S,
-  ARENA_RESPAWN,
   ARENA_SPAWN_PROTECT,
 } from '../../src/sim/arenaConstants';
 
@@ -310,6 +308,39 @@ describe('arena sim (server-authoritative)', () => {
     expect(a.queued.every((inpt: any) => Math.abs(inpt.moveX) <= 1 && Math.abs(inpt.moveZ) <= 1)).toBe(true);
   });
 
+  it('input seq is first-of-batch; resend is de-duped; lastSeq is consumed', () => {
+    const sim = new ArenaSim('arena-test-seq');
+    const a = sim.join('A') as any;
+    sim.takeEvents();
+    const frame = inputTick({ moveZ: 1, yaw: 0, pitch: 0 });
+    sim.pushInput(a.id, 1, [frame, frame, frame, frame]);
+    expect(a.queuedSeqs).toEqual([1, 2, 3, 4]);
+    sim.step(STEP_DT);
+    expect(a.lastSeq).toBe(1);
+    expect(a.queuedSeqs).toEqual([2, 3, 4]);
+    sim.pushInput(a.id, 1, [frame, frame, frame, frame]);
+    expect(a.queuedSeqs).toEqual([2, 3, 4]);
+  });
+
+  it('kill by a player who already left is no credit and no suicide', () => {
+    const sim = new ArenaSim('arena-test-left-killer');
+    const a = sim.join('A') as any;
+    const b = sim.join('B') as any;
+    sim.takeEvents();
+    b.lastHitBy = { id: a.id, at: sim.time };
+    b.hp = 1;
+    b.protectUntil = 0;
+    a.frags = 0;
+    b.frags = 3;
+    sim.leave(a.id);
+    // Direct death: leftover credit window still points at A.
+    (sim as any).handleDeath(b);
+    expect(b.deaths).toBe(1);
+    expect(b.frags).toBe(3);
+    const frags = sim.takeEvents().filter((e: any) => e.t === 'frag');
+    expect(frags.length).toBe(0);
+  });
+
   it('determinism: same seed + join + input tape => same snapshot at 3s', () => {
     const seed = 'arena-determinism-1';
     const makeSim = () => {
@@ -348,19 +379,19 @@ describe('arena sim (server-authoritative)', () => {
           const fire = (batchStart + k) % Math.floor(0.3 / STEP_DT) === 0;
           batch.push(inputTick({ yaw: yaw1A, pitch: 0, moveX: 0, moveZ: 0, fire }));
         }
-        A.sim.pushInput(A.p1.id, batchStart, batch);
+        A.sim.pushInput(A.p1.id, batchStart + 1, batch);
         // Remote player sends no movement/fire, but still sends yaw/pitch packets.
         const idleBatch: SimInput[] = batch.map(() => inputTick({ yaw: A.p2.yaw, pitch: 0, moveX: 0, moveZ: 0, fire: false }));
-        A.sim.pushInput(A.p2.id, batchStart, idleBatch);
+        A.sim.pushInput(A.p2.id, batchStart + 1, idleBatch);
 
         const batchB: SimInput[] = [];
         for (let k = 0; k < 4 && batchStart + k < ticks; k++) {
           const fire = (batchStart + k) % Math.floor(0.3 / STEP_DT) === 0;
           batchB.push(inputTick({ yaw: yaw1B, pitch: 0, moveX: 0, moveZ: 0, fire }));
         }
-        B.sim.pushInput(B.p1.id, batchStart, batchB);
+        B.sim.pushInput(B.p1.id, batchStart + 1, batchB);
         const idleBatchB: SimInput[] = batchB.map(() => inputTick({ yaw: B.p2.yaw, pitch: 0, moveX: 0, moveZ: 0, fire: false }));
-        B.sim.pushInput(B.p2.id, batchStart, idleBatchB);
+        B.sim.pushInput(B.p2.id, batchStart + 1, idleBatchB);
       }
       A.sim.step(STEP_DT);
       B.sim.step(STEP_DT);

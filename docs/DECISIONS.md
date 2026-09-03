@@ -35,6 +35,12 @@ Unspecified things got decided; this is the record.
   `VITE_ARENA_WS_URL`.
 - **Cloudflare Workers + one Durable Object** is production for arena
   (Free plan, no card). Hosting considered Fly.io, rejected: no spend cap.
+- **Combat extraction spread:** `spreadDir` normalises the right vector
+  (`hypot(dirZ, dirX)` = `cos(pitch)`), matching the old hitscan path.
+  Pre-extraction projectile spread did not. Accepted: projectile cones now
+  match hitscan. No `GEN_VERSION` bump — maze seeds still produce the same
+  layout. Golden tape in `combatGolden.test.ts` records the post-extraction
+  hashes (giveGun 1–7, pitched aim, HP topped each step, 3 seeds).
 - **Remote**: github.com/guillem/seventh-gun. The initial one-shot version
   went to `main`; all further development is branches + PRs via `gh`, with
   the Netlify deploy preview verified before merge.

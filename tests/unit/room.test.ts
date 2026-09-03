@@ -10,12 +10,26 @@ class FakeSock implements RoomSocket {
   close(code?: number, reason?: string): void { this.closed = { code, reason }; }
 }
 
-function scheduler(): TickScheduler & { fire: () => void } {
+function scheduler(now: () => number): TickScheduler & { fire: () => void; fireTimeouts: () => void } {
   let fn: (() => void) | null = null;
+  const timeouts: { fn: () => void; at: number; cancelled: boolean }[] = [];
   return {
     start(f) { fn = f; },
     stop() { fn = null; },
+    timeout(f, ms) {
+      const item = { fn: f, at: now() + ms, cancelled: false };
+      timeouts.push(item);
+      return () => { item.cancelled = true; };
+    },
     fire() { fn?.(); },
+    fireTimeouts() {
+      for (const t of timeouts) {
+        if (!t.cancelled && now() >= t.at) {
+          t.cancelled = true;
+          t.fn();
+        }
+      }
+    },
   };
 }
 
@@ -23,7 +37,7 @@ describe('ArenaRoom', () => {
   it('first join creates a seed; second join shares it; 11th is full', () => {
     let now = 0;
     let seedN = 0;
-    const sched = scheduler();
+    const sched = scheduler(() => now);
     const room = new ArenaRoom(() => now, () => `seed-${seedN++}`, sched);
 
     const a = new FakeSock();
@@ -63,7 +77,7 @@ describe('ArenaRoom', () => {
   it('snapshots every 3rd tick and last close reseeds', () => {
     let now = 0;
     let seedN = 0;
-    const sched = scheduler();
+    const sched = scheduler(() => now);
     const room = new ArenaRoom(() => now, () => `seed-${seedN++}`, sched);
     const a = new FakeSock();
     room.onOpen(a);
@@ -90,7 +104,7 @@ describe('ArenaRoom', () => {
 
   it('oversized / flooding socket is dropped after three violations', () => {
     let now = 0;
-    const sched = scheduler();
+    const sched = scheduler(() => now);
     const room = new ArenaRoom(() => now, () => 'seed-x', sched);
     const a = new FakeSock();
     room.onOpen(a);
@@ -103,5 +117,58 @@ describe('ArenaRoom', () => {
     const kicked = a.sent.map((s) => decodeServer(s)).find((m) => typeof m === 'object' && m.t === 'kicked');
     expect(kicked).toBeTruthy();
     expect(a.closed).toBeTruthy();
+  });
+
+  it('last player idle-closed inside tick does not throw', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-idle', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    now += 16_000;
+    expect(() => sched.fire()).not.toThrow();
+    expect(room.sim).toBeNull();
+  });
+
+  it('socket that never joins an empty room is closed after 15s', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-empty', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    expect(room.sim).toBeNull();
+    now += 16_000;
+    sched.fireTimeouts();
+    expect(a.closed).toBeTruthy();
+  });
+
+  it('never-joined socket on an occupied room is closed after 15s', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-occ', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    const b = new FakeSock();
+    room.onOpen(b);
+    now += 16_000;
+    sched.fireTimeouts();
+    expect(b.closed).toBeTruthy();
+    expect(room.sim).not.toBeNull();
+  });
+
+  it('shutdown closes leftover never-joined sockets', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-shut', sched);
+    const a = new FakeSock();
+    const b = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onOpen(b);
+    room.onClose(a);
+    expect(room.sim).toBeNull();
+    expect(b.closed).toBeTruthy();
   });
 });

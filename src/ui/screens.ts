@@ -599,7 +599,6 @@ export class Screens {
           ? 'TAB map · E use doors · the key opens the vault, never the arena'
           : 'TAB map · E use doors';
     }
-    this.resumeBtn.textContent = arena ? 'RESUME' : 'RESUME';
   }
 
   showArenaJoin(show: boolean, status = ''): void {

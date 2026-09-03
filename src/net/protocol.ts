@@ -25,9 +25,9 @@ export function isClientMessage(v: unknown): v is ClientMessage {
   if (m.v !== 1) return false;
   if (typeof m.t !== 'string' || !CLIENT_TS.has(m.t)) return false;
   if (m.t === 'join') return typeof m.name === 'string';
-  if (m.t === 'ping') return typeof m.at === 'number';
+  if (m.t === 'ping') return Number.isFinite(m.at);
   if (m.t === 'input') {
-    if (typeof m.seq !== 'number' || !Array.isArray(m.inputs)) return false;
+    if (!Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
     if (m.inputs.length > 8) return false;
     return m.inputs.every(isInputFrame);
   }
@@ -45,11 +45,16 @@ export function isServerMessage(v: unknown): v is ServerMessage {
 function isInputFrame(v: unknown): v is SimInput {
   if (!v || typeof v !== 'object') return false;
   const i = v as Record<string, unknown>;
-  return typeof i.moveX === 'number'
-    && typeof i.moveZ === 'number'
-    && typeof i.yaw === 'number'
-    && typeof i.pitch === 'number'
-    && typeof i.fire === 'boolean';
+  if (!Number.isFinite(i.moveX) || !Number.isFinite(i.moveZ)) return false;
+  if (!Number.isFinite(i.yaw) || !Number.isFinite(i.pitch)) return false;
+  if (typeof i.fire !== 'boolean') return false;
+  if (i.switchGun != null) {
+    if (!Number.isInteger(i.switchGun) || (i.switchGun as number) < 1 || (i.switchGun as number) > 7) {
+      return false;
+    }
+  }
+  if (i.use != null && typeof i.use !== 'boolean') return false;
+  return true;
 }
 
 export function encode(msg: ClientMessage | ServerMessage): string {

@@ -44,6 +44,8 @@ test.describe('arena', () => {
     expect(aState!.players.length).toBe(2);
     expect(aState!.seed).toBe(bState!.seed);
     await a.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
+    await expect(a.locator('#title-screen')).toBeVisible();
+    await expect(a.locator('#arena-join-screen')).toBeHidden();
     await b.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
