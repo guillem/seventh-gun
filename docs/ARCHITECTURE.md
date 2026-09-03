@@ -4,10 +4,12 @@
 
 ```
 app (Game, input, debug API)
- ├─> ui     (HUD canvas/DOM, screens, map overlay)   reads sim state
+ ├─> ui     (HUD canvas/DOM, screens, map overlay)   reads WorldView
  ├─> audio  (WebAudio synth)                          consumes sim events
- ├─> render (Three.js scene)                          reads sim state + events
- └─> sim    (deterministic, headless)                 THE authority
+ ├─> render (Three.js scene)                          reads WorldView + events
+ ├─> net    (ArenaClient, protocol)                   prediction / interpolation
+ └─> sim    (deterministic, headless)                 maze Sim + ArenaSim
+server/  Cloudflare Worker + Durable Object (imports sim + protocol only)
 ```
 
 - `src/sim/` is pure TypeScript: no Three, no DOM, no `Math.random`. Fixed
@@ -94,3 +96,11 @@ secret cells forever.
 screenshots, scripted input, `startMap`, `startCampaign`, `loadBlueprint`).
 Tests never
 drive pointer lock with synthetic mouse moves.
+
+## Arena sim
+
+`ArenaSim` (`src/sim/arena.ts`) is a second headless sim: 10-player deathmatch,
+no monsters, 96×96 `generateArena(seed)`. Physics uses `SolidState`; combat
+uses `src/sim/combat.ts`. The Durable Object in `server/` ticks it at 60 Hz
+and broadcasts 20 Hz snapshots over `/arena`. Clients predict local movement
+and interpolate others ~100 ms behind. Hits and pickups are server-only.

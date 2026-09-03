@@ -1,11 +1,22 @@
 // HUD: crosshair, bottom graphic panel (health / ammo / 7 slots), minimap,
 // damage overlays with direction hint, message toasts. Canvas 2D overlay.
-import type { Sim } from '../sim/sim';
+import type { WorldView } from '../sim/view';
 import { WEAPONS, weapon } from '../sim/weapons';
 import { CELL } from '../sim/types';
 import { POWERUP_DEFS, wardActive } from '../sim/powerups';
 
-/** Gap between the health bar's right edge and gun slot 1. */
+export interface ArenaRosterRow {
+  id: number;
+  name: string;
+  colorIndex: number;
+  frags: number;
+  deaths: number;
+  alive: boolean;
+}
+
+export function sortArenaRoster(rows: ArenaRosterRow[]): ArenaRosterRow[] {
+  return rows.slice().sort((a, b) => b.frags - a.frags || a.deaths - b.deaths || a.id - b.id);
+}
 export const HUD_HEALTH_SLOT_GAP = 10;
 
 export interface HudPanelLayout {
@@ -99,7 +110,7 @@ export class Hud {
     }
   }
 
-  draw(sim: Sim, opts: { fullMapOpen: boolean; paused: boolean }): void {
+  draw(sim: WorldView, opts: { fullMapOpen: boolean; paused: boolean }): void {
     const g = this.g;
     const W = window.innerWidth, H = window.innerHeight;
     g.clearRect(0, 0, W, H);
@@ -276,7 +287,7 @@ export class Hud {
     }
   }
 
-  drawMinimap(sim: Sim, size: number, full: boolean): void {
+  drawMinimap(sim: WorldView, size: number, full: boolean): void {
     // shared renderer for corner minimap and the full map overlay
     const g = full ? this.mapCtx! : this.miniCtx!;
     if (!g) return;
@@ -368,7 +379,7 @@ export class Hud {
   }
 
   private drawPowerupHud(
-    sim: Sim, g: CanvasRenderingContext2D, W: number, H: number, cx: number, cy: number,
+    sim: WorldView, g: CanvasRenderingContext2D, W: number, H: number, cx: number, cy: number,
   ): void {
     const pu = sim.powerups;
     const tracks: { kind: 'ward' | 'wrath' | 'sevenfold'; t: number; dur: number }[] = [];
@@ -421,6 +432,50 @@ export class Hud {
   private mapCanvas: HTMLCanvasElement | null = null;
   private mapCtx: CanvasRenderingContext2D | null = null;
 
+  drawArenaRoster(rows: ArenaRosterRow[], localId: number, count: number, max = 10): void {
+    const g = this.g;
+    const sorted = sortArenaRoster(rows);
+    g.font = '12px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = 'rgba(8,9,7,0.55)';
+    g.fillRect(12, 12, 180, 18 + sorted.length * 16);
+    g.fillStyle = '#9aa08e';
+    g.fillText(`${count}/${max}`, 20, 26);
+    let y = 42;
+    for (const r of sorted.slice(0, 10)) {
+      g.fillStyle = r.id === localId ? '#ffe9a0' : '#d8d4c8';
+      g.fillText(`${r.name.slice(0, 12).padEnd(12)} ${r.frags}`, 20, y);
+      y += 16;
+    }
+  }
+
+  drawArenaScoreboard(rows: ArenaRosterRow[], localId: number, rtt: number): void {
+    const g = this.g;
+    const W = window.innerWidth, H = window.innerHeight;
+    const sorted = sortArenaRoster(rows);
+    const pw = 420, ph = 80 + sorted.length * 22;
+    const x = (W - pw) / 2, y = (H - ph) / 2;
+    g.fillStyle = 'rgba(8,9,7,0.88)';
+    g.fillRect(x, y, pw, ph);
+    g.strokeStyle = '#565b50';
+    g.strokeRect(x, y, pw, ph);
+    g.fillStyle = '#e8e4c8';
+    g.font = '16px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.fillText('SCOREBOARD', x + pw / 2, y + 28);
+    g.textAlign = 'left';
+    g.font = '13px "Courier New", monospace';
+    let rowY = y + 54;
+    for (const r of sorted) {
+      g.fillStyle = r.id === localId ? '#ffe9a0' : '#d8d4c8';
+      g.fillText(`${r.name.padEnd(16)}  ${String(r.frags).padStart(3)} / ${r.deaths}`, x + 24, rowY);
+      rowY += 22;
+    }
+    g.fillStyle = '#9aa08e';
+    g.textAlign = 'right';
+    g.fillText(`${Math.round(rtt)} ms`, x + pw - 16, y + 28);
+  }
+
   attachMinimap(c: HTMLCanvasElement): void {
     this.miniCanvas = c;
     this.miniCtx = c.getContext('2d');
@@ -432,7 +487,7 @@ export class Hud {
   }
 }
 
-export function exploredPct(sim: Sim): number {
+export function exploredPct(sim: WorldView): number {
   let explored = 0, walkable = 0;
   for (let i = 0; i < sim.explored.length; i++) {
     if (sim.map.grid[i] !== 1) continue;

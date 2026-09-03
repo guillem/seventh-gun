@@ -30,15 +30,18 @@ npm test             # vitest unit suite (sim: mapgen sweep, weapons, determinis
 npm run test:e2e     # playwright (desktop chromium + mobile chromium projects)
 ```
 
-E2E builds and serves `dist/` itself via the `webServer` config. Debug API
+E2E builds and serves the Cloudflare local preview (`dist/client` + worker)
+itself via the `webServer` config. Debug API
 (`window.__GAME__`) only exists when the page is loaded with `?e2e=1`.
 Never drive pointer lock with synthetic mousemove — it is flaky; use the
-debug API.
+debug API. Arena: `joinArena`, `leaveArena`, `arena()`.
 
 ## Layout
 
 - `src/sim/` — deterministic headless simulation. NEVER import three/DOM here,
   never use Math.random (architecture test enforces it).
+- `src/net/` — arena protocol + client prediction. No Three, no server imports.
+- `server/` — Worker + Durable Object. Imports `src/sim` and `src/net/protocol` only.
 - `src/render/` — Three.js scene building, textures, enemy/viewmodel meshes, FX.
 - `src/audio/` — WebAudio synth.
 - `src/ui/` — HUD, screens, map overlay.
@@ -54,6 +57,8 @@ debug API.
 
 ## Deploy
 
-Netlify, `netlify.toml` at root: build `npm run build`, publish `dist`.
-Treat Deploy Preview URLs as the thing to verify before merge. Production
-URL is the Netlify site for this repo.
+Cloudflare Workers is production (`wrangler.jsonc`, Worker name `seventh-gun`).
+Netlify stays a static mirror: `publish = dist/client`. Arena on Netlify is
+offline unless `VITE_ARENA_WS_URL` / `ALLOWED_ORIGINS` point at the Worker.
+Never add a Cloudflare payment method. `run_worker_first` is only `/arena`
+and `/health`.

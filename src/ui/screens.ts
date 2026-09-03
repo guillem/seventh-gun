@@ -49,6 +49,10 @@ export class Screens {
   private touch!: HTMLDivElement;
   private toast!: HTMLDivElement;
   private toastTimer = 0;
+  private arenaJoin!: HTMLDivElement;
+  private scoreboard!: HTMLDivElement;
+  arenaNameInput!: HTMLInputElement;
+  private arenaStatus!: HTMLElement;
 
   // title controls
   seedInput!: HTMLInputElement;
@@ -117,6 +121,9 @@ export class Screens {
             <button id="campaign-btn" class="big">CAMPAIGN</button>
             <button id="editor-btn" class="big">EDITOR</button>
           </div>
+          <div class="row">
+            <button id="arena-btn" class="big">MULTIPLAYER ARENA</button>
+          </div>
           <div class="row hidden" id="death-row">
             <button id="retry-btn">RETRY SEED</button>
             <button id="new-maze-btn">NEW MAZE</button>
@@ -150,6 +157,7 @@ export class Screens {
             <button id="p-retry">RESTART SEED</button>
             <button id="p-new">NEW MAZE</button>
             <button id="p-quit">QUIT TO TITLE</button>
+            <button id="p-leave-arena" class="hidden">LEAVE ARENA</button>
           </div>
           <div class="row hidden" id="p-map-row">
             <button id="p-save">SAVE TO LIBRARY</button>
@@ -243,10 +251,26 @@ export class Screens {
       </div>
     `);
     this.toast = this.el(`<div id="toast" class="hidden"></div>`);
+    this.arenaJoin = this.el(`
+      <div class="screen hidden" id="arena-join-screen">
+        <div class="panel">
+          <h2>ARENA</h2>
+          <div class="row">
+            <label>NAME</label>
+            <input id="arena-name" maxlength="16" autocomplete="off" spellcheck="false"/>
+          </div>
+          <button id="arena-join-btn" class="big">JOIN</button>
+          <button id="arena-back-btn">BACK</button>
+          <div class="hints" id="arena-status"></div>
+        </div>
+      </div>
+    `);
+    this.scoreboard = this.el(`<div class="screen hidden" id="scoreboard-screen"></div>`);
 
     this.root.append(
       this.title, this.pause, this.victory, this.mapLog, this.campaign,
       this.intermission, this.campaignWin, this.mapOverlay, this.touch, this.toast,
+      this.arenaJoin, this.scoreboard,
     );
     this.campaignContinueBtn = this.campaign.querySelector('#campaign-continue')!;
     this.campaignMaps = this.campaign.querySelector('#campaign-maps')!;
@@ -277,6 +301,8 @@ export class Screens {
     this.winSaveBtn = this.victory.querySelector('#win-save')!;
     this.winEditorBtn = this.victory.querySelector('#win-editor')!;
     this.mapCanvas = this.miniCanvas;
+    this.arenaNameInput = this.arenaJoin.querySelector('#arena-name')!;
+    this.arenaStatus = this.arenaJoin.querySelector('#arena-status')!;
 
     // difficulty selectors (title + pause share logic)
     const diffHosts: [string, HTMLDivElement][] = [
@@ -391,6 +417,7 @@ export class Screens {
     mute: () => void;
     openMapLog: () => void;
     openCampaign: () => void;
+    openArena?: () => void;
   }): void {
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
@@ -400,6 +427,8 @@ export class Screens {
       .addEventListener('click', handlers.openMapLog);
     (this.title.querySelector('#campaign-btn') as HTMLButtonElement)
       .addEventListener('click', handlers.openCampaign);
+    (this.title.querySelector('#arena-btn') as HTMLButtonElement)
+      .addEventListener('click', () => handlers.openArena?.());
     const vs = this.title.querySelector('#volume-slider') as HTMLInputElement;
     vs.addEventListener('input', () => handlers.volume(Number(vs.value) / 100));
   }
@@ -510,6 +539,7 @@ export class Screens {
     retry: () => void;
     newMaze: () => void;
     quit: () => void;
+    leaveArena?: () => void;
     volume: (v: number) => void;
     sens: (v: number) => void;
   }): void {
@@ -517,6 +547,7 @@ export class Screens {
     this.pauseRetryBtn.addEventListener('click', handlers.retry);
     this.pauseNewBtn.addEventListener('click', handlers.newMaze);
     this.pause.querySelector('#p-quit')!.addEventListener('click', handlers.quit);
+    this.pause.querySelector('#p-leave-arena')!.addEventListener('click', () => handlers.leaveArena?.());
     this.volumeSlider.addEventListener('input', () => handlers.volume(Number(this.volumeSlider.value) / 100));
     this.sensSlider.addEventListener('input', () => handlers.sens(Number(this.sensSlider.value) / 100));
   }
@@ -543,12 +574,17 @@ export class Screens {
     this.winEditorBtn.addEventListener('click', handler);
   }
 
-  setRunKind(kind: 'maze' | 'map' | 'campaign'): void {
+  setRunKind(kind: 'maze' | 'map' | 'campaign' | 'arena'): void {
     const authored = kind === 'map' || kind === 'campaign';
+    const arena = kind === 'arena';
     this.retryBtn.textContent = authored ? 'RETRY MAP' : 'RETRY SEED';
     this.newMazeBtn.textContent = kind === 'map' ? 'TITLE' : kind === 'campaign' ? 'QUIT TO TITLE' : 'NEW MAZE';
     this.pauseRetryBtn.textContent = authored ? 'RETRY MAP' : 'RESTART SEED';
-    this.pauseNewBtn.classList.toggle('hidden', authored);
+    this.pauseNewBtn.classList.toggle('hidden', authored || arena);
+    this.pauseRetryBtn.classList.toggle('hidden', arena);
+    this.pause.querySelector('#p-quit')!.classList.toggle('hidden', arena);
+    this.pause.querySelector('#p-leave-arena')!.classList.toggle('hidden', !arena);
+    this.pause.querySelector('#p-diff-row')!.parentElement?.classList.toggle('hidden', arena);
     this.winRetryBtn.textContent = authored ? 'RETRY MAP' : 'SAME SEED AGAIN';
     this.winNewBtn.textContent = kind === 'map' ? 'TITLE' : kind === 'campaign' ? 'TITLE' : 'NEW MAZE';
     this.deathCopyBtn.classList.toggle('hidden', kind !== 'map');
@@ -557,10 +593,36 @@ export class Screens {
     this.pauseMapRow.classList.toggle('hidden', kind !== 'map');
     const hints = this.pause.querySelector('#pause-hints') as HTMLElement | null;
     if (hints) {
-      hints.textContent = kind === 'maze'
-        ? 'TAB map · E use doors · the key opens the vault, never the arena'
-        : 'TAB map · E use doors';
+      hints.textContent = arena
+        ? 'TAB scoreboard · ESC menu · you stay in the fight'
+        : kind === 'maze'
+          ? 'TAB map · E use doors · the key opens the vault, never the arena'
+          : 'TAB map · E use doors';
     }
+    this.resumeBtn.textContent = arena ? 'RESUME' : 'RESUME';
+  }
+
+  showArenaJoin(show: boolean, status = ''): void {
+    this.arenaJoin.classList.toggle('hidden', !show);
+    if (show) {
+      this.title.classList.add('hidden');
+      this.arenaStatus.textContent = status;
+    }
+  }
+
+  setArenaStatus(text: string): void {
+    this.arenaStatus.textContent = text;
+  }
+
+  bindArenaJoin(handlers: { join: (name: string) => void; back: () => void }): void {
+    this.arenaJoin.querySelector('#arena-join-btn')!.addEventListener('click', () => {
+      handlers.join(this.arenaNameInput.value);
+    });
+    this.arenaJoin.querySelector('#arena-back-btn')!.addEventListener('click', handlers.back);
+  }
+
+  showScoreboard(show: boolean): void {
+    this.scoreboard.classList.toggle('hidden', !show);
   }
 
   setPlaytestMode(on: boolean): void {

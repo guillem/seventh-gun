@@ -4,6 +4,8 @@
 import * as THREE from 'three';
 import { CELL, WALL_H } from '../sim/types';
 import type { Sim } from '../sim/sim';
+import type { WorldView } from '../sim/view';
+import { PlayerRenderer, type RemotePlayerPose } from './players';
 import { enemyVolumeY } from '../sim/enemyTypes';
 import { buildWorld } from './world';
 import { EnemyRenderer } from './enemies';
@@ -28,6 +30,7 @@ export class GameRenderer {
   vmCamera: THREE.PerspectiveCamera;
   private world: ReturnType<typeof buildWorld> | null = null;
   private enemies: EnemyRenderer;
+  private others: PlayerRenderer;
   showAllEnemies = false;
   private pickups: PickupRenderer;
   fx: FxRenderer;
@@ -68,6 +71,7 @@ export class GameRenderer {
     this.vmScene.add(this.vmHolder);
 
     this.enemies = new EnemyRenderer(this.scene);
+    this.others = new PlayerRenderer(this.scene);
     this.pickups = new PickupRenderer(this.scene);
     this.fx = new FxRenderer(this.scene);
   }
@@ -96,7 +100,7 @@ export class GameRenderer {
     this.vmCamera.updateProjectionMatrix();
   }
 
-  setRun(sim: Sim, artId?: CampaignArtId): void {
+  setRun(sim: WorldView, artId?: CampaignArtId): void {
     if (this.world) {
       this.scene.remove(this.world.group);
       this.world.dispose();
@@ -106,6 +110,7 @@ export class GameRenderer {
     // alone would reuse the previous run's rigs — complete with death poses
     // (fallen over, sunk, faded shadows). A new run gets fresh rigs.
     this.enemies.dispose();
+    this.others.dispose();
     this.enemies.syncStart(sim.enemies);
     this.pickups.dispose();
     this.pickups.syncStart(sim.pickups);
@@ -181,7 +186,7 @@ export class GameRenderer {
     this.fx.muzzleFlashWorld(px + dx * 1.4, 1.6, pz + dz * 1.4, sizes[gunId - 1] * 0.8, colors[gunId - 1]);
   }
 
-  update(dt: number, sim: Sim, inputMoving: boolean): void {
+  update(dt: number, sim: WorldView, inputMoving: boolean): void {
     const p = sim.player;
     // camera
     this.camera.position.set(p.x, 1.7, p.z);
@@ -279,6 +284,11 @@ export class GameRenderer {
     }
 
     this.render();
+  }
+
+  updateArena(dt: number, view: WorldView, remotes: RemotePlayerPose[]): void {
+    this.update(dt, view, true);
+    this.others.update(dt, remotes, this.camera, view);
   }
 
   get enemyRigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {

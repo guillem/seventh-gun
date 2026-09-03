@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview --port 4173 --strictPort",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
+    "deploy": "npm run build && wrangler deploy",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:e2e": "playwright test",
@@ -18,11 +19,13 @@
     "three": "^0.171.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.54.3",
     "@playwright/test": "^1.49.1",
     "@types/node": "^24.13.3",
     "@types/three": "^0.171.0",
     "typescript": "~5.6.3",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "wrangler": "^4.128.0"
   }
 }

@@ -2,6 +2,8 @@
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
 import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
+import type { ArenaEvent } from '../sim/arena';
+import { ArenaClient } from '../net/client';
 import { circleFits, hasLineOfSight } from '../sim/physics';
 import { aimDirFromLook, lookPitchFromThree, threePitchFromLook } from '../sim/aim';
 import { GEN_VERSION, type SimEvent, type Difficulty, type PlayerLoadout } from '../sim/types';
@@ -63,7 +65,11 @@ export class Game {
   seed = '';
   debug = false;
   freeze = false;
-  private runKind: 'maze' | 'map' | 'campaign' = 'maze';
+  private runKind: 'maze' | 'map' | 'campaign' | 'arena' = 'maze';
+  private arenaClient: ArenaClient | null = null;
+  private arenaMenu = false;
+  private arenaScoreboard = false;
+  private arenaStatus = '';
   private authoredBlueprint: MapBlueprint | null = null;
   private shareCode: string | null = null;
   private runLog: { seed: string; difficulty: Difficulty; startedAt: number } | null = null;
@@ -156,6 +162,11 @@ export class Game {
       },
       openMapLog: () => this.openMapLog(),
       openCampaign: () => this.openCampaign(),
+      openArena: () => this.openArenaPanel(),
+    });
+    this.screens.bindArenaJoin({
+      join: (name) => { void this.joinArena(name); },
+      back: () => { this.screens.showArenaJoin(false); this.screens.showTitle(true); },
     });
     this.screens.bindCampaign({
       begin: () => this.beginCampaign(),
@@ -176,6 +187,7 @@ export class Game {
       retry: () => this.retryCurrent(),
       newMaze: () => this.secondaryCurrent(),
       quit: () => this.toTitle(),
+      leaveArena: () => this.leaveArena(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       sens: (v) => { this.settings.sensitivity = v; this.input.sensitivity = v; saveSettings(this.settings); },
     });
@@ -208,14 +220,23 @@ export class Game {
       },
       onPointerLockChange: () => {
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
-          // First Esc is consumed by the browser to exit pointer lock (no keydown).
-          // Playtest returns to the editor; maze pauses.
           if (this.fromEditor) this.returnToEditor();
+          else if (this.runKind === 'arena') this.openArenaMenu();
           else this.togglePause();
         }
       },
       onPauseToggle: () => {
         if (this.phase === 'editing') return;
+        if (this.runKind === 'arena' && this.arenaScoreboard) {
+          this.arenaScoreboard = false;
+          this.screens.showScoreboard(false);
+          return;
+        }
+        if (this.runKind === 'arena' && (this.phase === 'playing' || this.arenaMenu)) {
+          if (this.arenaMenu) this.closeArenaMenu();
+          else this.openArenaMenu();
+          return;
+        }
         if (this.phase === 'playing' && this.fromEditor) {
           this.returnToEditor();
           return;
@@ -229,6 +250,13 @@ export class Game {
       },
       onMapToggle: () => {
         if (this.phase === 'editing') return;
+        if (this.runKind === 'arena') {
+          if (this.phase === 'playing' || this.arenaMenu) {
+            this.arenaScoreboard = !this.arenaScoreboard;
+            this.screens.showScoreboard(this.arenaScoreboard);
+          }
+          return;
+        }
         if (this.phase === 'playing') this.toggleMap(true);
         else if (this.phase === 'map') this.toggleMap(false);
       },
@@ -300,6 +328,91 @@ export class Game {
       this.runLog = null;
     }
     this.beginPlay('Find the seven guns. The Seventh unseals the arena.');
+  }
+
+  private NAME_KEY = 'seventh-gun.arenaName';
+
+  private openArenaPanel(): void {
+    let name = 'PLAYER';
+    try { name = localStorage.getItem(this.NAME_KEY) || 'PLAYER'; } catch { /* ignore */ }
+    this.screens.arenaNameInput.value = name;
+    this.screens.showTitle(false);
+    this.screens.showArenaJoin(true, this.arenaStatus);
+  }
+
+  async joinArena(name?: string): Promise<void> {
+    const raw = (name ?? this.screens.arenaNameInput.value).trim();
+    try { localStorage.setItem(this.NAME_KEY, raw); } catch { /* ignore */ }
+    this.screens.setArenaStatus('CONNECTING…');
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const envUrl = (import.meta as { env?: { VITE_ARENA_WS_URL?: string } }).env?.VITE_ARENA_WS_URL;
+    const url = envUrl ?? `${proto}://${window.location.host}/arena`;
+    const client = new ArenaClient();
+    try {
+      await client.connect(url, raw);
+    } catch (err) {
+      const reason = String(err);
+      const status = reason === 'full' ? 'ARENA FULL'
+        : reason === 'mismatch' ? 'GEN MISMATCH'
+          : 'ARENA OFFLINE';
+      this.arenaStatus = status;
+      this.screens.setArenaStatus(status);
+      return;
+    }
+    this.arenaClient = client;
+    client.onClose = (r) => {
+      this.arenaStatus = r === 'idle' ? 'KICKED: IDLE' : 'DISCONNECTED';
+      this.leaveArenaSilent();
+      this.phase = 'title';
+      this.screens.showPause(false);
+      this.screens.showTitle(true);
+      this.screens.showArenaJoin(true, this.arenaStatus);
+    };
+    this.startArena();
+  }
+
+  private startArena(): void {
+    const client = this.arenaClient;
+    const view = client?.worldView();
+    if (!client || !view) return;
+    this.runKind = 'arena';
+    this.sim = null;
+    this.seed = client.seed;
+    this.screens.setRunKind('arena');
+    this.screens.showArenaJoin(false);
+    this.screens.showTitle(false);
+    this.renderer.setRun(view);
+    this.phase = 'playing';
+    this.arenaMenu = false;
+    this.input.paused = false;
+    this.screens.showPause(false);
+    this.screens.showTouch(this.input.isTouch);
+    this.hud.showMessage('FRAG THEM ALL');
+    if (!this.input.isTouch) this.input.requestLock();
+  }
+
+  leaveArena(): void {
+    this.leaveArenaSilent();
+    this.toTitle();
+  }
+
+  private leaveArenaSilent(): void {
+    this.arenaClient?.close();
+    this.arenaClient = null;
+    this.arenaMenu = false;
+    this.arenaScoreboard = false;
+  }
+
+  private openArenaMenu(): void {
+    this.arenaMenu = true;
+    this.screens.setRunKind('arena');
+    this.screens.showPause(true);
+  }
+
+  private closeArenaMenu(): void {
+    this.arenaMenu = false;
+    this.screens.showPause(false);
+    if (!this.input.isTouch) this.input.requestLock();
   }
 
   startMap(input: MapBlueprint | string): void {
@@ -645,6 +758,7 @@ export class Game {
   }
 
   private toTitle(): void {
+    this.leaveArenaSilent();
     this.finishMapLog('quit');
     this.fromEditor = false;
     this.playtestAllGuns = false;
@@ -661,6 +775,8 @@ export class Game {
     this.screens.showIntermission(false);
     this.screens.showCampaignWin(false);
     this.screens.showDeathRow(false);
+    this.screens.showArenaJoin(false);
+    this.screens.showScoreboard(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
     this.setMinimapVisible(false);
@@ -773,6 +889,16 @@ export class Game {
     this.hud.update(dtReal);
     this.audio.update(dtReal, sim ? sim.player.hp / sim.player.maxHp : 1);
 
+    if (!sim && this.runKind !== 'arena') {
+      this.renderer.render();
+      return;
+    }
+
+    if (this.runKind === 'arena' && this.arenaClient) {
+      this.tickArena(dtReal);
+      return;
+    }
+
     if (!sim) {
       this.renderer.render();
       return;
@@ -859,6 +985,85 @@ export class Game {
 
   private lastPx: number | null = null;
   private lastPz: number | null = null;
+
+  private tickArena(dtReal: number): void {
+    const client = this.arenaClient;
+    if (!client) { this.renderer.render(); return; }
+    this.pullAimFromCameraArena();
+    const yaw = lookPitchFromThree(this.renderer.camera.rotation.x); // wait, yaw is rotation.y
+    void yaw;
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+    const lookYaw = cam.rotation.y;
+    const lookPitch = lookPitchFromThree(cam.rotation.x);
+    const polled = this.input.poll(lookYaw, lookPitch);
+    const menu = this.arenaMenu;
+    const input = {
+      moveX: menu ? 0 : polled.moveX,
+      moveZ: menu ? 0 : polled.moveZ,
+      yaw: lookYaw,
+      pitch: lookPitch,
+      fire: menu ? false : polled.fire,
+      use: false,
+      switchGun: polled.switchGun,
+    };
+    client.stepLocal(dtReal, input);
+    const view = client.worldView();
+    for (const e of client.takeEvents()) this.handleArenaEvent(e, client.id);
+    if (!view) { this.renderer.render(); return; }
+    const others = client.others();
+    this.renderer.updateArena(dtReal, view, others);
+    this.hud.draw(view, { fullMapOpen: false, paused: this.arenaMenu });
+    this.hud.drawArenaRoster(client.roster(), client.id, client.roster().length);
+    if (this.arenaScoreboard) this.hud.drawArenaScoreboard(client.roster(), client.id, client.rtt);
+    this.setMinimapVisible(true);
+    if (this.miniCanvas) this.hud.drawMinimap(view, 0, false);
+    this.renderer.render();
+  }
+
+  private pullAimFromCameraArena(): void {
+    const cam = this.renderer.camera;
+    cam.rotation.order = 'YXZ';
+  }
+
+  private handleArenaEvent(e: ArenaEvent, selfId: number): void {
+    const distGain = (x: number, z: number) => {
+      const view = this.arenaClient?.worldView();
+      if (!view) return 1;
+      const d = Math.hypot(view.player.x - x, view.player.z - z);
+      if (d <= 4) return 1;
+      if (d >= 40) return 0;
+      return 1 - (d - 4) / 36;
+    };
+    if (e.t === 'shot') {
+      const gain = e.id === selfId ? 1 : distGain(e.x, e.z);
+      this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain);
+      if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, 0, e.x, e.z);
+    } else if (e.t === 'dryfire' && e.id === selfId) {
+      this.audio.handleEvent({ t: 'dryfire', gun: e.gun });
+    } else if (e.t === 'explosion') {
+      this.audio.handleEvent({ t: 'explosion', x: e.x, y: e.y, z: e.z, radius: e.radius }, distGain(e.x, e.z));
+      this.renderer.fx.explosion(e.x, e.y, e.z, e.radius);
+    } else if (e.t === 'playerHurt' && e.id === selfId) {
+      this.hud.playerHurt(e.damage, e.fromAngle);
+      this.audio.handleEvent({ t: 'playerHurt', damage: e.damage, fromAngle: e.fromAngle });
+    } else if (e.t === 'playerDie' && e.id === selfId) {
+      this.hud.died();
+      this.audio.handleEvent({ t: 'playerDie' });
+    } else if (e.t === 'frag') {
+      const roster = this.arenaClient?.roster() ?? [];
+      const killer = roster.find((p) => p.id === e.killerId)?.name ?? '???';
+      const victim = roster.find((p) => p.id === e.victimId)?.name ?? '???';
+      this.hud.showMessage(e.suicide ? `${victim} ate it` : `${killer} fragged ${victim}`);
+    } else if (e.t === 'pickup') {
+      this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label });
+      this.hud.showMessage(e.label);
+    } else if (e.t === 'tracer') {
+      this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'bullets');
+    } else if (e.t === 'beam') {
+      this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'rail');
+    }
+  }
 
   private toTitleAfterDeath(): void {
     this.finishMapLog('died');
@@ -966,7 +1171,20 @@ export class Game {
           };
         }
         const sim = this.sim;
-        if (!sim) return { phase: 'title' };
+        if (!sim) {
+          if (this.runKind === 'arena' && this.arenaClient) {
+            const v = this.arenaClient.worldView();
+            const p = v?.player;
+            return {
+              phase: this.phase,
+              kind: 'arena',
+              hp: p?.hp ?? 0,
+              gun: p?.gun ?? 1,
+              seed: this.arenaClient.seed,
+            };
+          }
+          return { phase: 'title' };
+        }
         const p = sim.player;
         return {
           phase: this.phase,
@@ -1222,6 +1440,9 @@ export class Game {
         this.input.isTouch = v;
         this.screens.showTouch(v && this.isPlayingLike);
       },
+      joinArena: (name?: string) => this.joinArena(name),
+      leaveArena: () => this.leaveArena(),
+      arena: () => this.arenaClient?.debugState() ?? null,
       warps: () => {
         const sim = this.sim;
         if (!sim) return {};

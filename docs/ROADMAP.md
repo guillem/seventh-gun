@@ -66,14 +66,16 @@ Richer per-species skins in `textures.ts`; bolt/orb sprites in
 `raycastCylinder` in `physics.ts`; hitscan and player projectiles sweep a
 real XZ-circle × Y-slab volume so look-down shots on a close crawler connect.
 
+## Arena v1 (done)
+
+Global 10-player deathmatch on Cloudflare Workers + one Durable Object.
+Server-authoritative `ArenaSim`, 96×96 generator, client prediction.
+Lag compensation, spatial audio polish, and Netlify retirement are next.
+
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from
   `docs/GAME-DESIGN.md` numbers.
-- Perf pass on phones during the arena wave (pixel ratio / draw calls).
-- Netlify site + deploy previews wired to the repo; CI on GitHub Actions
-  running `npm test` + `npm run test:e2e` per PR.
-- Cosmetic depth: per-theme ambience layers, more decoration variety,
-  intermission text between gun finds.
+- Arena: lag compensation, spawn-distance feel, pad pacing with 2–3 players.
 
 ## Secrets v1 (campaign)
 

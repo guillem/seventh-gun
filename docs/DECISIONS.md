@@ -30,8 +30,11 @@ Unspecified things got decided; this is the record.
 - **Epitaphs**: yes, on the death screen (render-side flavor only).
 - **Difficulty**: multiplier table in `src/sim/difficulty.ts`; layout identical,
   economy scales. Normal is reference.
-- **Netlify**: `netlify.toml`, publish `dist/`, deploy previews verified before
-  merge via Netlify CLI once the owner enables the site.
+- **Netlify**: static mirror, publish `dist/client`. Arena button shows
+  offline unless pointed at Cloudflare via `ALLOWED_ORIGINS` /
+  `VITE_ARENA_WS_URL`.
+- **Cloudflare Workers + one Durable Object** is production for arena
+  (Free plan, no card). Hosting considered Fly.io, rejected: no spend cap.
 - **Remote**: github.com/guillem/seventh-gun. The initial one-shot version
   went to `main`; all further development is branches + PRs via `gh`, with
   the Netlify deploy preview verified before merge.
