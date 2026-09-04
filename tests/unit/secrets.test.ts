@@ -299,6 +299,17 @@ describe('campaign secrets', () => {
         for (const [x, z] of secret.cells) {
           expect(isSolidCell(sim, x, z), `${secret.name} ${x},${z}`).toBe(false);
         }
+        const inside = cellCenter(room.x + 1, room.z + 1);
+        Object.assign(sim.player, inside);
+        sim.step(emptyInput());
+        expect(sim.explored[(room.z + 1) * campaign.map.w + room.x + 1], `${secret.name} fog`).toBe(1);
+        for (const reward of sim.pickups.filter(p => p.roomId === room.id)) {
+          sim.player.hp = 1;
+          sim.player.x = reward.x;
+          sim.player.z = reward.z;
+          sim.step(emptyInput());
+          expect(reward.taken, `${secret.name} ${reward.kind} reward`).toBe(true);
+        }
       }
     }
     expect(kinds).toEqual(new Set(['plate-use', 'plate-shoot', 'remote-use', 'remote-shoot']));
