@@ -90,9 +90,19 @@ try {
   const { serve } = await import(join(dir, 'node_modules', 'seventh-gun', 'dist', 'node', 'server.mjs'));
   const apiServer = serve({ port: 0, host: '127.0.0.1', clientDir: join(dir, 'node_modules', 'seventh-gun', 'dist', 'client') });
   await deadline(once(apiServer, 'listening'), 'API shutdown server startup');
+  const apiAddress = apiServer.address();
+  if (!apiAddress || typeof apiAddress === 'string') throw new Error('API shutdown server did not expose a TCP port');
+  const apiRaw = createConnection({ port: apiAddress.port, host: '127.0.0.1' });
+  await deadline(once(apiRaw, 'connect'), 'API raw WebSocket connect');
+  apiRaw.write('GET /arena HTTP/1.1\r\nHost: 127.0.0.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n');
+  await deadline(new Promise((resolveUpgrade, reject) => {
+    apiRaw.once('data', (data) => String(data).startsWith('HTTP/1.1 101') ? resolveUpgrade() : reject(new Error('API raw WebSocket upgrade failed')));
+    apiRaw.once('error', reject);
+  }), 'API raw WebSocket upgrade');
   const firstShutdown = apiServer.shutdown();
   if (apiServer.shutdown() !== firstShutdown) throw new Error('shutdown() is not idempotent');
-  await deadline(firstShutdown, 'repeated API shutdown');
+  await deadline(firstShutdown, 'repeated API shutdown', 2_500);
+  apiRaw.destroy();
 } finally {
   child?.kill();
   rmSync(dir, { recursive: true, force: true });

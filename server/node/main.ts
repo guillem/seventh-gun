@@ -187,6 +187,7 @@ export function serve(opts: ServeOptions = {}): RunningServer {
   const arenaSockets = new Map<WebSocket, RoomSocket>();
   let shuttingDown = false;
   let shutdownPromise: Promise<void> | null = null;
+  let notifyArenaSocketClosed: (() => void) | null = null;
 
   server.on('upgrade', (req, socket, head) => {
     if (shuttingDown) {
@@ -218,6 +219,7 @@ export function serve(opts: ServeOptions = {}): RunningServer {
       const closeArenaSocket = () => {
         arenaSockets.delete(ws);
         room.onClose(sock);
+        notifyArenaSocketClosed?.();
       };
       ws.on('close', closeArenaSocket);
       ws.on('error', closeArenaSocket);
@@ -236,12 +238,14 @@ export function serve(opts: ServeOptions = {}): RunningServer {
       const finish = () => {
         if (settled) return;
         settled = true;
+        notifyArenaSocketClosed = null;
         if (forceClose) clearTimeout(forceClose);
         resolve();
       };
       const maybeFinish = () => {
         if (httpClosed && arenaSockets.size === 0) finish();
       };
+      notifyArenaSocketClosed = maybeFinish;
 
       // Stop new HTTP upgrades first, then give joined and pending clients a
       // normal WebSocket close handshake. The close handlers run room cleanup
