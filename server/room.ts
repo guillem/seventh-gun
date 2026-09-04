@@ -147,6 +147,8 @@ export class ArenaRoom {
     if (events.length) {
       this.broadcast({ v: 1, t: 'events', es: events });
     }
+    // A failed event send can disconnect the final player and stop the room.
+    if (!this.sim) return;
     if (this.sim.tick % SNAP_EVERY === 0) {
       this.broadcast({ v: 1, t: 'snap', snapshot: this.sim.snapshot() });
     }

@@ -206,6 +206,20 @@ describe('ArenaRoom', () => {
     expect(b.closed).toBeNull();
   });
 
+  it('a failed event send to the final player safely stops the room', () => {
+    const sched = scheduler(() => 0);
+    const room = new ArenaRoom(() => 0, () => 'seed-final-send', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    // Joining queues a spawn event; its broadcast must handle final teardown.
+    a.failSend = true;
+    expect(() => sched.fire()).not.toThrow();
+    expect(a.closed).toBeTruthy();
+    expect(room.sim).toBeNull();
+    expect(() => sched.fire()).not.toThrow();
+  });
+
   it('a failed send only removes that socket and does not crash the tick', () => {
     let now = 0;
     const sched = scheduler(() => now);
