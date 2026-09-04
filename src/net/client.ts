@@ -23,6 +23,7 @@ export interface ArenaNetSocket {
 export type SocketFactory = (url: string) => ArenaNetSocket;
 
 const INTERP_MS = 100;
+const CONNECT_TIMEOUT_MS = 10_000;
 
 export class ArenaClient {
   connected = false;
@@ -57,34 +58,54 @@ export class ArenaClient {
   private cosmeticShot: { gun: number; x: number; z: number; yaw: number } | null = null;
   private echoShotUntil = 0;
   private diedAt: number | null = null;
+  private cancelPendingConnect: (() => void) | null = null;
 
   constructor(private socketFactory: SocketFactory = (url) => new WebSocket(url) as unknown as ArenaNetSocket) {}
 
-  async connect(url: string, name: string): Promise<void> {
+  async connect(url: string, name: string, timeoutMs = CONNECT_TIMEOUT_MS): Promise<void> {
+    this.close();
     return new Promise((resolve, reject) => {
       let settled = false;
       const sock = this.socketFactory(url);
       this.sock = sock;
+      let timeout: ReturnType<typeof setTimeout> | null = null;
+      const isCurrent = () => this.sock === sock;
       const fail = (err: ArenaConnectError) => {
         if (settled) return;
         settled = true;
+        if (timeout !== null) clearTimeout(timeout);
+        this.cancelPendingConnect = null;
+        if (isCurrent()) this.sock = null;
+        try { sock.close(); } catch { /* socket already gone */ }
         reject(err);
       };
-      sock.addEventListener('error', () => fail('offline'));
+      this.cancelPendingConnect = () => fail('offline');
+      timeout = setTimeout(() => fail('offline'), timeoutMs);
+      sock.addEventListener('error', () => {
+        if (!isCurrent()) return;
+        if (settled) this.transportFailed('disconnected');
+        else fail('offline');
+      });
       sock.addEventListener('close', (ev) => {
-        this.connected = false;
-        this.closeReason = ev.reason || 'disconnected';
-        this.onClose?.(this.closeReason);
-        if (!settled) fail('offline');
+        if (!isCurrent()) return;
+        if (!settled) { fail('offline'); return; }
+        this.transportFailed(ev.reason || 'disconnected');
       });
       sock.addEventListener('open', () => {
-        sock.send(encode({ v: 1, t: 'join', name }));
+        if (!isCurrent() || settled) return;
+        this.send({ v: 1, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
+        if (!isCurrent()) return;
         const msg = decodeServer(String(ev.data));
-        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') return;
-        if (msg.t === 'full') { fail('full'); sock.close(); return; }
+        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') {
+          if (settled) this.transportFailed('protocol');
+          else fail('offline');
+          return;
+        }
+        if (!settled && msg.t === 'full') { fail('full'); return; }
         if (msg.t === 'welcome') {
+          if (settled) return;
           const map = generateArena(msg.seed);
           if (msg.genVersion !== ARENA_GEN_VERSION || arenaGridHash(map.grid, map.pickups) !== msg.gridHash) {
             fail('mismatch');
@@ -100,19 +121,27 @@ export class ArenaClient {
           if (me) { this.localX = me.x; this.localZ = me.z; }
           this.connected = true;
           this.rebuildView();
-          if (!settled) { settled = true; resolve(); }
+          if (!settled) {
+            settled = true;
+            if (timeout !== null) clearTimeout(timeout);
+            this.cancelPendingConnect = null;
+            resolve();
+          }
           return;
         }
-        this.handleMessage(msg);
+        if (settled) this.handleMessage(msg);
       });
     });
   }
 
   close(): void {
     this.onClose = null;
-    this.sock?.close();
+    this.cancelPendingConnect?.();
+    this.cancelPendingConnect = null;
+    const sock = this.sock;
     this.sock = null;
     this.connected = false;
+    try { sock?.close(); } catch { /* socket already gone */ }
   }
 
   takeCosmeticShot(): { gun: number; x: number; z: number; yaw: number } | null {
@@ -144,7 +173,7 @@ export class ArenaClient {
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
       this.pingSentAt = performance.now();
-      this.sock?.send(encode({ v: 1, t: 'ping', at: this.pingSentAt }));
+      this.send({ v: 1, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
     if (!me?.alive) {
@@ -259,7 +288,7 @@ export class ArenaClient {
     const fresh = this.pending.filter((p) => p.seq > this.lastSentSeq);
     const batch = (fresh.length ? fresh : this.pending).slice(0, 8);
     if (!batch.length) return;
-    this.sock.send(encode({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) }));
+    this.send({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
     this.lastSentSeq = batch[batch.length - 1]!.seq;
   }
 
@@ -276,6 +305,28 @@ export class ArenaClient {
       this.closeReason = msg.reason;
       this.sock?.close();
     }
+  }
+
+  private send(msg: Parameters<typeof encode>[0]): void {
+    try {
+      this.sock?.send(encode(msg));
+    } catch {
+      this.transportFailed('disconnected');
+    }
+  }
+
+  /** Close a live transport and notify the game once; close() is intentional. */
+  private transportFailed(reason: string): void {
+    const sock = this.sock;
+    if (!sock) return;
+    this.sock = null;
+    this.connected = false;
+    this.closeReason = reason;
+    this.cancelPendingConnect = null;
+    try { sock.close(); } catch { /* socket already gone */ }
+    const onClose = this.onClose;
+    this.onClose = null;
+    onClose?.(reason);
   }
 
   private applySnap(snap: ArenaSnapshot, at: number): void {

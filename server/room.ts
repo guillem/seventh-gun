@@ -123,12 +123,18 @@ export class ArenaRoom {
 
     const t = this.now();
     for (const st of [...this.socks.values()]) {
+      // A prior cleanup in this copied iteration may have stopped the room.
+      if (!this.sim) break;
       if (t - st.lastMsgAt > SOCKET_IDLE_S * 1000) {
         st.sock.close(4000, 'idle');
         this.onClose(st.sock);
         continue;
       }
-      const p = this.sim.players.find((pp) => pp.id === st.playerId);
+      // Closing the last player tears the simulation down. A copied socket
+      // list can still contain a pending socket after that, so never retain a
+      // stale simulation reference across cleanup.
+      const sim = this.sim;
+      const p = sim.players.find((pp) => pp.id === st.playerId);
       if (p?.kicked) {
         this.send(st.sock, { v: 1, t: 'kicked', reason: 'idle' });
         st.sock.close(4000, 'idle');
@@ -141,12 +147,17 @@ export class ArenaRoom {
     if (events.length) {
       this.broadcast({ v: 1, t: 'events', es: events });
     }
+    // A failed event send can disconnect the final player and stop the room.
+    if (!this.sim) return;
     if (this.sim.tick % SNAP_EVERY === 0) {
       this.broadcast({ v: 1, t: 'snap', snapshot: this.sim.snapshot() });
     }
   }
 
   private handleJoin(st: SockState, name: string): void {
+    // One WebSocket owns at most one player. This also makes an accidental
+    // duplicate JOIN harmless if a client retries while a welcome is in flight.
+    if (st.playerId != null) return;
     if (!this.sim) {
       this.seed = this.randomSeed();
       this.sim = new ArenaSim(this.seed);
@@ -186,12 +197,8 @@ export class ArenaRoom {
     this.seed = '';
     this.ticking = false;
     this.schedule.stop();
-    for (const st of [...this.socks.values()]) {
-      if (st.playerId != null) continue;
-      st.cancelJoinWatch?.();
-      this.socks.delete(st.sock);
-      st.sock.close(4000, 'idle');
-    }
+    // Keep pre-join sockets alive until their own short join watchdog fires.
+    // A new JOIN may have arrived as the old final player disconnected.
   }
 
   private noteViolation(st: SockState): void {
@@ -204,11 +211,19 @@ export class ArenaRoom {
   }
 
   private send(sock: RoomSocket, msg: ServerMessage): void {
-    sock.send(encode(msg));
+    const st = this.socks.get(sock);
+    if (!st) return;
+    try {
+      sock.send(encode(msg));
+    } catch {
+      // Some runtime socket adapters throw once a peer has gone away. Treat
+      // that exactly like a close, without allowing one bad peer to kill a tick.
+      this.onClose(sock);
+      try { sock.close(1011, 'send failed'); } catch { /* already closed */ }
+    }
   }
 
   private broadcast(msg: ServerMessage): void {
-    const text = encode(msg);
-    for (const st of this.socks.values()) st.sock.send(text);
+    for (const st of [...this.socks.values()]) this.send(st.sock, msg);
   }
 }

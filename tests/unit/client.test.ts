@@ -9,9 +9,14 @@ import { ArenaSim, type ArenaSnapshot } from '../../src/sim/arena';
 class FakeSock implements ArenaNetSocket {
   sent: string[] = [];
   onSend: ((data: string) => void) | null = null;
+  failSend = false;
   private msg: ((ev: { data: string }) => void) | null = null;
   private cls: ((ev: { code: number; reason: string }) => void) | null = null;
-  send(data: string): void { this.sent.push(data); this.onSend?.(data); }
+  send(data: string): void {
+    if (this.failSend) throw new Error('send failed');
+    this.sent.push(data);
+    this.onSend?.(data);
+  }
   close(): void { this.cls?.({ code: 1000, reason: 'closed' }); }
   addEventListener(type: 'message' | 'close' | 'error' | 'open', fn: (ev: never) => void): void {
     if (type === 'message') this.msg = fn as (ev: { data: string }) => void;
@@ -19,6 +24,12 @@ class FakeSock implements ArenaNetSocket {
     if (type === 'open') queueMicrotask(() => (fn as () => void)());
   }
   push(msg: ServerMessage): void { this.msg?.({ data: encode(msg) }); }
+}
+
+class SilentSock implements ArenaNetSocket {
+  close(): void { /* deliberately never reports close */ }
+  send(): void { /* deliberately never opens */ }
+  addEventListener(): void { /* deliberately silent */ }
 }
 
 function snap(partial: Partial<ArenaSnapshot> & { players: ArenaSnapshot['players'] }): ArenaSnapshot {
@@ -31,20 +42,68 @@ describe('ArenaClient', () => {
     const client = new ArenaClient(() => sock);
     const map = generateArena('c1');
     const p = client.connect('ws://x/arena', 'TEST');
+    const player = {
+      id: 0, name: 'TEST', colorIndex: 0, x: 10, z: 10, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 2, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
     sock.push({
       v: 1, t: 'welcome', id: 0, seed: 'c1', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
-      snapshot: snap({
-        players: [{
-          id: 0, name: 'TEST', colorIndex: 0, x: 10, z: 10, yaw: 0, pitch: 0,
-          hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 2, frags: 0, deaths: 0,
-          lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
-        }],
-      }),
+      snapshot: snap({ players: [player] }),
     });
     await p;
     expect(client.connected).toBe(true);
     expect(client.id).toBe(0);
+
+    // These arrive through the socket listener after welcome, not through the
+    // direct test helper. They must continue to drive the live client.
+    sock.push({ v: 1, t: 'snap', snapshot: snap({ tick: 3, players: [{ ...player, x: 12 }] }) });
+    sock.push({ v: 1, t: 'events', es: [{ t: 'playerSpawn', id: 0 }] });
+    expect(client.tick).toBe(3);
+    expect(client.takeEvents()).toEqual([{ t: 'playerSpawn', id: 0 }]);
+  });
+
+  it('rejects malformed server payloads before using them', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const pending = client.connect('ws://x/arena', 'TEST');
+    sock.push({ v: 1, t: 'welcome' } as unknown as ServerMessage);
+    await expect(pending).rejects.toBe('offline');
+    expect(client.connected).toBe(false);
+  });
+
+  it('can cancel a pending connect and times out a silent endpoint', async () => {
+    const cancelling = new ArenaClient(() => new SilentSock());
+    const pending = cancelling.connect('ws://x/arena', 'TEST', 1000);
+    cancelling.close();
+    await expect(pending).rejects.toBe('offline');
+
+    const timedOut = new ArenaClient(() => new SilentSock());
+    await expect(timedOut.connect('ws://x/arena', 'TEST', 1)).rejects.toBe('offline');
+  });
+
+  it('notifies onClose once when a connected transport send throws', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const map = generateArena('c-send');
+    const pending = client.connect('ws://x/arena', 'A');
+    const player = {
+      id: 0, name: 'A', colorIndex: 0, x: 10, z: 10, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
+    sock.push({
+      v: 1, t: 'welcome', id: 0, seed: 'c-send', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(map.grid, map.pickups), tick: 0, snapshot: snap({ players: [player] }),
+    });
+    await pending;
+    const reasons: string[] = [];
+    client.onClose = (reason) => reasons.push(reason);
+    sock.failSend = true;
+    client.stepLocal(5, emptyInput());
+    expect(reasons).toEqual(['disconnected']);
+    expect(client.connected).toBe(false);
   });
 
   it('prediction replays un-acked inputs after a snapshot', async () => {

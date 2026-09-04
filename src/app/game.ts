@@ -67,6 +67,8 @@ export class Game {
   freeze = false;
   private runKind: 'maze' | 'map' | 'campaign' | 'arena' = 'maze';
   private arenaClient: ArenaClient | null = null;
+  private pendingArenaClient: ArenaClient | null = null;
+  private arenaJoinToken = 0;
   private arenaMenu = false;
   private arenaScoreboard = false;
   private arenaStatus = '';
@@ -166,7 +168,7 @@ export class Game {
     });
     this.screens.bindArenaJoin({
       join: (name) => { void this.joinArena(name); },
-      back: () => { this.screens.showArenaJoin(false); this.screens.showTitle(true); },
+      back: () => { this.cancelArenaJoin(); this.screens.showArenaJoin(false); this.screens.showTitle(true); },
     });
     this.screens.bindCampaign({
       begin: () => this.beginCampaign(),
@@ -347,19 +349,26 @@ export class Game {
   }
 
   async joinArena(name?: string): Promise<void> {
+    if (this.pendingArenaClient || this.arenaClient) return;
     // Must run synchronously inside the click handler (before any await) so
     // the AudioContext is created/resumed within the user-gesture window.
     void this.audio.unlock();
     const raw = (name ?? this.screens.arenaNameInput.value).trim();
     try { localStorage.setItem(this.NAME_KEY, raw); } catch { /* ignore */ }
     this.screens.setArenaStatus('CONNECTING…');
+    this.screens.setArenaJoining(true);
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const envUrl = (import.meta as { env?: { VITE_ARENA_WS_URL?: string } }).env?.VITE_ARENA_WS_URL;
     const url = envUrl ?? `${proto}://${window.location.host}/arena`;
     const client = new ArenaClient();
+    const token = ++this.arenaJoinToken;
+    this.pendingArenaClient = client;
     try {
       await client.connect(url, raw);
     } catch (err) {
+      if (token !== this.arenaJoinToken) return;
+      this.pendingArenaClient = null;
+      this.screens.setArenaJoining(false);
       const reason = String(err);
       const status = reason === 'full' ? 'ARENA FULL'
         : reason === 'mismatch' ? 'GEN MISMATCH'
@@ -368,6 +377,12 @@ export class Game {
       this.screens.setArenaStatus(status);
       return;
     }
+    if (token !== this.arenaJoinToken) {
+      client.close();
+      return;
+    }
+    this.pendingArenaClient = null;
+    this.screens.setArenaJoining(false);
     this.arenaClient = client;
     client.onClose = (r) => {
       this.arenaStatus = r === 'idle' ? 'KICKED: IDLE' : 'DISCONNECTED';
@@ -406,10 +421,18 @@ export class Game {
   }
 
   private leaveArenaSilent(): void {
+    this.cancelArenaJoin();
     this.arenaClient?.close();
     this.arenaClient = null;
     this.arenaMenu = false;
     this.arenaScoreboard = false;
+  }
+
+  private cancelArenaJoin(): void {
+    this.arenaJoinToken++;
+    this.pendingArenaClient?.close();
+    this.pendingArenaClient = null;
+    this.screens.setArenaJoining(false);
   }
 
   private openArenaMenu(): void {

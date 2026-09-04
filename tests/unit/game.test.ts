@@ -6,9 +6,10 @@
 // for canvas-less painting. Import happens after a minimal window/document
 // stub is installed so the module graph (screens.ts, hud.ts, input.ts, ...)
 // loads without throwing at import time.
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { Game as GameClass } from '../../src/app/game';
 import type { ArenaEvent } from '../../src/sim/arena';
+import { ArenaClient } from '../../src/net/client';
 
 function elStub(): Record<string, unknown> {
   return {
@@ -125,6 +126,85 @@ describe('openArenaMenu() — pause menu cannot be occluded by the scoreboard', 
     g.closeArenaMenu();
     expect(g.input.paused, 'closeArenaMenu must un-pause input').toBe(false);
     expect(requested, 'closeArenaMenu re-grabs pointer lock').toBe(1);
+  });
+});
+
+describe('arena join lifecycle', () => {
+  it('does not start a second connection while one is pending', async () => {
+    const g = bareGame() as unknown as {
+      pendingArenaClient: unknown;
+      arenaClient: unknown;
+      audio: { unlock: () => Promise<void> };
+      joinArena: () => Promise<void>;
+    };
+    let unlocked = false;
+    g.pendingArenaClient = {};
+    g.arenaClient = null;
+    g.audio = { unlock: async () => { unlocked = true; } };
+    await g.joinArena();
+    expect(unlocked).toBe(false);
+  });
+
+  it('cancels the pending socket and invalidates its late completion', () => {
+    const g = bareGame() as unknown as {
+      arenaJoinToken: number;
+      pendingArenaClient: { close: () => void } | null;
+      screens: { setArenaJoining: (joining: boolean) => void };
+      cancelArenaJoin: () => void;
+    };
+    let closed = 0;
+    let joining: boolean | null = null;
+    g.arenaJoinToken = 4;
+    g.pendingArenaClient = { close: () => { closed++; } };
+    g.screens = { setArenaJoining: (v) => { joining = v; } };
+    g.cancelArenaJoin();
+    expect(closed).toBe(1);
+    expect(g.pendingArenaClient).toBeNull();
+    expect(g.arenaJoinToken).toBe(5);
+    expect(joining).toBe(false);
+  });
+
+  it('suppresses a double join, cancels BACK, and ignores a late successful connection', async () => {
+    const g = bareGame() as unknown as {
+      arenaJoinToken: number;
+      pendingArenaClient: unknown;
+      arenaClient: unknown;
+      audio: { unlock: () => Promise<void> };
+      screens: {
+        arenaNameInput: { value: string };
+        setArenaStatus: (text: string) => void;
+        setArenaJoining: (joining: boolean) => void;
+      };
+      joinArena: (name?: string) => Promise<void>;
+      cancelArenaJoin: () => void;
+    };
+    let resolveConnect!: () => void;
+    const connect = vi.spyOn(ArenaClient.prototype, 'connect').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveConnect = resolve; }),
+    );
+    g.arenaJoinToken = 0;
+    g.pendingArenaClient = null;
+    g.arenaClient = null;
+    g.audio = { unlock: async () => {} };
+    const joining: boolean[] = [];
+    g.screens = {
+      arenaNameInput: { value: 'PLAYER' },
+      setArenaStatus: () => {},
+      setArenaJoining: (v) => joining.push(v),
+    };
+
+    const first = g.joinArena('FIRST');
+    await Promise.resolve();
+    const second = g.joinArena('SECOND');
+    expect(connect).toHaveBeenCalledTimes(1);
+    g.cancelArenaJoin(); // same cancellation path used by BACK
+    resolveConnect(); // a welcome completing after BACK must not enter the arena
+    await Promise.all([first, second]);
+
+    expect(g.arenaClient).toBeNull();
+    expect(g.pendingArenaClient).toBeNull();
+    expect(joining).toEqual([true, false]);
+    connect.mockRestore();
   });
 });
 

@@ -1,7 +1,30 @@
 # STATUS
 
-Updated: 2026-09-04 — arena playtest round 2: input/HUD fixes, muzzle
-offsets, viewmodel redesign.
+Updated: 2026-09-05 — approved audit repairs are underway. See
+`REPAIR-PLAN.md` for the ordered work and acceptance gates.
+
+The audit found real room lifecycle, network timing, audio, projectile,
+secret visibility and resource cleanup defects despite the passing baseline
+(281 unit / 83 browser tests, 11 skips). Historical playtest notes below are
+not a claim that these later findings are resolved.
+
+Stage 1 is in PR #27. It adds a deployment probe for HTML, the referenced
+JavaScript asset, arena welcome and advancing snapshots (a full room is reported
+explicitly as capacity-limited). The live Worker probe passed. Review caught and
+corrected post-welcome message loss, transport-disconnect notification, malformed
+welcome/gun validation, and final-player failed-send teardown. Focused regressions
+pass; fresh full CI and final review remain the merge gates.
+
+Secret repairs are in PR #28, with import validation and traversal/visibility
+coverage being strengthened after review. The Netlify preview loads campaign.
+Packaging PR #26 remains unmerged; its hardening work includes full notices,
+release gates and Node 22/24 artifact checks. The dependency expert approved
+Vitest 3.2.7/Vite 6.4.3 (zero audit findings) with scoped timeouts for the existing
+long deterministic tests. Full-suite verification remains pending.
+
+npm CLI authentication is still required before publication. No payment method
+is needed or to be added. Pickup feedback still has an entity/player identity
+mismatch; stage 3 will fix it with the planned wire-contract revision.
 
 GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
 
