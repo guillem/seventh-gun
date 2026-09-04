@@ -829,7 +829,16 @@ export class Sim {
   enemyShoot(e: EnemyEnt) {
     const p = this.player;
     const def = e.def;
-    const shotY = def.flying ? enemyVolumeY(def).yCenter : def.height * 0.72;
+    const shotY = (def.flying ? enemyVolumeY(def).yCenter : def.height * 0.72) + def.muzzleOffset.up;
+    // Muzzle origin: the offset is expressed in the enemy's LOCAL frame
+    // (mesh convention +z forward / +x right) and rotated by e.yaw — the
+    // same rotation the render rig applies to yawGroup — so the spawn
+    // point tracks which way the creature is actually facing, not the aim
+    // direction (which includes accuracy error and would put the muzzle
+    // in a different place every shot).
+    const cosYaw = Math.cos(e.yaw), sinYaw = Math.sin(e.yaw);
+    const originX = e.x + def.muzzleOffset.forward * sinYaw + def.muzzleOffset.right * cosYaw;
+    const originZ = e.z + def.muzzleOffset.forward * cosYaw - def.muzzleOffset.right * sinYaw;
     const dx = p.x - e.x, dz = p.z - e.z;
     const dist = Math.hypot(dx, dz);
     // aim at chest with slight lead
@@ -848,7 +857,7 @@ export class Sim {
       id: this.nextProjId++,
       kind: def.projectile,
       fromPlayer: false,
-      x: e.x + dirX * (def.radius + 0.3), y: shotY, z: e.z + dirZ * (def.radius + 0.3),
+      x: originX, y: shotY, z: originZ,
       vx: dirX * speed / hl, vy: dy * speed / hl, vz: dirZ * speed / hl,
       gravity: def.projGravity,
       radius: def.projRadius,
@@ -857,7 +866,7 @@ export class Sim {
       damageSelfPct: 0,
       age: 0,
     });
-    this.events.push({ t: 'enemyShoot', type: e.type, x: e.x, y: shotY, z: e.z });
+    this.events.push({ t: 'enemyShoot', type: e.type, x: originX, y: shotY, z: originZ });
   }
 
   // ------------------------------------------------------------- doors & pickups
