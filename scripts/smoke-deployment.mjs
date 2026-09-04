@@ -36,13 +36,13 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
       if (error) reject(error); else resolve(result);
     };
     const timer = setTimeout(() => finish(new Error('Arena welcome/snapshot timeout')), timeoutMs);
-    socket.addEventListener('open', () => socket.send(JSON.stringify({ v: 2, t: 'join', name: 'SMOKE' })));
+    socket.addEventListener('open', () => socket.send(JSON.stringify({ v: 3, t: 'join', name: 'SMOKE' })));
     socket.addEventListener('error', () => finish(new Error('Arena WebSocket failed')));
     socket.addEventListener('close', () => finish(new Error('Arena closed before snapshots advanced')));
     socket.addEventListener('message', ({ data }) => {
       try {
         const message = JSON.parse(String(data));
-        if (message.v !== 2) throw new Error('Unexpected arena protocol version');
+        if (message.v !== 3) throw new Error('Unexpected arena protocol version');
         if (message.t === 'full') {
           finish(null, { asset: assetUrl.pathname, arena: 'full', snapshots: 'not checked: room at capacity' });
           return;

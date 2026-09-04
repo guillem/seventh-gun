@@ -1,10 +1,10 @@
 import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
-// v2 carries complete projectile state and event identities.  Keeping the
+// v3 carries complete projectile state and event identities.  Keeping the
 // version strict makes an old client fail its join cleanly instead of trying
 // to render a partially understood combat frame.
-export const PROTOCOL_V = 2 as const;
+export const PROTOCOL_V = 3 as const;
 
 export type ClientMessage =
   | { v: typeof PROTOCOL_V; t: 'join'; name: string }
