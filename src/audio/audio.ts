@@ -17,6 +17,7 @@ export class AudioEngine {
   muted = false;
   volume = 0.8;
   private heartTimer = 0;
+  private eventGain = 1;
 
   async unlock(): Promise<void> {
     if (!this.ctx) {
@@ -67,7 +68,12 @@ export class AudioEngine {
   }
 
   private out(): AudioNode {
-    return this.compressor ?? (this.ctx as Ctx).destination;
+    const dest = this.compressor ?? (this.ctx as Ctx).destination;
+    if (this.eventGain >= 0.999 || !this.ctx) return dest;
+    const g = this.ctx.createGain();
+    g.gain.value = this.eventGain;
+    g.connect(dest);
+    return g;
   }
 
   private noiseBuffer: AudioBuffer | null = null;
@@ -345,7 +351,8 @@ export class AudioEngine {
   }
 
   // ------------------------------------------------------------- dispatch
-  handleEvent(e: SimEvent): void {
+  handleEvent(e: SimEvent, gain = 1): void {
+    this.eventGain = gain;
     switch (e.t) {
       case 'shot': this.gunSound(e.gun); break;
       case 'dryfire': this.dryFire(); break;
@@ -369,5 +376,6 @@ export class AudioEngine {
       case 'won': this.winSting(); this.stopLoops(); break;
       default: break;
     }
+    this.eventGain = 1;
   }
 }

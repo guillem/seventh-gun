@@ -48,7 +48,7 @@ npm run dev        # http://localhost:5173
 ```bash
 npm test           # unit: mapgen sweep, weapon contracts, determinism
 npm run test:e2e   # playwright: desktop + mobile projects
-npm run build      # static build -> dist/ (Netlify-ready, see netlify.toml)
+npm run build      # typecheck + Vite/Cloudflare build -> dist/client + worker
 ```
 
 URL tricks: `?seed=anything` pre-fills a maze seed; `#m=SGMAP.v1.…` loads an
@@ -57,8 +57,11 @@ level editor; `?e2e=1` exposes the `window.__GAME__` debug API used by the
 test suite (not present in normal play). `#m=` maps offer RETRY MAP / TITLE
 / COPY LINK / SAVE TO LIBRARY instead of a new maze. Title **CAMPAIGN**
 is seven authored maps with persistent guns; **EDITOR** authors a
-shareable map (library in this browser only). Campaign debug:
-`startCampaign(n)`, `completeMap()`, `campaign`.
+shareable map (library in this browser only). **MULTIPLAYER ARENA** joins
+the global deathmatch room (`npm run dev` serves `/arena` locally; open two
+windows). Campaign debug:
+`startCampaign(n)`, `completeMap()`, `campaign`. Arena debug (`?e2e=1`):
+`joinArena(name)`, `leaveArena()`, `arena()`.
 
 ## Under the hood
 

@@ -36,6 +36,15 @@ Ammo pools/max: bullets 300, shells 60, nails 220, grenades 30, cores 24,
 void 12. Pickup stacks: 70/16/90/70/8/10/5. Boxes: 45/8/35/3/4/1.
 Start: pistol + 70 bullets.
 
+## Arena (multiplayer)
+
+- Grid 96×96 (`ARENA_GRID`), `ARENA_GEN_VERSION` 1 (maze `GEN_VERSION` stays 4).
+- Max 10 players, Normal numbers, pistol + 70 bullets on spawn. No jump,
+  no monsters, no powerups. Pads: guns 2–7, ammo, medikits. Respawn
+  25s / 40s (Seventh) / 12s ammo / 20s medikit.
+- Spawn protect 2s or until first shot. Death lockout 2s. Idle kick 120s.
+- Self-splash unchanged (Bile 25%, Seventh 20%). Suicides: deaths +1, frags −1.
+
 ## Enemies (Normal)
 
 | Type | HP | Speed | Attack | Damage | Notes |

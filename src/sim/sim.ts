@@ -15,9 +15,10 @@ import {
   noiseHearRadius, type EnemyDef,
 } from './enemyTypes';
 import {
-  isSolidCell, moveCircle, pushCircleOut, raycastCylinder, raycastWall, hasLineOfSight, findPath, roomAt,
+  isSolidCell, moveCircle, pushCircleOut, hasLineOfSight, findPath, roomAt,
 } from './physics';
 import { aimDirFromLook } from './aim';
+import { damageAtRange, integrateProjectile, spreadDir, splashFactors, sweepHitscan } from './combat';
 import {
   applyPowerup, createPowerupState, outgoingMul, stepPowerups, wardActive,
   POWERUP_DEFS, type PowerupState,
@@ -415,16 +416,10 @@ export class Sim {
         if (spread > 0) {
           const a = this.rng.float() * Math.PI * 2;
           const r = Math.sqrt(this.rng.float()) * spread;
-          // same perpendicular basis as projectiles: right = (dirZ, -dirX)
-          const rightX = dirZ, rightZ = -dirX;
-          const rl = Math.hypot(rightX, rightZ) || 1;
-          const rxn = rightX / rl, rzn = rightZ / rl;
-          const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
-          sx = dirX + rxn * ca;
-          sy = dirY + sa;
-          sz = dirZ + rzn * ca;
-          const sl = Math.hypot(sx, sy, sz);
-          sx /= sl; sy /= sl; sz /= sl;
+          const spreaded = spreadDir(dirX, dirY, dirZ, a, r);
+          sx = spreaded.dirX;
+          sy = spreaded.dirY;
+          sz = spreaded.dirZ;
         }
         this.hitscanShot(p.x, eye, p.z, sx, sy, sz, w.damage * diff.playerDamageOut * outgoingMul(this.powerups), w.pierce, w, pellet === 0);
       }
@@ -436,12 +431,10 @@ export class Sim {
       if (spread > 0) {
         const a = this.rng.float() * Math.PI * 2;
         const r = Math.sqrt(this.rng.float()) * spread;
-        const rightX = dirZ, rightZ = -dirX;
-        sx = dirX + rightX * Math.cos(a) * r;
-        sy = dirY + Math.sin(a) * r;
-        sz = dirZ + rightZ * Math.cos(a) * r;
-        const sl = Math.hypot(sx, sy, sz);
-        sx /= sl; sy /= sl; sz /= sl;
+        const spreaded = spreadDir(dirX, dirY, dirZ, a, r);
+        sx = spreaded.dirX;
+        sy = spreaded.dirY;
+        sz = spreaded.dirZ;
       }
       this.projectiles.push({
         id: this.nextProjId++,
@@ -465,50 +458,39 @@ export class Sim {
     dirX: number, dirY: number, dirZ: number,
     damage: number, pierce: boolean, w: (typeof WEAPONS)[number], visual: boolean,
   ) {
-    const wall = raycastWall(this, ox, oz, dirX, dirZ, 120);
-    const maxD = Math.min(wall.dist, 120);
-    // Floor does not occlude enemy tests. Grounded bodies sit on y=0; a
-    // steep look-down at the wall–floor junction (live playtest) intersects
-    // the floor plane in front of the disc and used to eat the shot.
-    // Tracer / miss visual still stops at the floor so the streak does not
-    // continue underground.
-    let tracerD = maxD;
-    if (dirY < -1e-8) {
-      const tFloor = (0 - oy) / dirY;
-      if (tFloor > 0) tracerD = Math.min(tracerD, tFloor);
-    }
-    // gather enemy hits along the ray (3D cylinder vs visible gun volume)
-    const hits: { e: EnemyEnt; t: number }[] = [];
+    const enemyById = new Map<number, EnemyEnt>();
+    const bodies: { id: number; x: number; z: number; radius: number; yMin: number; yMax: number }[] = [];
     for (const e of this.enemies) {
       if (e.dead) continue;
+      enemyById.set(e.id, e);
       const distXZ = Math.hypot(e.x - ox, e.z - oz);
       const vol = enemyGunVolumeY(e.def, distXZ);
-      const t = raycastCylinder(
-        ox, oy, oz, dirX, dirY, dirZ,
-        e.x, e.z, enemyGunRadius(e.def),
-        vol.yMin, vol.yMax, maxD + 0.45,
-      );
-      if (t === null) continue;
-      hits.push({ e, t });
+      bodies.push({
+        id: e.id,
+        x: e.x,
+        z: e.z,
+        radius: enemyGunRadius(e.def),
+        yMin: vol.yMin,
+        yMax: vol.yMax,
+      });
     }
-    hits.sort((a, b) => a.t - b.t);
+
+    const { wall, hits, tracerEnd } = sweepHitscan(this, ox, oy, oz, dirX, dirY, dirZ, 120, bodies);
     if (wall.cell && (!hits.length || wall.dist <= hits[0].t + 0.05)) {
       this.trySecretShot(wall.cell[0], wall.cell[1], damage);
     }
-    const dmgAt = (t: number) => {
-      if (t <= w.falloffStart) return damage;
-      if (t >= w.falloffEnd) return damage * w.falloffMin;
-      const f = (t - w.falloffStart) / (w.falloffEnd - w.falloffStart);
-      return damage * (1 - f * (1 - w.falloffMin));
-    };
+
     let hitAny = false;
     for (const h of hits) {
-      this.damageEnemy(h.e, dmgAt(h.t), h.t);
+      const e = enemyById.get(h.id);
+      if (!e) continue;
+      this.damageEnemy(e, damageAtRange(w, h.t, damage), h.t);
       hitAny = true;
       if (!pierce) break;
     }
+
     if (visual) {
-      const endT = pierce ? tracerD : (hitAny && hits.length ? hits[0].t : tracerD);
+      const endT = pierce ? tracerEnd : (hitAny && hits.length ? hits[0].t : tracerEnd);
       if (w.id === 6) {
         this.events.push({ t: 'beam', x0: ox, z0: oz, x1: ox + dirX * endT, z1: oz + dirZ * endT });
       } else {
@@ -550,6 +532,41 @@ export class Sim {
     for (const p of this.projectiles) {
       p.age += dt;
       if (p.age > 8) continue;
+      if (p.fromPlayer) {
+        // Player projectiles collide against enemy gun volumes.
+        const enemyById = new Map<number, EnemyEnt>();
+        const bodies: { id: number; x: number; z: number; radius: number; yMin: number; yMax: number }[] = [];
+        for (const e of this.enemies) {
+          if (e.dead) continue;
+          enemyById.set(e.id, e);
+          const distXZ = Math.hypot(e.x - p.x, e.z - p.z);
+          const vol = enemyGunVolumeY(e.def, distXZ);
+          bodies.push({
+            id: e.id,
+            x: e.x,
+            z: e.z,
+            radius: enemyGunRadius(e.def) + p.radius,
+            yMin: vol.yMin - p.radius,
+            yMax: vol.yMax + p.radius,
+          });
+        }
+
+        const impact = integrateProjectile(this, p, dt, bodies);
+        if (impact) {
+          if (impact.kind === 'body' && p.splashRadius <= 0 && impact.bodyId !== undefined) {
+            const e = enemyById.get(impact.bodyId);
+            if (e) this.damageEnemy(e, p.damage, 0);
+          }
+          this.trySecretShot(impact.hitCell[0], impact.hitCell[1], p.damage);
+          this.impactProjectile(p);
+        } else {
+          keep.push(p);
+        }
+        continue;
+      }
+
+      // Enemy projectiles vs the single player: keep the existing inline
+      // branch so output stays close to the single-player golden reference.
       p.vy -= p.gravity * dt;
       const nx = p.x + p.vx * dt;
       const ny = p.y + p.vy * dt;
@@ -560,55 +577,16 @@ export class Sim {
       if (!impacted && ny <= p.radius && p.gravity > 0) impacted = true; // ground
 
       if (!impacted) {
-        if (p.fromPlayer) {
-          const span = Math.hypot(nx - p.x, ny - p.y, nz - p.z);
-          const inv = span > 1e-12 ? 1 / span : 0;
-          const pdx = (nx - p.x) * inv, pdy = (ny - p.y) * inv, pdz = (nz - p.z) * inv;
-          let bestT = span;
-          let best: EnemyEnt | null = null;
-          for (const e of this.enemies) {
-            if (e.dead) continue;
-            const distXZ = Math.hypot(e.x - p.x, e.z - p.z);
-            const vol = enemyGunVolumeY(e.def, distXZ);
-            const rr = enemyGunRadius(e.def) + p.radius;
-            const y0 = vol.yMin - p.radius, y1 = vol.yMax + p.radius;
-            let t: number | null;
-            if (span < 1e-12) {
-              const dx = e.x - nx, dz = e.z - nz;
-              t = (dx * dx + dz * dz < rr * rr && ny >= y0 && ny <= y1) ? 0 : null;
-            } else {
-              t = raycastCylinder(p.x, p.y, p.z, pdx, pdy, pdz, e.x, e.z, rr, y0, y1, span);
-            }
-            if (t !== null && t <= bestT) { bestT = t; best = e; }
-          }
-          if (best) {
-            if (span >= 1e-12) {
-              p.x += pdx * bestT;
-              p.y += pdy * bestT;
-              p.z += pdz * bestT;
-            }
-            impacted = true;
-            if (p.splashRadius <= 0) this.damageEnemy(best, p.damage, 0);
-          }
-        } else {
-          const dx = this.player.x - nx, dz = this.player.z - nz;
-          const rr = PLAYER_RADIUS + p.radius;
-          if (dx * dx + dz * dz < rr * rr && ny > 0.2 && ny < PLAYER_HEIGHT) {
-            impacted = true;
-            if (p.splashRadius <= 0) this.damagePlayer(p.damage, p.x, p.z);
-          }
+        const dx = this.player.x - nx, dz = this.player.z - nz;
+        const rr = PLAYER_RADIUS + p.radius;
+        if (dx * dx + dz * dz < rr * rr && ny > 0.2 && ny < PLAYER_HEIGHT) {
+          impacted = true;
+          if (p.splashRadius <= 0) this.damagePlayer(p.damage, p.x, p.z);
         }
       }
 
-      if (impacted) {
-        if (p.fromPlayer) {
-          this.trySecretShot(Math.floor(nx / CELL), Math.floor(nz / CELL), p.damage);
-        }
-        this.impactProjectile(p);
-      } else {
-        p.x = nx; p.y = ny; p.z = nz;
-        keep.push(p);
-      }
+      if (impacted) this.impactProjectile(p);
+      else { p.x = nx; p.y = ny; p.z = nz; keep.push(p); }
     }
     this.projectiles = keep;
   }
@@ -617,13 +595,18 @@ export class Sim {
     if (p.splashRadius > 0) {
       this.events.push({ t: 'explosion', x: p.x, y: p.y, z: p.z, radius: p.splashRadius });
       if (p.fromPlayer) {
+        const enemyById = new Map<number, EnemyEnt>();
+        const bodies: { id: number; x: number; z: number; radius: number; yMin: number; yMax: number }[] = [];
         for (const e of this.enemies) {
           if (e.dead) continue;
-          const d = Math.hypot(e.x - p.x, e.z - p.z);
-          if (d < p.splashRadius + e.def.radius) {
-            const f = 1 - Math.max(0, d - e.def.radius) / p.splashRadius;
-            this.damageEnemy(e, p.damage * Math.max(0.25, f), 0);
-          }
+          enemyById.set(e.id, e);
+          bodies.push({ id: e.id, x: e.x, z: e.z, radius: e.def.radius, yMin: 0, yMax: 0 });
+        }
+        const factors = splashFactors(p.x, p.z, p.splashRadius, bodies);
+        for (const f of factors) {
+          const e = enemyById.get(f.id);
+          if (!e) continue;
+          this.damageEnemy(e, p.damage * f.factor, 0);
         }
         const pd = Math.hypot(this.player.x - p.x, this.player.z - p.z);
         if (pd < p.splashRadius * 0.8) {
@@ -846,7 +829,16 @@ export class Sim {
   enemyShoot(e: EnemyEnt) {
     const p = this.player;
     const def = e.def;
-    const shotY = def.flying ? enemyVolumeY(def).yCenter : def.height * 0.72;
+    const shotY = (def.flying ? enemyVolumeY(def).yCenter : def.height * 0.72) + def.muzzleOffset.up;
+    // Muzzle origin: the offset is expressed in the enemy's LOCAL frame
+    // (mesh convention +z forward / +x right) and rotated by e.yaw — the
+    // same rotation the render rig applies to yawGroup — so the spawn
+    // point tracks which way the creature is actually facing, not the aim
+    // direction (which includes accuracy error and would put the muzzle
+    // in a different place every shot).
+    const cosYaw = Math.cos(e.yaw), sinYaw = Math.sin(e.yaw);
+    const originX = e.x + def.muzzleOffset.forward * sinYaw + def.muzzleOffset.right * cosYaw;
+    const originZ = e.z + def.muzzleOffset.forward * cosYaw - def.muzzleOffset.right * sinYaw;
     const dx = p.x - e.x, dz = p.z - e.z;
     const dist = Math.hypot(dx, dz);
     // aim at chest with slight lead
@@ -865,7 +857,7 @@ export class Sim {
       id: this.nextProjId++,
       kind: def.projectile,
       fromPlayer: false,
-      x: e.x + dirX * (def.radius + 0.3), y: shotY, z: e.z + dirZ * (def.radius + 0.3),
+      x: originX, y: shotY, z: originZ,
       vx: dirX * speed / hl, vy: dy * speed / hl, vz: dirZ * speed / hl,
       gravity: def.projGravity,
       radius: def.projRadius,
@@ -874,7 +866,7 @@ export class Sim {
       damageSelfPct: 0,
       age: 0,
     });
-    this.events.push({ t: 'enemyShoot', type: e.type, x: e.x, y: shotY, z: e.z });
+    this.events.push({ t: 'enemyShoot', type: e.type, x: originX, y: shotY, z: originZ });
   }
 
   // ------------------------------------------------------------- doors & pickups

@@ -1,12 +1,18 @@
 // Collision + raycast helpers over the grid (doors and the seal count as solid).
 import { CELL } from './types';
 import type { GameMap } from './types';
-import type { Sim } from './sim';
 
 /** collision = gameplay solidity; visual = what the camera may see through. */
 export type SolidMode = 'collision' | 'visual';
 
-export function isSolidCell(state: Sim, cx: number, cz: number, mode: SolidMode = 'collision'): boolean {
+export interface SolidState {
+  map: GameMap;
+  doors: { cells: [number, number][]; offset: number; opening: boolean }[];
+  secrets: { cells: [number, number][]; offset: number; opening: boolean }[];
+  sealIntact: boolean;
+}
+
+export function isSolidCell(state: SolidState, cx: number, cz: number, mode: SolidMode = 'collision'): boolean {
   if (cx < 0 || cz < 0 || cx >= state.map.w || cz >= state.map.h) return true;
   if (state.map.grid[cz * state.map.w + cx] === 0) return true;
   for (const d of state.doors) {
@@ -31,7 +37,7 @@ export function isSolidCell(state: Sim, cx: number, cz: number, mode: SolidMode 
   return false;
 }
 
-export function circleFits(state: Sim, x: number, z: number, r: number): boolean {
+export function circleFits(state: SolidState, x: number, z: number, r: number): boolean {
   const c0x = Math.floor((x - r) / CELL), c1x = Math.floor((x + r) / CELL);
   const c0z = Math.floor((z - r) / CELL), c1z = Math.floor((z + r) / CELL);
   for (let cz = c0z; cz <= c1z; cz++) {
@@ -48,7 +54,7 @@ export function circleFits(state: Sim, x: number, z: number, r: number): boolean
 }
 
 /** Slide movement: try full move, then axis-separated. */
-export function moveCircle(state: Sim, x: number, z: number, dx: number, dz: number, r: number): { x: number; z: number } {
+export function moveCircle(state: SolidState, x: number, z: number, dx: number, dz: number, r: number): { x: number; z: number } {
   let nx = x, nz = z;
   if (circleFits(state, x + dx, z, r)) nx = x + dx;
   if (circleFits(state, nx, z + dz, r)) nz = z + dz;
@@ -57,7 +63,7 @@ export function moveCircle(state: Sim, x: number, z: number, dx: number, dz: num
 
 /** Push circle `r` out of another circle, still sliding on walls. Deterministic. */
 export function pushCircleOut(
-  state: Sim,
+    state: SolidState,
   x: number, z: number, r: number,
   ox: number, oz: number, orad: number,
 ): { x: number; z: number } {
@@ -134,7 +140,7 @@ export function raycastCylinder(
 
 /** Grid DDA raycast. Returns distance to wall (or maxDist) and hit point. */
 export function raycastWall(
-  state: Sim, x0: number, z0: number, dirX: number, dirZ: number, maxDist: number,
+  state: SolidState, x0: number, z0: number, dirX: number, dirZ: number, maxDist: number,
   mode: SolidMode = 'collision',
 ): { dist: number; x: number; z: number; cell: [number, number] | null } {
   let cx = Math.floor(x0 / CELL), cz = Math.floor(z0 / CELL);
@@ -166,7 +172,7 @@ export function raycastWall(
 
 /** Line of sight between two world points (ignores height). */
 export function hasLineOfSight(
-  state: Sim, x0: number, z0: number, x1: number, z1: number,
+  state: SolidState, x0: number, z0: number, x1: number, z1: number,
   mode: SolidMode = 'collision',
 ): boolean {
   const dx = x1 - x0, dz = z1 - z0;
@@ -177,12 +183,12 @@ export function hasLineOfSight(
 }
 
 /** Same as LOS, but opening doors do not occlude (used by the renderer). */
-export function hasVisualLineOfSight(state: Sim, x0: number, z0: number, x1: number, z1: number): boolean {
+export function hasVisualLineOfSight(state: SolidState, x0: number, z0: number, x1: number, z1: number): boolean {
   return hasLineOfSight(state, x0, z0, x1, z1, 'visual');
 }
 
 /** A* pathfinding on the grid. Returns waypoints (world coords) or null. */
-export function findPath(state: Sim, sx: number, sz: number, tx: number, tz: number): { x: number; z: number }[] | null {
+export function findPath(state: SolidState, sx: number, sz: number, tx: number, tz: number): { x: number; z: number }[] | null {
   const w = state.map.w, h = state.map.h;
   const start = Math.floor(sz / CELL) * w + Math.floor(sx / CELL);
   const goal = Math.floor(tz / CELL) * w + Math.floor(tx / CELL);

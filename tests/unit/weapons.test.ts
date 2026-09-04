@@ -248,6 +248,21 @@ describe('flying enemy hitboxes track the visible body', () => {
     expect(wisp.hp, 'shot above the head must miss').toBe(wisp.maxHp);
   });
 
+  it('a shot at the top of the hover bob connects', () => {
+    const { sim, wisp } = wispSim();
+    // Halo (the visible rounded body) tops out 0.52 above rig.body's y; at
+    // the peak of the render's hover bob that reaches hoverY + 0.52 + hoverBob
+    // = 3.00, which was above the old static ceiling (2.85) — a miss the
+    // player would see as "I was clearly aiming at it." enemyVolumeY must
+    // now cover this point.
+    const bobTopY = ENEMIES.wisp.hoverY + 0.52 + ENEMIES.wisp.hoverBob;
+    expect(bobTopY, 'sanity: this point must exceed the pre-fix volume').toBeGreaterThan(2.85);
+    expect(bobTopY).toBeLessThanOrEqual(enemyVolumeY(ENEMIES.wisp).yMax);
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);
+    sim.step(input({ fire: true, pitch: aimPitchAt(bobTopY, D) }));
+    expect(wisp.hp, 'shot at the visibly-highest point of the hover bob must connect').toBeLessThan(wisp.maxHp);
+  });
+
   it('aiming under the body (the old floor band) no longer connects', () => {
     const { sim, wisp } = wispSim();
     expect(hasLineOfSight(sim, sim.player.x, sim.player.z, wisp.x, wisp.z)).toBe(true);

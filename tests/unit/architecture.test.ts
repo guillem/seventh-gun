@@ -44,6 +44,8 @@ describe('architecture guards', () => {
     for (const f of simFiles) {
       const src = readFileSync(f, 'utf8');
       expect(src, `${f} imports render`).not.toMatch(/from\s+['"]\.\.\/(render|ui|audio|app)/);
+      expect(src, `${f} imports net`).not.toMatch(/from\s+['"]\.\.\/net/);
+      expect(src, `${f} imports server`).not.toMatch(/from\s+['"]\.\.\/\.\.\/server/);
     }
   });
 

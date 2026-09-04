@@ -12,6 +12,35 @@ Unspecified things got decided; this is the record.
   and rejected in PR #20. Flat Lambert/Basic with blob shadows is the
   intended late-90s look. Do not "upgrade" it to physical lighting.
   Branch `feat/lookdev-pbr` is kept as the reference for what was tried.
+- **Silhouette over detail — the character art rule.** Player feedback rated
+  the roster: crawler and wisp good, husk/slab/hierophant/fiend bad. The
+  correlation with effort was *inverted*. The two liked designs were the least
+  elaborate in the codebase (crawler 76-line mesh / 33-line skin, wisp 70/36);
+  the four disliked ones the most (fiend 96/108, hierophant 92/98). What the
+  winners had was a shape readable in one frame and one hot accent on a dark
+  body; what the losers had was axis-aligned box piles in muddy colours with
+  busy texture noise compensating for shape that wasn't there.
+  So: **the mesh carries the read, the skin carries value.** The recipe that
+  worked four times — one lathe or scaled-sphere body mass, limbs as
+  `TubeGeometry` on `CatmullRomCurve3`, pose asymmetry baked into child groups
+  so animation can't clobber it, a map-less pale Lambert for hard parts (a
+  Lambert tint can only darken a map, never lighten it), 64px skins, and
+  exactly one accent hue on the eyes with any second accent kept small and far
+  from the face. Accents are one per species and must not collide: crawler
+  red, husk acid-green, slab molten yellow, hierophant violet, fiend ember
+  orange-red, wisp blue.
+  Do not "fix" a character by adding detail. That is what made these bad.
+- **Art must fit the hit volume, not the reverse.** Geometry rendered above
+  `enemyVolumeY(def).yMax` is unhittable — a shot at a visible skull misses.
+  The redesign broke this (the hierophant's mitre sat 0.14u above the
+  ceiling) and the art was lowered rather than the sim's volumes widened,
+  because `height`/`radius` drive collision, AI body-blocking and the
+  projectile aim point. The one exception is where the *volume* is genuinely
+  wrong: the wisp's flying box ignored its hover bob entirely, so
+  `EnemyDef.hoverBob` widens it and `EnemyRenderer` reads the same field so
+  the two cannot drift. `tests/unit/enemyHitbox.test.ts` locks this in; thin
+  held props are excluded by thickness, never by a per-enemy slack allowance
+  (a blanket allowance is what hid the mitre in that test's first draft).
 - **Sim/render split**: hard boundary, sim is pure TS. See ARCHITECTURE.
 - **Geometry**: 88×88 cells, CELL=2u, corridors 3 cells wide, walls 6u tall,
   indoor ceilings at 4.2u, courtyards open to a sky dome.
@@ -36,8 +65,17 @@ Unspecified things got decided; this is the record.
 - **Epitaphs**: yes, on the death screen (render-side flavor only).
 - **Difficulty**: multiplier table in `src/sim/difficulty.ts`; layout identical,
   economy scales. Normal is reference.
-- **Netlify**: `netlify.toml`, publish `dist/`, deploy previews verified before
-  merge via Netlify CLI once the owner enables the site.
+- **Netlify**: static mirror, publish `dist/client`. Arena button shows
+  offline unless pointed at Cloudflare via `ALLOWED_ORIGINS` /
+  `VITE_ARENA_WS_URL`.
+- **Cloudflare Workers + one Durable Object** is production for arena
+  (Free plan, no card). Hosting considered Fly.io, rejected: no spend cap.
+- **Combat extraction spread:** `spreadDir` normalises the right vector
+  (`hypot(dirZ, dirX)` = `cos(pitch)`), matching the old hitscan path.
+  Pre-extraction projectile spread did not. Accepted: projectile cones now
+  match hitscan. No `GEN_VERSION` bump — maze seeds still produce the same
+  layout. Golden tape in `combatGolden.test.ts` records the post-extraction
+  hashes (giveGun 1–7, pitched aim, HP topped each step, 3 seeds).
 - **Remote**: github.com/guillem/seventh-gun. The initial one-shot version
   went to `main`; all further development is branches + PRs via `gh`, with
   the Netlify deploy preview verified before merge.

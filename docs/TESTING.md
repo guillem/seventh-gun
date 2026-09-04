@@ -21,7 +21,7 @@
   equality over scripted input), wake conditions, no attacks through closed
   doors, dodgeable projectiles, death lockout, win path.
 - `tests/unit/architecture.test.ts` — sim stays headless: no three imports,
-  no Math.random, no DOM/window/localStorage, no imports from render/ui.
+  no Math.random, no DOM/window/localStorage, no imports from render/ui/net/server.
   Same purity walk covers `src/campaign` and `src/editor/model.ts`.
 - `tests/unit/mapLog.test.ts` — prepend newest-first, cap 200 (drop oldest),
   parse missing/unknown fields, ignore quota errors via injected fake storage,
@@ -117,6 +117,10 @@ screenshots for screens/touch UI.
   (proper 3D zombie, face forward), slab (hulking 3D brute), wisp (glowing
   hovering creature), wall decorations (skull + rune decals on panels).
 - Pixel-metric pass (analyzer outage fallback, `PIL`):
+  - (existing maze metrics)
+- Arena: `tests/e2e/arena.spec.ts` (title button, `joinArena`, two contexts,
+  re-seed after last leave) and `tests/e2e/arena-server.spec.ts` (`/health`,
+  raw WebSocket welcome). Preview is the Cloudflare Vite plugin / workerd.
   - crosshair clearance, all 7 guns: ≤1.3% non-background px in the 88px
     center disc (excluding the crosshair strokes themselves);
   - muzzle flash, all 7 guns: idle-vs-fire diff regions 36–60k px with

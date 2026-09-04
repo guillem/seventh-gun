@@ -316,6 +316,21 @@ test.describe('desktop', () => {
     expect(closed).toBe('playing');
   });
 
+  // Regression for the arena key-split (Tab → scoreboard, M → map, arena
+  // only): campaign/maze has no scoreboard, so M must keep opening the same
+  // full map Tab does, in both directions.
+  test('full map also opens on M in campaign/maze, same as Tab', async ({ page }) => {
+    await page.goto(BASE);
+    await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-map-m'));
+    await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+    await page.keyboard.press('KeyM');
+    const open = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase);
+    expect(open).toBe('map');
+    await page.keyboard.press('KeyM');
+    const closed = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase);
+    expect(closed).toBe('playing');
+  });
+
   test('MAP LOG records a quit and PLAY starts the same seed', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
