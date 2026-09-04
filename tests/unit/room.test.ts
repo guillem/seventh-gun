@@ -91,7 +91,10 @@ describe('ArenaRoom', () => {
     const seed1 = welcome.seed;
 
     a.sent.length = 0;
-    for (let i = 0; i < 6; i++) sched.fire();
+    for (let i = 0; i < 6; i++) {
+      now += 1000 / 60;
+      sched.fire();
+    }
     const snaps = a.sent.map((s) => decodeServer(s)).filter((m) => typeof m === 'object' && m.t === 'snap');
     expect(snaps.length).toBe(2);
 
@@ -104,6 +107,51 @@ describe('ArenaRoom', () => {
     const w2 = decodeServer(b.sent[0]!);
     if (typeof w2 !== 'object' || w2.t !== 'welcome') throw new Error('no welcome 2');
     expect(w2.seed).not.toBe(seed1);
+  });
+
+  it('uses elapsed wall time with fixed steps and bounded catch-up', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-clock', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+
+    now += 1000 / 120;
+    sched.fire();
+    expect(room.sim?.tick).toBe(0);
+    now += 1000 / 120;
+    sched.fire();
+    expect(room.sim?.tick).toBe(1);
+
+    now += (1000 / 60) * 3.2;
+    sched.fire();
+    expect(room.sim?.tick).toBe(4);
+
+    now += 1000;
+    sched.fire();
+    expect(room.sim?.tick).toBe(9);
+    expect(room.sim?.time).toBeCloseTo(9 / 60, 10);
+  });
+
+  it('does not skip a 20 Hz snapshot boundary after delayed callbacks', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-snap-clock', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    a.sent.length = 0;
+
+    // Callbacks that each cover two ticks land on 2, 4, and 6. The callbacks
+    // at 4 and 6 both crossed distinct 20 Hz boundaries (3 and 6).
+    for (let i = 0; i < 3; i++) {
+      now += (1000 / 60) * 2;
+      sched.fire();
+    }
+    const snaps = a.sent.map((text) => decodeServer(text)).filter((message) => typeof message === 'object' && message.t === 'snap');
+    expect(snaps).toHaveLength(2);
+    expect(snaps.map((message) => (message as { snapshot: { tick: number } }).snapshot.tick)).toEqual([4, 6]);
   });
 
   it('oversized / flooding socket is dropped after three violations', () => {

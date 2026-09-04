@@ -135,6 +135,35 @@ describe('ArenaClient', () => {
     expect(Math.hypot(after.x - start.x, after.z - start.z)).toBeGreaterThan(0.01);
   });
 
+  it('resends the oldest unacknowledged frames after a full server queue drains', async () => {
+    const sim = new ArenaSim('client-resend-overflow');
+    const player = sim.join('A');
+    if (player === 'full') throw new Error('full');
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const welcome = client.connect('ws://x/arena', 'A');
+    sock.push({
+      v: 1, t: 'welcome', id: player.id, seed: 'client-resend-overflow', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot(),
+    });
+    await welcome;
+    sock.onSend = (data) => {
+      const message = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      if (message.t === 'input' && message.seq != null && message.inputs) sim.pushInput(player.id, message.seq, message.inputs);
+    };
+    const walk = { ...emptyInput(), moveZ: 1, yaw: player.yaw, pitch: 0 };
+    for (let i = 0; i < 16; i++) client.stepLocal(STEP_DT, walk);
+    expect(player.queued.length).toBe(8);
+    expect(player.lastQueuedSeq).toBe(8);
+
+    for (let i = 0; i < 8; i++) sim.step(STEP_DT);
+    client.ingestSnapshot(sim.snapshot());
+    expect(client.pendingCount()).toBeGreaterThan(0);
+    (client as unknown as { flushInputs: () => void }).flushInputs();
+    expect(player.queuedSeqs).toContain(9);
+    expect(player.queuedSeqs).toContain(12);
+  });
+
   it('interpolation returns a pose between two snapshots at 100ms', async () => {
     const sock = new FakeSock();
     const client = new ArenaClient(() => sock);
@@ -164,6 +193,46 @@ describe('ArenaClient', () => {
     expect(other?.x).toBeLessThan(10);
   });
 
+  it('brackets 20 Hz and jittered snapshots, including shortest-arc look and removals', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const map = generateArena('c3-jitter');
+    const p = client.connect('ws://x/arena', 'A');
+    const self = {
+      id: 0, name: 'A', colorIndex: 0, x: 10, z: 10, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
+    const other = (tick: number, x: number, yaw: number, pitch: number) => ({
+      id: 1, name: 'B', colorIndex: 1, x, z: 0, yaw, pitch,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    });
+    sock.push({
+      v: 1, t: 'welcome', id: 0, seed: 'c3-jitter', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
+      snapshot: snap({ players: [self, other(0, 0, 3.1, -0.4)] }),
+    });
+    await p;
+    const at = performance.now() + 1000;
+    client.ingestSnapshot(snap({ tick: 3, players: [self, other(3, 0, 3.1, -0.4)] }), at);
+    client.ingestSnapshot(snap({ tick: 6, players: [self, other(6, 5, -3.1, 0.4)] }), at + 50);
+    client.ingestSnapshot(snap({ tick: 9, players: [self, other(9, 10, -3.0, 0.8)] }), at + 100);
+    const smooth = client.interpolateAt(at + 125)?.players.find((player) => player.id === 1);
+    expect(smooth?.x).toBeCloseTo(2.5, 5);
+    expect(Math.abs(smooth?.yaw ?? 0)).toBeGreaterThan(3);
+    expect(smooth?.pitch).toBeCloseTo(0, 5);
+
+    // A burst arriving late still brackets by arrival time; a stale packet
+    // cannot bring a removed player back.
+    client.ingestSnapshot(snap({ tick: 12, players: [self, other(12, 15, -2.9, 1)] }), at + 160);
+    expect(client.interpolateAt(at + 160)?.players.find((player) => player.id === 1)?.x).toBeCloseTo(6, 5);
+    client.ingestSnapshot(snap({ tick: 15, players: [self] }), at + 210);
+    expect(client.others(at + 310)).toEqual([]);
+    client.ingestSnapshot(snap({ tick: 12, players: [self, other(12, 15, -2.9, 1)] }), at + 315);
+    expect(client.others(at + 415)).toEqual([]);
+  });
+
   it('close() does not fire onClose (intentional leave)', async () => {
     const sock = new FakeSock();
     const client = new ArenaClient(() => sock);
@@ -187,21 +256,32 @@ describe('ArenaClient', () => {
     expect(closed).toBe(false);
   });
 
-  it('100ms RTT walk: server pose matches prediction after settle', async () => {
+  it.each([50, 100, 200])('%ims RTT two-client walk agrees after jittered delivery', async (rttMs) => {
     const sim = new ArenaSim('rtt-walk');
     const player = sim.join('A');
     if (player === 'full') throw new Error('full');
+    const rival = sim.join('B');
+    if (rival === 'full') throw new Error('full');
     const sock = new FakeSock();
     const client = new ArenaClient(() => sock);
+    const rivalSock = new FakeSock();
+    const rivalClient = new ArenaClient(() => rivalSock);
     const welcomeP = client.connect('ws://x/arena', 'A');
     sock.push({
       v: 1, t: 'welcome', id: player.id, seed: 'rtt-walk', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick,
       snapshot: sim.snapshot(),
     });
+    const rivalWelcome = rivalClient.connect('ws://x/arena', 'B');
+    rivalSock.push({
+      v: 1, t: 'welcome', id: rival.id, seed: 'rtt-walk', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick,
+      snapshot: sim.snapshot(),
+    });
     await welcomeP;
+    await rivalWelcome;
 
-    const oneWay = 0.05;
+    const oneWay = rttMs / 2000;
     let clock = 0;
     type Due = { at: number; run: () => void };
     const delayed: Due[] = [];
@@ -223,13 +303,23 @@ describe('ArenaClient', () => {
         run: () => sim.pushInput(player.id, msg.seq!, msg.inputs!),
       });
     };
+    rivalSock.onSend = (data) => {
+      const msg = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      if (msg.t !== 'input' || msg.seq == null || !msg.inputs) return;
+      delayed.push({
+        at: clock + oneWay,
+        run: () => sim.pushInput(rival.id, msg.seq!, msg.inputs!),
+      });
+    };
 
     const yaw = player.yaw;
     const walk = { ...emptyInput(), moveZ: 1, yaw, pitch: 0 };
+    const rivalWalk = { ...emptyInput(), moveX: 1, yaw: rival.yaw, pitch: 0 };
     const ticks = Math.round(2 / STEP_DT);
     for (let i = 0; i < ticks; i++) {
       clock += STEP_DT;
       client.stepLocal(STEP_DT, walk);
+      rivalClient.stepLocal(STEP_DT, rivalWalk);
       flushDue();
       sim.step(STEP_DT);
       if (sim.tick % 3 === 0) {
@@ -238,21 +328,34 @@ describe('ArenaClient', () => {
           at: clock + oneWay,
           run: () => client.ingestSnapshot(snapNow),
         });
+        delayed.push({
+          at: clock + oneWay,
+          run: () => rivalClient.ingestSnapshot(snapNow),
+        });
       }
     }
     const idle = { ...emptyInput(), yaw, pitch: 0 };
     for (let i = 0; i < Math.round(0.35 / STEP_DT); i++) {
       clock += STEP_DT;
       client.stepLocal(STEP_DT, idle);
+      rivalClient.stepLocal(STEP_DT, { ...emptyInput(), yaw: rival.yaw, pitch: 0 });
       flushDue();
       sim.step(STEP_DT);
-      if (sim.tick % 3 === 0) client.ingestSnapshot(sim.snapshot());
+      if (sim.tick % 3 === 0) {
+        const snapshot = sim.snapshot();
+        client.ingestSnapshot(snapshot);
+        rivalClient.ingestSnapshot(snapshot);
+      }
     }
     flushDue();
-    while (player.queued.length) sim.step(STEP_DT);
-    client.ingestSnapshot(sim.snapshot());
+    while (player.queued.length || rival.queued.length) sim.step(STEP_DT);
+    const final = sim.snapshot();
+    client.ingestSnapshot(final);
+    rivalClient.ingestSnapshot(final);
     const view = client.worldView()!.player;
     expect(Math.hypot(view.x - player.x, view.z - player.z)).toBeLessThan(0.05);
+    const rivalView = rivalClient.worldView()!.player;
+    expect(Math.hypot(rivalView.x - rival.x, rivalView.z - rival.z)).toBeLessThan(0.05);
     expect(client.pendingCount()).toBeLessThanOrEqual(0.1 / STEP_DT + 4);
   });
 

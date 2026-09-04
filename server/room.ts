@@ -19,6 +19,12 @@ const MAX_MSG = 2048;
 const MAX_MSG_PER_S = 40;
 const SOCKET_IDLE_S = 15;
 const SNAP_EVERY = Math.round(ARENA_TICK_HZ / ARENA_SNAPSHOT_HZ);
+const STEP_MS = STEP_DT * 1000;
+// A stalled runtime must not run an unbounded amount of game logic in one
+// callback. Five exact ticks is enough to absorb normal timer jitter; older
+// elapsed time is deliberately dropped rather than turning one callback into
+// a long simulation (or making players move farther from a queued input).
+const MAX_CATCH_UP_STEPS = 5;
 
 interface SockState {
   sock: RoomSocket;
@@ -34,6 +40,9 @@ export class ArenaRoom {
   private seed = '';
   private socks = new Map<RoomSocket, SockState>();
   private ticking = false;
+  private lastTickAt: number | null = null;
+  private elapsedMs = 0;
+  private lastSnapshotBucket = 0;
 
   constructor(
     private now: () => number,
@@ -119,9 +128,21 @@ export class ArenaRoom {
 
   tick(): void {
     if (!this.sim) return;
-    this.sim.step(STEP_DT);
 
-    const t = this.now();
+    const now = this.now();
+    if (this.lastTickAt == null) this.lastTickAt = now;
+    const elapsed = Math.max(0, now - this.lastTickAt);
+    this.lastTickAt = now;
+    this.elapsedMs = Math.min(this.elapsedMs + elapsed, STEP_MS * MAX_CATCH_UP_STEPS);
+
+    let stepped = 0;
+    while (this.sim && this.elapsedMs + 1e-9 >= STEP_MS && stepped < MAX_CATCH_UP_STEPS) {
+      this.sim.step(STEP_DT);
+      this.elapsedMs -= STEP_MS;
+      stepped++;
+    }
+
+    const t = now;
     for (const st of [...this.socks.values()]) {
       // A prior cleanup in this copied iteration may have stopped the room.
       if (!this.sim) break;
@@ -149,7 +170,12 @@ export class ArenaRoom {
     }
     // A failed event send can disconnect the final player and stop the room.
     if (!this.sim) return;
-    if (this.sim.tick % SNAP_EVERY === 0) {
+    // A late callback can cross more than one fixed tick. Send the newest
+    // state once when it crosses a 20 Hz boundary instead of missing that
+    // boundary merely because the callback landed on tick 4 rather than 3.
+    const snapshotBucket = Math.floor(this.sim.tick / SNAP_EVERY);
+    if (stepped > 0 && snapshotBucket > this.lastSnapshotBucket) {
+      this.lastSnapshotBucket = snapshotBucket;
       this.broadcast({ v: 1, t: 'snap', snapshot: this.sim.snapshot() });
     }
   }
@@ -189,6 +215,9 @@ export class ArenaRoom {
   private startTicks(): void {
     if (this.ticking) return;
     this.ticking = true;
+    this.lastTickAt = this.now();
+    this.elapsedMs = 0;
+    this.lastSnapshotBucket = 0;
     this.schedule.start(() => this.tick(), ARENA_TICK_HZ);
   }
 
@@ -196,6 +225,9 @@ export class ArenaRoom {
     this.sim = null;
     this.seed = '';
     this.ticking = false;
+    this.lastTickAt = null;
+    this.elapsedMs = 0;
+    this.lastSnapshotBucket = 0;
     this.schedule.stop();
     // Keep pre-join sockets alive until their own short join watchdog fires.
     // A new JOIN may have arrived as the old final player disconnected.

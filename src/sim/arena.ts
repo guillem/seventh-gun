@@ -246,7 +246,6 @@ export class ArenaSim implements SolidState {
     for (let i = 0; i < inputs.length; i++) {
       const s = seq + i;
       if (s <= p.lastQueuedSeq) continue;
-      p.lastQueuedSeq = s;
       if (!p.alive) continue;
       const raw = inputs[i]!;
       const frame: SimInput = {
@@ -255,12 +254,14 @@ export class ArenaSim implements SolidState {
         moveZ: Math.max(-1, Math.min(1, raw.moveZ)),
         pitch: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, raw.pitch)),
       };
-      if (p.queued.length >= 8) {
-        p.queued.shift();
-        p.queuedSeqs.shift();
-      }
+      // Do not silently discard an accepted frame. In particular, a one-frame
+      // fire or weapon switch must either be simulated or remain unacknowledged
+      // so the client can resend it. Keeping the queue bounded also prevents a
+      // delayed client from converting a burst into extra movement time.
+      if (p.queued.length >= 8) break;
       p.queued.push(frame);
       p.queuedSeqs.push(s);
+      p.lastQueuedSeq = s;
       p.input = frame;
     }
   }
@@ -283,10 +284,10 @@ export class ArenaSim implements SolidState {
         continue;
       }
 
-      // Consume one queued input per tick; drain faster if the queue is
-      // backing up (workerd setInterval runs a bit under 60 Hz).
-      const take = p.queued.length > 4 ? 2 : 1;
-      for (let n = 0; n < take && p.queued.length; n++) {
+      // Exactly one acknowledged input contributes to one fixed simulation
+      // tick. Applying two queued controls in one tick acknowledged a short
+      // action without simulating it, and could make delayed movement faster.
+      for (let n = 0; n < 1 && p.queued.length; n++) {
         p.input = p.queued.shift()!;
         p.lastSeq = p.queuedSeqs.shift() ?? p.lastSeq;
       }

@@ -36,7 +36,10 @@ export class ArenaClient {
 
   private sock: ArenaNetSocket | null = null;
   private latest: { snap: ArenaSnapshot; at: number } | null = null;
-  private previous: { snap: ArenaSnapshot; at: number } | null = null;
+  // Keep enough arrival-time history to bracket the 100 ms render delay at
+  // the normal 20 Hz snapshot cadence. Arrival times are intentional here:
+  // v1 snapshots have no server clock suitable for interpolation.
+  private snapshots: { snap: ArenaSnapshot; at: number }[] = [];
   private events: ArenaEvent[] = [];
   private pending: { seq: number; input: SimInput }[] = [];
   private nextSeq = 1;
@@ -329,10 +332,18 @@ export class ArenaClient {
     onClose?.(reason);
   }
 
-  private applySnap(snap: ArenaSnapshot, at: number): void {
-    this.previous = this.latest;
+  private applySnap(snap: ArenaSnapshot, at: number): boolean {
+    // A packet which predates the current authority cannot resurrect a player
+    // or undo a death/removal. Equal ticks are harmless and keep test/debug
+    // injection usable; the later arrival replaces the render sample.
+    if (this.latest && snap.tick < this.latest.snap.tick) return false;
     this.latest = { snap, at };
+    this.snapshots.push({ snap, at });
+    this.snapshots.sort((a, b) => a.at - b.at);
+    const oldest = Math.max(...this.snapshots.map((sample) => sample.at)) - 1000;
+    this.snapshots = this.snapshots.filter((sample) => sample.at >= oldest);
     this.tick = snap.tick;
+    return true;
   }
 
   private reconcile(): void {
@@ -379,19 +390,29 @@ export class ArenaClient {
   }
 
   private interpolatedSnap(now: number): ArenaSnapshot | null {
-    if (!this.latest) return null;
-    if (!this.previous) return this.latest.snap;
+    if (!this.latest || !this.snapshots.length) return null;
     const target = now - INTERP_MS;
-    const t0 = this.previous.at;
-    const t1 = this.latest.at;
-    const u = t1 === t0 ? 1 : Math.max(0, Math.min(1, (target - t0) / (t1 - t0)));
-    const a = this.previous.snap;
-    const b = this.latest.snap;
+    let after = this.snapshots.find((sample) => sample.at >= target) ?? this.snapshots[this.snapshots.length - 1]!;
+    let before = this.snapshots[0]!;
+    for (const sample of this.snapshots) {
+      if (sample.at > target) break;
+      before = sample;
+    }
+    if (after.at < before.at) after = before;
+    const u = after.at === before.at ? 1 : Math.max(0, Math.min(1, (target - before.at) / (after.at - before.at)));
+    const a = before.snap;
+    const b = after.snap;
     return {
       tick: b.tick,
       players: b.players.map((p) => {
         const q = a.players.find((x) => x.id === p.id) ?? p;
-        return { ...p, x: q.x + (p.x - q.x) * u, z: q.z + (p.z - q.z) * u };
+        return {
+          ...p,
+          x: q.x + (p.x - q.x) * u,
+          z: q.z + (p.z - q.z) * u,
+          yaw: lerpAngle(q.yaw, p.yaw, u),
+          pitch: lerpAngle(q.pitch, p.pitch, u),
+        };
       }),
       projectiles: b.projectiles.map((p) => {
         const q = a.projectiles.find((x) => x.id === p.id) ?? p;
@@ -473,6 +494,11 @@ export class ArenaClient {
       arenaEnemiesRemaining: () => 0,
     };
   }
+}
+
+function lerpAngle(a: number, b: number, u: number): number {
+  const delta = Math.atan2(Math.sin(b - a), Math.cos(b - a));
+  return a + delta * u;
 }
 
 function maskToOwned(mask: number): boolean[] {

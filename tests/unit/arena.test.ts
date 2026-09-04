@@ -322,6 +322,35 @@ describe('arena sim (server-authoritative)', () => {
     expect(a.queuedSeqs).toEqual([2, 3, 4]);
   });
 
+  it('does not acknowledge a brief queued fire or switch before it is simulated', () => {
+    const fireSim = new ArenaSim('arena-short-fire');
+    const shooter = fireSim.join('A') as any;
+    fireSim.takeEvents();
+    const idle = inputTick({ yaw: shooter.yaw, pitch: 0, fire: false });
+    const fire = inputTick({ yaw: shooter.yaw, pitch: 0, fire: true });
+    fireSim.pushInput(shooter.id, 1, Array.from({ length: 8 }, () => idle));
+    fireSim.pushInput(shooter.id, 9, [fire]);
+    expect(shooter.lastQueuedSeq).toBe(8);
+    for (let i = 0; i < 8; i++) fireSim.step(STEP_DT);
+    expect(shooter.lastSeq).toBe(8);
+    fireSim.pushInput(shooter.id, 9, [fire]);
+    fireSim.step(STEP_DT);
+    expect(shooter.lastSeq).toBe(9);
+    expect(fireSim.takeEvents().some((e) => e.t === 'shot')).toBe(true);
+
+    const switchSim = new ArenaSim('arena-short-switch');
+    const player = switchSim.join('A') as any;
+    player.owned[2] = true;
+    switchSim.pushInput(player.id, 1, Array.from({ length: 8 }, () => idle));
+    switchSim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
+    for (let i = 0; i < 8; i++) switchSim.step(STEP_DT);
+    expect(player.gun).toBe(1);
+    switchSim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
+    switchSim.step(STEP_DT);
+    expect(player.lastSeq).toBe(9);
+    expect(player.gun).toBe(2);
+  });
+
   it('kill by a player who already left is no credit and no suicide', () => {
     const sim = new ArenaSim('arena-test-left-killer');
     const a = sim.join('A') as any;
@@ -400,4 +429,3 @@ describe('arena sim (server-authoritative)', () => {
     expect(JSON.stringify(A.sim.snapshot())).toBe(JSON.stringify(B.sim.snapshot()));
   });
 });
-
