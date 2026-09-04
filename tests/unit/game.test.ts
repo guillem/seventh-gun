@@ -6,9 +6,10 @@
 // for canvas-less painting. Import happens after a minimal window/document
 // stub is installed so the module graph (screens.ts, hud.ts, input.ts, ...)
 // loads without throwing at import time.
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { Game as GameClass } from '../../src/app/game';
 import type { ArenaEvent } from '../../src/sim/arena';
+import { ArenaClient } from '../../src/net/client';
 
 function elStub(): Record<string, unknown> {
   return {
@@ -128,6 +129,85 @@ describe('openArenaMenu() — pause menu cannot be occluded by the scoreboard', 
   });
 });
 
+describe('arena join lifecycle', () => {
+  it('does not start a second connection while one is pending', async () => {
+    const g = bareGame() as unknown as {
+      pendingArenaClient: unknown;
+      arenaClient: unknown;
+      audio: { unlock: () => Promise<void> };
+      joinArena: () => Promise<void>;
+    };
+    let unlocked = false;
+    g.pendingArenaClient = {};
+    g.arenaClient = null;
+    g.audio = { unlock: async () => { unlocked = true; } };
+    await g.joinArena();
+    expect(unlocked).toBe(false);
+  });
+
+  it('cancels the pending socket and invalidates its late completion', () => {
+    const g = bareGame() as unknown as {
+      arenaJoinToken: number;
+      pendingArenaClient: { close: () => void } | null;
+      screens: { setArenaJoining: (joining: boolean) => void };
+      cancelArenaJoin: () => void;
+    };
+    let closed = 0;
+    let joining: boolean | null = null;
+    g.arenaJoinToken = 4;
+    g.pendingArenaClient = { close: () => { closed++; } };
+    g.screens = { setArenaJoining: (v) => { joining = v; } };
+    g.cancelArenaJoin();
+    expect(closed).toBe(1);
+    expect(g.pendingArenaClient).toBeNull();
+    expect(g.arenaJoinToken).toBe(5);
+    expect(joining).toBe(false);
+  });
+
+  it('suppresses a double join, cancels BACK, and ignores a late successful connection', async () => {
+    const g = bareGame() as unknown as {
+      arenaJoinToken: number;
+      pendingArenaClient: unknown;
+      arenaClient: unknown;
+      audio: { unlock: () => Promise<void> };
+      screens: {
+        arenaNameInput: { value: string };
+        setArenaStatus: (text: string) => void;
+        setArenaJoining: (joining: boolean) => void;
+      };
+      joinArena: (name?: string) => Promise<void>;
+      cancelArenaJoin: () => void;
+    };
+    let resolveConnect!: () => void;
+    const connect = vi.spyOn(ArenaClient.prototype, 'connect').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveConnect = resolve; }),
+    );
+    g.arenaJoinToken = 0;
+    g.pendingArenaClient = null;
+    g.arenaClient = null;
+    g.audio = { unlock: async () => {} };
+    const joining: boolean[] = [];
+    g.screens = {
+      arenaNameInput: { value: 'PLAYER' },
+      setArenaStatus: () => {},
+      setArenaJoining: (v) => joining.push(v),
+    };
+
+    const first = g.joinArena('FIRST');
+    await Promise.resolve();
+    const second = g.joinArena('SECOND');
+    expect(connect).toHaveBeenCalledTimes(1);
+    g.cancelArenaJoin(); // same cancellation path used by BACK
+    resolveConnect(); // a welcome completing after BACK must not enter the arena
+    await Promise.all([first, second]);
+
+    expect(g.arenaClient).toBeNull();
+    expect(g.pendingArenaClient).toBeNull();
+    expect(joining).toEqual([true, false]);
+    connect.mockRestore();
+  });
+});
+
 describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () => {
   function harness() {
     const messages: string[] = [];
@@ -148,15 +228,38 @@ describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () 
 
   it('does not show a HUD message or play a sound for another player\'s pickup', () => {
     const { g, messages, audioEvents } = harness();
-    g.handleArenaEvent({ t: 'pickup', id: 7, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
+    g.handleArenaEvent({ t: 'pickup', playerId: 7, pickupId: 3, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
     expect(messages).toEqual([]);
     expect(audioEvents).toEqual([]);
   });
 
   it('does show the HUD message and play the sound for the local player\'s own pickup', () => {
     const { g, messages, audioEvents } = harness();
-    g.handleArenaEvent({ t: 'pickup', id: 3, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
+    // Pickup id intentionally equals a different observer id: only playerId
+    // controls local feedback.
+    g.handleArenaEvent({ t: 'pickup', playerId: 3, pickupId: 7, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
     expect(messages).toEqual(['+10 NAILS']);
     expect(audioEvents).toEqual([{ t: 'pickup', kind: 'ammo', label: '+10 NAILS' }]);
+  });
+});
+
+describe('arena audio ownership', () => {
+  it('keeps a gain-1 remote volley outside the local audio reserve', () => {
+    const calls: unknown[][] = [];
+    const g = bareGame() as unknown as {
+      arenaClient: { worldView: () => { player: { x: number; z: number } }; shouldIgnoreEchoShot: () => boolean; roster: () => [] };
+      audio: { handleEvent: (...args: unknown[]) => void };
+      renderer: { fireVisual: () => void; fx: Record<string, never> };
+      handleArenaEvent: (event: ArenaEvent, selfId: number) => void;
+    };
+    g.arenaClient = { worldView: () => ({ player: { x: 0, z: 0 } }), shouldIgnoreEchoShot: () => false, roster: () => [] };
+    g.audio = { handleEvent: (...args) => calls.push(args) };
+    g.renderer = { fireVisual() {}, fx: {} };
+    const remote = { t: 'shot', id: 7, shotId: 1, spawnCount: 1, inputSeq: 1, gun: 1, x: 0, z: 0, yaw: 0, pitch: 0 } as const;
+    const local = { ...remote, id: 3, shotId: 2, inputSeq: 2 };
+    for (let i = 0; i < 30; i++) g.handleArenaEvent({ ...remote, shotId: i + 1 }, 3);
+    g.handleArenaEvent(local, 3);
+    expect(calls.slice(0, 30).every((call) => call[2] === false)).toBe(true);
+    expect(calls.at(-1)?.[2]).toBe(true);
   });
 });

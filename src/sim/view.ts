@@ -22,6 +22,8 @@ export interface WorldView {
   powerups: PowerupState;
   killCount: number;
   arenaEntered: boolean;
+  /** True for the network deathmatch; campaign arena messaging differs. */
+  networkArena?: boolean;
   hasKey: boolean;
   arenaEnemiesRemaining(): number;
 }

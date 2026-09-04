@@ -287,8 +287,8 @@ export class GameRenderer {
     this.render();
   }
 
-  updateArena(dt: number, view: WorldView, remotes: RemotePlayerPose[]): void {
-    this.update(dt, view, true);
+  updateArena(dt: number, view: WorldView, remotes: RemotePlayerPose[], moving: boolean): void {
+    this.update(dt, view, moving);
     this.others.update(dt, remotes, this.camera, view);
   }
 

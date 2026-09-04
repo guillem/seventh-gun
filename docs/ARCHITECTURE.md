@@ -101,9 +101,20 @@ drive pointer lock with synthetic mouse moves.
 
 `ArenaSim` (`src/sim/arena.ts`) is a second headless sim: 10-player deathmatch,
 no monsters, 96×96 `generateArena(seed)`. Physics uses `SolidState`; combat
-uses `src/sim/combat.ts`. The Durable Object in `server/` ticks it at 60 Hz
-and broadcasts 20 Hz snapshots over `/arena`. Clients predict local movement
-and interpolate others ~100 ms behind. Hits and pickups are server-only.
+uses `src/sim/combat.ts`. The Durable Object in `server/` advances it from
+elapsed wall time in exact 1/60-second steps with bounded catch-up, then
+broadcasts 20 Hz snapshots over `/arena`. A snapshot acknowledges only input
+frames that have actually been simulated; frames are retransmitted in sequence
+and actions are neutral between frames. Arena protocol v2 tags each batch with
+the player's spawn epoch, so delayed controls cannot cross a respawn. Clients predict local movement and
+retain arrival-time snapshots bracketing a ~100 ms render delay for remote
+positions and look angles. Hits and pickups are server-only.
+
+Arena wire protocol v3 deliberately rejects other versions. Snapshots carry
+projectile owner, velocity and lifetime state, while combat events carry
+authoritative shot and pickup identities; clients can therefore render the
+first projectile frame and suppress only the matching locally predicted shot.
+
 `server/index.ts` supplies the Cloudflare Durable Object adapter. `server/node/`
 supplies the portable HTTP/static-file and WebSocket adapter used by the npm
 package and container; it has no gameplay logic of its own.

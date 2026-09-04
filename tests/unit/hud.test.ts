@@ -46,4 +46,10 @@ describe('HUD panel layout', () => {
     const top = Number(rosterTop![1]);
     expect(top).toBeGreaterThan(killsY);
   });
+
+  it('labels network arena as deathmatch instead of campaign completion', () => {
+    const src = readFileSync(join(process.cwd(), 'src', 'ui', 'hud.ts'), 'utf8');
+    expect(src).toContain('if (sim.networkArena)');
+    expect(src).toContain('ARENA // DEATHMATCH');
+  });
 });

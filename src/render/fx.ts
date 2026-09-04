@@ -63,27 +63,29 @@ export class FxRenderer {
     this.addEffect(holder, 0.07, undefined, light);
   }
 
-  tracer(x0: number, y0: number, z0: number, x1: number, z1: number, kind: 'bullets' | 'rail'): void {
+  tracer(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, kind: 'bullets' | 'rail'): void {
     if (kind === 'rail') {
       // bright movie-laser beam: hot core + additive jacket
-      const dx = x1 - x0, dz = z1 - z0;
-      const len = Math.hypot(dx, dz);
+      const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
+      const len = Math.hypot(dx, dy, dz);
       const group = new THREE.Group();
       group.position.set(x0, y0, z0);
-      group.lookAt(x1, y0, z1);
+      group.lookAt(x1, y1, z1);
       const core = new THREE.Mesh(
         new THREE.CylinderGeometry(0.035, 0.035, len, 6),
         new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, fog: false }),
       );
       core.rotation.x = Math.PI / 2;
-      core.position.z = -len / 2;
+      // Object3D.lookAt points local +Z at the target, so centre the
+      // cylinder ahead of the muzzle rather than drawing it behind it.
+      core.position.z = len / 2;
       group.add(core);
       const jacket = new THREE.Mesh(
         new THREE.CylinderGeometry(0.11, 0.11, len, 6),
         new THREE.MeshBasicMaterial({ color: 0x37e6ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.7, fog: false }),
       );
       jacket.rotation.x = Math.PI / 2;
-      jacket.position.z = -len / 2;
+      jacket.position.z = len / 2;
       group.add(jacket);
       const light = new THREE.PointLight(0x37e6ff, 80, 26, 1.8);
       this.addEffect(group, 0.16, (_t, k) => {
@@ -92,21 +94,21 @@ export class FxRenderer {
         if (light) light.intensity = 80 * k;
       }, light);
       // impact flare
-      this.spawnParticles(x1, y0, z1, 10, 0x9ff4ff, 5, 0.5, 0.16);
+      this.spawnParticles(x1, y1, z1, 10, 0x9ff4ff, 5, 0.5, 0.16);
       return;
     }
     // bullet tracer: short glowing streak along the ray
-    const dx = x1 - x0, dz = z1 - z0;
-    const len = Math.hypot(dx, dz);
+    const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
+    const len = Math.hypot(dx, dy, dz);
     if (len < 2) return;
     const start = Math.max(0, len * 0.3);
     const segLen = Math.min(len - start, 6);
-    const dirX = dx / len, dirZ = dz / len;
+    const dirX = dx / len, dirY = dy / len, dirZ = dz / len;
     const geo = new THREE.BoxGeometry(0.03, 0.03, segLen);
     const mat = new THREE.MeshBasicMaterial({ color: 0xffe2a0, blending: THREE.AdditiveBlending, transparent: true, fog: false });
     const m = new THREE.Mesh(geo, mat);
-    m.position.set(x0 + dirX * (start + segLen / 2), y0, z0 + dirZ * (start + segLen / 2));
-    m.lookAt(x1, y0, z1);
+    m.position.set(x0 + dirX * (start + segLen / 2), y0 + dirY * (start + segLen / 2), z0 + dirZ * (start + segLen / 2));
+    m.lookAt(x1, y1, z1);
     this.addEffect(m, 0.05, (_t, k) => { mat.opacity = k; });
   }
 
@@ -223,8 +225,9 @@ export class FxRenderer {
         const m = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.42), new THREE.MeshLambertMaterial({ color: 0x9aa6ad }));
         g.add(m);
         const tip = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.1, 5), new THREE.MeshLambertMaterial({ color: 0xc9d4da }));
-        tip.rotation.x = -Math.PI / 2;
-        tip.position.z = -0.24;
+        // Projectile meshes point along local +Z, matching syncProjectiles.
+        tip.rotation.x = Math.PI / 2;
+        tip.position.z = 0.24;
         g.add(tip);
         break;
       }

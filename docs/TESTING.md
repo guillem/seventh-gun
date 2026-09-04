@@ -20,6 +20,9 @@
 - `tests/unit/sim.test.ts` — difficulty multipliers, determinism (snapshot
   equality over scripted input), wake conditions, no attacks through closed
   doors, dodgeable projectiles, death lockout, win path.
+- `tests/unit/arena.test.ts`, `room.test.ts`, and `client.test.ts` — arena
+  input acknowledgement and resend behavior, elapsed-clock jitter/stall
+  bounds, and arrival-time snapshot interpolation including remote look.
 - `tests/unit/architecture.test.ts` — sim stays headless: no three imports,
   no Math.random, no DOM/window/localStorage, no imports from render/ui/net/server.
   Same purity walk covers `src/campaign` and `src/editor/model.ts`.

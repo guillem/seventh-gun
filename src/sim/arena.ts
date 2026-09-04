@@ -78,18 +78,19 @@ export type ArenaEvent =
   | { t: 'playerJoin'; id: number; name: string; colorIndex: number }
   | { t: 'playerLeave'; id: number }
   | { t: 'kick'; id: number; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { t: 'shot'; id: number; gun: number; x: number; z: number; yaw: number }
+  | { t: 'shot'; id: number; shotId: number; spawnCount: number; inputSeq: number; gun: number; x: number; z: number; yaw: number; pitch: number }
   | { t: 'dryfire'; id: number; gun: number }
-  | { t: 'tracer'; id: number; x0: number; z0: number; x1: number; z1: number; kind: 'bullets' }
-  | { t: 'beam'; id: number; x0: number; z0: number; x1: number; z1: number }
-  | { t: 'spawnProjectile'; id: number; kind: ProjectileKind; x: number; y: number; z: number }
+  | { t: 'tracer'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; kind: 'bullets' }
+  | { t: 'beam'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number }
+  | { t: 'spawnProjectile'; id: number; projectileId: number; ownerId: number; kind: ProjectileKind; x: number; y: number; z: number; vx: number; vy: number; vz: number; gravity: number; radius: number; age: number }
+  | { t: 'despawnProjectile'; projectileId: number }
   | { t: 'explosion'; id: number; x: number; y: number; z: number; radius: number }
   | { t: 'playerHurt'; id: number; damage: number; fromAngle: number }
   | { t: 'hitPlayer'; id: number; x: number; y: number; z: number; killed: boolean }
   | { t: 'playerDie'; id: number }
   | { t: 'playerSpawn'; id: number }
   | { t: 'frag'; killerId: number; victimId: number; suicide: boolean }
-  | { t: 'pickup'; id: number; kind: PickupDef['kind']; label: string }
+  | { t: 'pickup'; playerId: number; pickupId: number; kind: PickupDef['kind']; label: string }
   | { t: 'padRespawn'; id: number };
 
 export interface ArenaSnapshot {
@@ -109,10 +110,11 @@ export interface ArenaSnapshot {
     protect: number;
     frags: number;
     deaths: number;
+    spawnCount: number;
     lastSeq: number;
     ammo: Record<AmmoType, number>;
   }[];
-  projectiles: { id: number; kind: ProjectileKind; x: number; y: number; z: number }[];
+  projectiles: { id: number; ownerId: number; kind: ProjectileKind; x: number; y: number; z: number; vx: number; vy: number; vz: number; gravity: number; radius: number; age: number }[];
   pickups: { id: number; taken: boolean }[];
 }
 
@@ -138,6 +140,7 @@ export class ArenaSim implements SolidState {
   private nextPlayerId = 0;
   private nextColorIndex = 0;
   private nextProjectileId = 1;
+  private nextShotId = 1;
 
   // Spawn candidates are cells inside a room whose circle fits the arena
   // walls at server startup, so every respawn can sample deterministically.
@@ -238,16 +241,18 @@ export class ArenaSim implements SolidState {
     this.events.push({ t: 'playerLeave', id });
   }
 
-  pushInput(id: number, seq: number, inputs: SimInput[]): void {
+  pushInput(id: number, spawnCount: number, seq: number, inputs: SimInput[]): void {
     const p = this.players.find((pp) => pp.id === id);
-    if (!p) return;
+    if (!p || !p.alive || spawnCount !== p.spawnCount) return;
     // `seq` is the first input; the rest are consecutive. Ignore anything
     // already queued or consumed so a resend at real RTT is a no-op.
     for (let i = 0; i < inputs.length; i++) {
       const s = seq + i;
       if (s <= p.lastQueuedSeq) continue;
-      p.lastQueuedSeq = s;
-      if (!p.alive) continue;
+      // The client retransmits from its oldest unacknowledged sequence. Do
+      // not accept a later gap: acknowledging 12 while 9–11 were rejected
+      // would make those controls unrecoverable on the client.
+      if (s !== p.lastQueuedSeq + 1) break;
       const raw = inputs[i]!;
       const frame: SimInput = {
         ...raw,
@@ -255,12 +260,14 @@ export class ArenaSim implements SolidState {
         moveZ: Math.max(-1, Math.min(1, raw.moveZ)),
         pitch: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, raw.pitch)),
       };
-      if (p.queued.length >= 8) {
-        p.queued.shift();
-        p.queuedSeqs.shift();
-      }
+      // Do not silently discard an accepted frame. In particular, a one-frame
+      // fire or weapon switch must either be simulated or remain unacknowledged
+      // so the client can resend it. Keeping the queue bounded also prevents a
+      // delayed client from converting a burst into extra movement time.
+      if (p.queued.length >= 8) break;
       p.queued.push(frame);
       p.queuedSeqs.push(s);
+      p.lastQueuedSeq = s;
       p.input = frame;
     }
   }
@@ -283,12 +290,17 @@ export class ArenaSim implements SolidState {
         continue;
       }
 
-      // Consume one queued input per tick; drain faster if the queue is
-      // backing up (workerd setInterval runs a bit under 60 Hz).
-      const take = p.queued.length > 4 ? 2 : 1;
-      for (let n = 0; n < take && p.queued.length; n++) {
+      // Exactly one acknowledged input contributes to one fixed simulation
+      // tick. Applying two queued controls in one tick acknowledged a short
+      // action without simulating it, and could make delayed movement faster.
+      if (p.queued.length) {
         p.input = p.queued.shift()!;
         p.lastSeq = p.queuedSeqs.shift() ?? p.lastSeq;
+      } else {
+        // A network input is a single control frame, not a command to keep
+        // moving/firing until the next packet. Preserve the latest look pose
+        // for a stable camera, but neutralize every action between frames.
+        p.input = { ...emptyInput(), yaw: p.input.yaw, pitch: p.input.pitch };
       }
 
       const prevYaw = p.yaw;
@@ -383,15 +395,23 @@ export class ArenaSim implements SolidState {
         protect: Math.max(0, p.protectUntil - this.time),
         frags: p.frags,
         deaths: p.deaths,
+        spawnCount: p.spawnCount,
         lastSeq: p.lastSeq,
         ammo: { ...p.ammo },
       })),
       projectiles: this.projectiles.map((pr) => ({
         id: pr.id,
+        ownerId: pr.ownerId,
         kind: pr.kind,
         x: pr.x,
         y: pr.y,
         z: pr.z,
+        vx: pr.vx,
+        vy: pr.vy,
+        vz: pr.vz,
+        gravity: pr.gravity,
+        radius: pr.radius,
+        age: pr.age,
       })),
       pickups: this.pickups.map((pk) => ({ id: pk.id, taken: pk.taken })),
     };
@@ -466,8 +486,8 @@ export class ArenaSim implements SolidState {
     p.input = { ...emptyInput(), yaw: p.yaw, pitch: p.pitch, switchGun: null };
     p.queued = [];
     p.queuedSeqs = [];
-    // Keep lastSeq / lastQueuedSeq so in-flight pre-death inputs cannot
-    // be replayed from the new spawn cell.
+    p.lastSeq = 0;
+    p.lastQueuedSeq = 0;
 
     this.events.push({ t: 'playerSpawn', id: p.id });
   }
@@ -490,7 +510,7 @@ export class ArenaSim implements SolidState {
 
     p.ammo[ammoKey] -= 1;
     p.fireCd = w.fireInterval;
-    this.events.push({ t: 'shot', id: p.id, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
+    this.events.push({ t: 'shot', id: p.id, shotId: this.nextShotId++, spawnCount: p.spawnCount, inputSeq: p.lastSeq, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw, pitch: p.pitch });
 
     const composed = aimDirFromLook(p.yaw, p.pitch);
     const dirBase = composed;
@@ -549,7 +569,7 @@ export class ArenaSim implements SolidState {
         age: 0,
       };
       this.projectiles.push(pr);
-      this.events.push({ t: 'spawnProjectile', id: p.id, kind: pr.kind, x: pr.x, y: pr.y, z: pr.z });
+      this.events.push({ t: 'spawnProjectile', id: p.id, projectileId: pr.id, ownerId: p.id, kind: pr.kind, x: pr.x, y: pr.y, z: pr.z, vx: pr.vx, vy: pr.vy, vz: pr.vz, gravity: pr.gravity, radius: pr.radius, age: pr.age });
     }
   }
 
@@ -582,9 +602,9 @@ export class ArenaSim implements SolidState {
       const x1 = shooter.x + dirX * endT;
       const z1 = shooter.z + dirZ * endT;
       if (w.id === 6) {
-        this.events.push({ t: 'beam', id: shooter.id, x0: shooter.x, z0: shooter.z, x1, z1 });
+        this.events.push({ t: 'beam', id: shooter.id, x0: shooter.x, y0: PLAYER_EYE, z0: shooter.z, x1, y1: PLAYER_EYE + dirY * endT, z1 });
       } else {
-        this.events.push({ t: 'tracer', id: shooter.id, x0: shooter.x, z0: shooter.z, x1, z1, kind: 'bullets' });
+        this.events.push({ t: 'tracer', id: shooter.id, x0: shooter.x, y0: PLAYER_EYE, z0: shooter.z, x1, y1: PLAYER_EYE + dirY * endT, z1, kind: 'bullets' });
       }
     }
   }
@@ -634,7 +654,10 @@ export class ArenaSim implements SolidState {
     const keep: ArenaProjectile[] = [];
     for (const pr of this.projectiles) {
       pr.age += dt;
-      if (pr.age > 8) continue;
+      if (pr.age > 8) {
+        this.events.push({ t: 'despawnProjectile', projectileId: pr.id });
+        continue;
+      }
 
       const bodies: { id: number; x: number; z: number; radius: number; yMin: number; yMax: number }[] = [];
       const owner = this.players.find((p) => p.id === pr.ownerId);
@@ -687,7 +710,7 @@ export class ArenaSim implements SolidState {
         }
       }
 
-      // Projectile always removed on impact.
+      this.events.push({ t: 'despawnProjectile', projectileId: pr.id });
     }
     this.projectiles = keep;
   }
@@ -702,7 +725,7 @@ export class ArenaSim implements SolidState {
           p.hp = Math.min(100, p.hp + 25);
           pk.taken = true;
           pk.respawnAt = this.time + ARENA_RESPAWN.medikit;
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'medikit', label: '+25 HEALTH' });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'medikit', label: '+25 HEALTH' });
           break;
         }
         case 'ammo': {
@@ -710,7 +733,7 @@ export class ArenaSim implements SolidState {
           p.ammo[t] = Math.min(WEAPONS.find((w) => w.ammo === t)!.maxAmmo, p.ammo[t] + (pk.amount ?? 0));
           pk.taken = true;
           pk.respawnAt = this.time + ARENA_RESPAWN.ammo;
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'ammo', label: `+${pk.amount ?? 0}` });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'ammo', label: `+${pk.amount ?? 0}` });
           break;
         }
         case 'gun': {
@@ -723,7 +746,7 @@ export class ArenaSim implements SolidState {
           if (isNew) p.gun = g as ArenaWeaponId;
           pk.taken = true;
           pk.respawnAt = this.time + (g === 7 ? ARENA_RESPAWN.gun7 : ARENA_RESPAWN.gun);
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'gun', label: w.short });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'gun', label: w.short });
           break;
         }
         default:

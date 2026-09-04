@@ -12,12 +12,12 @@ export class AudioEngine {
   private ambientGain: GainNode | null = null;
   private ambientNodes: OscillatorNode[] = [];
   private chaingunLoop: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
-  private voices = 0;
-  private lastVoiceTime = 0;
+  private voiceEnds: number[] = [];
   muted = false;
   volume = 0.8;
   private heartTimer = 0;
   private eventGain = 1;
+  private eventPriority = false;
 
   async unlock(): Promise<void> {
     if (!this.ctx) {
@@ -56,14 +56,19 @@ export class AudioEngine {
     return this.ctx ? this.ctx.currentTime : 0;
   }
 
-  /** Simple voice cap to avoid clipping the mix. */
-  private canPlay(): boolean {
-    if (!this.ctx || this.muted) return false;
+  /**
+   * Limit actual active voices instead of counting calls in a wall-clock
+   * window.  A distant event is rejected before it allocates WebAudio nodes;
+   * local feedback can use a small reserve so it remains responsive in a
+   * crowded arena.
+   */
+  private canPlay(duration: number, count = 1): boolean {
+    if (!this.ctx || this.muted || this.eventGain <= 0) return false;
     const t = this.now();
-    if (t - this.lastVoiceTime > 0.05) this.voices = Math.max(0, this.voices - 8);
-    this.lastVoiceTime = t;
-    if (this.voices > 26) return false;
-    this.voices++;
+    this.voiceEnds = this.voiceEnds.filter((end) => end > t);
+    const cap = this.eventPriority ? 34 : 26;
+    if (this.voiceEnds.length + count > cap) return false;
+    for (let i = 0; i < count; i++) this.voiceEnds.push(t + duration + 0.03);
     return true;
   }
 
@@ -92,7 +97,7 @@ export class AudioEngine {
   }
 
   private noise(dur: number, gain: number, filterType: BiquadFilterType, freq: number, q = 1, freqEnd?: number): void {
-    if (!this.canPlay()) return;
+    if (!this.canPlay(dur)) return;
     const ctx = this.ctx!;
     const src = ctx.createBufferSource();
     src.buffer = this.getNoise();
@@ -117,7 +122,7 @@ export class AudioEngine {
     type: OscillatorType, f0: number, f1: number, dur: number, gain: number,
     harmonics = 0,
   ): void {
-    if (!this.canPlay()) return;
+    if (!this.canPlay(dur, 1 + harmonics)) return;
     const ctx = this.ctx!;
     const osc = ctx.createOscillator();
     osc.type = type;
@@ -351,8 +356,9 @@ export class AudioEngine {
   }
 
   // ------------------------------------------------------------- dispatch
-  handleEvent(e: SimEvent, gain = 1): void {
+  handleEvent(e: SimEvent, gain = 1, local = true): void {
     this.eventGain = gain;
+    this.eventPriority = local;
     switch (e.t) {
       case 'shot': this.gunSound(e.gun); break;
       case 'dryfire': this.dryFire(); break;
@@ -377,5 +383,6 @@ export class AudioEngine {
       default: break;
     }
     this.eventGain = 1;
+    this.eventPriority = false;
   }
 }
