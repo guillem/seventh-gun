@@ -95,7 +95,10 @@ export class ArenaClient {
       });
       sock.addEventListener('close', (ev) => {
         if (!isCurrent()) return;
-        if (!settled) { fail('offline'); return; }
+        if (!settled) {
+          fail(ev.code === 4000 && ev.reason === 'protocol' ? 'protocol' : 'offline');
+          return;
+        }
         this.transportFailed(ev.reason || 'disconnected');
       });
       sock.addEventListener('open', () => {

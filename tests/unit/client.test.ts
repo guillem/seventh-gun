@@ -18,6 +18,7 @@ class FakeSock implements ArenaNetSocket {
     this.onSend?.(data);
   }
   close(): void { this.cls?.({ code: 1000, reason: 'closed' }); }
+  disconnect(code: number, reason: string): void { this.cls?.({ code, reason }); }
   addEventListener(type: 'message' | 'close' | 'error' | 'open', fn: (ev: never) => void): void {
     if (type === 'message') this.msg = fn as (ev: { data: string }) => void;
     if (type === 'close') this.cls = fn as (ev: { code: number; reason: string }) => void;
@@ -79,6 +80,14 @@ describe('ArenaClient', () => {
     const client = new ArenaClient(() => sock);
     const pending = client.connect('ws://x/arena', 'TEST');
     sock.push({ v: 1, t: 'full' } as unknown as ServerMessage);
+    await expect(pending).rejects.toBe('protocol');
+  });
+
+  it('maps an old server closing pre-welcome with protocol reason to update required', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const pending = client.connect('ws://x/arena', 'TEST');
+    sock.disconnect(4000, 'protocol');
     await expect(pending).rejects.toBe('protocol');
   });
 
@@ -179,6 +188,57 @@ describe('ArenaClient', () => {
     expect(sentStarts.at(-1)).toBe(9);
     expect(player.queuedSeqs).toContain(9);
     expect(player.queuedSeqs).toContain(12);
+  });
+
+  it('does not let delayed old-life client controls cross an unseen death and respawn', async () => {
+    const sim = new ArenaSim('client-life-gap');
+    const player = sim.join('A');
+    if (player === 'full') throw new Error('full');
+    const sock = new FakeSock();
+    let clock = 0;
+    const client = new ArenaClient(() => sock, () => clock);
+    const welcome = client.connect('ws://x/arena', 'A');
+    sock.push({ v: 2, t: 'welcome', id: player.id, seed: 'client-life-gap', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
+    await welcome;
+
+    const delayed: { spawnCount: number; seq: number; inputs: ReturnType<typeof emptyInput>[] }[] = [];
+    sock.onSend = (text) => {
+      const message = JSON.parse(text) as { t?: string; spawnCount?: number; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      if (message.t === 'input' && message.spawnCount != null && message.seq != null && message.inputs) delayed.push({ spawnCount: message.spawnCount, seq: message.seq, inputs: message.inputs });
+    };
+    for (let i = 0; i < 12; i++) { clock += STEP_DT * 1000; client.stepLocal(STEP_DT, { ...emptyInput(), moveZ: 1 }); }
+    // Deliver enough first-life traffic to fill the server queue, while the
+    // client has already generated twelve predicted frames.
+    for (const message of delayed.slice(0, 2)) sim.pushInput(player.id, message.spawnCount, message.seq, message.inputs);
+    expect(player.queued).toHaveLength(8);
+    expect(client.pendingCount()).toBeGreaterThanOrEqual(8);
+
+    const oldEpoch = player.spawnCount;
+    (sim as any).handleDeath(player);
+    for (const message of delayed) sim.pushInput(player.id, message.spawnCount, message.seq, message.inputs);
+    for (let i = 0; i < Math.ceil(2 / STEP_DT) + 1; i++) sim.step(STEP_DT);
+    expect(player.spawnCount).toBe(oldEpoch + 1);
+    for (const message of delayed) sim.pushInput(player.id, message.spawnCount, message.seq, message.inputs);
+    expect(player.queued).toHaveLength(0);
+
+    // The client never receives a dead snapshot; the first authoritative
+    // update it sees is the new epoch via the actual socket message path.
+    player.owned[2] = true;
+    player.ammo.shells = 2;
+    sock.push({ v: 2, t: 'snap', snapshot: sim.snapshot() });
+    expect(client.pendingCount()).toBe(0);
+    delayed.length = 0;
+    for (let i = 0; i < 4; i++) {
+      clock += STEP_DT * 1000;
+      client.stepLocal(STEP_DT, { ...emptyInput(), switchGun: i === 0 ? 2 : null, fire: i === 0 });
+    }
+    const fresh = delayed.find((message) => message.spawnCount === player.spawnCount);
+    expect(fresh).toMatchObject({ spawnCount: player.spawnCount, seq: 1 });
+    sim.pushInput(player.id, fresh!.spawnCount, fresh!.seq, fresh!.inputs);
+    for (let i = 0; i < 4; i++) sim.step(STEP_DT);
+    expect(player.gun).toBe(2);
+    expect(player.lastSeq).toBe(4);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot' && event.id === player.id)).toHaveLength(1);
   });
 
   it('interpolation returns a pose between two snapshots at 100ms', async () => {
