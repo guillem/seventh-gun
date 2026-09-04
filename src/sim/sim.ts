@@ -492,9 +492,9 @@ export class Sim {
     if (visual) {
       const endT = pierce ? tracerEnd : (hitAny && hits.length ? hits[0].t : tracerEnd);
       if (w.id === 6) {
-        this.events.push({ t: 'beam', x0: ox, z0: oz, x1: ox + dirX * endT, z1: oz + dirZ * endT });
+        this.events.push({ t: 'beam', x0: ox, y0: oy, z0: oz, x1: ox + dirX * endT, y1: oy + dirY * endT, z1: oz + dirZ * endT });
       } else {
-        this.events.push({ t: 'tracer', x0: ox, z0: oz, x1: ox + dirX * endT, z1: oz + dirZ * endT, kind: 'bullets' });
+        this.events.push({ t: 'tracer', x0: ox, y0: oy, z0: oz, x1: ox + dirX * endT, y1: oy + dirY * endT, z1: oz + dirZ * endT, kind: 'bullets' });
       }
     }
   }

@@ -1180,10 +1180,10 @@ export class Game {
         this.renderer.fireVisual(e.gun, e.yaw, sim.player.pitch, e.x, e.z);
         break;
       case 'tracer':
-        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, 1.62, e.z1, 'bullets');
+        this.renderer.fx.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, 'bullets');
         break;
       case 'beam':
-        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, 1.62, e.z1, 'rail');
+        this.renderer.fx.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, 'rail');
         break;
       case 'explosion':
         this.renderer.fx.explosion(e.x, e.y, e.z, e.radius);

@@ -8,6 +8,7 @@ import { CELL, PLAYER_EYE, PLAYER_RADIUS } from '../../src/sim/types';
 import { WEAPONS, weapon } from '../../src/sim/weapons';
 import { ENEMIES, enemyGunRadius, enemyGunVolumeY, enemyVolumeY } from '../../src/sim/enemyTypes';
 import { hasLineOfSight } from '../../src/sim/physics';
+import { aimDirFromLook } from '../../src/sim/aim';
 import type { SimInput } from '../../src/sim/sim';
 
 function freshSim(): Sim {
@@ -134,6 +135,24 @@ describe('weapon personalities', () => {
     }
     const beams = sim.takeEvents().filter(ev => ev.t === 'beam');
     expect(beams.length).toBe(1);
+  });
+
+  it('campaign bullets and rails keep pitched endpoints for the renderer', () => {
+    for (const gun of [1, 6]) {
+      const sim = freshSim();
+      if (gun === 6) sim.giveGun(6);
+      sim.player.gun = gun;
+      const pitch = 0.32;
+      sim.step(input({ fire: true, pitch }));
+      const event = sim.takeEvents().find((e) => e.t === 'tracer' || e.t === 'beam');
+      expect(event, `gun ${gun} did not emit a visual`).toBeTruthy();
+      if (!event || !('y1' in event)) continue;
+      const dx = event.x1 - event.x0;
+      const dy = event.y1 - event.y0;
+      const dz = event.z1 - event.z0;
+      const aim = aimDirFromLook(sim.player.yaw, pitch);
+      expect((dx * aim.dirX + dy * aim.dirY + dz * aim.dirZ) / Math.hypot(dx, dy, dz)).toBeGreaterThan(0.99);
+    }
   });
 
   it('the seventh hits several enemies at once with splash', () => {
