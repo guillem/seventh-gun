@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { ArenaRoom, type RoomSocket } from '../room';
 import { intervalScheduler } from '../scheduler';
+import { MAX_ARENA_MESSAGE_BYTES } from '../../src/net/protocol';
 
 export interface ServeOptions {
   port?: number;
@@ -29,10 +30,9 @@ export interface RunningServer extends Server {
   shutdown(): Promise<void>;
 }
 
-// The arena protocol is JSON and ArenaRoom rejects messages larger than 2 KiB.
-// Keep the same bound at the transport edge so a peer cannot make ws allocate a
-// 100 MiB buffer before the room gets a chance to reject it.
-export const ARENA_MAX_PAYLOAD = 2 * 1024;
+// Keep the transport and room limits in one protocol contract so ws cannot
+// allocate a large buffer before ArenaRoom validates the same frame.
+export const ARENA_MAX_PAYLOAD = MAX_ARENA_MESSAGE_BYTES;
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',

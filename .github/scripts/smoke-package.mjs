@@ -39,14 +39,14 @@ try {
   if (binaryCode !== 1003) throw new Error(`binary arena frame closed with ${binaryCode}, expected 1003`);
   const tooLarge = new WebSocket(`ws://127.0.0.1:${port}/arena`);
   await deadline(once(tooLarge, 'open'), 'oversized frame open');
-  tooLarge.send('x'.repeat(2_049));
+  tooLarge.send('x'.repeat(8_193));
   const [tooLargeCode] = await deadline(once(tooLarge, 'close'), 'oversized frame close');
   if (tooLargeCode !== 1009) throw new Error(`oversized arena frame closed with ${tooLargeCode}, expected 1009`);
   const connect = (join = true) => new Promise((resolveWelcome, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}/arena`);
     ws.once('error', reject);
     ws.once('open', () => {
-      if (join) ws.send(JSON.stringify({ v: 1, t: 'join', name: 'smoke' }));
+      if (join) ws.send(JSON.stringify({ v: 3, t: 'join', name: 'smoke' }));
       else resolveWelcome({ ws, message: null });
     });
     ws.on('message', (raw) => {
@@ -56,6 +56,8 @@ try {
   });
   const [one, two] = await deadline(Promise.all([connect(), connect()]), 'arena joins');
   if (one.message.seed !== two.message.seed || one.message.gridHash !== two.message.gridHash) throw new Error('clients did not join the same arena');
+  one.ws.send(JSON.stringify({ v: 3, t: 'input', spawnCount: one.message.snapshot.players.find((player) => player.id === one.message.id).spawnCount, seq: 1,
+    inputs: Array.from({ length: 32 }, () => ({ moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false })) }));
   const occupied = spawn(process.execPath, [cli, '--port', String(port), '--host', '127.0.0.1']);
   const [code] = await deadline(once(occupied, 'exit'), 'occupied-port failure');
   if (code === 0) throw new Error('packed CLI accepted an occupied port');
