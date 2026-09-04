@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { CELL, CEIL_H, WALL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
+import { findExposedWallFace, secretPlatePublicFace } from '../sim/blueprint';
 import { getTextures } from './textures';
 import {
   getCampaignTextures,
@@ -272,9 +273,9 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     group.add(mesh);
     plateMeshes.set(s.id, mesh);
 
-    // crack / light seam on the parent-facing side
-    const secretEast = room ? room.x >= s.cx : false;
-    const secretSouth = room ? room.z >= s.cz : false;
+    // Crack / light seam on the public-facing side. PlaneGeometry faces local
+    // +Z, so the rotation must point away from the secret room.
+    const publicFace = room ? secretPlatePublicFace(room, s.cx, s.cz, s.axis) : { dx: 0, dz: 1 };
     const crack = new THREE.Mesh(
       new THREE.PlaneGeometry(CELL * 2.6, WALL_H * 0.55),
       new THREE.MeshBasicMaterial({
@@ -283,19 +284,22 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       }),
     );
     applyRadialFog(crack.material as THREE.MeshBasicMaterial);
-    crack.position.y = WALL_H * 0.36;
+    crack.position.y = 0;
     if (s.axis === 'x') {
-      crack.rotation.y = secretEast ? Math.PI / 2 : -Math.PI / 2;
-      crack.position.x = secretEast ? -0.28 : 0.28;
+      crack.rotation.y = publicFace.dx < 0 ? -Math.PI / 2 : Math.PI / 2;
+      crack.position.x = publicFace.dx * 0.28;
     } else {
-      crack.rotation.y = secretSouth ? 0 : Math.PI;
-      crack.position.z = secretSouth ? -0.28 : 0.28;
+      crack.rotation.y = publicFace.dz < 0 ? Math.PI : 0;
+      crack.position.z = publicFace.dz * 0.28;
     }
     mesh.add(crack);
 
     if (s.trigger && (s.kind === 'remote-use' || s.kind === 'remote-shoot')) {
-      const tx = cellToWorld(s.trigger.x);
-      const tz = cellToWorld(s.trigger.z);
+      const face = findExposedWallFace(map.grid, map.w, map.h, s.trigger.x, s.trigger.z);
+      // The compiler rejects unreachable controls. Keep this fallback so a
+      // hand-authored GameMap cannot make buildWorld fail mid-frame.
+      const tx = cellToWorld(s.trigger.x) + (face?.dx ?? 0) * (CELL / 2 + 0.04);
+      const tz = cellToWorld(s.trigger.z) + (face?.dz ?? 0) * (CELL / 2 + 0.04);
       const isLever = s.kind === 'remote-use';
       const trig = new THREE.Group();
       if (isLever) {
@@ -325,6 +329,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
         trig.add(sigil);
       }
       trig.position.set(tx, 0, tz);
+      if (face) trig.rotation.y = Math.atan2(face.dx, face.dz);
       group.add(trig);
     }
   }

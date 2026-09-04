@@ -6,7 +6,8 @@ import { CAMPAIGN, campaignEconomy, ECONOMY_FLOOR } from '../../src/campaign/ind
 import { Sim, emptyInput } from '../../src/sim/sim';
 import { generateMap } from '../../src/sim/mapgen';
 import { decodeBlueprint, encodeBlueprint, FLAG_SECRETS, unwrapEncoded } from '../../src/sim/mapcodec';
-import { compileBlueprint, stripCosmetics, validateBlueprint } from '../../src/sim/blueprint';
+import { compileBlueprint, findExposedWallFace, secretPlatePublicFace, stripCosmetics, validateBlueprint } from '../../src/sim/blueprint';
+import { isSolidCell } from '../../src/sim/physics';
 import { exploredPct } from '../../src/ui/hud';
 import { WEAPONS } from '../../src/sim/weapons';
 import { CELL, GEN_VERSION } from '../../src/sim/types';
@@ -65,6 +66,29 @@ function ownedAmmo(incomingGuns: number[], sealGun?: number): Set<string> {
   const ammo = new Set<string>();
   for (const g of guns) ammo.add(WEAPONS[g - 1].ammo);
   return ammo;
+}
+
+function cellCenter(x: number, z: number): { x: number; z: number } {
+  return { x: (x + 0.5) * CELL, z: (z + 0.5) * CELL };
+}
+
+function aimAt(sim: Sim, x: number, z: number) {
+  const dx = x - sim.player.x;
+  const dz = z - sim.player.z;
+  const length = Math.hypot(dx, dz);
+  return { dirX: dx / length, dirY: 0, dirZ: dz / length };
+}
+
+function plateApproach(sim: Sim, roomId: number, cells: [number, number][]): { x: number; z: number } {
+  const room = sim.map.rooms.find(r => r.id === roomId)!;
+  for (const [x, z] of cells) {
+    for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) {
+      const nx = x + dx, nz = z + dz;
+      const outsideSecretRoom = nx < room.x || nx >= room.x + room.w || nz < room.z || nz >= room.z + room.h;
+      if (outsideSecretRoom && sim.map.grid[nz * sim.map.w + nx]) return cellCenter(nx, nz);
+    }
+  }
+  throw new Error(`no public approach for secret room ${roomId}`);
 }
 
 describe('campaign secrets', () => {
@@ -217,5 +241,86 @@ describe('campaign secrets', () => {
     for (let i = 0; i < 30; i++) locked.step(emptyInput());
     expect(closed.found).toBe(false);
     expect(closed.opening).toBe(false);
+  });
+
+  it('every authored secret has a visible control or plate and opens through its intended interaction', () => {
+    const kinds = new Set<string>();
+    for (const campaign of CAMPAIGN) {
+      for (const def of campaign.map.secrets) {
+        kinds.add(def.kind);
+        const sim = Sim.fromMap(campaign.map, 'normal', {
+          loadout: campaign.incomingLoadout,
+          rngKey: `secret-${def.id}`,
+        });
+        const secret = sim.secrets[def.id];
+        const room = campaign.map.rooms.find(r => r.id === secret.roomId)!;
+        expect(campaign.map.pickups.some(p => p.roomId === room.id), secret.name).toBe(true);
+        sim.enemies = []; // Isolate the authored interaction ray from combat.
+
+        const publicFace = secretPlatePublicFace(room, secret.cx, secret.cz, secret.axis);
+        expect(secret.cells.some(([x, z]) => {
+          const nx = x + publicFace.dx, nz = z + publicFace.dz;
+          const outsideRoom = nx < room.x || nx >= room.x + room.w || nz < room.z || nz >= room.z + room.h;
+          return outsideRoom && campaign.map.grid[nz * campaign.map.w + nx] === 1;
+        }), `${secret.name} public plate face`).toBe(true);
+
+        if (secret.kind === 'plate-use') {
+          Object.assign(sim.player, plateApproach(sim, secret.roomId, secret.cells));
+          sim.step({ ...emptyInput(), use: true });
+        } else if (secret.kind === 'remote-use') {
+          const trigger = secret.trigger!;
+          const face = findExposedWallFace(campaign.map.grid, campaign.map.w, campaign.map.h, trigger.x, trigger.z)!;
+          Object.assign(sim.player, cellCenter(trigger.x + face.dx, trigger.z + face.dz));
+          sim.step({ ...emptyInput(), use: true });
+        } else if (secret.kind === 'plate-shoot') {
+          Object.assign(sim.player, plateApproach(sim, secret.roomId, secret.cells));
+          sim.giveGun(6);
+          for (let shot = 0; shot < 3 && !secret.found; shot++) {
+            sim.step({ ...emptyInput(), fire: true, aimDir: aimAt(sim, secret.x, secret.z) });
+            for (let i = 0; i < 64; i++) sim.step(emptyInput());
+          }
+        } else {
+          const trigger = secret.trigger!;
+          const face = findExposedWallFace(campaign.map.grid, campaign.map.w, campaign.map.h, trigger.x, trigger.z);
+          expect(face, secret.name).toBeDefined();
+          // A control lives just beyond an actual walkable wall face; the
+          // renderer uses the same face to keep the clue out of the wall.
+          expect(face && campaign.map.grid[(trigger.z + face.dz) * campaign.map.w + trigger.x + face.dx], secret.name).toBe(1);
+          Object.assign(sim.player, cellCenter(trigger.x + face!.dx, trigger.z + face!.dz));
+          sim.giveGun(6);
+          const target = cellCenter(trigger.x, trigger.z);
+          sim.step({ ...emptyInput(), fire: true, aimDir: aimAt(sim, target.x, target.z) });
+        }
+
+        expect(secret.found, secret.name).toBe(true);
+        expect(secret.opening, secret.name).toBe(true);
+        for (let i = 0; i < 60; i++) sim.step(emptyInput());
+        expect(secret.offset, secret.name).toBe(1);
+        for (const [x, z] of secret.cells) {
+          expect(isSolidCell(sim, x, z), `${secret.name} ${x},${z}`).toBe(false);
+        }
+      }
+    }
+    expect(kinds).toEqual(new Set(['plate-use', 'plate-shoot', 'remote-use', 'remote-shoot']));
+  });
+
+  it('rejects malformed secret imports before they reach simulation or rendering', () => {
+    const src = structuredClone(CAMPAIGN[0].blueprint);
+    const remote = structuredClone(CAMPAIGN[1].blueprint);
+    remote.secrets![1].trigger = { x: remote.secrets![1].cx, z: remote.secrets![1].cz }; // floor, not a mountable wall cell
+    expect(validateBlueprint(remote)).toContain("secret 's-ileum-ganglion' trigger 45,51 is not a wall cell");
+
+    const missingRoom = structuredClone(src);
+    missingRoom.secrets![0].roomId = 999;
+    expect(validateBlueprint(missingRoom)).toContain("secret 's-slag-cache' names missing room 999");
+
+    const wrongRoom = structuredClone(src);
+    wrongRoom.secrets![0].roomId = wrongRoom.rooms.find(r => r.kind === 'start')!.id;
+    expect(validateBlueprint(wrongRoom)).toEqual(expect.arrayContaining([expect.stringContaining('is not a secret room')]));
+
+    const offGrid = structuredClone(src);
+    offGrid.secrets![0].cx = 255;
+    offGrid.secrets![0].cz = 255;
+    expect(validateBlueprint(offGrid)).toEqual(expect.arrayContaining([expect.stringContaining('plate cell 255,255 is not floor')]));
   });
 });
