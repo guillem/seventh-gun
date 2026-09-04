@@ -37,9 +37,10 @@ server locally if you are working on multiplayer.
 
 ## Pull requests
 
-Branch, then open a PR — `main` is protected by CI (typecheck, unit, e2e) and a
-green suite gates the production deploy. Conventional-ish commit subjects
-(`feat:`, `fix:`, `test:`, `docs:`).
+Branch, then open a PR. Run typecheck, unit tests, and the relevant browser
+tests before requesting review. Production deployment runs from `main`; this
+repository does not currently enforce branch protection rules. Conventional-ish
+commit subjects (`feat:`, `fix:`, `test:`, `docs:`).
 
 New behaviour wants a test. Renderer and audio work is harder to test; a short
 note in the PR on what you checked by hand is fine there.

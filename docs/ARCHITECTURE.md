@@ -9,7 +9,7 @@ app (Game, input, debug API)
  ├─> render (Three.js scene)                          reads WorldView + events
  ├─> net    (ArenaClient, protocol)                   prediction / interpolation
  └─> sim    (deterministic, headless)                 maze Sim + ArenaSim
-server/  Cloudflare Worker + Durable Object (imports sim + protocol only)
+server/  runtime-agnostic room; Worker and Node adapters (imports sim + protocol only)
 ```
 
 - `src/sim/` is pure TypeScript: no Three, no DOM, no `Math.random`. Fixed
@@ -104,3 +104,6 @@ no monsters, 96×96 `generateArena(seed)`. Physics uses `SolidState`; combat
 uses `src/sim/combat.ts`. The Durable Object in `server/` ticks it at 60 Hz
 and broadcasts 20 Hz snapshots over `/arena`. Clients predict local movement
 and interpolate others ~100 ms behind. Hits and pickups are server-only.
+`server/index.ts` supplies the Cloudflare Durable Object adapter. `server/node/`
+supplies the portable HTTP/static-file and WebSocket adapter used by the npm
+package and container; it has no gameplay logic of its own.

@@ -51,10 +51,16 @@ try {
 }
 
 try {
-  serve({
+  const server = serve({
     port,
     host: flag('-H') ?? flag('--host') ?? undefined,
     allowedOrigins: flag('--allow') ?? undefined,
+  });
+  // listen() reports occupied ports and invalid bind addresses asynchronously.
+  // Without this listener Node treats them as an unhandled EventEmitter error.
+  server.once('error', (err) => {
+    process.stderr.write(`Could not start server: ${err.message}\n`);
+    process.exitCode = 1;
   });
 } catch (err) {
   process.stderr.write(`${err?.message ?? err}\n`);

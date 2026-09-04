@@ -1,8 +1,9 @@
 # SEVENTH GUN
 
 A seeded, late-1990s-style first-person shooter that runs entirely in the
-browser. Every maze, texture, sound and demon is generated from a seed —
-no asset packs, no backend, no accounts.
+browser. Every maze, texture, sound and demon is generated from a seed; the
+seven campaign maps are authored. There are no asset packs or accounts. The
+optional arena runs on Cloudflare Workers or the portable Node server.
 
 *Every run builds a new nightmare. The Seventh Gun ends it.*
 
@@ -19,7 +20,8 @@ seal on the finale arena. Clear the arena to win.
   the code down. Stored in this browser only.
 - **CAMPAIGN** is seven authored maps listed by name. Map 1 is always
   open; each win unlocks the next. The guns stay with you; HP resets
-  each map. Progress is saved in this browser (`CONTINUE` from map 2 on).
+  each map. Hidden pockets and powerups reward exploration. Progress is saved
+  in this browser (`CONTINUE` from map 2 on).
 - Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
   if you don't.
 
@@ -97,9 +99,8 @@ account, on your own subdomain. Clone and deploy:
 npm ci && npm run build && npx wrangler deploy
 ```
 
-That is exactly what this repo's own CI runs, so it is the path that is known to
-work. [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/guillem/seventh-gun)
-does the same thing in one click if you would rather not clone.
+This is the supported deployment path. Configure the account and domain in the
+Cloudflare dashboard before using it.
 
 ## Under the hood
 

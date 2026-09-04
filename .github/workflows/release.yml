@@ -1,104 +1,152 @@
 name: Release
 
-# Tag a version to cut a release:  git tag v0.2.0 && git push --tags
-# Produces three artifacts: a static tarball on the GitHub Release, a
-# multi-arch image on GHCR, and an npm package. deploy.yml is untouched —
-# pushes to main still deploy the Cloudflare Worker exactly as before.
+# A release begins with a v<package-version> tag on main. Manual dispatch only
+# exercises preflight; it cannot publish a release.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
 
+# Publishing is serialized. A delayed older tag re-runs preflight immediately
+# before publication, so it cannot replace the newer release's latest tags.
+concurrency:
+  group: release-publication
+  cancel-in-progress: false
+
 jobs:
-  test:
-    name: typecheck + tests
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate tag, version, ancestry, and release ordering
+        run: node .github/scripts/release-preflight.mjs
+
+  test:
+    needs: preflight
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium
       - run: npm run typecheck
       - run: npm run test:unit
       - run: npm run test:e2e
 
-  release:
-    name: static tarball + npm
-    needs: test
+  package-smoke:
+    needs: [preflight, test]
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write   # create the GitHub Release
-      id-token: write   # npm publish --provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build:dist
+      - run: test -f dist/client/LICENSE && test -f dist/client/THIRD-PARTY.md
+      - id: pack
+        run: echo "tarball=$(npm pack --json | node -e \"let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s)[0].filename))\")" >> "$GITHUB_OUTPUT"
+      - run: node .github/scripts/smoke-package.mjs "${{ steps.pack.outputs.tarball }}"
+      - uses: actions/upload-artifact@v4
+        if: matrix.node == 24
+        with:
+          name: npm-package
+          path: ${{ steps.pack.outputs.tarball }}
+
+  static-artifact:
+    needs: [preflight, test]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          registry-url: https://registry.npmjs.org
       - run: npm ci
-
-      # A tag that disagrees with package.json either 403s on npm (version
-      # already published) or ships a release whose contents claim a different
-      # version. Fail here rather than halfway through publishing.
-      - name: Tag must match package.json
+      - run: npm run build:dist
+      - run: test -f dist/client/LICENSE && test -f dist/client/THIRD-PARTY.md
+      - name: Build static archive with complete notices
         run: |
-          pkg=$(node -p "require('./package.json').version")
-          if [ "v$pkg" != "${{ github.ref_name }}" ]; then
-            echo "::error::tag ${{ github.ref_name }} does not match package.json version $pkg"
-            exit 1
-          fi
-
-      - name: Build the portable client and server
-        run: npm run build:dist
-
-      # The no-server drop-in: campaign, mazes and editor, no arena.
-      # Named without the leading v, to match the npm version.
-      - name: Pack the static client
-        run: |
-          v=$(node -p "require('./package.json').version")
-          tar -czf "seventh-gun-$v-static.tar.gz" -C dist/client .
-
-      - name: Publish the GitHub Release
-        uses: softprops/action-gh-release@v2
+          version=$(node -p "require('./package.json').version")
+          mkdir static-release
+          cp -R dist/client/. static-release/
+          cp LICENSE THIRD-PARTY.md static-release/
+          tar -czf "seventh-gun-$version-static.tar.gz" -C static-release .
+      - uses: actions/upload-artifact@v4
         with:
-          files: seventh-gun-*-static.tar.gz
-          generate_release_notes: true
+          name: static-release
+          path: seventh-gun-*-static.tar.gz
 
-      - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  image:
-    name: container image
-    needs: test
+  container-smoke:
+    needs: [preflight, test]
     runs-on: ubuntu-latest
-    # Two full npm ci + build passes, and the arm64 one is QEMU-emulated.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run the self-host image
+        run: |
+          docker build -t seventh-gun:smoke .
+          docker run --rm -d --name seventh-gun-smoke -p 18080:8080 seventh-gun:smoke
+          trap 'docker logs seventh-gun-smoke; docker rm -f seventh-gun-smoke || true' EXIT
+          for attempt in $(seq 1 20); do curl --fail http://127.0.0.1:18080/health && break; sleep 1; done
+          curl --fail http://127.0.0.1:18080/ | grep -q 'src="/assets/.*\.js"'
+          docker rm -f seventh-gun-smoke
+          trap - EXIT
+
+  publish-npm:
+    needs: [preflight, package-smoke, container-smoke, static-artifact]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Recheck release ordering before publication
+        run: node .github/scripts/release-preflight.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: node .github/scripts/publish-npm.mjs
+
+  publish-image:
+    needs: [preflight, package-smoke, container-smoke, static-artifact]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: read
-      packages: write   # push to GHCR
+      packages: write
     steps:
       - uses: actions/checkout@v4
-
-      # arm64 matters here: Raspberry Pis and Ampere VPSs are exactly the
-      # hardware people put a small game server on.
+        with:
+          fetch-depth: 0
+      - name: Recheck release ordering before publication
+        run: node .github/scripts/release-preflight.mjs
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - id: meta
         uses: docker/metadata-action@v5
         with:
@@ -107,7 +155,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
-
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -117,3 +164,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  finalize-release:
+    needs: [preflight, publish-npm, publish-image, static-artifact]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: static-release
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: seventh-gun-*-static.tar.gz
+          generate_release_notes: true

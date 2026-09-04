@@ -1,7 +1,7 @@
 {
   "name": "seventh-gun",
   "version": "0.1.0",
-  "description": "A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Every maze, texture, sound and demon is generated from a seed.",
+  "description": "A seeded, late-1990s-style first-person shooter with generated mazes and assets, seven authored campaign maps, and an optional self-hosted arena.",
   "license": "MIT",
   "author": "Guillem Cantallops Ramis",
   "homepage": "https://github.com/guillem/seventh-gun#readme",
@@ -65,8 +65,8 @@
     "@types/ws": "^8.18.1",
     "three": "^0.171.0",
     "typescript": "~5.6.3",
-    "vite": "^6.0.5",
-    "vitest": "^2.1.8",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7",
     "wrangler": "^4.128.0"
   }
 }

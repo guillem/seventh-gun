@@ -82,7 +82,8 @@ E2E specs are excluded from vitest (see `vitest.config.ts`).
 ## E2E (playwright, `npm run test:e2e`)
 
 Projects: `desktop` (chromium 1280×800) and `mobile` (chromium 390×844,
-touch). The config builds and serves `dist/` via `vite preview` itself.
+touch). The config builds the Cloudflare target and serves the local Worker
+preview, so arena tests exercise the Worker route as well as the client.
 
 Covered: boot to title, start run, WASD walking (camera-relative), fire +
 ammo decrease, dry-fire no-spam, gun pickup grants gun + stack, medikit
@@ -132,3 +133,12 @@ screenshots for screens/touch UI.
 
 Re-run the aesthetic eyeball pass on the Netlify deploy preview; the metrics
 prove presence/clearance, not beauty.
+
+## Release smoke checks
+
+The release workflow runs the suite on Node 22 and 24, then builds `npm pack`,
+installs that tarball in an empty directory, and checks the CLI's static files,
+malformed HTTP handling, occupied-port error, and two arena clients. It also
+builds and starts the container before it can publish. The GitHub Release is
+created only after npm and GHCR publication complete. A rerun keeps an already
+published matching npm version and retries the remaining stages.

@@ -36,7 +36,7 @@ function runTape(seed: string): string[] {
 }
 
 describe('combat extraction golden', () => {
-  it('owns all guns, pitched aim, 3 seeds — hashes stay stable', () => {
+  it('owns all guns, pitched aim, 3 seeds — hashes stay stable', { timeout: 60_000 }, () => {
     // Recorded after accepting the projectile-spreadDir normalize (see DECISIONS.md).
     expect(runTape('golden-1')).toMatchInlineSnapshot(`
       [

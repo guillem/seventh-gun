@@ -1,8 +1,9 @@
 # SEVENTH GUN — agent instructions
 
-A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js, static
-build, no backend. Everything procedural (canvas textures, mesh factories,
-WebAudio synth). No paid assets, no copied levels.
+A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
+with an optional Cloudflare Workers or portable Node arena server. Everything
+procedural (canvas textures, mesh factories, WebAudio synth). No paid assets,
+no copied levels.
 
 Repo: https://github.com/guillem/seventh-gun (default branch `main`).
 

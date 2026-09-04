@@ -23,6 +23,11 @@ export interface ServeOptions {
   allowedOrigins?: string;
 }
 
+// The arena protocol is JSON and ArenaRoom rejects messages larger than 2 KiB.
+// Keep the same bound at the transport edge so a peer cannot make ws allocate a
+// 100 MiB buffer before the room gets a chance to reject it.
+export const ARENA_MAX_PAYLOAD = 2 * 1024;
+
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -166,7 +171,7 @@ export function serve(opts: ServeOptions = {}) {
     socket.destroy();
   });
 
-  const wss = new WebSocketServer({ noServer: true });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: ARENA_MAX_PAYLOAD });
 
   server.on('upgrade', (req, socket, head) => {
     if (safePathname(req.url, req.headers.host) !== '/arena') {
@@ -180,7 +185,16 @@ export function serve(opts: ServeOptions = {}) {
     }
     wss.handleUpgrade(req, socket, head, (ws) => {
       const sock = toRoomSocket(ws);
-      ws.on('message', (data) => room.onMessage(sock, String(data)));
+      ws.on('message', (data, isBinary) => {
+        // `String(Buffer)` would turn binary data into arbitrary text before
+        // protocol validation. There is no binary arena protocol, so reject it
+        // explicitly and keep the room's input boundary text-only.
+        if (isBinary) {
+          sock.close(1003, 'binary arena messages are not supported');
+          return;
+        }
+        room.onMessage(sock, data.toString());
+      });
       ws.on('close', () => room.onClose(sock));
       ws.on('error', () => room.onClose(sock));
       room.onOpen(sock);

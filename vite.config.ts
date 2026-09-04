@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { copyFileSync } from 'node:fs';
 
 // Two build targets share this config.
 //
@@ -14,7 +15,18 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 // same config, so without it the server pass would inherit dist/client with
 // emptyOutDir and delete the client bundle the previous pass just wrote.
 export default defineConfig(({ mode, isSsrBuild }) => ({
-  plugins: mode === 'portable' ? [] : [cloudflare()],
+  plugins: [
+    ...(mode === 'portable' ? [] : [cloudflare()]),
+    {
+      name: 'ship-license-notices',
+      closeBundle() {
+        if (!isSsrBuild) {
+          copyFileSync('LICENSE', 'dist/client/LICENSE');
+          copyFileSync('THIRD-PARTY.md', 'dist/client/THIRD-PARTY.md');
+        }
+      },
+    },
+  ],
   build:
     mode !== 'portable'
       ? {}
