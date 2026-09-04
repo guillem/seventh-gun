@@ -18,6 +18,23 @@ async function joinArena(page: import('@playwright/test').Page, name: string): P
   });
 }
 
+/**
+ * Wait for a WebSocket's close handshake, bounded.
+ *
+ * Waiting for the close event (rather than sleeping) is what proves the server
+ * has processed the disconnect. But an unbounded wait turns a missed event into
+ * a bare test timeout that names no socket — which is exactly how this test
+ * failed on CI. Cap it: if the event never arrives we continue, and the
+ * recycling assertion below fails on its own terms with a readable message.
+ */
+async function closed(ws: import('@playwright/test').WebSocket, ms = 15000): Promise<void> {
+  if (ws.isClosed()) return;
+  await Promise.race([
+    new Promise<void>((resolve) => ws.once('close', () => resolve())),
+    new Promise<void>((resolve) => setTimeout(resolve, ms)),
+  ]);
+}
+
 test.describe('arena', () => {
   // Regression for the playtest bug: InputManager's window keydown handler
   // ran e.preventDefault() on every KeyM (map toggle) and unconditionally
@@ -112,6 +129,11 @@ test.describe('arena', () => {
 
   test('joinArena connects and two contexts share a room', async ({ browser }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'desktop only');
+    // The heaviest test in the suite: three browser contexts, three full WebGL
+    // boots and three arena joins. ~18s on a dev machine, well past the 30s
+    // default on a runner doing software rasterisation. More patience only —
+    // every assertion below is unchanged.
+    test.setTimeout(120000);
     const ctx1 = await browser.newContext();
     const ctx2 = await browser.newContext();
     const a = await ctx1.newPage();
@@ -146,11 +168,11 @@ test.describe('arena', () => {
     // sleep is enough — this scales with however long the local worker
     // actually takes under load.
     await a.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
-    if (!wsA.isClosed()) await new Promise<void>((resolve) => wsA.once('close', () => resolve()));
+    await closed(wsA);
     await expect(a.locator('#title-screen')).toBeVisible();
     await expect(a.locator('#arena-join-screen')).toBeHidden();
     await b.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
-    if (!wsB.isClosed()) await new Promise<void>((resolve) => wsB.once('close', () => resolve()));
+    await closed(wsB);
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
     await c.goto(BASE);
