@@ -10,6 +10,13 @@ export interface EnemyDef {
   height: number;
   flying: boolean;
   hoverY: number;
+  // Peak vertical excursion of the render-side torso bob for FLYING enemies
+  // (EnemyRenderer reads this too, so the animation and the hit volume can
+  // never drift apart — see enemyVolumeY below). 0 for grounded enemies:
+  // they bob too, but that bob is small and already absorbed by the
+  // grounded branch's fixed `height + 0.15` headroom, so it isn't routed
+  // through this field.
+  hoverBob: number;
   sightRange: number;
   sightFov: number;      // radians, half-angle
   hearRange: number;
@@ -36,7 +43,7 @@ export interface EnemyDef {
 export const ENEMIES: Record<EnemyType, EnemyDef> = {
   husk: {
     type: 'husk', name: 'Husk', hp: 30, speed: 3.4, radius: 0.55, height: 1.9,
-    flying: false, hoverY: 0,
+    flying: false, hoverY: 0, hoverBob: 0,
     sightRange: 24, sightFov: 1.0, hearRange: 28, wakeRadius: 5,
     attackRange: 19, attackMinRange: 0,
     projectile: 'plasma', projSpeed: 15, projGravity: 0, projRadius: 0.28,
@@ -46,7 +53,7 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
   crawler: {
     type: 'crawler', name: 'Crawler', hp: 18, speed: 5.2, radius: 0.5, height: 1.0,
-    flying: false, hoverY: 0,
+    flying: false, hoverY: 0, hoverBob: 0,
     sightRange: 18, sightFov: 1.3, hearRange: 22, wakeRadius: 4,
     attackRange: 7.5, attackMinRange: 0,
     projectile: 'spit', projSpeed: 18, projGravity: 3, projRadius: 0.22,
@@ -56,7 +63,7 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
   slab: {
     type: 'slab', name: 'Slab', hp: 110, speed: 2.3, radius: 0.9, height: 2.6,
-    flying: false, hoverY: 0,
+    flying: false, hoverY: 0, hoverBob: 0,
     sightRange: 22, sightFov: 0.9, hearRange: 26, wakeRadius: 5,
     attackRange: 16, attackMinRange: 0,
     projectile: 'fireball', projSpeed: 11, projGravity: 0, projRadius: 0.45,
@@ -66,7 +73,7 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
   wisp: {
     type: 'wisp', name: 'Wisp', hp: 34, speed: 4.6, radius: 0.5, height: 1.1,
-    flying: true, hoverY: 2.3,
+    flying: true, hoverY: 2.3, hoverBob: 0.18,
     sightRange: 26, sightFov: 1.2, hearRange: 30, wakeRadius: 6,
     attackRange: 18, attackMinRange: 0,
     projectile: 'bolt', projSpeed: 17, projGravity: 0, projRadius: 0.2,
@@ -76,7 +83,7 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
   hierophant: {
     type: 'hierophant', name: 'Hierophant', hp: 170, speed: 3.4, radius: 0.72, height: 2.5,
-    flying: false, hoverY: 0,
+    flying: false, hoverY: 0, hoverBob: 0,
     sightRange: 28, sightFov: 1.1, hearRange: 34, wakeRadius: 6,
     attackRange: 20, attackMinRange: 0,
     projectile: 'orb', projSpeed: 14, projGravity: 0, projRadius: 0.32,
@@ -87,7 +94,7 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   // Campaign-only brute. generateMap must never pick this type.
   fiend: {
     type: 'fiend', name: 'Fiend', hp: 240, speed: 2.7, radius: 0.85, height: 2.8,
-    flying: false, hoverY: 0,
+    flying: false, hoverY: 0, hoverBob: 0,
     sightRange: 26, sightFov: 1.0, hearRange: 32, wakeRadius: 6,
     attackRange: 18, attackMinRange: 0,
     projectile: 'fireball', projSpeed: 12, projGravity: 0, projRadius: 0.4,
@@ -97,10 +104,25 @@ export const ENEMIES: Record<EnemyType, EnemyDef> = {
   },
 };
 
-/** Vertical hit volume in world Y. Flying bodies are centered on hoverY (visible torso), not stacked above the head. */
+// Small fixed pad added on top of the exact hover-bob excursion, for the
+// flying hit volume. Not a balance knob — just headroom over the measured
+// geometry so the box isn't shaving the art at its exact tangent.
+const FLYER_VOL_MARGIN = 0.05;
+
+/**
+ * Vertical hit volume in world Y. Flying bodies are centered on hoverY
+ * (visible torso), not stacked above the head.
+ *
+ * EnemyRenderer bobs a flyer's body up AND down by `def.hoverBob` each cycle
+ * (sin, so the excursion is symmetric). A static box sized only to `height`
+ * misses shots at the top of the bob (and, symmetrically, at the bottom) —
+ * the art visibly leaves the box every cycle. Widen both ends by the bob
+ * amplitude plus a small margin so the box covers the full swing of the
+ * visible body.
+ */
 export function enemyVolumeY(def: EnemyDef): { yMin: number; yMax: number; yCenter: number } {
   if (def.flying) {
-    const half = def.height * 0.5;
+    const half = def.height * 0.5 + def.hoverBob + FLYER_VOL_MARGIN;
     return { yMin: def.hoverY - half, yMax: def.hoverY + half, yCenter: def.hoverY };
   }
   return { yMin: 0.1, yMax: def.height + 0.15, yCenter: def.height * 0.6 };

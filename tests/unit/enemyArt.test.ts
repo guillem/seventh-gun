@@ -82,34 +82,35 @@ describe('enemy skin source', () => {
   });
 
   it('keeps each creature on its established base colour', () => {
-    for (const hex of ['#4a5340', '#6e4438', '#241726', '#1a2035', '#2c2433']) {
+    // husk moved to cold slate (was olive #4a5340) and slab to sooty umber
+    // (was rust #6e4438) in the silhouette redesigns
+    // hierophant moved to a darker void violet (was #2c2433)
+    for (const hex of ['#22262b', '#2a2018', '#241726', '#1a2035', '#241c2e']) {
       expect(tex, `base colour ${hex} drifted`).toContain(hex);
     }
-    // hierophant keeps its void purple, fiend gets dark crimson + ember
-    expect(tex).toContain('#b13bff');
+    // fiend keeps its dark crimson; every accent hue (hierophant violet,
+    // fiend ember) now lives on eyes/orbs/tips in enemies.ts, not in a skin
     expect(tex).toContain('#3a0f16');
-    expect(tex).toContain('#ff7a2a');
   });
 
-  it('paints the four detailed skins at 128 and leaves crawler/wisp at 64', () => {
+  it('paints every skin on a 64px canvas', () => {
     const body = (fn: string): string => {
       const at = tex.indexOf(`function ${fn}(`);
       return tex.slice(at, tex.indexOf('\n}\n', at));
     };
-    for (const fn of ['skinHusk', 'skinSlab', 'skinHierophant', 'skinFiend']) {
-      expect(body(fn), `${fn} is not a 128px canvas`).toContain('const S = 128;');
-    }
-    for (const fn of ['skinCrawler', 'skinWisp']) {
+    // the redesigned skins are deliberately restrained: the mesh carries the
+    // shape, the skin carries value, and 64px keeps the pixel chunky
+    for (const fn of ['skinHusk', 'skinSlab', 'skinHierophant', 'skinFiend', 'skinCrawler', 'skinWisp']) {
       expect(body(fn), `${fn} changed size`).toContain('canvas(64)');
     }
   });
 
   it('gives the skins real structure, not just recoloured blobs', () => {
     const vocab: Record<string, string[]> = {
-      skinHusk: ['scute', 'suture', 'teethrow', 'necrotic', 'vein'],
-      skinSlab: ['scute', 'carapace', 'staples', 'scar', 'gouge', 'rust'],
-      skinHierophant: ['bone', 'gold', 'void', 'sigil'],
-      skinFiend: ['scale', 'ember', 'keratin', 'horn', 'char'],
+      skinHusk: ['rib', 'sternum', 'spine', 'bruise', 'slate'],
+      skinSlab: ['plate', 'seam', 'rivet', 'scorch', 'soot'],
+      skinHierophant: ['pleat', 'void', 'hem', 'fold'],
+      skinFiend: ['hide', 'scale', 'char', 'crimson'],
     };
     for (const [fn, words] of Object.entries(vocab)) {
       const at = tex.indexOf(`function ${fn}(`);
@@ -123,8 +124,11 @@ describe('enemy skin source', () => {
     expect(tex).not.toContain("from './campaignTextures'");
     // every wrapDraw callback must build its rng inside, or the nine torus
     // copies draw different strokes and the seam comes back
+    // After the silhouette redesigns only the wisp's ectoplasm swirl still
+    // tiles on the torus, so the true count is 1. The floor pins that the
+    // wisp keeps its seamless pass; the re-seed check below is the real rule.
     const calls = tex.split('wrapDraw(g, ').slice(1);
-    expect(calls.length).toBeGreaterThanOrEqual(8);
+    expect(calls.length).toBeGreaterThanOrEqual(1);
     for (const call of calls) {
       const body = call.slice(0, call.indexOf('});'));
       expect(body, 'wrapDraw callback does not re-seed').toMatch(/const r = (skinRng|makeRng)\(/);
