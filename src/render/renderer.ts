@@ -12,6 +12,7 @@ import { EnemyRenderer } from './enemies';
 import { PickupRenderer } from './pickups';
 import { FxRenderer } from './fx';
 import { buildViewModel, type ViewModel } from './viewmodels';
+import { GUN_FLASH } from './gunArt';
 import { getTextures } from './textures';
 import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
@@ -176,7 +177,7 @@ export class GameRenderer {
 
   fireVisual(gunId: number, yaw: number, pitch: number, px: number, pz: number): void {
     const sizes = [0.5, 1.6, 0.8, 0.7, 1.1, 0.9, 1.8];
-    const colors = [0xffe2a0, 0xffc23a, 0xffd28a, 0xb8ff7a, 0x9aff5a, 0x9ff4ff, 0xb44dff];
+    const colors = GUN_FLASH;
     // make sure the flash attaches to the gun actually firing (switch this frame?)
     this.setGun(gunId);
     this.updateMuzzleSprite(colors[gunId - 1], sizes[gunId - 1]);
