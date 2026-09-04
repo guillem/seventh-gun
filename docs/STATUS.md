@@ -1,7 +1,8 @@
 # STATUS
 
-Updated: 2026-09-04 — arena playtest round 2: input/HUD fixes, muzzle
-offsets, viewmodel redesign.
+Updated: 2026-09-04 — open-source packaging: MIT, plus a portable Node
+server and four self-host distribution targets. Branch
+`feat/open-source-packaging`, not yet merged.
 
 GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
 
@@ -211,6 +212,72 @@ red suite. In one session the tests caught an unhittable hierophant mitre,
 enemy eyes stuck permanently flared, and gun accents drifting off their own
 muzzle-flash colours. None of those break a build.
 
+## Open source + self-host packaging (2026-09-04)
+
+On `feat/open-source-packaging` (2 commits, not merged). MIT license, and the
+same game now runs on hardware other people own.
+
+**The port was nearly free** because `server/room.ts` was already
+runtime-agnostic: clock, seed source and scheduler are constructor-injected and
+sockets are a two-method `RoomSocket`, with no `ctx.storage` and no hibernation
+API. The Worker and the Node server share every line of arena logic. Keep it
+that way — Cloudflare specifics stay in `server/index.ts`, Node specifics in
+`server/node/`. `intervalScheduler()` moved to `server/scheduler.ts` unchanged
+and both entries import it.
+
+New: `server/node/main.ts` (node:http + `ws`, one in-memory global room),
+`bin/seventh-gun.mjs`, `Dockerfile`, `docker-compose.yml`,
+`.github/workflows/release.yml`, `LICENSE`, `CONTRIBUTING.md`, `THIRD-PARTY.md`,
+issue templates. `deploy.yml` is untouched.
+
+**Three build gotchas, all already handled — do not undo them:**
+
+- `vite.config.ts` selects a target by `--mode`, not an env var, so scripts work
+  on Windows. The `isSsrBuild` branch is load-bearing: without it the `--ssr`
+  pass inherits `dist/client` + `emptyOutDir` and deletes the client build.
+  Always client first, then server.
+- `.npmignore` exists only because npm falls back to `.gitignore` otherwise,
+  which lists `dist/` — publishing a package with no build in it.
+- `server/node` needs `@types/node`, which `tsconfig.server.json` deliberately
+  excludes, hence `tsconfig.node.json`. `npm run typecheck` runs all three.
+
+`three` is now a devDependency: the published artifact is prebuilt and three is
+bundled into it. `ws` is the only runtime dependency.
+
+**A crash was found and fixed in the second commit.** `curl 'http://host/%zz'`
+killed the process permanently — `decodeURIComponent` throws and a throw inside
+a Node request listener is uncaught. All parsing goes through `safePathname()`
+now, which returns null rather than throwing on a bad escape or a bad Host
+header. Regression tests in `tests/unit/nodeServer.test.ts`.
+
+### Verified by actually running each target
+
+- Two clients joined one arena room on plain Node, matching seed and grid hash,
+  movement propagated. This is the check that proves the DO-free path.
+- Packed tarball installed into a clean directory and booted (`npm pack`).
+- Container built, ran as non-root, served the game (171 MB).
+- Static tarball (248 KB) served by `python3 -m http.server`; arena correctly
+  reports offline.
+- `npm test` 281 passed, `npm run test:e2e` 83 passed, both builds intact.
+- Malformed requests (`/%zz`, `/%`, bad Host) return 400 and the process
+  survives; traversal resolves to `index.html` and leaks nothing.
+
+### Left to do — all outward-facing, all needing a human
+
+1. Open the PR for `feat/open-source-packaging` and merge it.
+2. Flip the repo public. History was scanned for secrets and is clean.
+3. **Click the Deploy-to-Cloudflare button once and fix or remove it.** It is
+   the only one of the four targets that could not be tested while the repo was
+   private. The README leads with `wrangler deploy` because that path is known
+   to work; the button is offered second.
+4. Add `NPM_TOKEN` as a repo secret, then tag `v0.1.0` to cut the first release.
+   The workflow refuses a tag that disagrees with `package.json`.
+
+Going public does not change the billing posture — still no payment method on
+the Cloudflare account, so the worst case is 429s, never a bill. It does mean
+strangers can find the live arena URL and share a room with friends; dropping
+the live link from the README is the lever if that is unwanted.
+
 ## Open / next
 
 - **Product race: a client joining as the last player leaves can be dropped.**
@@ -235,7 +302,9 @@ muzzle-flash colours. None of those break a build.
 
 - Arena sim/gen: `src/sim/arena.ts`, `arenagen.ts`, `arenaConstants.ts`, `combat.ts`
 - Net: `src/net/protocol.ts`, `src/net/client.ts`
-- Worker: `server/index.ts`, `server/room.ts`, `wrangler.jsonc`
+- Arena room (shared by both runtimes): `server/room.ts`, `server/scheduler.ts`
+- Worker: `server/index.ts`, `wrangler.jsonc`
+- Self-host server: `server/node/main.ts`, `bin/seventh-gun.mjs`, `Dockerfile`
 - Enemy art: `src/render/enemies.ts` + `skin*` in `src/render/textures.ts`
 - Player art: `src/render/players.ts`, `src/render/playerArt.ts`
 - Hit volumes: `enemyVolumeY` in `src/sim/enemyTypes.ts`
