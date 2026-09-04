@@ -146,12 +146,21 @@ that yellow was the slab's accent). `tests/unit/gunArt.test.ts` locks it.
 
 ## Deployment
 
-Two live targets. Both auto-deploy from `main`; neither needs a manual step.
+Two live targets, plus a portable target other people run themselves. The live
+two auto-deploy from `main`; neither needs a manual step.
 
 | | URL | Serves | Trigger |
 |---|---|---|---|
 | Netlify | https://seventh-gun.netlify.app | static client only, **no arena** | auto on push |
 | Cloudflare | https://seventh-gun.default-428.workers.dev | client **and** arena | GitHub Actions on green tests |
+| Self-host | whatever the operator runs it on | client **and** arena | `v*` tag → release.yml |
+
+**Self-host is not a live target we operate.** `server/node/main.ts` bundles to
+`dist/node/server.mjs` and ships three ways: `ghcr.io/guillem/seventh-gun`,
+`npx seventh-gun`, and a static-client tarball with no arena. It runs the same
+`ArenaRoom` as the Worker — one in-memory global room, no Durable Object, so
+none of the cost model below applies to it and hibernation is irrelevant there.
+Room state dies with the process, which is what a friends-and-LAN server wants.
 
 **The Worker serves the whole game, not just the socket.** `wrangler.jsonc`
 sets `assets.directory: ./dist/client` with `run_worker_first: ["/arena",

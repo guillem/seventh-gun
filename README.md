@@ -63,6 +63,37 @@ windows). Campaign debug:
 `startCampaign(n)`, `completeMap()`, `campaign`. Arena debug (`?e2e=1`):
 `joinArena(name)`, `leaveArena()`, `arena()`.
 
+## Run it on your own machine
+
+There is no hosted service to sign up for and no accounts anywhere. You run it,
+your friends connect to you, and nothing leaves the box.
+
+**Docker** — the whole game plus the arena, one command:
+
+```bash
+docker run -p 8080:8080 ghcr.io/guillem/seventh-gun
+```
+
+**npx** — same thing if you already have Node 22+:
+
+```bash
+npx seventh-gun            # --port 8080 --host 0.0.0.0
+```
+
+Both print a LAN URL on startup. Anyone who can reach that address can open it
+and join **MULTIPLAYER ARENA** — one shared room, running on your hardware.
+Behind a reverse proxy on another domain, set `ALLOWED_ORIGINS=https://your.domain`.
+
+**Static files only** — grab `seventh-gun-<version>-static.tar.gz` from
+[Releases](https://github.com/guillem/seventh-gun/releases) and drop it in any
+web server. Campaign, random mazes and the editor all work; the arena needs a
+server, so it reports offline. Point unknown paths at `index.html` so shared
+`#m=` map links survive a refresh.
+
+**Your own Cloudflare account** — [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/guillem/seventh-gun)
+gives you the arena on the Workers free plan, in *your* account, on your own
+subdomain.
+
 ## Under the hood
 
 - **Vite + TypeScript + Three.js**, native-resolution WebGL, procedural
@@ -78,3 +109,10 @@ windows). Campaign debug:
 
 Start with [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 Balance numbers live in [docs/GAME-DESIGN.md](docs/GAME-DESIGN.md).
+
+## License
+
+[MIT](LICENSE). Every texture, mesh, sound and level is generated at runtime
+from a seed — there are no asset packs, no fonts and no third-party art, so the
+license covers the whole work. The one bundled library is
+[three.js](https://threejs.org) (MIT); see [THIRD-PARTY.md](THIRD-PARTY.md).

@@ -1,0 +1,104 @@
+name: Release
+
+# Tag a version to cut a release:  git tag v0.2.0 && git push --tags
+# Produces three artifacts: a static tarball on the GitHub Release, a
+# multi-arch image on GHCR, and an npm package. deploy.yml is untouched —
+# pushes to main still deploy the Cloudflare Worker exactly as before.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: typecheck + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run test:e2e
+
+  release:
+    name: static tarball + npm
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write   # create the GitHub Release
+      id-token: write   # npm publish --provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+
+      - name: Build the portable client and server
+        run: npm run build:dist
+
+      # The no-server drop-in: campaign, mazes and editor, no arena.
+      - name: Pack the static client
+        run: tar -czf seventh-gun-${{ github.ref_name }}-static.tar.gz -C dist/client .
+
+      - name: Publish the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: seventh-gun-${{ github.ref_name }}-static.tar.gz
+          generate_release_notes: true
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  image:
+    name: container image
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write   # push to GHCR
+    steps:
+      - uses: actions/checkout@v4
+
+      # arm64 matters here: Raspberry Pis and Ampere VPSs are exactly the
+      # hardware people put a small game server on.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

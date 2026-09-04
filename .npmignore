@@ -1,0 +1,14 @@
+# npm falls back to .gitignore when this file is absent, and .gitignore lists
+# dist/ — which would publish a package with no build in it. This file exists
+# to override that; `files` in package.json is what actually selects content.
+node_modules
+src
+server
+tests
+docs
+public
+.github
+.claude
+test-results
+playwright-report
+*.log

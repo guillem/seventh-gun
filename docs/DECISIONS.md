@@ -152,3 +152,26 @@ Unspecified things got decided; this is the record.
   playtest returns to the editor; TITLE abandons. Library key
   `seventh-gun.mymaps`, cap 40. Share via `#m=` / `SGMAP.v1.` / `.sgmap`.
   No backend.
+- **Open source + self-host packaging**: **MIT**. Nothing inbound constrains
+  the choice — every texture, mesh, sound and level is generated at runtime, so
+  there are no assets needing CC-BY, and the one bundled library (three.js) is
+  MIT with its `@license` banner already preserved in the built bundle. AGPL was
+  rejected: its mechanism (forcing hosted-service source disclosure) adds
+  compliance friction for exactly the friends-self-hosting case this is meant to
+  enable, and there is no revenue to protect. Apache-2.0's patent/trademark
+  clause was not worth the extra length for a game.
+  Four distribution targets, all zero-cost to operate: a multi-arch GHCR image,
+  `npx seventh-gun`, a static `.tar.gz` on Releases (no arena), and a
+  Deploy-to-Cloudflare button that deploys into *the visitor's* account. Cut by
+  tagging `v*` (`.github/workflows/release.yml`); `deploy.yml` is unchanged.
+  Prebuilt single-file binaries (Bun/Deno `compile`, Node SEA) were rejected:
+  per-platform CI and 50-100 MB artifacts to maintain for a case Docker and npx
+  already cover.
+  The port cost almost nothing because `ArenaRoom` was already runtime-agnostic
+  (injected clock/seed/scheduler, two-method `RoomSocket`, no `ctx.storage`, no
+  hibernation API). Keep it that way. `vite.config.ts` selects a target by
+  `--mode`, not an env var, so the scripts work on Windows.
+- **Public repo, unchanged cost posture**: going public does not change the
+  billing risk on the live arena. There is still no payment method on the
+  Cloudflare account, so the worst case under traffic is 429s and downtime,
+  never a bill.

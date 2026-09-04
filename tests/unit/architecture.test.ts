@@ -49,6 +49,17 @@ describe('architecture guards', () => {
     }
   });
 
+  it('the server layer never pulls in the renderer, UI or Three.js', () => {
+    const serverFiles = walk(join(process.cwd(), 'server'));
+    expect(serverFiles.length).toBeGreaterThan(2);
+    for (const f of serverFiles) {
+      const src = readFileSync(f, 'utf8');
+      expect(src, `${f} must not import three`).not.toMatch(/from\s+['"]three/);
+      expect(src, `${f} imports render/ui/audio/app`).not.toMatch(/from\s+['"]\.\.\/(\.\.\/)?src\/(render|ui|audio|app|editor)/);
+      expect(src, `${f} touches document`).not.toMatch(/\bdocument\b/);
+    }
+  });
+
   it('campaign and editor model stay pure (no Math.random / DOM / localStorage / three)', () => {
     expect(campaignFiles.length).toBeGreaterThan(0);
     for (const f of [...campaignFiles, editorModel]) {

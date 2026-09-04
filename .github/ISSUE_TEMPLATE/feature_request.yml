@@ -1,0 +1,22 @@
+name: Idea
+description: Suggest a weapon, enemy, mechanic or quality-of-life change
+labels: [idea]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Before you write: everything in this game is generated from a seed at
+        runtime — no image, audio or model files. Ideas that need shipped assets
+        will not be built, so it is worth framing yours as something that could
+        be drawn or synthesized in code.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What it would do for the game
+      description: What is unsatisfying now that this fixes?
