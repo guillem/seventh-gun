@@ -1,7 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { createServer } from 'node:net';
+import { createConnection, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import WebSocket from 'ws';
@@ -42,10 +42,13 @@ try {
   tooLarge.send('x'.repeat(2_049));
   const [tooLargeCode] = await deadline(once(tooLarge, 'close'), 'oversized frame close');
   if (tooLargeCode !== 1009) throw new Error(`oversized arena frame closed with ${tooLargeCode}, expected 1009`);
-  const connect = () => new Promise((resolveWelcome, reject) => {
+  const connect = (join = true) => new Promise((resolveWelcome, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}/arena`);
     ws.once('error', reject);
-    ws.once('open', () => ws.send(JSON.stringify({ v: 1, t: 'join', name: 'smoke' })));
+    ws.once('open', () => {
+      if (join) ws.send(JSON.stringify({ v: 1, t: 'join', name: 'smoke' }));
+      else resolveWelcome({ ws, message: null });
+    });
     ws.on('message', (raw) => {
       const message = JSON.parse(raw.toString());
       if (message.t === 'welcome') resolveWelcome({ ws, message });
@@ -53,10 +56,43 @@ try {
   });
   const [one, two] = await deadline(Promise.all([connect(), connect()]), 'arena joins');
   if (one.message.seed !== two.message.seed || one.message.gridHash !== two.message.gridHash) throw new Error('clients did not join the same arena');
-  one.ws.close(); two.ws.close();
   const occupied = spawn(process.execPath, [cli, '--port', String(port), '--host', '127.0.0.1']);
   const [code] = await deadline(once(occupied, 'exit'), 'occupied-port failure');
   if (code === 0) throw new Error('packed CLI accepted an occupied port');
+
+  // Keep a raw upgraded connection open so it cannot acknowledge the close
+  // handshake. The CLI must still leave within its one-second force deadline.
+  const raw = createConnection({ port, host: '127.0.0.1' });
+  await deadline(once(raw, 'connect'), 'raw WebSocket connect');
+  raw.write('GET /arena HTTP/1.1\r\nHost: 127.0.0.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n');
+  await deadline(new Promise((resolveUpgrade, reject) => {
+    raw.once('data', (data) => String(data).startsWith('HTTP/1.1 101') ? resolveUpgrade() : reject(new Error('raw WebSocket upgrade failed')));
+    raw.once('error', reject);
+  }), 'raw WebSocket upgrade');
+  const partialHttp = createConnection({ port, host: '127.0.0.1' });
+  await deadline(once(partialHttp, 'connect'), 'partial HTTP connect');
+  partialHttp.write('GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n');
+  const oneClosed = deadline(once(one.ws, 'close'), 'joined arena shutdown close', 3_000);
+  const pending = new WebSocket(`ws://127.0.0.1:${port}/arena`);
+  const pendingOpened = deadline(once(pending, 'open'), 'pending arena open');
+  await pendingOpened;
+  const pendingClosed = deadline(once(pending, 'close'), 'pending arena shutdown close', 3_000);
+  const stoppedAt = Date.now();
+  child.kill('SIGINT');
+  const [oneCode] = await oneClosed;
+  const [pendingCode] = await pendingClosed;
+  const [exitCode] = await deadline(once(child, 'exit'), 'CLI SIGINT shutdown', 3_000);
+  if (exitCode !== 0 || oneCode !== 1001 || pendingCode !== 1001) throw new Error('CLI did not close arena clients cooperatively on SIGINT');
+  if (Date.now() - stoppedAt < 900 || Date.now() - stoppedAt > 2_500) throw new Error('unresponsive WebSocket force deadline was not enforced');
+  raw.destroy();
+  partialHttp.destroy();
+
+  const { serve } = await import(join(dir, 'node_modules', 'seventh-gun', 'dist', 'node', 'server.mjs'));
+  const apiServer = serve({ port: 0, host: '127.0.0.1', clientDir: join(dir, 'node_modules', 'seventh-gun', 'dist', 'client') });
+  await deadline(once(apiServer, 'listening'), 'API shutdown server startup');
+  const firstShutdown = apiServer.shutdown();
+  if (apiServer.shutdown() !== firstShutdown) throw new Error('shutdown() is not idempotent');
+  await deadline(firstShutdown, 'repeated API shutdown');
 } finally {
   child?.kill();
   rmSync(dir, { recursive: true, force: true });
