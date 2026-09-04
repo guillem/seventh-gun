@@ -2,7 +2,7 @@
 // ArenaRoom. The room itself is covered by room.test.ts.
 import { describe, it, expect } from 'vitest';
 import type { IncomingMessage } from 'node:http';
-import { originAllowed, toRoomSocket } from '../../server/node/main';
+import { originAllowed, safePathname, toRoomSocket } from '../../server/node/main';
 
 const req = (headers: Record<string, string>) => ({ headers }) as unknown as IncomingMessage;
 
@@ -69,5 +69,35 @@ describe('toRoomSocket', () => {
     ws.close = () => { throw new Error('already gone'); };
     toRoomSocket(ws as never).close(4000, 'protocol');
     expect(calls.terminated).toBe(1);
+  });
+});
+
+describe('safePathname', () => {
+  it('decodes an ordinary path', () => {
+    expect(safePathname('/assets/index.js', 'box:8080')).toBe('/assets/index.js');
+    expect(safePathname('/?seed=test', 'box:8080')).toBe('/');
+    expect(safePathname('/my%20map', 'box:8080')).toBe('/my map');
+  });
+
+  it('returns null instead of throwing on a malformed escape', () => {
+    // Regression: an unguarded decodeURIComponent here threw inside the request
+    // listener, which is an uncaught exception — one `curl /%zz` killed the
+    // whole server and everyone playing on it.
+    expect(safePathname('/%zz', 'box:8080')).toBeNull();
+    expect(safePathname('/%', 'box:8080')).toBeNull();
+    expect(safePathname('/%E0%A4%A', 'box:8080')).toBeNull();
+  });
+
+  it('returns null instead of throwing on a malformed Host header', () => {
+    expect(safePathname('/', 'not a host')).toBeNull();
+  });
+
+  it('collapses traversal before the handler ever sees it', () => {
+    // WHATWG URL resolves dot segments, encoded ones included, so these are
+    // already harmless by the time normalize() and the clientDir prefix check
+    // run in the request handler.
+    expect(safePathname('/../package.json', 'box:8080')).toBe('/package.json');
+    expect(safePathname('/%2e%2e/package.json', 'box:8080')).toBe('/package.json');
+    expect(safePathname('/a/b/../../../../etc/passwd', 'box:8080')).toBe('/etc/passwd');
   });
 });

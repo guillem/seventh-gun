@@ -44,17 +44,31 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
 
+      # A tag that disagrees with package.json either 403s on npm (version
+      # already published) or ships a release whose contents claim a different
+      # version. Fail here rather than halfway through publishing.
+      - name: Tag must match package.json
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          if [ "v$pkg" != "${{ github.ref_name }}" ]; then
+            echo "::error::tag ${{ github.ref_name }} does not match package.json version $pkg"
+            exit 1
+          fi
+
       - name: Build the portable client and server
         run: npm run build:dist
 
       # The no-server drop-in: campaign, mazes and editor, no arena.
+      # Named without the leading v, to match the npm version.
       - name: Pack the static client
-        run: tar -czf seventh-gun-${{ github.ref_name }}-static.tar.gz -C dist/client .
+        run: |
+          v=$(node -p "require('./package.json').version")
+          tar -czf "seventh-gun-$v-static.tar.gz" -C dist/client .
 
       - name: Publish the GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: seventh-gun-${{ github.ref_name }}-static.tar.gz
+          files: seventh-gun-*-static.tar.gz
           generate_release_notes: true
 
       - name: Publish to npm
@@ -66,7 +80,8 @@ jobs:
     name: container image
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Two full npm ci + build passes, and the arm64 one is QEMU-emulated.
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write   # push to GHCR

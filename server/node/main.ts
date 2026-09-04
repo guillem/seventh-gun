@@ -34,6 +34,20 @@ const MIME: Record<string, string> = {
   '.webmanifest': 'application/manifest+json',
 };
 
+/**
+ * Pathname, or null if the request line or Host header is malformed. Both
+ * `new URL()` and `decodeURIComponent()` throw on junk input, and a throw
+ * inside a Node request listener takes the whole process down — which on a
+ * self-hosted box means one bad request ends everyone's game.
+ */
+export function safePathname(url: string | undefined, host: string | undefined): string | null {
+  try {
+    return decodeURIComponent(new URL(url ?? '/', `http://${host ?? 'localhost'}`).pathname);
+  } catch {
+    return null;
+  }
+}
+
 /** Mirrors server/index.ts: same-host is always fine, extras come from config. */
 export function originAllowed(req: IncomingMessage, allowed: string[]): boolean {
   const origin = req.headers.origin;
@@ -105,35 +119,57 @@ export function serve(opts: ServeOptions = {}) {
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
     });
-    createReadStream(file).pipe(res);
+    const stream = createReadStream(file);
+    // Headers are already out by now, so there is nothing to say — just stop.
+    stream.on('error', () => res.destroy());
+    stream.pipe(res);
   };
 
   const server = createServer((req, res) => {
-    const pathname = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`).pathname;
+    try {
+      const pathname = safePathname(req.url, req.headers.host);
+      if (pathname === null) {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('bad request');
+        return;
+      }
 
-    if (pathname === '/health') {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('ok');
-      return;
+      if (pathname === '/health') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('ok');
+        return;
+      }
+
+      // Resolve inside clientDir only — normalize() collapses any ../ traversal.
+      const rel = normalize(pathname).replace(/^(\.\.[/\\])+/, '');
+      const file = join(clientDir, rel);
+      if (file.startsWith(clientDir) && existsSync(file) && statSync(file).isFile()) {
+        sendFile(res, file, pathname.startsWith('/assets/'));
+        return;
+      }
+
+      // SPA fallback, matching the Worker's not_found_handling.
+      sendFile(res, join(clientDir, 'index.html'), false);
+    } catch {
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('server error');
+      } else {
+        res.destroy();
+      }
     }
+  });
 
-    // Resolve inside clientDir only — normalize() collapses any ../ traversal.
-    const rel = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '');
-    const file = join(clientDir, rel);
-    if (file.startsWith(clientDir) && existsSync(file) && statSync(file).isFile()) {
-      sendFile(res, file, pathname.startsWith('/assets/'));
-      return;
-    }
-
-    // SPA fallback, matching the Worker's not_found_handling.
-    sendFile(res, join(clientDir, 'index.html'), false);
+  // Garbage on the socket before a request is even parsed.
+  server.on('clientError', (_err, socket) => {
+    if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+    socket.destroy();
   });
 
   const wss = new WebSocketServer({ noServer: true });
 
   server.on('upgrade', (req, socket, head) => {
-    const pathname = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`).pathname;
-    if (pathname !== '/arena') {
+    if (safePathname(req.url, req.headers.host) !== '/arena') {
       socket.destroy();
       return;
     }

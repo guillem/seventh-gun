@@ -90,9 +90,16 @@ web server. Campaign, random mazes and the editor all work; the arena needs a
 server, so it reports offline. Point unknown paths at `index.html` so shared
 `#m=` map links survive a refresh.
 
-**Your own Cloudflare account** — [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/guillem/seventh-gun)
-gives you the arena on the Workers free plan, in *your* account, on your own
-subdomain.
+**Your own Cloudflare account** — the arena on the Workers free plan, in *your*
+account, on your own subdomain. Clone and deploy:
+
+```bash
+npm ci && npm run build && npx wrangler deploy
+```
+
+That is exactly what this repo's own CI runs, so it is the path that is known to
+work. [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/guillem/seventh-gun)
+does the same thing in one click if you would rather not clone.
 
 ## Under the hood
 
