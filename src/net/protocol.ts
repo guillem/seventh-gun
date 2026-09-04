@@ -2,6 +2,8 @@ import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
 export const PROTOCOL_V = 2 as const;
+export const MAX_ARENA_MESSAGE_BYTES = 8192;
+export const MAX_INPUTS_PER_BATCH = 32;
 
 export type ClientMessage =
   | { v: 2; t: 'join'; name: string }
@@ -28,7 +30,7 @@ export function isClientMessage(v: unknown): v is ClientMessage {
   if (m.t === 'ping') return Number.isFinite(m.at);
   if (m.t === 'input') {
     if (!integer(m.spawnCount, 1) || !Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
-    if (m.inputs.length > 8) return false;
+    if (m.inputs.length > MAX_INPUTS_PER_BATCH) return false;
     return m.inputs.every(isInputFrame);
   }
   return false;

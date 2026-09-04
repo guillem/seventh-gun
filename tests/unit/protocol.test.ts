@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodeClient, decodeServer, isClientMessage, isServerMessage } from '../../src/net/protocol';
+import { MAX_ARENA_MESSAGE_BYTES, MAX_INPUTS_PER_BATCH, decodeClient, decodeServer, encode, isClientMessage, isServerMessage } from '../../src/net/protocol';
 import { ArenaSim } from '../../src/sim/arena';
 
 describe('protocol guards', () => {
@@ -20,13 +20,14 @@ describe('protocol guards', () => {
     expect(decodeClient(JSON.stringify({ v: 2, t: 'chat', text: 'hi' }))).toBe('unknown');
   });
 
-  it('caps inputs per message at 8', () => {
-    const inputs = Array.from({ length: 9 }, () => ({
-      moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false,
+  it('caps inputs at the 32-frame resend window within the 8 KiB transport budget', () => {
+    const inputs = Array.from({ length: MAX_INPUTS_PER_BATCH + 1 }, () => ({
+      moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false, use: false, switchGun: null,
     }));
     expect(isClientMessage({ v: 2, t: 'input', spawnCount: 1, seq: 1, inputs })).toBe(false);
     inputs.pop();
     expect(isClientMessage({ v: 2, t: 'input', spawnCount: 1, seq: 1, inputs })).toBe(true);
+    expect(new TextEncoder().encode(encode({ v: 2, t: 'input', spawnCount: 1, seq: 1, inputs })).byteLength).toBeLessThanOrEqual(MAX_ARENA_MESSAGE_BYTES);
   });
 
   it('requires a positive life epoch on each input batch', () => {

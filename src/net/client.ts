@@ -7,7 +7,7 @@ import { moveCircle, type SolidState } from '../sim/physics';
 import { PLAYER_RADIUS } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
-import { decodeServer, encode, type ServerMessage } from './protocol';
+import { MAX_INPUTS_PER_BATCH, decodeServer, encode, type ServerMessage } from './protocol';
 
 export type ArenaConnectError = 'full' | 'offline' | 'mismatch' | 'protocol';
 
@@ -305,7 +305,7 @@ export class ArenaClient {
     // hole that it must not acknowledge past. Repeating an already accepted
     // prefix is harmless: the server de-duplicates it before taking the next
     // contiguous frame.
-    const batch = this.pending.slice(0, 8);
+    const batch = this.pending.slice(0, MAX_INPUTS_PER_BATCH);
     if (!batch.length) return;
     this.send({ v: 2, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
   }

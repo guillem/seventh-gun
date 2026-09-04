@@ -5,6 +5,8 @@ import { generateArena, arenaGridHash } from '../../src/sim/arenagen';
 import { ARENA_GEN_VERSION } from '../../src/sim/arenaConstants';
 import { emptyInput, STEP_DT } from '../../src/sim/sim';
 import { ArenaSim, type ArenaSnapshot } from '../../src/sim/arena';
+import { ArenaRoom, type RoomSocket, type TickScheduler } from '../../server/room';
+import { MAX_ARENA_MESSAGE_BYTES } from '../../src/net/protocol';
 
 class FakeSock implements ArenaNetSocket {
   sent: string[] = [];
@@ -239,6 +241,76 @@ describe('ArenaClient', () => {
     expect(player.gun).toBe(2);
     expect(player.lastSeq).toBe(4);
     expect(sim.takeEvents().filter((event) => event.t === 'shot' && event.id === player.id)).toHaveLength(1);
+  });
+
+  it.each([50, 100, 200])('%ims RTT keeps the actual room acknowledgement lag bounded', async (rttMs) => {
+    let now = 0;
+    let tick: () => void = () => {};
+    const scheduler: TickScheduler = {
+      start(fn) { tick = fn; }, stop() { tick = () => {}; }, timeout() { return () => {}; },
+    };
+    const room = new ArenaRoom(() => now, () => 'room-throughput', scheduler);
+    const clientSock = new FakeSock();
+    type Due = { at: number; run: () => void };
+    const due: Due[] = [];
+    let clientToServerAt = 0;
+    let serverToClientAt = 0;
+    let maxBytes = 0;
+    let inputMessages = 0;
+    let serverShots = 0;
+    const jitter = (n: number) => [0, 12, 31, 50, 7, 24][n % 6]!;
+    const scheduleClientToServer = (run: () => void, n: number) => {
+      clientToServerAt = Math.max(clientToServerAt, now + rttMs / 2 + jitter(n));
+      due.push({ at: clientToServerAt, run });
+    };
+    const scheduleServerToClient = (run: () => void, n: number) => {
+      serverToClientAt = Math.max(serverToClientAt, now + rttMs / 2 + jitter(n));
+      due.push({ at: serverToClientAt, run });
+    };
+    const serverSock: RoomSocket = {
+      send(text) {
+        const message = JSON.parse(text) as ServerMessage;
+        if (message.t === 'events') serverShots += message.es.filter((event) => event.t === 'shot').length;
+        scheduleServerToClient(() => clientSock.push(message), room.sim?.tick ?? 0);
+      },
+      close() { /* test transport stays open */ },
+    };
+    room.onOpen(serverSock);
+    clientSock.onSend = (text) => {
+      maxBytes = Math.max(maxBytes, new TextEncoder().encode(text).byteLength);
+      if ((JSON.parse(text) as { t?: string }).t === 'input') inputMessages++;
+      scheduleClientToServer(() => room.onMessage(serverSock, text), due.length);
+    };
+    const client = new ArenaClient(() => clientSock, () => now);
+    const connected = client.connect('ws://x/arena', 'A');
+    await Promise.resolve();
+    const flush = () => {
+      const ready = due.filter((item) => item.at <= now).sort((a, b) => a.at - b.at);
+      for (const item of ready) item.run();
+      for (const item of ready) due.splice(due.indexOf(item), 1);
+    };
+    for (let i = 0; i < 30; i++) { now += STEP_DT * 1000; flush(); tick(); }
+    await connected;
+    const player = room.sim!.players[0]!;
+    player.owned[2] = true;
+    player.ammo.shells = 2;
+    let generated = 0;
+    const lags: number[] = [];
+    for (let i = 0; i < 1800; i++) {
+      now += STEP_DT * 1000;
+      client.stepLocal(STEP_DT, { ...emptyInput(), moveZ: i < 180 ? 1 : 0, switchGun: i === 60 ? 2 : null, fire: i === 60 });
+      generated++;
+      flush();
+      tick();
+      if (i > 300 && i % 60 === 0) lags.push(generated - player.lastSeq);
+    }
+    expect(maxBytes).toBeLessThanOrEqual(MAX_ARENA_MESSAGE_BYTES);
+    expect(inputMessages).toBeGreaterThanOrEqual(440);
+    expect(inputMessages).toBeLessThanOrEqual(460);
+    expect(serverShots).toBe(1);
+    expect(lags.length).toBeGreaterThan(10);
+    expect(Math.max(...lags)).toBeLessThanOrEqual(20);
+    expect(lags.at(-1)!).toBeLessThanOrEqual(lags[0]! + 4);
   });
 
   it('interpolation returns a pose between two snapshots at 100ms', async () => {

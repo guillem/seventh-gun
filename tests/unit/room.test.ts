@@ -162,7 +162,7 @@ describe('ArenaRoom', () => {
     room.onOpen(a);
     room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     a.sent.length = 0;
-    const big = 'x'.repeat(3000);
+    const big = 'x'.repeat(9000);
     room.onMessage(a, big);
     room.onMessage(a, big);
     room.onMessage(a, big);
