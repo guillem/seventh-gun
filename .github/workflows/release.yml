@@ -137,6 +137,22 @@ jobs:
           # after configuring npm trusted publishing for this repository.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
 
+  npm-auth-check:
+    needs: [preflight, package-smoke, container-smoke, static-artifact]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Verify npm bootstrap authentication without publishing
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+
   publish-image:
     needs: [preflight, package-smoke, container-smoke, static-artifact]
     runs-on: ubuntu-latest

@@ -148,3 +148,6 @@ For the first npm publication only, add a short-lived automation token as the
 secret and configure npm trusted publishing for `guillem/seventh-gun` with the
 GitHub Actions workflow `.github/workflows/release.yml`; later releases use the
 workflow's OIDC provenance permission instead of a stored npm credential.
+Run the Release workflow manually from `main` first: it performs every artifact
+check and a read-only `npm whoami` with that secret, but never publishes. Do not
+create the version tag until this validation passes.
