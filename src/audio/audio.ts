@@ -356,7 +356,7 @@ export class AudioEngine {
   }
 
   // ------------------------------------------------------------- dispatch
-  handleEvent(e: SimEvent, gain = 1, local = false): void {
+  handleEvent(e: SimEvent, gain = 1, local = true): void {
     this.eventGain = gain;
     this.eventPriority = local;
     switch (e.t) {

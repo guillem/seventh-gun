@@ -60,7 +60,8 @@ export class ArenaClient {
   private pingSentAt = 0;
   private localFireCd = 0;
   private cosmeticShot: { gun: number; x: number; z: number; yaw: number } | null = null;
-  private earlyProjectiles = new Map<number, { projectile: ArenaSnapshot['projectiles'][number]; expiresAt: number }>();
+  private earlyProjectiles = new Map<number, { projectile: ArenaSnapshot['projectiles'][number]; receivedAt: number; expiresAt: number }>();
+  private despawnedProjectiles = new Set<number>();
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
@@ -373,9 +374,11 @@ export class ArenaClient {
   private noteEvent(event: ArenaEvent): void {
     if (event.t === 'despawnProjectile') {
       this.earlyProjectiles.delete(event.projectileId);
+      this.despawnedProjectiles.add(event.projectileId);
       return;
     }
     if (event.t !== 'spawnProjectile') return;
+    this.despawnedProjectiles.delete(event.projectileId);
     this.earlyProjectiles.set(event.projectileId, {
       projectile: {
         id: event.projectileId, ownerId: event.ownerId, kind: event.kind,
@@ -384,7 +387,7 @@ export class ArenaClient {
       },
       // Do not remove this just because the latest snapshot has it: the
       // delayed render history can still be sampling the pre-spawn frame.
-      expiresAt: this.now() + 600,
+      receivedAt: this.now(), expiresAt: this.now() + 600,
     });
   }
 
@@ -437,6 +440,7 @@ export class ArenaClient {
     this.cosmeticShot = null;
     this.predictedShots.clear();
     this.earlyProjectiles.clear();
+    this.despawnedProjectiles.clear();
     this.localGun = 1;
     this.diedAt = null;
   }
@@ -564,9 +568,15 @@ export class ArenaClient {
       return { ...pk, taken: live?.taken ?? false };
     });
     for (const [id, early] of this.earlyProjectiles) if (early.expiresAt <= now) this.earlyProjectiles.delete(id);
-    const snapshotProjectiles = interp?.projectiles ?? [];
+    const snapshotProjectiles = (interp?.projectiles ?? []).filter((p) => !this.despawnedProjectiles.has(p.id));
     const snapshotIds = new Set(snapshotProjectiles.map((p) => p.id));
-    const projectiles: ProjectileEnt[] = [...snapshotProjectiles, ...[...this.earlyProjectiles.values()].map((entry) => entry.projectile).filter((p) => !snapshotIds.has(p.id))].map((p) => ({
+    const early = [...this.earlyProjectiles.values()].map((entry) => {
+      const elapsed = Math.max(0, (now - entry.receivedAt) / 1000);
+      return { ...entry.projectile, x: entry.projectile.x + entry.projectile.vx * elapsed,
+        y: entry.projectile.y + entry.projectile.vy * elapsed - entry.projectile.gravity * elapsed * elapsed / 2,
+        z: entry.projectile.z + entry.projectile.vz * elapsed, age: entry.projectile.age + elapsed };
+    });
+    const projectiles: ProjectileEnt[] = [...snapshotProjectiles, ...early.filter((p) => !snapshotIds.has(p.id))].map((p) => ({
       id: p.id, kind: p.kind, fromPlayer: true,
       x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz,
       gravity: p.gravity, radius: p.radius, damage: 0, splashRadius: 0, damageSelfPct: 0, age: p.age,

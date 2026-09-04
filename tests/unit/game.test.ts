@@ -242,3 +242,24 @@ describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () 
     expect(audioEvents).toEqual([{ t: 'pickup', kind: 'ammo', label: '+10 NAILS' }]);
   });
 });
+
+describe('arena audio ownership', () => {
+  it('keeps a gain-1 remote volley outside the local audio reserve', () => {
+    const calls: unknown[][] = [];
+    const g = bareGame() as unknown as {
+      arenaClient: { worldView: () => { player: { x: number; z: number } }; shouldIgnoreEchoShot: () => boolean; roster: () => [] };
+      audio: { handleEvent: (...args: unknown[]) => void };
+      renderer: { fireVisual: () => void; fx: Record<string, never> };
+      handleArenaEvent: (event: ArenaEvent, selfId: number) => void;
+    };
+    g.arenaClient = { worldView: () => ({ player: { x: 0, z: 0 } }), shouldIgnoreEchoShot: () => false, roster: () => [] };
+    g.audio = { handleEvent: (...args) => calls.push(args) };
+    g.renderer = { fireVisual() {}, fx: {} };
+    const remote = { t: 'shot', id: 7, shotId: 1, spawnCount: 1, inputSeq: 1, gun: 1, x: 0, z: 0, yaw: 0, pitch: 0 } as const;
+    const local = { ...remote, id: 3, shotId: 2, inputSeq: 2 };
+    for (let i = 0; i < 30; i++) g.handleArenaEvent({ ...remote, shotId: i + 1 }, 3);
+    g.handleArenaEvent(local, 3);
+    expect(calls.slice(0, 30).every((call) => call[2] === false)).toBe(true);
+    expect(calls.at(-1)?.[2]).toBe(true);
+  });
+});

@@ -1111,16 +1111,16 @@ export class Game {
     } else if (e.t === 'hitPlayer') {
       this.renderer.fx.blood(e.x, e.y, e.z, e.killed);
     } else if (e.t === 'dryfire' && e.id === selfId) {
-      this.audio.handleEvent({ t: 'dryfire', gun: e.gun });
+      this.audio.handleEvent({ t: 'dryfire', gun: e.gun }, 1, true);
     } else if (e.t === 'explosion') {
-      this.audio.handleEvent({ t: 'explosion', x: e.x, y: e.y, z: e.z, radius: e.radius }, distGain(e.x, e.z));
+      this.audio.handleEvent({ t: 'explosion', x: e.x, y: e.y, z: e.z, radius: e.radius }, distGain(e.x, e.z), false);
       this.renderer.fx.explosion(e.x, e.y, e.z, e.radius);
     } else if (e.t === 'playerHurt' && e.id === selfId) {
       this.hud.playerHurt(e.damage, e.fromAngle);
-      this.audio.handleEvent({ t: 'playerHurt', damage: e.damage, fromAngle: e.fromAngle });
+      this.audio.handleEvent({ t: 'playerHurt', damage: e.damage, fromAngle: e.fromAngle }, 1, true);
     } else if (e.t === 'playerDie' && e.id === selfId) {
       this.hud.died({ epitaph: '' });
-      this.audio.handleEvent({ t: 'playerDie' });
+      this.audio.handleEvent({ t: 'playerDie' }, 1, true);
     } else if (e.t === 'frag') {
       const roster = this.arenaClient?.roster() ?? [];
       const killer = roster.find((p) => p.id === e.killerId)?.name ?? '???';
@@ -1128,7 +1128,7 @@ export class Game {
       this.hud.showMessage(e.suicide ? `${victim} ate it` : `${killer} fragged ${victim}`);
       if (e.victimId === selfId && !e.suicide) this.hud.died({ epitaph: `FRAGGED BY ${killer}` });
     } else if (e.t === 'pickup' && e.playerId === selfId) {
-      this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label });
+      this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label }, 1, true);
       this.hud.showMessage(e.label);
     } else if (e.t === 'tracer') {
       this.renderer.fx.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, 'bullets');
