@@ -141,6 +141,11 @@ door). Enemies never open plates. `found` is true the frame the plate
 starts opening. Remote-use is a wall lever; remote-shoot is a sigil.
 Crack/light hints match the campaign theme.
 
+The map editor can preserve, import, validate, and compile secret data, but
+does not yet provide placement tools for plates or remote controls. Author
+those entries through an imported map/blueprint; full secret authoring is a
+separate feature.
+
 ### Powerups
 
 | Kind | Duration | Effect | Color |
