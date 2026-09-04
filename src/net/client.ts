@@ -7,7 +7,7 @@ import { moveCircle, type SolidState } from '../sim/physics';
 import { PLAYER_RADIUS } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
-import { decodeServer, encode, PROTOCOL_V, type ServerMessage } from './protocol';
+import { MAX_INPUTS_PER_BATCH, decodeServer, encode, PROTOCOL_V, type ServerMessage } from './protocol';
 
 export type ArenaConnectError = 'full' | 'offline' | 'mismatch' | 'protocol';
 
@@ -61,7 +61,7 @@ export class ArenaClient {
   private localFireCd = 0;
   private cosmeticShot: { gun: number; x: number; z: number; yaw: number } | null = null;
   private earlyProjectiles = new Map<number, { projectile: ArenaSnapshot['projectiles'][number]; receivedAt: number; expiresAt: number }>();
-  private despawnedProjectiles = new Set<number>();
+  private despawnedProjectiles = new Map<number, number>();
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
@@ -97,7 +97,10 @@ export class ArenaClient {
       });
       sock.addEventListener('close', (ev) => {
         if (!isCurrent()) return;
-        if (!settled) { fail('offline'); return; }
+        if (!settled) {
+          fail(ev.code === 4000 && ev.reason === 'protocol' ? 'protocol' : 'offline');
+          return;
+        }
         this.transportFailed(ev.reason || 'disconnected');
       });
       sock.addEventListener('open', () => {
@@ -311,7 +314,7 @@ export class ArenaClient {
     // hole that it must not acknowledge past. Repeating an already accepted
     // prefix is harmless: the server de-duplicates it before taking the next
     // contiguous frame.
-    const batch = this.pending.slice(0, 8);
+    const batch = this.pending.slice(0, MAX_INPUTS_PER_BATCH);
     if (!batch.length) return;
     this.send({ v: PROTOCOL_V, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
   }
@@ -374,7 +377,7 @@ export class ArenaClient {
   private noteEvent(event: ArenaEvent): void {
     if (event.t === 'despawnProjectile') {
       this.earlyProjectiles.delete(event.projectileId);
-      this.despawnedProjectiles.add(event.projectileId);
+      this.despawnedProjectiles.set(event.projectileId, this.now() + 1100);
       return;
     }
     if (event.t !== 'spawnProjectile') return;
@@ -532,8 +535,12 @@ export class ArenaClient {
     if (!this.solid || !this.latest) { this.view = null; return; }
     const me = this.latest.snap.players.find((p) => p.id === this.id);
     if (!me) { this.view = null; return; }
-    const interp = this.interpolatedSnap(this.now());
     const now = this.now();
+    // Keep render-history retention bounded even if the connection goes quiet
+    // after a despawn event. Tombstones may then expire without an old live
+    // snapshot being sampled again.
+    this.snapshots = this.snapshots.filter((sample) => sample.at >= now - 1000);
+    const interp = this.interpolatedSnap(now);
     const k = this.smoothUntil > now ? (this.smoothUntil - now) / 100 : 0;
     let sx = this.smoothDx * k;
     let sz = this.smoothDz * k;
@@ -568,6 +575,7 @@ export class ArenaClient {
       return { ...pk, taken: live?.taken ?? false };
     });
     for (const [id, early] of this.earlyProjectiles) if (early.expiresAt <= now) this.earlyProjectiles.delete(id);
+    for (const [id, expiresAt] of this.despawnedProjectiles) if (expiresAt <= now) this.despawnedProjectiles.delete(id);
     const snapshotProjectiles = (interp?.projectiles ?? []).filter((p) => !this.despawnedProjectiles.has(p.id));
     const snapshotIds = new Set(snapshotProjectiles.map((p) => p.id));
     const early = [...this.earlyProjectiles.values()].map((entry) => {

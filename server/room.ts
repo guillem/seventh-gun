@@ -2,7 +2,7 @@ import { ArenaSim } from '../src/sim/arena';
 import { ARENA_GEN_VERSION, ARENA_SNAPSHOT_HZ, ARENA_TICK_HZ } from '../src/sim/arenaConstants';
 import { arenaGridHash } from '../src/sim/arenagen';
 import { STEP_DT } from '../src/sim/sim';
-import { decodeClient, encode, type ServerMessage } from '../src/net/protocol';
+import { MAX_ARENA_MESSAGE_BYTES, decodeClient, encode, type ServerMessage } from '../src/net/protocol';
 
 export interface RoomSocket {
   send(text: string): void;
@@ -15,7 +15,6 @@ export interface TickScheduler {
   timeout(fn: () => void, ms: number): () => void;
 }
 
-const MAX_MSG = 2048;
 const MAX_MSG_PER_S = 40;
 const SOCKET_IDLE_S = 15;
 const SNAP_EVERY = Math.round(ARENA_TICK_HZ / ARENA_SNAPSHOT_HZ);
@@ -80,7 +79,7 @@ export class ArenaRoom {
     const t = this.now();
     st.lastMsgAt = t;
 
-    if (text.length > MAX_MSG) {
+    if (new TextEncoder().encode(text).byteLength > MAX_ARENA_MESSAGE_BYTES) {
       this.noteViolation(st);
       return;
     }
