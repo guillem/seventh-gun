@@ -81,24 +81,31 @@ export class ArenaClient {
       };
       this.cancelPendingConnect = () => fail('offline');
       timeout = setTimeout(() => fail('offline'), timeoutMs);
-      sock.addEventListener('error', () => { if (isCurrent()) fail('offline'); });
+      sock.addEventListener('error', () => {
+        if (!isCurrent()) return;
+        if (settled) this.transportFailed('disconnected');
+        else fail('offline');
+      });
       sock.addEventListener('close', (ev) => {
         if (!isCurrent()) return;
-        this.connected = false;
-        this.closeReason = ev.reason || 'disconnected';
-        this.onClose?.(this.closeReason);
-        if (!settled) fail('offline');
+        if (!settled) { fail('offline'); return; }
+        this.transportFailed(ev.reason || 'disconnected');
       });
       sock.addEventListener('open', () => {
         if (!isCurrent() || settled) return;
         this.send({ v: 1, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
-        if (!isCurrent() || settled) return;
+        if (!isCurrent()) return;
         const msg = decodeServer(String(ev.data));
-        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') { fail('offline'); return; }
-        if (msg.t === 'full') { fail('full'); sock.close(); return; }
+        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') {
+          if (settled) this.transportFailed('protocol');
+          else fail('offline');
+          return;
+        }
+        if (!settled && msg.t === 'full') { fail('full'); return; }
         if (msg.t === 'welcome') {
+          if (settled) return;
           const map = generateArena(msg.seed);
           if (msg.genVersion !== ARENA_GEN_VERSION || arenaGridHash(map.grid, map.pickups) !== msg.gridHash) {
             fail('mismatch');
@@ -122,7 +129,7 @@ export class ArenaClient {
           }
           return;
         }
-        this.handleMessage(msg);
+        if (settled) this.handleMessage(msg);
       });
     });
   }
@@ -304,9 +311,22 @@ export class ArenaClient {
     try {
       this.sock?.send(encode(msg));
     } catch {
-      this.closeReason = 'disconnected';
-      this.close();
+      this.transportFailed('disconnected');
     }
+  }
+
+  /** Close a live transport and notify the game once; close() is intentional. */
+  private transportFailed(reason: string): void {
+    const sock = this.sock;
+    if (!sock) return;
+    this.sock = null;
+    this.connected = false;
+    this.closeReason = reason;
+    this.cancelPendingConnect = null;
+    try { sock.close(); } catch { /* socket already gone */ }
+    const onClose = this.onClose;
+    this.onClose = null;
+    onClose?.(reason);
   }
 
   private applySnap(snap: ArenaSnapshot, at: number): void {

@@ -4,7 +4,7 @@ const BASE = '/?e2e=1';
 
 type GameApi = {
   joinArena: (n: string) => Promise<void>;
-  arena: () => { connected: boolean } | null;
+  arena: () => { connected: boolean; tick?: number } | null;
   state: () => { phase: string; scoreboard?: boolean };
   leaveArena: () => void;
 };
@@ -154,10 +154,13 @@ test.describe('arena', () => {
       const ar = (window as unknown as { __GAME__?: { arena: () => { connected: boolean; players: unknown[] } | null } }).__GAME__?.arena();
       return ar?.connected && ar.players.length === 2;
     });
-    const aState = await a.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string } } }).__GAME__.arena());
+    const aState = await a.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string; tick: number } } }).__GAME__.arena());
     const bState = await b.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string } } }).__GAME__.arena());
     expect(aState!.players.length).toBe(2);
     expect(aState!.seed).toBe(bState!.seed);
+    await expect.poll(async () => a.evaluate(
+      () => (window as unknown as { __GAME__: { arena: () => { tick: number } | null } }).__GAME__.arena()?.tick ?? -1,
+    )).toBeGreaterThan(aState!.tick);
     // ArenaClient.close() is fire-and-forget on the client (net/client.ts) —
     // it does not wait for the server to process the close, so the room can
     // still show a nonzero player count server-side for a moment after this

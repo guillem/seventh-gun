@@ -45,7 +45,9 @@ export function isServerMessage(v: unknown): v is ServerMessage {
   if (m.t === 'welcome') {
     return integer(m.id, 0) && typeof m.seed === 'string' && m.seed.length > 0
       && integer(m.genVersion, 0) && integer(m.gridHash) && integer(m.tick, 0)
-      && isSnapshot(m.snapshot);
+      && isSnapshot(m.snapshot)
+      && (m.snapshot as ArenaSnapshot).tick === m.tick
+      && (m.snapshot as ArenaSnapshot).players.some((p) => p.id === m.id);
   }
   if (m.t === 'snap') return isSnapshot(m.snapshot);
   if (m.t === 'events') return Array.isArray(m.es) && m.es.every(isArenaEvent);
@@ -70,7 +72,7 @@ function isArenaPlayer(v: unknown): boolean {
   const ammo = p.ammo as Record<string, unknown> | null;
   return integer(p.id, 0) && typeof p.name === 'string' && integer(p.colorIndex, 0)
     && finite(p.x) && finite(p.z) && finite(p.yaw) && finite(p.pitch) && finite(p.hp)
-    && integer(p.gun, 1) && integer(p.ownedMask, 0) && typeof p.alive === 'boolean'
+    && integer(p.gun, 1) && (p.gun as number) <= 7 && integer(p.ownedMask, 0) && typeof p.alive === 'boolean'
     && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.lastSeq, 0)
     && !!ammo && ['bullets', 'shells', 'nails', 'grenades', 'cores', 'void'].every((key) => finite(ammo[key]));
 }
@@ -98,8 +100,8 @@ function isArenaEvent(v: unknown): boolean {
     case 'playerJoin': return hasId && typeof e.name === 'string' && integer(e.colorIndex, 0);
     case 'playerLeave': case 'playerDie': case 'playerSpawn': case 'padRespawn': return hasId;
     case 'kick': return hasId && (e.reason === 'idle' || e.reason === 'mismatch' || e.reason === 'protocol');
-    case 'shot': return hasId && integer(e.gun, 1) && finite(e.x) && finite(e.z) && finite(e.yaw);
-    case 'dryfire': return hasId && integer(e.gun, 1);
+    case 'shot': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw);
+    case 'dryfire': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7;
     case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
     case 'beam': return hasId && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
     case 'spawnProjectile': return hasId && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z);
