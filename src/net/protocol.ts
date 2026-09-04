@@ -1,20 +1,23 @@
 import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
-export const PROTOCOL_V = 1 as const;
+// v2 carries complete projectile state and event identities.  Keeping the
+// version strict makes an old client fail its join cleanly instead of trying
+// to render a partially understood combat frame.
+export const PROTOCOL_V = 2 as const;
 
 export type ClientMessage =
-  | { v: 1; t: 'join'; name: string }
-  | { v: 1; t: 'input'; seq: number; inputs: SimInput[] }
-  | { v: 1; t: 'ping'; at: number };
+  | { v: typeof PROTOCOL_V; t: 'join'; name: string }
+  | { v: typeof PROTOCOL_V; t: 'input'; seq: number; inputs: SimInput[] }
+  | { v: typeof PROTOCOL_V; t: 'ping'; at: number };
 
 export type ServerMessage =
-  | { v: 1; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
-  | { v: 1; t: 'snap'; snapshot: ArenaSnapshot }
-  | { v: 1; t: 'events'; es: ArenaEvent[] }
-  | { v: 1; t: 'full' }
-  | { v: 1; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { v: 1; t: 'pong'; at: number; serverTime: number };
+  | { v: typeof PROTOCOL_V; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
+  | { v: typeof PROTOCOL_V; t: 'snap'; snapshot: ArenaSnapshot }
+  | { v: typeof PROTOCOL_V; t: 'events'; es: ArenaEvent[] }
+  | { v: typeof PROTOCOL_V; t: 'full' }
+  | { v: typeof PROTOCOL_V; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
+  | { v: typeof PROTOCOL_V; t: 'pong'; at: number; serverTime: number };
 
 const CLIENT_TS = new Set(['join', 'input', 'ping']);
 const SERVER_TS = new Set(['welcome', 'snap', 'events', 'full', 'kicked', 'pong']);
@@ -22,7 +25,7 @@ const SERVER_TS = new Set(['welcome', 'snap', 'events', 'full', 'kicked', 'pong'
 export function isClientMessage(v: unknown): v is ClientMessage {
   if (!v || typeof v !== 'object') return false;
   const m = v as Record<string, unknown>;
-  if (m.v !== 1) return false;
+  if (m.v !== PROTOCOL_V) return false;
   if (typeof m.t !== 'string' || !CLIENT_TS.has(m.t)) return false;
   if (m.t === 'join') return typeof m.name === 'string';
   if (m.t === 'ping') return Number.isFinite(m.at);
@@ -37,7 +40,7 @@ export function isClientMessage(v: unknown): v is ClientMessage {
 export function isServerMessage(v: unknown): v is ServerMessage {
   if (!v || typeof v !== 'object') return false;
   const m = v as Record<string, unknown>;
-  if (m.v !== 1) return false;
+  if (m.v !== PROTOCOL_V) return false;
   if (typeof m.t !== 'string' || !SERVER_TS.has(m.t)) return false;
   if (m.t === 'full') return true;
   if (m.t === 'kicked') return m.reason === 'idle' || m.reason === 'mismatch' || m.reason === 'protocol';
@@ -82,7 +85,9 @@ function isProjectile(v: unknown): boolean {
   const p = v as Record<string, unknown>;
   return integer(p.id, 0) && typeof p.kind === 'string'
     && ['nail', 'grenade', 'voidorb', 'plasma', 'spit', 'fireball', 'bolt', 'orb'].includes(p.kind)
-    && finite(p.x) && finite(p.y) && finite(p.z);
+    && integer(p.ownerId, 0) && finite(p.x) && finite(p.y) && finite(p.z)
+    && finite(p.vx) && finite(p.vy) && finite(p.vz) && finite(p.gravity)
+    && finite(p.radius) && finite(p.age);
 }
 
 function isPickup(v: unknown): boolean {
@@ -100,16 +105,19 @@ function isArenaEvent(v: unknown): boolean {
     case 'playerJoin': return hasId && typeof e.name === 'string' && integer(e.colorIndex, 0);
     case 'playerLeave': case 'playerDie': case 'playerSpawn': case 'padRespawn': return hasId;
     case 'kick': return hasId && (e.reason === 'idle' || e.reason === 'mismatch' || e.reason === 'protocol');
-    case 'shot': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw);
+    case 'shot': return hasId && integer(e.shotId, 1) && integer(e.inputSeq, 0)
+      && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw) && finite(e.pitch);
     case 'dryfire': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7;
-    case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
-    case 'beam': return hasId && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
-    case 'spawnProjectile': return hasId && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z);
+    case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.y0) && finite(e.z0) && finite(e.x1) && finite(e.y1) && finite(e.z1);
+    case 'beam': return hasId && finite(e.x0) && finite(e.y0) && finite(e.z0) && finite(e.x1) && finite(e.y1) && finite(e.z1);
+    case 'spawnProjectile': return hasId && integer(e.projectileId, 1) && integer(e.ownerId, 0)
+      && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z)
+      && finite(e.vx) && finite(e.vy) && finite(e.vz) && finite(e.gravity) && finite(e.radius) && finite(e.age);
     case 'explosion': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && finite(e.radius);
     case 'playerHurt': return hasId && finite(e.damage) && finite(e.fromAngle);
     case 'hitPlayer': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && typeof e.killed === 'boolean';
     case 'frag': return integer(e.killerId, 0) && integer(e.victimId, 0) && typeof e.suicide === 'boolean';
-    case 'pickup': return hasId && typeof e.kind === 'string' && typeof e.label === 'string';
+    case 'pickup': return integer(e.playerId, 0) && integer(e.pickupId, 0) && typeof e.kind === 'string' && typeof e.label === 'string';
     default: return false;
   }
 }
@@ -138,7 +146,7 @@ export function decodeClient(text: string): ClientMessage | 'bad-v' | 'unknown' 
   try { parsed = JSON.parse(text); } catch { return 'invalid'; }
   if (!parsed || typeof parsed !== 'object') return 'invalid';
   const v = (parsed as { v?: unknown }).v;
-  if (v !== 1) return 'bad-v';
+  if (v !== PROTOCOL_V) return 'bad-v';
   if (isClientMessage(parsed)) return parsed;
   const t = (parsed as { t?: unknown }).t;
   if (typeof t === 'string' && !CLIENT_TS.has(t)) return 'unknown';
@@ -150,7 +158,7 @@ export function decodeServer(text: string): ServerMessage | 'bad-v' | 'unknown' 
   try { parsed = JSON.parse(text); } catch { return 'invalid'; }
   if (!parsed || typeof parsed !== 'object') return 'invalid';
   const v = (parsed as { v?: unknown }).v;
-  if (v !== 1) return 'bad-v';
+  if (v !== PROTOCOL_V) return 'bad-v';
   if (isServerMessage(parsed)) return parsed;
   const t = (parsed as { t?: unknown }).t;
   if (typeof t === 'string' && !SERVER_TS.has(t)) return 'unknown';

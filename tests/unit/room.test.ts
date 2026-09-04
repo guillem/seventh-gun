@@ -47,9 +47,9 @@ describe('ArenaRoom', () => {
     const a = new FakeSock();
     const b = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     room.onOpen(b);
-    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    room.onMessage(b, JSON.stringify({ v: 2, t: 'join', name: 'B' }));
 
     const wa = decodeServer(a.sent[0]!);
     const wb = decodeServer(b.sent[0]!);
@@ -68,11 +68,11 @@ describe('ArenaRoom', () => {
       const s = new FakeSock();
       extras.push(s);
       room.onOpen(s);
-      room.onMessage(s, JSON.stringify({ v: 1, t: 'join', name: `P${i}` }));
+      room.onMessage(s, JSON.stringify({ v: 2, t: 'join', name: `P${i}` }));
     }
     const overflow = new FakeSock();
     room.onOpen(overflow);
-    room.onMessage(overflow, JSON.stringify({ v: 1, t: 'join', name: 'OVERFLOW' }));
+    room.onMessage(overflow, JSON.stringify({ v: 2, t: 'join', name: 'OVERFLOW' }));
     const last = decodeServer(overflow.sent[0]!);
     expect(typeof last === 'object' && last.t === 'full').toBe(true);
     expect(overflow.closed).toBeTruthy();
@@ -85,7 +85,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => `seed-${seedN++}`, sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     const welcome = decodeServer(a.sent[0]!);
     if (typeof welcome !== 'object' || welcome.t !== 'welcome') throw new Error('no welcome');
     const seed1 = welcome.seed;
@@ -103,7 +103,7 @@ describe('ArenaRoom', () => {
 
     const b = new FakeSock();
     room.onOpen(b);
-    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    room.onMessage(b, JSON.stringify({ v: 2, t: 'join', name: 'B' }));
     const w2 = decodeServer(b.sent[0]!);
     if (typeof w2 !== 'object' || w2.t !== 'welcome') throw new Error('no welcome 2');
     expect(w2.seed).not.toBe(seed1);
@@ -115,7 +115,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-clock', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
 
     now += 1000 / 120;
     sched.fire();
@@ -140,7 +140,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-snap-clock', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     a.sent.length = 0;
 
     // Callbacks that each cover two ticks land on 2, 4, and 6. The callbacks
@@ -160,7 +160,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-x', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     a.sent.length = 0;
     const big = 'x'.repeat(3000);
     room.onMessage(a, big);
@@ -177,7 +177,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-idle', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     now += 16_000;
     expect(() => sched.fire()).not.toThrow();
     expect(room.sim).toBeNull();
@@ -201,7 +201,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-occ', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     const b = new FakeSock();
     room.onOpen(b);
     now += 16_000;
@@ -216,8 +216,8 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => now, () => 'seed-dup', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     expect(room.playerCount).toBe(1);
     room.onClose(a);
     expect(room.playerCount).toBe(0);
@@ -230,12 +230,12 @@ describe('ArenaRoom', () => {
     const a = new FakeSock();
     const b = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     room.onOpen(b);
     room.onClose(a);
     expect(room.sim).toBeNull();
     expect(b.closed).toBeNull();
-    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    room.onMessage(b, JSON.stringify({ v: 2, t: 'join', name: 'B' }));
     expect(room.playerCount).toBe(1);
   });
 
@@ -246,7 +246,7 @@ describe('ArenaRoom', () => {
     const a = new FakeSock();
     const b = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     room.onOpen(b);
     now += 16_000;
     expect(() => sched.fire()).not.toThrow();
@@ -259,7 +259,7 @@ describe('ArenaRoom', () => {
     const room = new ArenaRoom(() => 0, () => 'seed-final-send', sched);
     const a = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     // Joining queues a spawn event; its broadcast must handle final teardown.
     a.failSend = true;
     expect(() => sched.fire()).not.toThrow();
@@ -275,9 +275,9 @@ describe('ArenaRoom', () => {
     const a = new FakeSock();
     const b = new FakeSock();
     room.onOpen(a);
-    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 2, t: 'join', name: 'A' }));
     room.onOpen(b);
-    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    room.onMessage(b, JSON.stringify({ v: 2, t: 'join', name: 'B' }));
     a.failSend = true;
     expect(() => {
       for (let i = 0; i < 3; i++) sched.fire();

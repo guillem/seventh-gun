@@ -78,18 +78,18 @@ export type ArenaEvent =
   | { t: 'playerJoin'; id: number; name: string; colorIndex: number }
   | { t: 'playerLeave'; id: number }
   | { t: 'kick'; id: number; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { t: 'shot'; id: number; gun: number; x: number; z: number; yaw: number }
+  | { t: 'shot'; id: number; shotId: number; inputSeq: number; gun: number; x: number; z: number; yaw: number; pitch: number }
   | { t: 'dryfire'; id: number; gun: number }
-  | { t: 'tracer'; id: number; x0: number; z0: number; x1: number; z1: number; kind: 'bullets' }
-  | { t: 'beam'; id: number; x0: number; z0: number; x1: number; z1: number }
-  | { t: 'spawnProjectile'; id: number; kind: ProjectileKind; x: number; y: number; z: number }
+  | { t: 'tracer'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; kind: 'bullets' }
+  | { t: 'beam'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number }
+  | { t: 'spawnProjectile'; id: number; projectileId: number; ownerId: number; kind: ProjectileKind; x: number; y: number; z: number; vx: number; vy: number; vz: number; gravity: number; radius: number; age: number }
   | { t: 'explosion'; id: number; x: number; y: number; z: number; radius: number }
   | { t: 'playerHurt'; id: number; damage: number; fromAngle: number }
   | { t: 'hitPlayer'; id: number; x: number; y: number; z: number; killed: boolean }
   | { t: 'playerDie'; id: number }
   | { t: 'playerSpawn'; id: number }
   | { t: 'frag'; killerId: number; victimId: number; suicide: boolean }
-  | { t: 'pickup'; id: number; kind: PickupDef['kind']; label: string }
+  | { t: 'pickup'; playerId: number; pickupId: number; kind: PickupDef['kind']; label: string }
   | { t: 'padRespawn'; id: number };
 
 export interface ArenaSnapshot {
@@ -112,7 +112,7 @@ export interface ArenaSnapshot {
     lastSeq: number;
     ammo: Record<AmmoType, number>;
   }[];
-  projectiles: { id: number; kind: ProjectileKind; x: number; y: number; z: number }[];
+  projectiles: { id: number; ownerId: number; kind: ProjectileKind; x: number; y: number; z: number; vx: number; vy: number; vz: number; gravity: number; radius: number; age: number }[];
   pickups: { id: number; taken: boolean }[];
 }
 
@@ -138,6 +138,7 @@ export class ArenaSim implements SolidState {
   private nextPlayerId = 0;
   private nextColorIndex = 0;
   private nextProjectileId = 1;
+  private nextShotId = 1;
 
   // Spawn candidates are cells inside a room whose circle fits the arena
   // walls at server startup, so every respawn can sample deterministically.
@@ -389,10 +390,17 @@ export class ArenaSim implements SolidState {
       })),
       projectiles: this.projectiles.map((pr) => ({
         id: pr.id,
+        ownerId: pr.ownerId,
         kind: pr.kind,
         x: pr.x,
         y: pr.y,
         z: pr.z,
+        vx: pr.vx,
+        vy: pr.vy,
+        vz: pr.vz,
+        gravity: pr.gravity,
+        radius: pr.radius,
+        age: pr.age,
       })),
       pickups: this.pickups.map((pk) => ({ id: pk.id, taken: pk.taken })),
     };
@@ -491,7 +499,7 @@ export class ArenaSim implements SolidState {
 
     p.ammo[ammoKey] -= 1;
     p.fireCd = w.fireInterval;
-    this.events.push({ t: 'shot', id: p.id, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw });
+    this.events.push({ t: 'shot', id: p.id, shotId: this.nextShotId++, inputSeq: p.lastSeq, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw, pitch: p.pitch });
 
     const composed = aimDirFromLook(p.yaw, p.pitch);
     const dirBase = composed;
@@ -550,7 +558,7 @@ export class ArenaSim implements SolidState {
         age: 0,
       };
       this.projectiles.push(pr);
-      this.events.push({ t: 'spawnProjectile', id: p.id, kind: pr.kind, x: pr.x, y: pr.y, z: pr.z });
+      this.events.push({ t: 'spawnProjectile', id: p.id, projectileId: pr.id, ownerId: p.id, kind: pr.kind, x: pr.x, y: pr.y, z: pr.z, vx: pr.vx, vy: pr.vy, vz: pr.vz, gravity: pr.gravity, radius: pr.radius, age: pr.age });
     }
   }
 
@@ -583,9 +591,9 @@ export class ArenaSim implements SolidState {
       const x1 = shooter.x + dirX * endT;
       const z1 = shooter.z + dirZ * endT;
       if (w.id === 6) {
-        this.events.push({ t: 'beam', id: shooter.id, x0: shooter.x, z0: shooter.z, x1, z1 });
+        this.events.push({ t: 'beam', id: shooter.id, x0: shooter.x, y0: PLAYER_EYE, z0: shooter.z, x1, y1: PLAYER_EYE + dirY * endT, z1 });
       } else {
-        this.events.push({ t: 'tracer', id: shooter.id, x0: shooter.x, z0: shooter.z, x1, z1, kind: 'bullets' });
+        this.events.push({ t: 'tracer', id: shooter.id, x0: shooter.x, y0: PLAYER_EYE, z0: shooter.z, x1, y1: PLAYER_EYE + dirY * endT, z1, kind: 'bullets' });
       }
     }
   }
@@ -703,7 +711,7 @@ export class ArenaSim implements SolidState {
           p.hp = Math.min(100, p.hp + 25);
           pk.taken = true;
           pk.respawnAt = this.time + ARENA_RESPAWN.medikit;
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'medikit', label: '+25 HEALTH' });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'medikit', label: '+25 HEALTH' });
           break;
         }
         case 'ammo': {
@@ -711,7 +719,7 @@ export class ArenaSim implements SolidState {
           p.ammo[t] = Math.min(WEAPONS.find((w) => w.ammo === t)!.maxAmmo, p.ammo[t] + (pk.amount ?? 0));
           pk.taken = true;
           pk.respawnAt = this.time + ARENA_RESPAWN.ammo;
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'ammo', label: `+${pk.amount ?? 0}` });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'ammo', label: `+${pk.amount ?? 0}` });
           break;
         }
         case 'gun': {
@@ -724,7 +732,7 @@ export class ArenaSim implements SolidState {
           if (isNew) p.gun = g as ArenaWeaponId;
           pk.taken = true;
           pk.respawnAt = this.time + (g === 7 ? ARENA_RESPAWN.gun7 : ARENA_RESPAWN.gun);
-          this.events.push({ t: 'pickup', id: pk.id, kind: 'gun', label: w.short });
+          this.events.push({ t: 'pickup', playerId: p.id, pickupId: pk.id, kind: 'gun', label: w.short });
           break;
         }
         default:

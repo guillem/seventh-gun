@@ -11,7 +11,7 @@ test.describe('arena server', () => {
       const ws = new WebSocket(`${proto}://${location.host}/arena`);
       return await new Promise<string>((resolve, reject) => {
         const t = setTimeout(() => reject(new Error('timeout')), 5000);
-        ws.onopen = () => ws.send(JSON.stringify({ v: 1, t: 'join', name: 'E2E' }));
+        ws.onopen = () => ws.send(JSON.stringify({ v: 2, t: 'join', name: 'E2E' }));
         ws.onmessage = (ev) => {
           clearTimeout(t);
           resolve(String(ev.data));

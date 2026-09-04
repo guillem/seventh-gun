@@ -228,14 +228,16 @@ describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () 
 
   it('does not show a HUD message or play a sound for another player\'s pickup', () => {
     const { g, messages, audioEvents } = harness();
-    g.handleArenaEvent({ t: 'pickup', id: 7, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
+    g.handleArenaEvent({ t: 'pickup', playerId: 7, pickupId: 3, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
     expect(messages).toEqual([]);
     expect(audioEvents).toEqual([]);
   });
 
   it('does show the HUD message and play the sound for the local player\'s own pickup', () => {
     const { g, messages, audioEvents } = harness();
-    g.handleArenaEvent({ t: 'pickup', id: 3, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
+    // Pickup id intentionally equals a different observer id: only playerId
+    // controls local feedback.
+    g.handleArenaEvent({ t: 'pickup', playerId: 3, pickupId: 7, kind: 'ammo', label: '+10 NAILS' }, /* selfId */ 3);
     expect(messages).toEqual(['+10 NAILS']);
     expect(audioEvents).toEqual([{ t: 'pickup', kind: 'ammo', label: '+10 NAILS' }]);
   });

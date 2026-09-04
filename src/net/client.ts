@@ -7,7 +7,7 @@ import { moveCircle, type SolidState } from '../sim/physics';
 import { PLAYER_RADIUS } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
-import { decodeServer, encode, type ServerMessage } from './protocol';
+import { decodeServer, encode, PROTOCOL_V, type ServerMessage } from './protocol';
 
 export type ArenaConnectError = 'full' | 'offline' | 'mismatch';
 
@@ -55,11 +55,12 @@ export class ArenaClient {
   private smoothUntil = 0;
   private solid: SolidState | null = null;
   private view: WorldView | null = null;
-  private lastShotSeq = 0;
+  private predictedShotSeqs = new Set<number>();
   private pingSentAt = 0;
   private localFireCd = 0;
+  private localGun = 1;
   private cosmeticShot: { gun: number; x: number; z: number; yaw: number } | null = null;
-  private echoShotUntil = 0;
+  private earlyProjectiles = new Map<number, ArenaSnapshot['projectiles'][number]>();
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
@@ -96,7 +97,7 @@ export class ArenaClient {
       });
       sock.addEventListener('open', () => {
         if (!isCurrent() || settled) return;
-        this.send({ v: 1, t: 'join', name });
+        this.send({ v: PROTOCOL_V, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
         if (!isCurrent()) return;
@@ -121,7 +122,7 @@ export class ArenaClient {
           this.solid = { map, doors: [], secrets: [], sealIntact: false };
           this.applySnap(msg.snapshot, performance.now());
           const me = msg.snapshot.players.find((p) => p.id === this.id);
-          if (me) { this.localX = me.x; this.localZ = me.z; }
+          if (me) { this.localX = me.x; this.localZ = me.z; this.localGun = me.gun; }
           this.connected = true;
           this.rebuildView();
           if (!settled) {
@@ -153,8 +154,10 @@ export class ArenaClient {
     return s;
   }
 
-  shouldIgnoreEchoShot(actorId: number): boolean {
-    return actorId === this.id && performance.now() < this.echoShotUntil;
+  shouldIgnoreEchoShot(actorId: number, inputSeq: number): boolean {
+    if (actorId !== this.id || !this.predictedShotSeqs.has(inputSeq)) return false;
+    this.predictedShotSeqs.delete(inputSeq);
+    return true;
   }
 
   /** Test helper: un-acked input count after reconcile. */
@@ -176,7 +179,7 @@ export class ArenaClient {
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
       this.pingSentAt = performance.now();
-      this.send({ v: 1, t: 'ping', at: this.pingSentAt });
+      this.send({ v: PROTOCOL_V, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
     if (!me?.alive) {
@@ -275,13 +278,20 @@ export class ArenaClient {
     this.localZ = moved.z;
     this.localFireCd = Math.max(0, this.localFireCd - STEP_DT);
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
-    const gun = me?.gun ?? 1;
+    let gun = me?.gun ?? 1;
+    // The authoritative sim applies a valid switch before firing the same
+    // input frame. Mirror that order so the local shot uses the right sound
+    // and viewmodel instead of briefly playing the previous gun.
+    if (clamped.switchGun !== null && clamped.switchGun >= 1 && clamped.switchGun <= 7
+      && !!(me?.ownedMask && (me.ownedMask & (1 << (clamped.switchGun - 1))))) {
+      gun = clamped.switchGun;
+      this.localGun = gun;
+    }
     const w = WEAPONS[gun - 1];
     const ammo = w ? (me?.ammo[w.ammo] ?? 0) : 0;
     if (clamped.fire && this.localFireCd <= 0 && me?.alive && ammo > 0 && w) {
       this.cosmeticShot = { gun, x: this.localX, z: this.localZ, yaw: clamped.yaw };
-      this.echoShotUntil = performance.now() + 220;
-      this.lastShotSeq = seq;
+      this.predictedShotSeqs.add(seq);
       this.localFireCd = w.fireInterval;
     }
   }
@@ -291,7 +301,7 @@ export class ArenaClient {
     const fresh = this.pending.filter((p) => p.seq > this.lastSentSeq);
     const batch = (fresh.length ? fresh : this.pending).slice(0, 8);
     if (!batch.length) return;
-    this.send({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
+    this.send({ v: PROTOCOL_V, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
     this.lastSentSeq = batch[batch.length - 1]!.seq;
   }
 
@@ -301,7 +311,9 @@ export class ArenaClient {
       this.reconcile();
       this.rebuildView();
     } else if (msg.t === 'events') {
+      for (const event of msg.es) this.noteEvent(event);
       this.events.push(...msg.es);
+      this.rebuildView();
     } else if (msg.t === 'pong') {
       this.rtt = Math.max(0, performance.now() - msg.at);
     } else if (msg.t === 'kicked') {
@@ -343,7 +355,31 @@ export class ArenaClient {
     const oldest = Math.max(...this.snapshots.map((sample) => sample.at)) - 1000;
     this.snapshots = this.snapshots.filter((sample) => sample.at >= oldest);
     this.tick = snap.tick;
+    const live = new Set(snap.projectiles.map((projectile) => projectile.id));
+    for (const id of this.earlyProjectiles.keys()) if (live.has(id)) this.earlyProjectiles.delete(id);
     return true;
+  }
+
+  private noteEvent(event: ArenaEvent): void {
+    if (event.t !== 'spawnProjectile') return;
+    // Snapshot cadence is slower than a fast projectile's first few frames.
+    // Preserve the authoritative spawn state until the next snapshot catches
+    // it (or for a short bounded interval when it immediately impacts).
+    this.earlyProjectiles.set(event.projectileId, {
+      id: event.projectileId,
+      ownerId: event.ownerId,
+      kind: event.kind,
+      x: event.x,
+      y: event.y,
+      z: event.z,
+      vx: event.vx,
+      vy: event.vy,
+      vz: event.vz,
+      gravity: event.gravity,
+      radius: event.radius,
+      age: event.age,
+    });
+    setTimeout(() => this.earlyProjectiles.delete(event.projectileId), 500);
   }
 
   private reconcile(): void {
@@ -363,7 +399,12 @@ export class ArenaClient {
     this.pending = this.pending.filter((p) => p.seq > me.lastSeq);
     this.localX = me.x;
     this.localZ = me.z;
+    this.localGun = me.gun;
     for (const p of this.pending) {
+      if (p.input.switchGun !== null && p.input.switchGun >= 1 && p.input.switchGun <= 7
+        && !!(me.ownedMask & (1 << (p.input.switchGun - 1)))) {
+        this.localGun = p.input.switchGun;
+      }
       const speed = 6.5;
       const fx = -Math.sin(p.input.yaw), fz = -Math.cos(p.input.yaw);
       const rx = Math.cos(p.input.yaw), rz = -Math.sin(p.input.yaw);
@@ -454,10 +495,10 @@ export class ArenaClient {
       pitch: this.localPitch,
       hp: me.hp,
       maxHp: 100,
-      gun: me.gun,
+      gun: this.localGun,
       owned: maskToOwned(me.ownedMask),
       ammo: { ...me.ammo },
-      fireCd: 0,
+      fireCd: this.localFireCd,
       dryCd: 0,
       bloom: 0,
       useCd: 0,
@@ -466,10 +507,12 @@ export class ArenaClient {
       const live = this.latest!.snap.pickups.find((p) => p.id === pk.id);
       return { ...pk, taken: live?.taken ?? false };
     });
-    const projectiles: ProjectileEnt[] = (interp?.projectiles ?? []).map((p) => ({
+    const snapshotProjectiles = interp?.projectiles ?? [];
+    const snapshotIds = new Set(snapshotProjectiles.map((p) => p.id));
+    const projectiles: ProjectileEnt[] = [...snapshotProjectiles, ...[...this.earlyProjectiles.values()].filter((p) => !snapshotIds.has(p.id))].map((p) => ({
       id: p.id, kind: p.kind, fromPlayer: true,
-      x: p.x, y: p.y, z: p.z, vx: 0, vy: 0, vz: 0,
-      gravity: 0, radius: 0.2, damage: 0, splashRadius: 0, damageSelfPct: 0, age: 0,
+      x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz,
+      gravity: p.gravity, radius: p.radius, damage: 0, splashRadius: 0, damageSelfPct: 0, age: p.age,
     }));
     const map = this.solid.map;
     const explored = new Uint8Array(map.w * map.h).fill(1);
@@ -490,6 +533,7 @@ export class ArenaClient {
       powerups: createPowerupState(),
       killCount: me.frags,
       arenaEntered: true,
+      networkArena: true,
       hasKey: false,
       arenaEnemiesRemaining: () => 0,
     };

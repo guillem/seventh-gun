@@ -2,7 +2,7 @@ import { ArenaSim } from '../src/sim/arena';
 import { ARENA_GEN_VERSION, ARENA_SNAPSHOT_HZ, ARENA_TICK_HZ } from '../src/sim/arenaConstants';
 import { arenaGridHash } from '../src/sim/arenagen';
 import { STEP_DT } from '../src/sim/sim';
-import { decodeClient, encode, type ServerMessage } from '../src/net/protocol';
+import { decodeClient, encode, PROTOCOL_V, type ServerMessage } from '../src/net/protocol';
 
 export interface RoomSocket {
   send(text: string): void;
@@ -108,7 +108,7 @@ export class ArenaRoom {
       return;
     }
     if (msg.t === 'ping') {
-      this.send(sock, { v: 1, t: 'pong', at: msg.at, serverTime: t });
+      this.send(sock, { v: PROTOCOL_V, t: 'pong', at: msg.at, serverTime: t });
       return;
     }
     if (msg.t === 'input') {
@@ -157,7 +157,7 @@ export class ArenaRoom {
       const sim = this.sim;
       const p = sim.players.find((pp) => pp.id === st.playerId);
       if (p?.kicked) {
-        this.send(st.sock, { v: 1, t: 'kicked', reason: 'idle' });
+        this.send(st.sock, { v: PROTOCOL_V, t: 'kicked', reason: 'idle' });
         st.sock.close(4000, 'idle');
         this.onClose(st.sock);
       }
@@ -166,7 +166,7 @@ export class ArenaRoom {
     if (!this.sim) return;
     const events = this.sim.takeEvents();
     if (events.length) {
-      this.broadcast({ v: 1, t: 'events', es: events });
+      this.broadcast({ v: PROTOCOL_V, t: 'events', es: events });
     }
     // A failed event send can disconnect the final player and stop the room.
     if (!this.sim) return;
@@ -176,7 +176,7 @@ export class ArenaRoom {
     const snapshotBucket = Math.floor(this.sim.tick / SNAP_EVERY);
     if (stepped > 0 && snapshotBucket > this.lastSnapshotBucket) {
       this.lastSnapshotBucket = snapshotBucket;
-      this.broadcast({ v: 1, t: 'snap', snapshot: this.sim.snapshot() });
+      this.broadcast({ v: PROTOCOL_V, t: 'snap', snapshot: this.sim.snapshot() });
     }
   }
 
@@ -191,7 +191,7 @@ export class ArenaRoom {
     }
     const joined = this.sim.join(name);
     if (joined === 'full') {
-      this.send(st.sock, { v: 1, t: 'full' });
+      this.send(st.sock, { v: PROTOCOL_V, t: 'full' });
       st.sock.close(4000, 'full');
       this.onClose(st.sock);
       return;
@@ -201,7 +201,7 @@ export class ArenaRoom {
     st.cancelJoinWatch = null;
     const map = this.sim.map;
     this.send(st.sock, {
-      v: 1,
+      v: PROTOCOL_V,
       t: 'welcome',
       id: joined.id,
       seed: this.seed,
@@ -236,7 +236,7 @@ export class ArenaRoom {
   private noteViolation(st: SockState): void {
     st.violations++;
     if (st.violations >= 3) {
-      this.send(st.sock, { v: 1, t: 'kicked', reason: 'protocol' });
+      this.send(st.sock, { v: PROTOCOL_V, t: 'kicked', reason: 'protocol' });
       st.sock.close(4000, 'protocol');
       this.onClose(st.sock);
     }

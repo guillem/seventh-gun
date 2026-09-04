@@ -107,3 +107,8 @@ broadcasts 20 Hz snapshots over `/arena`. A snapshot acknowledges only input
 frames that have actually been simulated. Clients predict local movement and
 retain arrival-time snapshots bracketing a ~100 ms render delay for remote
 positions and look angles. Hits and pickups are server-only.
+
+Arena wire protocol v2 deliberately rejects other versions. Snapshots carry
+projectile owner, velocity and lifetime state, while combat events carry
+authoritative shot and pickup identities; clients can therefore render the
+first projectile frame and suppress only the matching locally predicted shot.

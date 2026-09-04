@@ -1077,7 +1077,9 @@ export class Game {
     for (const e of client.takeEvents()) this.handleArenaEvent(e, client.id);
     if (!view) { this.renderer.render(); return; }
     const others = client.others();
-    this.renderer.updateArena(dtReal, view, others);
+    const moving = Math.abs(view.player.x - (this.lastPx ?? view.player.x)) + Math.abs(view.player.z - (this.lastPz ?? view.player.z)) > 0.001;
+    this.lastPx = view.player.x; this.lastPz = view.player.z;
+    this.renderer.updateArena(dtReal, view, others, moving);
     const fullMapOpen = this.phase === 'map';
     this.hud.draw(view, { fullMapOpen, paused: this.arenaMenu });
     this.hud.drawArenaRoster(client.roster(), client.id, client.roster().length);
@@ -1098,12 +1100,12 @@ export class Game {
       return 1 - (d - 4) / 36;
     };
     if (e.t === 'shot') {
-      if (e.id === selfId && this.arenaClient?.shouldIgnoreEchoShot(e.id)) {
+      if (e.id === selfId && this.arenaClient?.shouldIgnoreEchoShot(e.id, e.inputSeq)) {
         // Local muzzle + shot already played; still want tracers from the server.
       } else {
         const gain = e.id === selfId ? 1 : distGain(e.x, e.z);
         this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain);
-        if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, 0, e.x, e.z);
+        if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, e.pitch, e.x, e.z);
       }
     } else if (e.t === 'hitPlayer') {
       this.renderer.fx.blood(e.x, e.y, e.z, e.killed);
@@ -1124,13 +1126,13 @@ export class Game {
       const victim = roster.find((p) => p.id === e.victimId)?.name ?? '???';
       this.hud.showMessage(e.suicide ? `${victim} ate it` : `${killer} fragged ${victim}`);
       if (e.victimId === selfId && !e.suicide) this.hud.died({ epitaph: `FRAGGED BY ${killer}` });
-    } else if (e.t === 'pickup' && e.id === selfId) {
+    } else if (e.t === 'pickup' && e.playerId === selfId) {
       this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label });
       this.hud.showMessage(e.label);
     } else if (e.t === 'tracer') {
-      this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'bullets');
+      this.renderer.fx.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, 'bullets');
     } else if (e.t === 'beam') {
-      this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'rail');
+      this.renderer.fx.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, 'rail');
     }
   }
 
@@ -1177,10 +1179,10 @@ export class Game {
         this.renderer.fireVisual(e.gun, e.yaw, sim.player.pitch, e.x, e.z);
         break;
       case 'tracer':
-        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'bullets');
+        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, 1.62, e.z1, 'bullets');
         break;
       case 'beam':
-        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, e.z1, 'rail');
+        this.renderer.fx.tracer(e.x0, 1.62, e.z0, e.x1, 1.62, e.z1, 'rail');
         break;
       case 'explosion':
         this.renderer.fx.explosion(e.x, e.y, e.z, e.radius);
