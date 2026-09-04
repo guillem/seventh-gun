@@ -17,6 +17,22 @@ the palette, the drawing routine, the silhouette and proportions of a mesh.
 Leave integration plumbing, gameplay wiring, and test authoring to the coder
 agent; say what's needed and hand it back.
 
+## Settled art direction — do not relitigate
+
+The retro **unlit** look is deliberate. Materials are Lambert/Basic with blob
+shadows and no shadow maps, and that is the intended late-90s aesthetic, not
+technical debt to modernise.
+
+A full PBR look-dev pass — MeshStandard materials, raised hemi/ambient fill,
+soft no-shadow PointLights, matte roughness, enriched 512/1024 canvases — was
+built over three passes and **rejected** (PR #20). The branch
+`feat/lookdev-pbr` is kept as the record of what was tried.
+
+So: work within flat, unlit, canvas-driven art. Get richness from the texture
+drawing itself — palette, value contrast, hand-placed detail, silhouette — not
+from lighting or physical materials. If you think a change genuinely needs a
+lighting model change, raise it in your report rather than making it.
+
 ## Reading budget — this is the real cost control
 
 The art files are large (`campaignTextures.ts` is ~4,700 lines). Reading one

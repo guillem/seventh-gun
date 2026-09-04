@@ -6,6 +6,12 @@ Unspecified things got decided; this is the record.
   gun; the name teaches the objective.
 - **Stack**: Vite 6 + TypeScript strict + Three.js (Lambert/Basic materials,
   no shadow maps — blob shadows only), Vitest, Playwright.
+- **Retro unlit look is the aesthetic, not a limitation**: a PBR look-dev
+  pass (MeshStandard, raised hemi/ambient fill, soft no-shadow PointLights,
+  matte roughness, enriched 512/1024 canvases) was built over three passes
+  and rejected in PR #20. Flat Lambert/Basic with blob shadows is the
+  intended late-90s look. Do not "upgrade" it to physical lighting.
+  Branch `feat/lookdev-pbr` is kept as the reference for what was tried.
 - **Sim/render split**: hard boundary, sim is pure TS. See ARCHITECTURE.
 - **Geometry**: 88×88 cells, CELL=2u, corridors 3 cells wide, walls 6u tall,
   indoor ceilings at 4.2u, courtyards open to a sky dome.
