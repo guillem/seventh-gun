@@ -144,10 +144,66 @@ that yellow was the slab's accent). `tests/unit/gunArt.test.ts` locks it.
 
 `buildWorldGun` shares these builders, so the pedestal pickups changed too.
 
+## Deployment
+
+Two live targets. Both auto-deploy from `main`; neither needs a manual step.
+
+| | URL | Serves | Trigger |
+|---|---|---|---|
+| Netlify | https://seventh-gun.netlify.app | static client only, **no arena** | auto on push |
+| Cloudflare | https://seventh-gun.default-428.workers.dev | client **and** arena | GitHub Actions on green tests |
+
+**The Worker serves the whole game, not just the socket.** `wrangler.jsonc`
+sets `assets.directory: ./dist/client` with `run_worker_first: ["/arena",
+"/health"]`, so the Cloudflare URL is the complete product.
+
+**No env var is needed for the arena.** `game.ts` resolves the socket as
+`VITE_ARENA_WS_URL ?? ${wss|ws}://${location.host}/arena`, and
+`server/index.ts` always allows same-origin — so on Cloudflare it just works.
+`VITE_ARENA_WS_URL` + `ALLOWED_ORIGINS` are only needed for the other shape
+(Netlify-hosted client dialling Cloudflare), which we deliberately do not use.
+
+**Netlify degrades correctly.** Its host has no `/arena`, so a join attempt
+fails in ~5s and shows **ARENA OFFLINE**; the maze/campaign game is unaffected.
+Verified against the live site, not just locally — note `vite preview` runs
+workerd via `@cloudflare/vite-plugin` and DOES serve the arena, so it is NOT a
+valid stand-in for Netlify. Test the static path by serving `dist/client` with
+a plain HTTP server.
+
+### Cost — free tier, structurally safe
+
+Cloudflare free plan, no payment method on the account. **Exceeding a free
+limit returns an error rather than billing.** Durable Objects are the
+SQLite-backed kind (`new_sqlite_classes`), which is what the free plan allows;
+KV-backed DOs are paid-only.
+
+Limits: 100k requests/day, 13,000 GB-s/day, 5 GB storage; Workers Builds (not
+used) would be 3,000 min/month. GitHub Actions on a private repo: 2,000
+min/month with a $0 default spending limit.
+
+`server/index.ts` uses `server.accept()`, **not** the WebSocket Hibernation
+API, so the room object stays resident while anyone is connected — about 28
+hours of room-alive time per day at 128 MB. `shutdown()` stops the tick loop
+and drops idle sockets (15s) when the room empties, so it does not accrue
+overnight. **If the compute cap is ever approached, switching to Hibernation
+is the single highest-leverage change** — it removes the cost of idle players.
+
+### CI
+
+`.github/workflows/deploy.yml`. Push to `main` → typecheck + unit + e2e, then
+deploy the Worker only if all pass, then retry `/health` until 200. Pull
+requests run checks and never deploy. Auth is the repo secret
+`CLOUDFLARE_API_TOKEN`; the account ID is the repo *variable*
+`CLOUDFLARE_ACCOUNT_ID` (not sensitive).
+
+Chosen over Cloudflare Workers Builds — which is simpler and needs no token —
+because Workers Builds only runs a build command and cannot refuse to ship a
+red suite. In one session the tests caught an unhittable hierophant mitre,
+enemy eyes stuck permanently flared, and gun accents drifting off their own
+muzzle-flash colours. None of those break a build.
+
 ## Open / next
 
-- Owner: Cloudflare Workers Builds on `guillem/seventh-gun`, first join from
-  home to pin the DO in Europe.
 - **Playtest round 3.** Specifically: does the slab's raised fireball arc feel
   worse, and do the new viewmodels read at a glance in a real fight?
 - **Viewmodels want a second art pass.** The pistol and shotgun got full
