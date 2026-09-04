@@ -42,6 +42,7 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
     socket.addEventListener('message', ({ data }) => {
       try {
         const message = JSON.parse(String(data));
+        if (message.v !== 1) throw new Error('Unexpected arena protocol version');
         if (message.t === 'full') {
           finish(null, { asset: assetUrl.pathname, arena: 'full', snapshots: 'not checked: room at capacity' });
           return;
