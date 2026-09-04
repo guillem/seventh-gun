@@ -7,7 +7,7 @@ import { Sim, emptyInput } from '../../src/sim/sim';
 import { generateMap } from '../../src/sim/mapgen';
 import { decodeBlueprint, encodeBlueprint, FLAG_SECRETS, unwrapEncoded } from '../../src/sim/mapcodec';
 import { compileBlueprint, findExposedWallFace, secretPlatePublicFace, stripCosmetics, validateBlueprint } from '../../src/sim/blueprint';
-import { isSolidCell } from '../../src/sim/physics';
+import { circleFits, hasLineOfSight, hasVisualLineOfSight, isSolidCell } from '../../src/sim/physics';
 import { exploredPct } from '../../src/ui/hud';
 import { WEAPONS } from '../../src/sim/weapons';
 import { CELL, GEN_VERSION } from '../../src/sim/types';
@@ -89,6 +89,10 @@ function plateApproach(sim: Sim, roomId: number, cells: [number, number][]): { x
     }
   }
   throw new Error(`no public approach for secret room ${roomId}`);
+}
+
+function yawToward(from: { x: number; z: number }, to: { x: number; z: number }): number {
+  return Math.atan2(from.x - to.x, from.z - to.z);
 }
 
 describe('campaign secrets', () => {
@@ -315,6 +319,47 @@ describe('campaign secrets', () => {
     expect(kinds).toEqual(new Set(['plate-use', 'plate-shoot', 'remote-use', 'remote-shoot']));
   });
 
+  it('keeps secret enemies hidden behind a closed plate, then permits continuous passage and reaction', () => {
+    const campaign = CAMPAIGN[0];
+    const sim = Sim.fromMap(campaign.map, 'normal', { loadout: campaign.incomingLoadout, rngKey: 'plate-crossing' });
+    const secret = sim.secrets.find(s => s.name === 's-throat-cache')!;
+    const room = campaign.map.rooms.find(r => r.id === secret.roomId)!;
+    const enemySpawn = campaign.map.enemies.find(e => e.roomId === room.id)!;
+    const enemy = sim.enemies.find(e => e.id === enemySpawn.id)!;
+    const face = secretPlatePublicFace(room, secret.cx, secret.cz, secret.axis);
+    const plate = secret.cells.find(([x, z]) => campaign.map.grid[(z + face.dz) * campaign.map.w + x + face.dx])!;
+    const approach = cellCenter(plate[0] + face.dx, plate[1] + face.dz);
+    Object.assign(sim.player, approach);
+
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, enemy.x, enemy.z)).toBe(false);
+    expect(hasVisualLineOfSight(sim, sim.player.x, sim.player.z, enemy.x, enemy.z)).toBe(false);
+    expect(circleFits(sim, secret.x, secret.z, 0.3)).toBe(false);
+
+    sim.step({ ...emptyInput(), use: true });
+    expect(secret.opening).toBe(true);
+    expect(hasVisualLineOfSight(sim, sim.player.x, sim.player.z, enemy.x, enemy.z)).toBe(true);
+    expect(circleFits(sim, secret.x, secret.z, 0.3)).toBe(false);
+
+    for (let i = 0; i < 30; i++) sim.step(emptyInput());
+    expect(circleFits(sim, secret.x, secret.z, 0.3)).toBe(true);
+    expect(hasLineOfSight(sim, sim.player.x, sim.player.z, enemy.x, enemy.z)).toBe(true);
+
+    const yaw = yawToward(sim.player, { x: secret.x - face.dx * CELL, z: secret.z - face.dz * CELL });
+    const start = { x: sim.player.x, z: sim.player.z };
+    for (let i = 0; i < 36; i++) {
+      expect(circleFits(sim, sim.player.x, sim.player.z, 0.3), `crossing frame ${i}`).toBe(true);
+      sim.step({ ...emptyInput(), yaw, moveZ: 1 });
+    }
+    const through = (sim.player.x - start.x) * -face.dx + (sim.player.z - start.z) * -face.dz;
+    expect(through).toBeGreaterThan(CELL);
+
+    enemy.awakened = false;
+    enemy.state = 'idle';
+    enemy.yaw = Math.atan2(sim.player.x - enemy.x, sim.player.z - enemy.z);
+    sim.step(emptyInput());
+    expect(enemy.awakened).toBe(true);
+  });
+
   it('rejects malformed secret imports before they reach simulation or rendering', () => {
     const src = structuredClone(CAMPAIGN[0].blueprint);
     const remote = structuredClone(CAMPAIGN[1].blueprint);
@@ -333,5 +378,38 @@ describe('campaign secrets', () => {
     offGrid.secrets![0].cx = 255;
     offGrid.secrets![0].cz = 255;
     expect(validateBlueprint(offGrid)).toEqual(expect.arrayContaining([expect.stringContaining('plate cell 255,255 is not floor')]));
+
+    const invalidAxis = structuredClone(src);
+    invalidAxis.secrets![0].axis = 'diagonal' as 'x';
+    expect(validateBlueprint(invalidAxis)).toEqual(expect.arrayContaining([expect.stringContaining('invalid axis')]));
+
+    const fractional = structuredClone(src);
+    fractional.secrets![0].cx = 35.5;
+    fractional.secrets![0].hp = Number.NaN;
+    expect(validateBlueprint(fractional)).toEqual(expect.arrayContaining([
+      expect.stringContaining('plate center must use finite integer cells'),
+      expect.stringContaining('hp must be a positive finite integer'),
+    ]));
+
+    const orphan = structuredClone(src);
+    orphan.secrets = orphan.secrets!.slice(1);
+    expect(validateBlueprint(orphan)).toEqual(expect.arrayContaining([expect.stringContaining('has no secret definition')]));
+
+    const duplicateRoom = structuredClone(src);
+    duplicateRoom.secrets!.push({ ...duplicateRoom.secrets![0], name: 's-duplicate' });
+    expect(validateBlueprint(duplicateRoom)).toEqual(expect.arrayContaining([
+      expect.stringContaining('has multiple secret definitions'),
+      expect.stringContaining('plate overlaps'),
+    ]));
+  });
+
+  it('selects a reachable exposed face deterministically for multi-face controls', () => {
+    const grid = new Uint8Array(9);
+    grid[3] = 1; // left of center
+    grid[5] = 1; // right of center
+    const reachable = new Uint8Array(9);
+    reachable[5] = 1;
+    expect(findExposedWallFace(grid, 3, 3, 1, 1)).toEqual({ dx: -1, dz: 0 });
+    expect(findExposedWallFace(grid, 3, 3, 1, 1, reachable)).toEqual({ dx: 1, dz: 0 });
   });
 });

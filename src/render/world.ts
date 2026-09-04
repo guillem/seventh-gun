@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { CELL, CEIL_H, WALL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
-import { findExposedWallFace, secretPlatePublicFace } from '../sim/blueprint';
+import { findExposedWallFace, reachableFloorCells, secretPlatePublicFace } from '../sim/blueprint';
 import { getTextures } from './textures';
 import {
   getCampaignTextures,
@@ -102,6 +102,13 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   const camp: CampaignTextureLib | null = resolved ? getCampaignTextures(resolved) : null;
   const group = new THREE.Group();
   const disposables: THREE.BufferGeometry[] = [];
+  const closedSecretCells = new Set<number>();
+  for (const s of map.secrets ?? []) for (const [x, z] of s.cells) closedSecretCells.add(z * map.w + x);
+  // Match compiler validation: normal door progression is available, while
+  // unopened secret plates still block a control's public approach.
+  const publicReach = reachableFloorCells(
+    map.grid, map.w, map.h, Math.floor(map.playerStart.x / CELL), Math.floor(map.playerStart.z / CELL), closedSecretCells,
+  );
 
   const buckets = new Map<string, QuadMesh>();
   const bucket = (kind: string): QuadMesh => {
@@ -295,7 +302,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     mesh.add(crack);
 
     if (s.trigger && (s.kind === 'remote-use' || s.kind === 'remote-shoot')) {
-      const face = findExposedWallFace(map.grid, map.w, map.h, s.trigger.x, s.trigger.z);
+      const face = findExposedWallFace(map.grid, map.w, map.h, s.trigger.x, s.trigger.z, publicReach);
       // The compiler rejects unreachable controls. Keep this fallback so a
       // hand-authored GameMap cannot make buildWorld fail mid-frame.
       const tx = cellToWorld(s.trigger.x) + (face?.dx ?? 0) * (CELL / 2 + 0.04);

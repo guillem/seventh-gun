@@ -127,14 +127,15 @@ export interface ExposedWallFace {
 }
 
 export function findExposedWallFace(
-  grid: Uint8Array, w: number, h: number, x: number, z: number,
+  grid: Uint8Array, w: number, h: number, x: number, z: number, reachable?: Uint8Array,
 ): ExposedWallFace | undefined {
   const faces: ExposedWallFace[] = [
     { dx: -1, dz: 0 }, { dx: 1, dz: 0 }, { dx: 0, dz: -1 }, { dx: 0, dz: 1 },
   ];
   return faces.find(({ dx, dz }) => {
     const nx = x + dx, nz = z + dz;
-    return nx >= 0 && nz >= 0 && nx < w && nz < h && grid[nz * w + nx] === 1;
+    return nx >= 0 && nz >= 0 && nx < w && nz < h
+      && grid[nz * w + nx] === 1 && (!reachable || reachable[nz * w + nx] === 1);
   });
 }
 
@@ -162,25 +163,31 @@ function inRoom(r: { x: number; z: number; w: number; h: number }, x: number, z:
   return x >= r.x && x < r.x + r.w && z >= r.z && z < r.z + r.h;
 }
 
-function bfsReach(grid: Uint8Array, startX: number, startZ: number, solid: Set<number>): Uint8Array {
-  const seen = new Uint8Array(GRID_W * GRID_H);
-  if (!inGrid(startX, startZ)) return seen;
-  const q: number[] = [cellKey(startX, startZ)];
+export function reachableFloorCells(
+  grid: Uint8Array, w: number, h: number, startX: number, startZ: number, solid: Set<number> = new Set(),
+): Uint8Array {
+  const seen = new Uint8Array(w * h);
+  if (startX < 0 || startZ < 0 || startX >= w || startZ >= h) return seen;
+  const q: number[] = [startZ * w + startX];
   if (grid[q[0]] === 0 || solid.has(q[0])) return seen;
   seen[q[0]] = 1;
   for (let i = 0; i < q.length; i++) {
     const c = q[i];
-    const x = c % GRID_W, z = (c / GRID_W) | 0;
+    const x = c % w, z = (c / w) | 0;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       const nx = x + dx, nz = z + dz;
-      if (!inGrid(nx, nz)) continue;
-      const nk = cellKey(nx, nz);
+      if (nx < 0 || nz < 0 || nx >= w || nz >= h) continue;
+      const nk = nz * w + nx;
       if (seen[nk] || grid[nk] === 0 || solid.has(nk)) continue;
       seen[nk] = 1;
       q.push(nk);
     }
   }
   return seen;
+}
+
+function bfsReach(grid: Uint8Array, startX: number, startZ: number, solid: Set<number>): Uint8Array {
+  return reachableFloorCells(grid, GRID_W, GRID_H, startX, startZ, solid);
 }
 
 function losBlocked(
@@ -452,18 +459,34 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     checkEntityCell(`${e.type} enemy`, e.x, e.z, e.roomId);
   }
 
-  for (const s of bp.secrets ?? []) {
+  const secretDefs = bp.secrets ?? [];
+  const validPlate = (s: BlueprintSecret) =>
+    Number.isFinite(s.cx) && Number.isInteger(s.cx)
+    && Number.isFinite(s.cz) && Number.isInteger(s.cz)
+    && (s.axis === 'x' || s.axis === 'z');
+
+  for (const s of secretDefs) {
     const label = `secret ${s.name ? `'${s.name}'` : s.roomId}`;
     if (!SECRET_KINDS.includes(s.kind)) errors.push(`${label} has unknown kind '${s.kind}'`);
+    if (s.axis !== 'x' && s.axis !== 'z') errors.push(`${label} has invalid axis '${s.axis}'`);
+    if (!Number.isFinite(s.cx) || !Number.isInteger(s.cx) || !Number.isFinite(s.cz) || !Number.isInteger(s.cz)) {
+      errors.push(`${label} plate center must use finite integer cells`);
+    }
+    if (!Number.isFinite(s.roomId) || !Number.isInteger(s.roomId)) errors.push(`${label} room id must be a finite integer`);
+    if (s.hp !== undefined && (!Number.isFinite(s.hp) || !Number.isInteger(s.hp) || s.hp < 1)) {
+      errors.push(`${label} hp must be a positive finite integer`);
+    }
+    if (s.trigger && (!Number.isFinite(s.trigger.x) || !Number.isInteger(s.trigger.x)
+      || !Number.isFinite(s.trigger.z) || !Number.isInteger(s.trigger.z))) {
+      errors.push(`${label} trigger must use finite integer cells`);
+    }
     const room = roomById.get(s.roomId);
     if (!room) errors.push(`${label} names missing room ${s.roomId}`);
     else if (room.kind !== 'secret') errors.push(`${label} room ${s.roomId} is not a secret room`);
 
-    const cells = expandDoorCells(s.cx, s.cz, s.axis);
-    for (const [x, z] of cells) {
-      if (!isFloor(x, z)) errors.push(`${label} plate cell ${x},${z} is not floor`);
-    }
-    if (room) {
+    const cells = validPlate(s) ? expandDoorCells(s.cx, s.cz, s.axis) : [];
+    for (const [x, z] of cells) if (!isFloor(x, z)) errors.push(`${label} plate cell ${x},${z} is not floor`);
+    if (room && cells.length) {
       let meetsSecretRoom = false;
       let meetsPublicFloor = false;
       for (const [x, z] of cells) {
@@ -483,11 +506,31 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     if (remote) {
       if (!s.trigger) {
         errors.push(`${label} is remote but has no trigger`);
+      } else if (!Number.isFinite(s.trigger.x) || !Number.isInteger(s.trigger.x)
+        || !Number.isFinite(s.trigger.z) || !Number.isInteger(s.trigger.z)) {
+        // The geometry error above is more useful than treating NaN as a wall.
       } else if (!inGrid(s.trigger.x, s.trigger.z) || grid[cellKey(s.trigger.x, s.trigger.z)] !== 0) {
         errors.push(`${label} trigger ${s.trigger.x},${s.trigger.z} is not a wall cell`);
       } else if (!findExposedWallFace(grid, GRID_W, GRID_H, s.trigger.x, s.trigger.z)) {
         errors.push(`${label} trigger ${s.trigger.x},${s.trigger.z} has no exposed wall face`);
       }
+    }
+  }
+
+  for (const room of rooms.filter(r => r.kind === 'secret')) {
+    const associated = secretDefs.filter(s => s.roomId === room.id);
+    if (associated.length === 0) errors.push(`secret room ${room.id} has no secret definition`);
+    if (associated.length > 1) errors.push(`secret room ${room.id} has multiple secret definitions`);
+  }
+  const plateOwner = new Map<number, string>();
+  for (const s of secretDefs) {
+    if (!validPlate(s)) continue;
+    const label = `secret ${s.name ? `'${s.name}'` : s.roomId}`;
+    for (const [x, z] of expandDoorCells(s.cx, s.cz, s.axis)) {
+      const key = cellKey(x, z);
+      const other = plateOwner.get(key);
+      if (other) errors.push(`${label} plate overlaps ${other} at ${x},${z}`);
+      else plateOwner.set(key, label);
     }
   }
 
@@ -514,7 +557,7 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
       if (!room) continue;
       const controlCells: [number, number][] = [];
       if ((s.kind === 'remote-use' || s.kind === 'remote-shoot') && s.trigger) {
-        const face = findExposedWallFace(grid, GRID_W, GRID_H, s.trigger.x, s.trigger.z);
+        const face = findExposedWallFace(grid, GRID_W, GRID_H, s.trigger.x, s.trigger.z, closedReach);
         if (face) controlCells.push([s.trigger.x + face.dx, s.trigger.z + face.dz]);
       } else {
         for (const [x, z] of s.cells) {
