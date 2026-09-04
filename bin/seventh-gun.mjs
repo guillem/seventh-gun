@@ -62,6 +62,15 @@ try {
     process.stderr.write(`Could not start server: ${err.message}\n`);
     process.exitCode = 1;
   });
+  const stop = (signal) => {
+    process.stdout.write(`\n${signal}: shutting down SEVENTH GUN…\n`);
+    void server.shutdown().catch((err) => {
+      process.stderr.write(`Could not shut down cleanly: ${err?.message ?? err}\n`);
+      process.exitCode = 1;
+    });
+  };
+  process.once('SIGTERM', () => stop('SIGTERM'));
+  process.once('SIGINT', () => stop('SIGINT'));
 } catch (err) {
   process.stderr.write(`${err?.message ?? err}\n`);
   process.exit(1);

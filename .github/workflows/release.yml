@@ -104,13 +104,19 @@ jobs:
           trap 'docker logs seventh-gun-smoke; docker rm -f seventh-gun-smoke || true' EXIT
           for attempt in $(seq 1 20); do curl --fail http://127.0.0.1:18080/health && break; sleep 1; done
           curl --fail http://127.0.0.1:18080/ | grep -q 'src="/assets/.*\.js"'
+          docker exec seventh-gun-smoke test -f /app/LICENSE
+          docker exec seventh-gun-smoke test -f /app/THIRD-PARTY.md
+          docker exec seventh-gun-smoke test -f /app/dist/client/LICENSE
+          docker exec seventh-gun-smoke test -f /app/dist/client/THIRD-PARTY.md
           docker rm -f seventh-gun-smoke
           trap - EXIT
 
   publish-npm:
     needs: [preflight, package-smoke, container-smoke, static-artifact]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     permissions:
+      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -130,6 +136,7 @@ jobs:
   publish-image:
     needs: [preflight, package-smoke, container-smoke, static-artifact]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     timeout-minutes: 60
     permissions:
       contents: read
@@ -168,6 +175,7 @@ jobs:
   finalize-release:
     needs: [preflight, publish-npm, publish-image, static-artifact]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     permissions:
       contents: write
     steps:

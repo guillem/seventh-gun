@@ -120,7 +120,8 @@ Balance numbers live in [docs/GAME-DESIGN.md](docs/GAME-DESIGN.md).
 
 ## License
 
-[MIT](LICENSE). Every texture, mesh, sound and level is generated at runtime
-from a seed — there are no asset packs, no fonts and no third-party art, so the
-license covers the whole work. The one bundled library is
-[three.js](https://threejs.org) (MIT); see [THIRD-PARTY.md](THIRD-PARTY.md).
+[MIT](LICENSE). Textures, meshes and sounds are generated at runtime; random
+mazes are seed-generated and campaign maps are authored here. There are no
+asset packs, fonts or third-party art. The client bundles
+[three.js](https://threejs.org) and the Node server uses `ws`; see
+[THIRD-PARTY.md](THIRD-PARTY.md).

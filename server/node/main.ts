@@ -7,8 +7,9 @@
 // Cloudflare: an HTTP server for the static client, and a WebSocket upgrade on
 // /arena. One process, one global room — the same topology as idFromName('global').
 
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
+import type { Socket } from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,11 @@ export interface ServeOptions {
   host?: string;
   clientDir?: string;
   allowedOrigins?: string;
+}
+
+export interface RunningServer extends Server {
+  /** Stop accepting traffic and drain arena clients before the grace deadline. */
+  shutdown(): Promise<void>;
 }
 
 // The arena protocol is JSON and ArenaRoom rejects messages larger than 2 KiB.
@@ -96,7 +102,7 @@ function defaultClientDir(): string {
   return resolve(fileURLToPath(new URL('.', import.meta.url)), '../client');
 }
 
-export function serve(opts: ServeOptions = {}) {
+export function serve(opts: ServeOptions = {}): RunningServer {
   const port = opts.port ?? Number(process.env.PORT ?? 8080);
   const host = opts.host ?? process.env.HOST ?? '0.0.0.0';
   const clientDir = resolve(opts.clientDir ?? process.env.CLIENT_DIR ?? defaultClientDir());
@@ -165,6 +171,12 @@ export function serve(opts: ServeOptions = {}) {
     }
   });
 
+  const connections = new Set<Socket>();
+  server.on('connection', (socket) => {
+    connections.add(socket);
+    socket.on('close', () => connections.delete(socket));
+  });
+
   // Garbage on the socket before a request is even parsed.
   server.on('clientError', (_err, socket) => {
     if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
@@ -172,8 +184,15 @@ export function serve(opts: ServeOptions = {}) {
   });
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: ARENA_MAX_PAYLOAD });
+  const arenaSockets = new Map<WebSocket, RoomSocket>();
+  let shuttingDown = false;
+  let shutdownPromise: Promise<void> | null = null;
 
   server.on('upgrade', (req, socket, head) => {
+    if (shuttingDown) {
+      socket.destroy();
+      return;
+    }
     if (safePathname(req.url, req.headers.host) !== '/arena') {
       socket.destroy();
       return;
@@ -185,6 +204,7 @@ export function serve(opts: ServeOptions = {}) {
     }
     wss.handleUpgrade(req, socket, head, (ws) => {
       const sock = toRoomSocket(ws);
+      arenaSockets.set(ws, sock);
       ws.on('message', (data, isBinary) => {
         // `String(Buffer)` would turn binary data into arbitrary text before
         // protocol validation. There is no binary arena protocol, so reject it
@@ -195,11 +215,57 @@ export function serve(opts: ServeOptions = {}) {
         }
         room.onMessage(sock, data.toString());
       });
-      ws.on('close', () => room.onClose(sock));
-      ws.on('error', () => room.onClose(sock));
+      const closeArenaSocket = () => {
+        arenaSockets.delete(ws);
+        room.onClose(sock);
+      };
+      ws.on('close', closeArenaSocket);
+      ws.on('error', closeArenaSocket);
       room.onOpen(sock);
     });
   });
+
+  const running = server as RunningServer;
+  running.shutdown = () => {
+    if (shutdownPromise) return shutdownPromise;
+    shuttingDown = true;
+    shutdownPromise = new Promise((resolve) => {
+      let settled = false;
+      let forceClose: ReturnType<typeof setTimeout> | undefined;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (forceClose) clearTimeout(forceClose);
+        resolve();
+      };
+      const maybeFinish = () => {
+        if (arenaSockets.size === 0) finish();
+      };
+
+      // Stop new HTTP upgrades first, then give joined and pending clients a
+      // normal WebSocket close handshake. The close handlers run room cleanup
+      // and stop its injected scheduler after every client has acknowledged.
+      server.close(() => maybeFinish());
+      for (const ws of arenaSockets.keys()) {
+        if (ws.readyState === ws.OPEN) ws.close(1001, 'server shutting down');
+        else ws.terminate();
+      }
+      maybeFinish();
+
+      // A peer can ignore the close handshake. HTTP closeAllConnections does
+      // not include upgraded WebSocket sockets, so terminate both sets after
+      // the grace period and never leave PID 1 alive during container stop.
+      forceClose = setTimeout(() => {
+        for (const ws of arenaSockets.keys()) ws.terminate();
+        for (const socket of connections) socket.destroy();
+        server.closeAllConnections?.();
+        finish();
+      }, 1_000);
+      forceClose.unref();
+      if (settled) clearTimeout(forceClose);
+    });
+    return shutdownPromise;
+  };
 
   server.listen(port, host, () => {
     const lines = [`  local    http://localhost:${port}`, ...lanUrls(port).map((u) => `  network  ${u}`)];
@@ -209,5 +275,5 @@ export function serve(opts: ServeOptions = {}) {
     );
   });
 
-  return server;
+  return running;
 }
