@@ -5,7 +5,7 @@ differences to the expert reviewer rather than expanding scope.
 
 | Stage | Scope | Gate | State |
 |---|---|---|---|
-| 1 | Arena lifecycle, cancellable joins, bounded transport, deployment smoke | Race/duplicate/malformed tests; real assets + advancing arena snapshots | In progress |
+| 1 | Arena lifecycle, cancellable joins, bounded transport, deployment smoke | Race/duplicate/malformed tests; real assets + advancing arena snapshots | Production fixes implemented; review/CI pending. Unmerged Node transport follows in #26. |
 | 2 | Fixed clock, input acknowledgements, snapshot interpolation | Controlled clock + short controls + latency/jitter tests | Pending |
 | 3 | Projectile/beam direction, sustained audio, mode feedback | Seven weapons/pitched views; audio load and echo matching | Pending |
 | 4 | Secret visibility, exposed controls, compiler validation | All 15 secrets/four kinds; legacy codec and seed sweep | In progress independently |

@@ -10,7 +10,11 @@ not a claim that these later findings are resolved.
 
 Stage 1 adds a deployment probe for HTML, the referenced JavaScript asset,
 arena welcome and advancing snapshots. It passed against the current Worker.
-Room/connection regression fixes are being prepared on `codex/arena-safety`.
+Room/connection regression fixes are implemented on `codex/arena-safety`:
+duplicate joins cannot orphan players; pending joins survive room recycling;
+teardown and failed sends are safe; client attempts are cancellable, bounded,
+and reject malformed server frames. Focused unit tests (39), typecheck and
+the browser room-recycling test passed. Independent review/full CI precede merge.
 Secret and packaging fixes are prepared in isolated worktrees. PR #26 already
 exists and remains unmerged. npm CLI authentication is still required before
 publication; no payment method is needed or to be added.
