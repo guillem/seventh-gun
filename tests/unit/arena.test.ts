@@ -13,6 +13,10 @@ function inputTick(partial: Partial<SimInput>): SimInput {
   return { ...emptyInput(), ...partial };
 }
 
+function queue(sim: ArenaSim, player: { id: number; spawnCount: number }, seq: number, inputs: SimInput[]): void {
+  sim.pushInput(player.id, player.spawnCount, seq, inputs);
+}
+
 function findFloorCells(sim: ArenaSim): { x: number; z: number }[] {
   const out: { x: number; z: number }[] = [];
   for (let z = 1; z < sim.map.h - 1; z++) {
@@ -67,12 +71,9 @@ describe('arena sim (server-authoritative)', () => {
     b.x = pair.victim.x; b.z = pair.victim.z;
     a.yaw = yawToTarget({ x: a.x, z: a.z }, { x: b.x, z: b.z }); a.pitch = 0;
     b.yaw = yawToTarget({ x: b.x, z: b.z }, { x: a.x, z: a.z }); b.pitch = 0;
-    a.input = { ...emptyInput(), yaw: a.yaw, pitch: a.pitch, fire: false, use: false, switchGun: null };
-    b.input = { ...emptyInput(), yaw: b.yaw, pitch: b.pitch, fire: false, use: false, switchGun: null };
-
     // Fire until B dies.
     for (let step = 0; step < 600; step++) {
-      a.input.fire = true;
+      queue(sim, a, step + 1, [inputTick({ yaw: a.yaw, pitch: a.pitch, fire: true })]);
       sim.step(STEP_DT);
       if (!b.alive) break;
     }
@@ -114,8 +115,7 @@ describe('arena sim (server-authoritative)', () => {
     for (let t = 0; t < Math.floor(1 / STEP_DT); t++) sim.step(STEP_DT);
 
     // Fire at t ~ 1s; victim should still be protected.
-    a.input = { ...emptyInput(), yaw: a.yaw, pitch: a.pitch, fire: true, use: false, switchGun: null };
-    b.input = { ...emptyInput(), yaw: b.yaw, pitch: b.pitch, fire: false, use: false, switchGun: null };
+    queue(sim, a, 1, [inputTick({ yaw: a.yaw, pitch: a.pitch, fire: true })]);
     const hpBefore = b.hp;
     sim.step(STEP_DT);
     expect(b.hp).toBe(hpBefore);
@@ -126,10 +126,11 @@ describe('arena sim (server-authoritative)', () => {
 
     // Continue to after 2.1s: victim should eventually take damage.
     a.protectUntil = 0;
+    let seq = 2;
     while (sim.time < 2.5 && b.hp === hpBefore) {
       a.yaw = yawToTarget({ x: a.x, z: a.z }, { x: b.x, z: b.z });
       a.pitch = 0;
-      a.input = { ...emptyInput(), yaw: a.yaw, pitch: 0, fire: true, use: false, switchGun: null };
+      queue(sim, a, seq++, [inputTick({ yaw: a.yaw, pitch: 0, fire: true })]);
       sim.step(STEP_DT);
     }
     expect(b.hp).toBeLessThan(hpBefore);
@@ -303,7 +304,7 @@ describe('arena sim (server-authoritative)', () => {
     for (let i = 0; i < 20; i++) {
       tape.push(inputTick({ moveX: 2, moveZ: -2, yaw: 0, pitch: 0, fire: false }));
     }
-    sim.pushInput(a.id, 123, tape);
+    queue(sim, a, 123, tape);
     expect(a.queued.length).toBeLessThanOrEqual(8);
     expect(a.queued.every((inpt: any) => Math.abs(inpt.moveX) <= 1 && Math.abs(inpt.moveZ) <= 1)).toBe(true);
   });
@@ -313,12 +314,12 @@ describe('arena sim (server-authoritative)', () => {
     const a = sim.join('A') as any;
     sim.takeEvents();
     const frame = inputTick({ moveZ: 1, yaw: 0, pitch: 0 });
-    sim.pushInput(a.id, 1, [frame, frame, frame, frame]);
+    queue(sim, a, 1, [frame, frame, frame, frame]);
     expect(a.queuedSeqs).toEqual([1, 2, 3, 4]);
     sim.step(STEP_DT);
     expect(a.lastSeq).toBe(1);
     expect(a.queuedSeqs).toEqual([2, 3, 4]);
-    sim.pushInput(a.id, 1, [frame, frame, frame, frame]);
+    queue(sim, a, 1, [frame, frame, frame, frame]);
     expect(a.queuedSeqs).toEqual([2, 3, 4]);
   });
 
@@ -328,12 +329,12 @@ describe('arena sim (server-authoritative)', () => {
     fireSim.takeEvents();
     const idle = inputTick({ yaw: shooter.yaw, pitch: 0, fire: false });
     const fire = inputTick({ yaw: shooter.yaw, pitch: 0, fire: true });
-    fireSim.pushInput(shooter.id, 1, Array.from({ length: 8 }, () => idle));
-    fireSim.pushInput(shooter.id, 9, [fire]);
+    queue(fireSim, shooter, 1, Array.from({ length: 8 }, () => idle));
+    queue(fireSim, shooter, 9, [fire]);
     expect(shooter.lastQueuedSeq).toBe(8);
     for (let i = 0; i < 8; i++) fireSim.step(STEP_DT);
     expect(shooter.lastSeq).toBe(8);
-    fireSim.pushInput(shooter.id, 9, [fire]);
+    queue(fireSim, shooter, 9, [fire]);
     fireSim.step(STEP_DT);
     expect(shooter.lastSeq).toBe(9);
     expect(fireSim.takeEvents().some((e) => e.t === 'shot')).toBe(true);
@@ -341,14 +342,63 @@ describe('arena sim (server-authoritative)', () => {
     const switchSim = new ArenaSim('arena-short-switch');
     const player = switchSim.join('A') as any;
     player.owned[2] = true;
-    switchSim.pushInput(player.id, 1, Array.from({ length: 8 }, () => idle));
-    switchSim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
+    queue(switchSim, player, 1, Array.from({ length: 8 }, () => idle));
+    queue(switchSim, player, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
     for (let i = 0; i < 8; i++) switchSim.step(STEP_DT);
     expect(player.gun).toBe(1);
-    switchSim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
+    queue(switchSim, player, 9, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2 })]);
     switchSim.step(STEP_DT);
     expect(player.lastSeq).toBe(9);
     expect(player.gun).toBe(2);
+  });
+
+  it('rejects sequence gaps and neutralizes actions between network frames', () => {
+    const sim = new ArenaSim('arena-input-gaps');
+    const player = sim.join('A') as any;
+    const move = inputTick({ yaw: player.yaw, pitch: 0, moveZ: 1 });
+    queue(sim, player, 1, Array.from({ length: 8 }, () => move));
+    queue(sim, player, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    for (let i = 0; i < 3; i++) sim.step(STEP_DT);
+    // New controls can arrive while a full queue is being drained, but a
+    // later sequence cannot leapfrog the rejected fire at sequence 9.
+    queue(sim, player, 12, [move, move, move]);
+    expect(player.lastQueuedSeq).toBe(8);
+    while (player.queued.length) sim.step(STEP_DT);
+    queue(sim, player, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    sim.step(STEP_DT);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot')).toHaveLength(1);
+
+    const before = { x: player.x, z: player.z };
+    for (let i = 0; i < 60; i++) sim.step(STEP_DT);
+    expect(Math.hypot(player.x - before.x, player.z - before.z)).toBeLessThan(1e-8);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot')).toHaveLength(0);
+  });
+
+  it('rejects old-life controls and starts each respawn at sequence one', () => {
+    const sim = new ArenaSim('arena-life-epoch');
+    const player = sim.join('A') as any;
+    const oldEpoch = player.spawnCount;
+    const idle = inputTick({ yaw: player.yaw, pitch: 0 });
+    queue(sim, player, 1, Array.from({ length: 8 }, () => idle));
+    queue(sim, player, 9, Array.from({ length: 4 }, () => idle));
+    expect(player.lastQueuedSeq).toBe(8);
+    sim.takeEvents();
+    (sim as any).handleDeath(player);
+    sim.pushInput(player.id, oldEpoch, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    expect(player.queued).toHaveLength(8);
+    for (let i = 0; i < Math.ceil(ARENA_DEATH_LOCKOUT / STEP_DT) + 1; i++) sim.step(STEP_DT);
+    expect(player.alive).toBe(true);
+    expect(player.spawnCount).toBe(oldEpoch + 1);
+    sim.pushInput(player.id, oldEpoch, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    expect(player.queued).toHaveLength(0);
+
+    player.owned[2] = true;
+    player.ammo.shells = 2;
+    queue(sim, player, 1, [inputTick({ yaw: player.yaw, pitch: 0, switchGun: 2, fire: true })]);
+    sim.step(STEP_DT);
+    expect(player.lastSeq).toBe(1);
+    expect(player.gun).toBe(2);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot' && event.id === player.id)).toHaveLength(1);
   });
 
   it('kill by a player who already left is no credit and no suicide', () => {
@@ -408,19 +458,19 @@ describe('arena sim (server-authoritative)', () => {
           const fire = (batchStart + k) % Math.floor(0.3 / STEP_DT) === 0;
           batch.push(inputTick({ yaw: yaw1A, pitch: 0, moveX: 0, moveZ: 0, fire }));
         }
-        A.sim.pushInput(A.p1.id, batchStart + 1, batch);
+        queue(A.sim, A.p1, batchStart + 1, batch);
         // Remote player sends no movement/fire, but still sends yaw/pitch packets.
         const idleBatch: SimInput[] = batch.map(() => inputTick({ yaw: A.p2.yaw, pitch: 0, moveX: 0, moveZ: 0, fire: false }));
-        A.sim.pushInput(A.p2.id, batchStart + 1, idleBatch);
+        queue(A.sim, A.p2, batchStart + 1, idleBatch);
 
         const batchB: SimInput[] = [];
         for (let k = 0; k < 4 && batchStart + k < ticks; k++) {
           const fire = (batchStart + k) % Math.floor(0.3 / STEP_DT) === 0;
           batchB.push(inputTick({ yaw: yaw1B, pitch: 0, moveX: 0, moveZ: 0, fire }));
         }
-        B.sim.pushInput(B.p1.id, batchStart + 1, batchB);
+        queue(B.sim, B.p1, batchStart + 1, batchB);
         const idleBatchB: SimInput[] = batchB.map(() => inputTick({ yaw: B.p2.yaw, pitch: 0, moveX: 0, moveZ: 0, fire: false }));
-        B.sim.pushInput(B.p2.id, batchStart + 1, idleBatchB);
+        queue(B.sim, B.p2, batchStart + 1, idleBatchB);
       }
       A.sim.step(STEP_DT);
       B.sim.step(STEP_DT);

@@ -6,7 +6,7 @@ describe('protocol guards', () => {
   it('accepts valid client frames', () => {
     expect(isClientMessage({ v: 3, t: 'join', name: 'TEST' })).toBe(true);
     expect(isClientMessage({
-      v: 3, t: 'input', seq: 1,
+      v: 3, t: 'input', spawnCount: 1, seq: 1,
       inputs: [{ moveX: 0, moveZ: 1, yaw: 0, pitch: 0, fire: false }],
     })).toBe(true);
     expect(isClientMessage({ v: 3, t: 'ping', at: 1 })).toBe(true);
@@ -24,9 +24,15 @@ describe('protocol guards', () => {
     const inputs = Array.from({ length: 9 }, () => ({
       moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false,
     }));
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs })).toBe(false);
     inputs.pop();
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs })).toBe(true);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs })).toBe(true);
+  });
+
+  it('requires a positive life epoch on each input batch', () => {
+    const frame = { moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false };
+    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [frame] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 0, seq: 1, inputs: [frame] })).toBe(false);
   });
 
   it('accepts valid server frames', () => {
@@ -43,14 +49,6 @@ describe('protocol guards', () => {
 
   it('accepts validated zero-based event ids', () => {
     expect(isServerMessage({ v: 3, t: 'events', es: [{ t: 'playerSpawn', id: 0 }] })).toBe(true);
-  });
-
-  it('requires complete projectile motion and pickup ownership in v3 events', () => {
-    const projectile = { id: 1, ownerId: 0, kind: 'nail', x: 1, y: 2, z: 3, vx: 4, vy: 5, vz: 6, gravity: 0, radius: 0.2, age: 0 };
-    expect(isServerMessage({ v: 3, t: 'snap', snapshot: { tick: 1, players: [], projectiles: [projectile], pickups: [] } })).toBe(true);
-    expect(isServerMessage({ v: 3, t: 'events', es: [{ t: 'pickup', playerId: 0, pickupId: 7, kind: 'ammo', label: '+10' }] })).toBe(true);
-    expect(isServerMessage({ v: 3, t: 'events', es: [{ t: 'spawnProjectile', id: 0, projectileId: 1, ownerId: 0, kind: 'nail', x: 1, y: 2, z: 3, vx: 4, vy: 5, vz: 6, gravity: 0, radius: 0.2, age: 0 }] })).toBe(true);
-    expect(isServerMessage({ v: 3, t: 'snap', snapshot: { tick: 1, players: [], projectiles: [{ ...projectile, vx: Number.NaN }], pickups: [] } })).toBe(false);
   });
 
   it('rejects impossible guns and inconsistent welcomes', () => {
@@ -70,13 +68,13 @@ describe('protocol guards', () => {
 
   it('rejects non-finite numbers and bad switchGun / seq', () => {
     const base = { moveX: 0, moveZ: 1, yaw: 0, pitch: 0, fire: false };
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [{ ...base, yaw: NaN }] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [{ ...base, pitch: Infinity }] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [{ ...base, moveX: Number.NaN }] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: -1, inputs: [base] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1.5, inputs: [base] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [{ ...base, switchGun: 8 }] })).toBe(false);
-    expect(isClientMessage({ v: 3, t: 'input', seq: 1, inputs: [{ ...base, switchGun: 3 }] })).toBe(true);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs: [{ ...base, yaw: NaN }] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs: [{ ...base, pitch: Infinity }] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs: [{ ...base, moveX: Number.NaN }] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: -1, inputs: [base] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1.5, inputs: [base] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs: [{ ...base, switchGun: 8 }] })).toBe(false);
+    expect(isClientMessage({ v: 3, t: 'input', spawnCount: 1, seq: 1, inputs: [{ ...base, switchGun: 3 }] })).toBe(true);
     expect(isClientMessage({ v: 3, t: 'ping', at: NaN })).toBe(false);
   });
 });

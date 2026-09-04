@@ -8,23 +8,27 @@ secret visibility and resource cleanup defects despite the passing baseline
 (281 unit / 83 browser tests, 11 skips). Historical playtest notes below are
 not a claim that these later findings are resolved.
 
-Stage 1 is in PR #27. It adds a deployment probe for HTML, the referenced
-JavaScript asset, arena welcome and advancing snapshots (a full room is reported
-explicitly as capacity-limited). The live Worker probe passed. Review caught and
-corrected post-welcome message loss, transport-disconnect notification, malformed
-welcome/gun validation, and final-player failed-send teardown. Focused regressions
-pass; fresh full CI and final review remain the merge gates.
+Stage 1 merged as PR #27 (main 145681b): independent review, 280 unit tests,
+83 browser tests (11 skips), Netlify preview and live Worker probe passed.
+Cloudflare's post-merge rollout is still being verified. The deployment probe
+checks HTML, JavaScript and advancing arena snapshots; a full room is explicitly
+reported as capacity-limited.
 
-Secret repairs are in PR #28, with import validation and traversal/visibility
-coverage being strengthened after review. The Netlify preview loads campaign.
-Packaging PR #26 remains unmerged; its hardening work includes full notices,
-release gates and Node 22/24 artifact checks. The dependency expert approved
-Vitest 3.2.7/Vite 6.4.3 (zero audit findings) with scoped timeouts for the existing
-long deterministic tests. Full-suite verification remains pending.
+Stage 2 is in PR #29: fixed elapsed-time stepping, one simulated input per
+acknowledgement, overflow resend and snapshot-history interpolation. Focused
+clock/input/20 Hz/jitter/two-client latency tests pass; review and CI are pending.
+Stage 3 projectile, sound and mode feedback work is underway on top of it.
+
+Secret repairs in PR #28 cleared review, including malformed imports, all fifteen
+interactions and preserved-enemy traversal/visibility checks; CI and ordered merge
+remain. Packaging PR #26 remains unmerged. Its hardening passes 281 unit tests,
+Node 22/24 packed-install checks, build/typecheck and zero dependency audit findings.
+Release review found gating fixes still needed; the expert confirmed a container
+shutdown defect, now being repaired. These are not publication-ready claims.
 
 npm CLI authentication is still required before publication. No payment method
-is needed or to be added. Pickup feedback still has an entity/player identity
-mismatch; stage 3 will fix it with the planned wire-contract revision.
+is needed or to be added. Stage 3 includes the confirmed pickup entity/player
+identity mismatch and removes the old time-window-only shot suppression.
 
 GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
 

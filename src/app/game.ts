@@ -372,6 +372,7 @@ export class Game {
       const reason = String(err);
       const status = reason === 'full' ? 'ARENA FULL'
         : reason === 'mismatch' ? 'GEN MISMATCH'
+          : reason === 'protocol' ? 'UPDATE REQUIRED'
           : 'ARENA OFFLINE';
       this.arenaStatus = status;
       this.screens.setArenaStatus(status);

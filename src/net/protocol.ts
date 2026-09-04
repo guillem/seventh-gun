@@ -1,14 +1,11 @@
 import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
-// v3 carries complete projectile state and event identities.  Keeping the
-// version strict makes an old client fail its join cleanly instead of trying
-// to render a partially understood combat frame.
 export const PROTOCOL_V = 3 as const;
 
 export type ClientMessage =
   | { v: typeof PROTOCOL_V; t: 'join'; name: string }
-  | { v: typeof PROTOCOL_V; t: 'input'; seq: number; inputs: SimInput[] }
+  | { v: typeof PROTOCOL_V; t: 'input'; spawnCount: number; seq: number; inputs: SimInput[] }
   | { v: typeof PROTOCOL_V; t: 'ping'; at: number };
 
 export type ServerMessage =
@@ -30,7 +27,7 @@ export function isClientMessage(v: unknown): v is ClientMessage {
   if (m.t === 'join') return typeof m.name === 'string';
   if (m.t === 'ping') return Number.isFinite(m.at);
   if (m.t === 'input') {
-    if (!Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
+    if (!integer(m.spawnCount, 1) || !Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
     if (m.inputs.length > 8) return false;
     return m.inputs.every(isInputFrame);
   }
@@ -76,7 +73,7 @@ function isArenaPlayer(v: unknown): boolean {
   return integer(p.id, 0) && typeof p.name === 'string' && integer(p.colorIndex, 0)
     && finite(p.x) && finite(p.z) && finite(p.yaw) && finite(p.pitch) && finite(p.hp)
     && integer(p.gun, 1) && (p.gun as number) <= 7 && integer(p.ownedMask, 0) && typeof p.alive === 'boolean'
-    && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.lastSeq, 0)
+    && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.spawnCount, 1) && integer(p.lastSeq, 0)
     && !!ammo && ['bullets', 'shells', 'nails', 'grenades', 'cores', 'void'].every((key) => finite(ammo[key]));
 }
 
@@ -105,7 +102,7 @@ function isArenaEvent(v: unknown): boolean {
     case 'playerJoin': return hasId && typeof e.name === 'string' && integer(e.colorIndex, 0);
     case 'playerLeave': case 'playerDie': case 'playerSpawn': case 'padRespawn': return hasId;
     case 'kick': return hasId && (e.reason === 'idle' || e.reason === 'mismatch' || e.reason === 'protocol');
-    case 'shot': return hasId && integer(e.shotId, 1) && integer(e.inputSeq, 0)
+    case 'shot': return hasId && integer(e.shotId, 1) && integer(e.spawnCount, 1) && integer(e.inputSeq, 0)
       && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw) && finite(e.pitch);
     case 'dryfire': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7;
     case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.y0) && finite(e.z0) && finite(e.x1) && finite(e.y1) && finite(e.z1);
@@ -113,6 +110,7 @@ function isArenaEvent(v: unknown): boolean {
     case 'spawnProjectile': return hasId && integer(e.projectileId, 1) && integer(e.ownerId, 0)
       && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z)
       && finite(e.vx) && finite(e.vy) && finite(e.vz) && finite(e.gravity) && finite(e.radius) && finite(e.age);
+    case 'despawnProjectile': return integer(e.projectileId, 1);
     case 'explosion': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && finite(e.radius);
     case 'playerHurt': return hasId && finite(e.damage) && finite(e.fromAngle);
     case 'hitPlayer': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && typeof e.killed === 'boolean';
