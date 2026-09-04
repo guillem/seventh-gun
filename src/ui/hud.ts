@@ -436,16 +436,21 @@ export class Hud {
   private mapCanvas: HTMLCanvasElement | null = null;
   private mapCtx: CanvasRenderingContext2D | null = null;
 
+  /** Top-left, below the always-on SEED/KILLS readout drawn in draw() —
+   *  the panel used to start at y=12 and paint straight over that text.
+   *  Stack instead of overlap: SEED/KILLS occupy roughly y=12..41, so the
+   *  roster starts at y=46. */
   drawArenaRoster(rows: ArenaRosterRow[], localId: number, count: number, max = 10): void {
     const g = this.g;
     const sorted = sortArenaRoster(rows);
+    const top = 46;
     g.font = '12px "Courier New", monospace';
     g.textAlign = 'left';
     g.fillStyle = 'rgba(8,9,7,0.55)';
-    g.fillRect(12, 12, 180, 18 + sorted.length * 16);
+    g.fillRect(12, top, 180, 18 + sorted.length * 16);
     g.fillStyle = '#9aa08e';
-    g.fillText(`${count}/${max}`, 20, 26);
-    let y = 42;
+    g.fillText(`${count}/${max}`, 20, top + 14);
+    let y = top + 30;
     for (const r of sorted.slice(0, 10)) {
       g.fillStyle = r.id === localId ? '#ffe9a0' : '#d8d4c8';
       g.fillText(`${r.name.slice(0, 12).padEnd(12)} ${r.frags}`, 20, y);

@@ -597,7 +597,7 @@ export class Screens {
     const hints = this.pause.querySelector('#pause-hints') as HTMLElement | null;
     if (hints) {
       hints.textContent = arena
-        ? 'TAB scoreboard · ESC menu · you stay in the fight'
+        ? 'TAB scoreboard · M map · ESC menu · you stay in the fight'
         : kind === 'maze'
           ? 'TAB map · E use doors · the key opens the vault, never the arena'
           : 'TAB map · E use doors';

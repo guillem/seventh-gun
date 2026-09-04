@@ -206,7 +206,11 @@ export class Game {
     });
     this.screens.seedInput.addEventListener('keydown', (e) => {
       if (e.code === 'Enter') this.startRun(this.screens.seedInput.value.trim() || randomSeed());
-      e.stopPropagation();
+      // No stopPropagation(): InputManager's window keydown now ignores any
+      // event whose target is an editable element (isEditableTarget in
+      // input.ts), so it never reaches the Tab/M/WASD handling below this
+      // input in the first place. The old stopPropagation() was the only
+      // thing plugging that gap and is redundant now.
     });
   }
 
@@ -247,19 +251,20 @@ export class Game {
         }
         else if (this.phase === 'map') this.toggleMap(false);
       },
-      onMapToggle: () => {
+      // 'm' opens/closes the full map — same key, same behaviour, in every
+      // mode (campaign, maze, arena). Arena additionally has Tab for the
+      // detailed scoreboard (onScoreboardToggle below); campaign has no
+      // scoreboard, so its Tab is wired to this same handler too.
+      onMapToggle: () => this.handleMapToggle(),
+      onScoreboardToggle: () => {
         if (this.phase === 'editing') return;
-        if (this.runKind === 'arena') {
-          // Full map (opened via touch UI / debug API) closes on Tab/M too,
-          // matching the overlay's own "TAB / M / click to close" hint.
-          if (this.phase === 'map') { this.toggleMap(false); return; }
-          if (this.phase === 'playing' || this.arenaMenu) {
-            this.arenaScoreboard = !this.arenaScoreboard;
-          }
-          return;
+        if (this.runKind !== 'arena') { this.handleMapToggle(); return; }
+        // Full map (opened via 'm' / touch UI / debug API) closes on Tab
+        // too, matching the overlay's own "TAB / M / click to close" hint.
+        if (this.phase === 'map') { this.toggleMap(false); return; }
+        if (this.phase === 'playing' || this.arenaMenu) {
+          this.arenaScoreboard = !this.arenaScoreboard;
         }
-        if (this.phase === 'playing') this.toggleMap(true);
-        else if (this.phase === 'map') this.toggleMap(false);
       },
     });
     this.canvasClickLock();
@@ -882,6 +887,18 @@ export class Game {
     if (!this.input.isTouch) this.input.requestLock();
   }
 
+  /** The 'm' key (all modes) and Tab (campaign/maze only, arena uses Tab
+   *  for the scoreboard): open the full map from 'playing', close it from
+   *  'map'. No-op while editing or, in arena, while the pause menu is up
+   *  (arena never leaves phase==='playing' for that, unlike campaign's
+   *  'paused', so it needs its own check). */
+  private handleMapToggle(): void {
+    if (this.phase === 'editing') return;
+    if (this.runKind === 'arena' && this.arenaMenu) return;
+    if (this.phase === 'playing') this.toggleMap(true);
+    else if (this.phase === 'map') this.toggleMap(false);
+  }
+
   private toggleMap(open: boolean): void {
     if (open && this.phase === 'playing') {
       this.phase = 'map';
@@ -1014,7 +1031,10 @@ export class Game {
     const lookYaw = cam.rotation.y;
     const lookPitch = lookPitchFromThree(cam.rotation.x);
     const polled = this.input.poll(lookYaw, lookPitch);
-    const menu = this.arenaMenu;
+    // Full map now opens in arena too (phase 'map'); freeze movement/fire
+    // there just like the pause menu, matching campaign's "map pauses
+    // combat" behaviour.
+    const menu = this.arenaMenu || this.phase === 'map';
     const input = {
       moveX: menu ? 0 : polled.moveX,
       moveZ: menu ? 0 : polled.moveZ,
@@ -1207,6 +1227,7 @@ export class Game {
               hp: p?.hp ?? 0,
               gun: p?.gun ?? 1,
               seed: this.arenaClient.seed,
+              scoreboard: this.arenaScoreboard,
             };
           }
           return { phase: 'title' };

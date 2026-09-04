@@ -3,6 +3,19 @@
 // Touches are classified once by the element they start on.
 import type { Screens } from '../ui/screens';
 
+/**
+ * True when `target` is (or is inside) a text-editable element — an
+ * `<input>`, `<textarea>`, or `[contenteditable]` node. The desktop keydown
+ * handler below must ignore events from these entirely: it binds on
+ * `window` and runs regardless of focus, so without this guard it both
+ * eats character keys (KeyM/Tab preventDefault) and pollutes the WASD
+ * movement state while the user types into e.g. the arena name field.
+ */
+export function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return !!target.closest('input, textarea, [contenteditable]');
+}
+
 export interface InputState {
   moveX: number;
   moveZ: number;
@@ -30,6 +43,7 @@ export class InputManager {
   private onPointerLockChange: (() => void) | null = null;
   private onPauseToggle: (() => void) | null = null;
   private onMapToggle: (() => void) | null = null;
+  private onScoreboardToggle: (() => void) | null = null;
   private onLook: ((dyaw: number, dpitch: number) => void) | null = null;
   /** ?e2e=1: mousedown fires without pointer lock so Playwright can click. */
   e2eClick = false;
@@ -49,11 +63,13 @@ export class InputManager {
     onPointerLockChange?: () => void;
     onPauseToggle?: () => void;
     onMapToggle?: () => void;
+    onScoreboardToggle?: () => void;
     onLook?: (dyaw: number, dpitch: number) => void;
   }): void {
     this.onPointerLockChange = cbs.onPointerLockChange ?? null;
     this.onPauseToggle = cbs.onPauseToggle ?? null;
     this.onMapToggle = cbs.onMapToggle ?? null;
+    this.onScoreboardToggle = cbs.onScoreboardToggle ?? null;
     this.onLook = cbs.onLook ?? null;
   }
 
@@ -68,14 +84,24 @@ export class InputManager {
 
   private bindDesktop(): void {
     window.addEventListener('keydown', (e) => {
+      // Text fields (arena name, seed, editor title/seed) must receive
+      // every keystroke untouched: no preventDefault, no keys.add, no
+      // callback. Bound on window so it fires regardless of focus —
+      // this is the only thing standing between "typing" and "typing
+      // while also strafing and re-preventDefault-ing Tab/M".
+      if (isEditableTarget(e.target)) return;
       if (e.repeat) {
         if (e.code === 'Tab') e.preventDefault();
         return;
       }
       this.keys.add(e.code);
-      if (e.code === 'Tab' || e.code === 'KeyM') {
+      if (e.code === 'KeyM') {
         e.preventDefault();
         this.onMapToggle?.();
+      }
+      if (e.code === 'Tab') {
+        e.preventDefault();
+        this.onScoreboardToggle?.();
       }
       if (e.code === 'Escape') {
         this.onPauseToggle?.();
@@ -86,6 +112,12 @@ export class InputManager {
         if (n >= 1 && n <= 7) this.state.gunSwitch = n;
       }
     });
+    // No editable-target guard here: delete() is idempotent and there is no
+    // preventDefault/callback to suppress. Guarding it would risk a stuck
+    // movement key — press W on the canvas, tab focus into a text field
+    // while still holding it, release there, and the keyup would never
+    // arrive to clear `keys` (window 'blur' doesn't fire, focus stayed
+    // in-document).
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => {
       this.keys.clear();
