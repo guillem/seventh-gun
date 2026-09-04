@@ -24,7 +24,7 @@ describe('arena combat presentation payloads', () => {
       shooter.owned[weapon.id] = true;
       shooter.ammo[weapon.ammo] = Math.max(shooter.ammo[weapon.ammo], 20);
       shooter.fireCd = 0;
-      sim.pushInput(shooter.id, seq++, [{ ...emptyInput(), yaw: shooter.yaw, pitch: shooter.pitch, fire: true }]);
+      sim.pushInput(shooter.id, shooter.spawnCount, seq++, [{ ...emptyInput(), yaw: shooter.yaw, pitch: shooter.pitch, fire: true }]);
       sim.step(STEP_DT);
       const events = sim.takeEvents();
       const shot = events.find((event) => event.t === 'shot');

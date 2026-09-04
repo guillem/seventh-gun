@@ -1071,7 +1071,7 @@ export class Game {
     client.stepLocal(dtReal, input);
     const localShot = client.takeCosmeticShot();
     if (localShot) {
-      this.audio.handleEvent({ t: 'shot', gun: localShot.gun, x: localShot.x, z: localShot.z, yaw: localShot.yaw });
+      this.audio.handleEvent({ t: 'shot', gun: localShot.gun, x: localShot.x, z: localShot.z, yaw: localShot.yaw }, 1, true);
       this.renderer.fireVisual(localShot.gun, localShot.yaw, lookPitch, localShot.x, localShot.z);
     }
     const view = client.worldView();
@@ -1101,11 +1101,11 @@ export class Game {
       return 1 - (d - 4) / 36;
     };
     if (e.t === 'shot') {
-      if (e.id === selfId && this.arenaClient?.shouldIgnoreEchoShot(e.id, e.inputSeq)) {
+      if (e.id === selfId && this.arenaClient?.shouldIgnoreEchoShot(e.id, e.spawnCount, e.inputSeq)) {
         // Local muzzle + shot already played; still want tracers from the server.
       } else {
         const gain = e.id === selfId ? 1 : distGain(e.x, e.z);
-        this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain);
+        this.audio.handleEvent({ t: 'shot', gun: e.gun, x: e.x, z: e.z, yaw: e.yaw }, gain, e.id === selfId);
         if (e.id === selfId) this.renderer.fireVisual(e.gun, e.yaw, e.pitch, e.x, e.z);
       }
     } else if (e.t === 'hitPlayer') {

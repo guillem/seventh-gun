@@ -78,11 +78,12 @@ export type ArenaEvent =
   | { t: 'playerJoin'; id: number; name: string; colorIndex: number }
   | { t: 'playerLeave'; id: number }
   | { t: 'kick'; id: number; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { t: 'shot'; id: number; shotId: number; inputSeq: number; gun: number; x: number; z: number; yaw: number; pitch: number }
+  | { t: 'shot'; id: number; shotId: number; spawnCount: number; inputSeq: number; gun: number; x: number; z: number; yaw: number; pitch: number }
   | { t: 'dryfire'; id: number; gun: number }
   | { t: 'tracer'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; kind: 'bullets' }
   | { t: 'beam'; id: number; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number }
   | { t: 'spawnProjectile'; id: number; projectileId: number; ownerId: number; kind: ProjectileKind; x: number; y: number; z: number; vx: number; vy: number; vz: number; gravity: number; radius: number; age: number }
+  | { t: 'despawnProjectile'; projectileId: number }
   | { t: 'explosion'; id: number; x: number; y: number; z: number; radius: number }
   | { t: 'playerHurt'; id: number; damage: number; fromAngle: number }
   | { t: 'hitPlayer'; id: number; x: number; y: number; z: number; killed: boolean }
@@ -509,7 +510,7 @@ export class ArenaSim implements SolidState {
 
     p.ammo[ammoKey] -= 1;
     p.fireCd = w.fireInterval;
-    this.events.push({ t: 'shot', id: p.id, shotId: this.nextShotId++, inputSeq: p.lastSeq, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw, pitch: p.pitch });
+    this.events.push({ t: 'shot', id: p.id, shotId: this.nextShotId++, spawnCount: p.spawnCount, inputSeq: p.lastSeq, gun: p.gun, x: p.x, z: p.z, yaw: p.yaw, pitch: p.pitch });
 
     const composed = aimDirFromLook(p.yaw, p.pitch);
     const dirBase = composed;
@@ -653,7 +654,10 @@ export class ArenaSim implements SolidState {
     const keep: ArenaProjectile[] = [];
     for (const pr of this.projectiles) {
       pr.age += dt;
-      if (pr.age > 8) continue;
+      if (pr.age > 8) {
+        this.events.push({ t: 'despawnProjectile', projectileId: pr.id });
+        continue;
+      }
 
       const bodies: { id: number; x: number; z: number; radius: number; yMin: number; yMax: number }[] = [];
       const owner = this.players.find((p) => p.id === pr.ownerId);
@@ -706,7 +710,7 @@ export class ArenaSim implements SolidState {
         }
       }
 
-      // Projectile always removed on impact.
+      this.events.push({ t: 'despawnProjectile', projectileId: pr.id });
     }
     this.projectiles = keep;
   }

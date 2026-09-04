@@ -76,14 +76,16 @@ export class FxRenderer {
         new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, fog: false }),
       );
       core.rotation.x = Math.PI / 2;
-      core.position.z = -len / 2;
+      // Object3D.lookAt points local +Z at the target, so centre the
+      // cylinder ahead of the muzzle rather than drawing it behind it.
+      core.position.z = len / 2;
       group.add(core);
       const jacket = new THREE.Mesh(
         new THREE.CylinderGeometry(0.11, 0.11, len, 6),
         new THREE.MeshBasicMaterial({ color: 0x37e6ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.7, fog: false }),
       );
       jacket.rotation.x = Math.PI / 2;
-      jacket.position.z = -len / 2;
+      jacket.position.z = len / 2;
       group.add(jacket);
       const light = new THREE.PointLight(0x37e6ff, 80, 26, 1.8);
       this.addEffect(group, 0.16, (_t, k) => {

@@ -356,9 +356,9 @@ export class AudioEngine {
   }
 
   // ------------------------------------------------------------- dispatch
-  handleEvent(e: SimEvent, gain = 1): void {
+  handleEvent(e: SimEvent, gain = 1, local = false): void {
     this.eventGain = gain;
-    this.eventPriority = gain >= 0.999;
+    this.eventPriority = local;
     switch (e.t) {
       case 'shot': this.gunSound(e.gun); break;
       case 'dryfire': this.dryFire(); break;
