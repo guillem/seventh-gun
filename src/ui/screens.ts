@@ -50,7 +50,6 @@ export class Screens {
   private toast!: HTMLDivElement;
   private toastTimer = 0;
   private arenaJoin!: HTMLDivElement;
-  private scoreboard!: HTMLDivElement;
   arenaNameInput!: HTMLInputElement;
   private arenaStatus!: HTMLElement;
 
@@ -265,12 +264,16 @@ export class Screens {
         </div>
       </div>
     `);
-    this.scoreboard = this.el(`<div class="screen hidden" id="scoreboard-screen"></div>`);
-
+    // Arena scoreboard is drawn on the HUD canvas (hud.drawArenaScoreboard,
+    // gated on Game.arenaScoreboard) — no DOM overlay. A `.screen` div here
+    // previously rendered permanently empty but opaque + pointer-events:auto,
+    // which visually and functionally blocked the pause menu underneath it
+    // (both are z-index:auto siblings of #screens; DOM order decided paint
+    // order, and this div was appended last).
     this.root.append(
       this.title, this.pause, this.victory, this.mapLog, this.campaign,
       this.intermission, this.campaignWin, this.mapOverlay, this.touch, this.toast,
-      this.arenaJoin, this.scoreboard,
+      this.arenaJoin,
     );
     this.campaignContinueBtn = this.campaign.querySelector('#campaign-continue')!;
     this.campaignMaps = this.campaign.querySelector('#campaign-maps')!;
@@ -618,10 +621,6 @@ export class Screens {
       handlers.join(this.arenaNameInput.value);
     });
     this.arenaJoin.querySelector('#arena-back-btn')!.addEventListener('click', handlers.back);
-  }
-
-  showScoreboard(show: boolean): void {
-    this.scoreboard.classList.toggle('hidden', !show);
   }
 
   setPlaytestMode(on: boolean): void {

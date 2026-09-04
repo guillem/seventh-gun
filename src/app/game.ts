@@ -229,11 +229,10 @@ export class Game {
         if (this.phase === 'editing') return;
         if (this.runKind === 'arena' && this.arenaScoreboard) {
           this.arenaScoreboard = false;
-          this.screens.showScoreboard(false);
           return;
         }
         if (this.runKind === 'arena' && (this.phase === 'playing' || this.arenaMenu)) {
-          if (this.arenaMenu) this.closeArenaMenu();
+          if (this.arenaMenu) this.resume();
           else this.openArenaMenu();
           return;
         }
@@ -251,9 +250,11 @@ export class Game {
       onMapToggle: () => {
         if (this.phase === 'editing') return;
         if (this.runKind === 'arena') {
+          // Full map (opened via touch UI / debug API) closes on Tab/M too,
+          // matching the overlay's own "TAB / M / click to close" hint.
+          if (this.phase === 'map') { this.toggleMap(false); return; }
           if (this.phase === 'playing' || this.arenaMenu) {
             this.arenaScoreboard = !this.arenaScoreboard;
-            this.screens.showScoreboard(this.arenaScoreboard);
           }
           return;
         }
@@ -341,6 +342,9 @@ export class Game {
   }
 
   async joinArena(name?: string): Promise<void> {
+    // Must run synchronously inside the click handler (before any await) so
+    // the AudioContext is created/resumed within the user-gesture window.
+    void this.audio.unlock();
     const raw = (name ?? this.screens.arenaNameInput.value).trim();
     try { localStorage.setItem(this.NAME_KEY, raw); } catch { /* ignore */ }
     this.screens.setArenaStatus('CONNECTING…');
@@ -405,12 +409,25 @@ export class Game {
 
   private openArenaMenu(): void {
     this.arenaMenu = true;
+    // Don't let the (canvas-drawn) scoreboard keep rendering under the menu.
+    this.arenaScoreboard = false;
+    // Same handshake the campaign pause does (togglePause): stop feeding input
+    // to the sim and give the mouse back. Without releaseLock() the pointer
+    // stays captured, so there is no cursor to click RESUME with — and because
+    // arena keeps phase==='playing', canvasClickLock would re-grab the lock on
+    // any canvas click while the menu is open. closeArenaMenu() already assumes
+    // the lock was released: it calls requestLock() on the way out.
+    this.input.paused = true;
+    this.input.releaseLock();
     this.screens.setRunKind('arena');
     this.screens.showPause(true);
   }
 
   private closeArenaMenu(): void {
     this.arenaMenu = false;
+    // Must mirror openArenaMenu's input.paused = true, or the player resumes
+    // into a frozen character that cannot move or shoot.
+    this.input.paused = false;
     this.screens.showPause(false);
     if (!this.input.isTouch) this.input.requestLock();
   }
@@ -776,7 +793,6 @@ export class Game {
     this.screens.showCampaignWin(false);
     this.screens.showDeathRow(false);
     this.screens.showArenaJoin(false);
-    this.screens.showScoreboard(false);
     this.screens.showTitle(true);
     this.screens.showTouch(false);
     this.setMinimapVisible(false);
@@ -855,6 +871,10 @@ export class Game {
   }
 
   private resume(): void {
+    if (this.arenaMenu) {
+      this.closeArenaMenu();
+      return;
+    }
     if (this.phase !== 'paused') return;
     this.phase = 'playing';
     this.input.paused = false;
@@ -1015,11 +1035,13 @@ export class Game {
     if (!view) { this.renderer.render(); return; }
     const others = client.others();
     this.renderer.updateArena(dtReal, view, others);
-    this.hud.draw(view, { fullMapOpen: false, paused: this.arenaMenu });
+    const fullMapOpen = this.phase === 'map';
+    this.hud.draw(view, { fullMapOpen, paused: this.arenaMenu });
     this.hud.drawArenaRoster(client.roster(), client.id, client.roster().length);
     if (this.arenaScoreboard) this.hud.drawArenaScoreboard(client.roster(), client.id, client.rtt);
     this.setMinimapVisible(true);
     if (this.miniCanvas) this.hud.drawMinimap(view, 0, false);
+    if (fullMapOpen) this.hud.drawMinimap(view, 0, true);
     this.renderer.render();
   }
 
@@ -1059,7 +1081,7 @@ export class Game {
       const victim = roster.find((p) => p.id === e.victimId)?.name ?? '???';
       this.hud.showMessage(e.suicide ? `${victim} ate it` : `${killer} fragged ${victim}`);
       if (e.victimId === selfId && !e.suicide) this.hud.died({ epitaph: `FRAGGED BY ${killer}` });
-    } else if (e.t === 'pickup') {
+    } else if (e.t === 'pickup' && e.id === selfId) {
       this.audio.handleEvent({ t: 'pickup', kind: e.kind, label: e.label });
       this.hud.showMessage(e.label);
     } else if (e.t === 'tracer') {
@@ -1410,7 +1432,7 @@ export class Game {
               }
               e.x = x; e.z = z;
             }
-            e.yaw = p.yaw + Math.PI; // face the camera
+            e.yaw = p.yaw; // face the camera (rig local +z is forward; see sim.ts:757)
             e.state = 'idle';
             e.awakened = false;
             placed = { id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1), dist: +d.toFixed(2) } as { id: number; type: string; x: number; z: number };
