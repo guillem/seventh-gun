@@ -1,0 +1,104 @@
+name: CI / Deploy
+
+# Netlify auto-deploys the static client on its own. This gates the Cloudflare
+# Worker (arena server + assets) on the suite actually passing, which Netlify
+# does not do. Pull requests run the checks only; nothing deploys from a PR.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time. A queued run for an older commit is pointless once a
+# newer one is on the way, so cancel superseded PR runs — but never cancel a
+# run on main mid-deploy.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: typecheck + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Only chromium: the mobile project in playwright.config.ts is an
+      # emulated viewport, not a separate engine, so it needs no extra browser.
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      # Both tsconfigs — the server has its own and is not covered by the root.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Builds the client and boots a preview server via playwright.config.ts's
+      # webServer block, so this also proves the production build works.
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  deploy:
+    name: deploy worker
+    needs: test
+    # Only from main, and only for real pushes — never from a PR, and not when
+    # the test job was skipped or cancelled.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # wrangler.jsonc publishes dist/client as the Worker's assets, so the
+      # client must be built before deploying or the Worker ships stale files.
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          # `npm run deploy` would rebuild; the build step above already did.
+          command: deploy
+
+      - name: Smoke check the deployment
+        run: |
+          set -euo pipefail
+          url="https://seventh-gun.default-428.workers.dev/health"
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" || true)
+            if [ "$code" = "200" ]; then echo "health OK"; exit 0; fi
+            echo "attempt $i: got '$code', retrying"; sleep 6
+          done
+          echo "::error::worker did not return 200 from /health after deploy"
+          exit 1

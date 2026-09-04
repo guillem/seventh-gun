@@ -41,6 +41,25 @@ Unspecified things got decided; this is the record.
   the two cannot drift. `tests/unit/enemyHitbox.test.ts` locks this in; thin
   held props are excluded by thickness, never by a per-enemy slack allowance
   (a blanket allowance is what hid the mitre in that test's first draft).
+- **Two deploy targets, on purpose.** Netlify serves the static client with no
+  arena (it degrades to "ARENA OFFLINE"); Cloudflare serves the same client
+  PLUS the arena Worker and is the complete product. Keeping the plain version
+  working on Netlify is a requirement, not an accident — it is the fallback if
+  the Worker is ever down or over its free limits.
+- **Cloudflare free plan, no payment method.** Exceeding a free limit must
+  return an error, never a bill. This constrains real design choices: Durable
+  Objects must stay SQLite-backed (`new_sqlite_classes`; KV-backed is
+  paid-only), and if the compute cap is ever approached the answer is the
+  WebSocket Hibernation API, not an upgrade.
+- **Deploys are gated on tests, not just on a green build.** CI is GitHub
+  Actions rather than Cloudflare Workers Builds — Workers Builds is simpler
+  and needs no API token, but it only runs a build command and would happily
+  ship a red suite. The bugs this project actually produces (art rendering
+  outside its hit volume, eye colour never resetting, gun accents drifting off
+  their muzzle-flash colours) all compile perfectly.
+- **`vite preview` is NOT a stand-in for Netlify.** `@cloudflare/vite-plugin`
+  makes it run workerd and serve `/arena`, so the arena appears to work. To
+  test the no-server path, serve `dist/client` with a plain HTTP server.
 - **Sim/render split**: hard boundary, sim is pure TS. See ARCHITECTURE.
 - **Geometry**: 88×88 cells, CELL=2u, corridors 3 cells wide, walls 6u tall,
   indoor ceilings at 4.2u, courtyards open to a sky dome.

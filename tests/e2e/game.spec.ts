@@ -11,6 +11,20 @@ const TINY_BP = tinyGunSealBlueprint();
 const TINY_CODE = encodeBlueprint(stripCosmetics(TINY_BP));
 const CRAWLER_BP = tinyCrawlerPlaytestBlueprint();
 
+// Some assertions are invariants across a span of ticks ("nothing bad
+// happens while X"), not a threshold to converge on, so there is no sim
+// state to waitForFunction against. Waiting for a fixed number of real
+// rendered frames (rather than a fixed number of milliseconds) still gives
+// the sim that many tick() opportunities regardless of how long each frame
+// takes to render, so it stays correct on a slow/throttled runner.
+async function waitFrames(page: import('@playwright/test').Page, n: number): Promise<void> {
+  await page.evaluate((count) => new Promise<void>((resolve) => {
+    let i = 0;
+    const step = () => { i++; if (i >= count) resolve(); else requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }), n);
+}
+
 test.describe('desktop', () => {
   test('boots to title and starts a run', async ({ page }) => {
     await page.goto(BASE);
@@ -35,17 +49,25 @@ test.describe('desktop', () => {
       return s?.phase === 'playing';
     });
     const before = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number; z: number } } } }).__GAME__.state().pos);
-    // face east (-90 yaw), hold W for ~0.6s of sim time
+    // face east (-90 yaw), hold W until the sim reports 2+ units of eastward travel
     await page.evaluate(() => (window as unknown as { __GAME__: { look: (y: number) => void } }).__GAME__.look(-90));
     await page.keyboard.down('KeyW');
-    await page.waitForTimeout(700);
+    await page.waitForFunction(
+      (x0) => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x > x0 + 2,
+      before.x,
+      { timeout: 15000 },
+    );
     await page.keyboard.up('KeyW');
     const afterW = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number; z: number } } } }).__GAME__.state().pos);
     expect(afterW.x).toBeGreaterThan(before.x + 2); // moved east
     // strafe right (D) while facing east -> moves south (+z)
     const beforeD = afterW;
     await page.keyboard.down('KeyD');
-    await page.waitForTimeout(500);
+    await page.waitForFunction(
+      (z0) => Math.abs((window as unknown as { __GAME__: { state: () => { pos: { z: number } } } }).__GAME__.state().pos.z - z0) > 1,
+      beforeD.z,
+      { timeout: 15000 },
+    );
     await page.keyboard.up('KeyD');
     const afterD = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number; z: number } } } }).__GAME__.state().pos);
     expect(Math.abs(afterD.z - beforeD.z)).toBeGreaterThan(1);
@@ -57,18 +79,24 @@ test.describe('desktop', () => {
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     const before = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
     await page.evaluate(() => (window as unknown as { __GAME__: { fire: (v: boolean) => void } }).__GAME__.fire(true));
-    await page.waitForTimeout(700);
+    await page.waitForFunction(
+      (b0) => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets <= b0 - 2,
+      before,
+      { timeout: 15000 },
+    );
     await page.evaluate(() => (window as unknown as { __GAME__: { fire: (v: boolean) => void } }).__GAME__.fire(false));
     const after = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
     expect(after).toBeLessThan(before);
     expect(before - after).toBeGreaterThanOrEqual(2);
-    // empty the gun and hold fire: no crash, hp untouched
+    // empty the gun and hold fire: no crash, hp untouched. There's no sim
+    // state to converge on (0 ammo never fires again), so this is an
+    // invariant across a span of ticks — wait real frames, not milliseconds.
     await page.evaluate(() => {
       const G = (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } }; fire: (v: boolean) => void } }).__GAME__;
       G.state().ammo.bullets = 0;
       G.fire(true);
     });
-    await page.waitForTimeout(600);
+    await waitFrames(page, 30);
     await page.evaluate(() => (window as unknown as { __GAME__: { fire: (v: boolean) => void } }).__GAME__.fire(false));
     const hp = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { hp: number } } }).__GAME__.state().hp);
     expect(hp).toBe(100);
@@ -200,17 +228,32 @@ test.describe('desktop', () => {
   });
 
   test('death: 2s lockout with no clickable controls, then title offers retry/new maze', async ({ page }) => {
+    // The sim-time-gated lockout below can legitimately need many real ticks
+    // on a slow/throttled renderer (verified under 6x CPU throttling), so
+    // give the whole test more room than the default budget.
+    test.setTimeout(90000);
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-death'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.evaluate(() => (window as unknown as { __GAME__: { killPlayer: () => void } }).__GAME__.killPlayer());
-    // during lockout: no retry/new-maze buttons reachable
+    // during lockout: no retry/new-maze buttons reachable. This proves an
+    // absence within a short real-time window, which can only get MORE true
+    // on a slow runner (less sim progress happens), so a plain sleep is safe.
     await page.waitForTimeout(600);
     expect(await page.getByRole('button', { name: 'RETRY SEED' }).isVisible()).toBeFalsy();
     expect(await page.getByRole('button', { name: 'ENTER THE MAZE' }).isVisible()).toBeFalsy();
     const phase = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { simPhase: string } } }).__GAME__.state().simPhase);
     expect(phase).toBe('dying');
-    await page.waitForTimeout(1800);
+    // The lockout is gated by sim.phaseTimer, which accumulates simulated
+    // seconds (sim/sim.ts), not wall-clock seconds — and per-tick sim time is
+    // capped (game.ts's dtReal is clamped to 100ms) regardless of how long a
+    // frame actually took to render. On a slow renderer, wall-clock time can
+    // outrun sim time, so wait for the sim to actually reach 'dead'.
+    await page.waitForFunction(
+      () => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase === 'dead',
+      null,
+      { timeout: 75000 },
+    );
     await expect(page.getByRole('button', { name: 'RETRY SEED' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'NEW MAZE' })).toBeVisible();
     // retry same seed works
@@ -231,7 +274,14 @@ test.describe('desktop', () => {
       G.clearArena();
       G.step(240);
     });
-    await page.waitForTimeout(1500);
+    // step() advances the sim synchronously, so sim.phase is already 'won'.
+    // The victory screen only appears once game.phase flips on the next
+    // rendered tick, so wait for that instead of a fixed sleep.
+    await page.waitForFunction(
+      () => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase === 'won',
+      null,
+      { timeout: 15000 },
+    );
     await expect(page.getByText('GAME OVER')).toBeVisible();
     await expect(page.getByText('You won', { exact: false })).toBeVisible();
     const state = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { simPhase: string } } }).__GAME__.state());
@@ -292,7 +342,12 @@ test.describe('desktop', () => {
     // replay the same seed: every rig must be upright again
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
-    await page.waitForTimeout(300);
+    // Rig visuals populate lazily as the renderer draws frames — wait for the
+    // condition itself (enough rigs, all upright) rather than a fixed sleep.
+    await page.waitForFunction(() => {
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
+      return rigs.length > 3 && rigs.every((r) => Math.abs(r.rotX) < 0.01);
+    }, null, { timeout: 15000 });
     const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs);
     expect(rigs.length).toBeGreaterThan(3);
     for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
@@ -369,8 +424,7 @@ test.describe('desktop', () => {
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
     await page.getByRole('button', { name: 'MAP LOG' }).click();
     await expect(page.locator('#maplog-screen')).toBeVisible();
-    await page.waitForTimeout(80);
-    const leak = await page.evaluate(() => {
+    const readLeak = () => {
       const mini = document.getElementById('minimap') as HTMLCanvasElement | null;
       const hud = document.getElementById('hud') as HTMLCanvasElement | null;
       const miniShown = !!mini && mini.style.display !== 'none' && mini.offsetParent !== null;
@@ -383,7 +437,26 @@ test.describe('desktop', () => {
         }
       }
       return { miniShown, hudInk, phase: (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase };
-    });
+    };
+    // The clear happens synchronously on quit, but the "else" branch of the
+    // render loop also re-clears every frame while not playing — wait for
+    // the settled condition instead of assuming one fixed sleep covers it.
+    await page.waitForFunction(() => {
+      const mini = document.getElementById('minimap') as HTMLCanvasElement | null;
+      const hud = document.getElementById('hud') as HTMLCanvasElement | null;
+      const miniShown = !!mini && mini.style.display !== 'none' && mini.offsetParent !== null;
+      let hudInk = false;
+      if (hud) {
+        const g = hud.getContext('2d')!;
+        const d = g.getImageData(0, 0, hud.width, hud.height).data;
+        for (let i = 3; i < d.length; i += 16) {
+          if (d[i] > 12) { hudInk = true; break; }
+        }
+      }
+      const phase = (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase;
+      return phase !== 'playing' && !miniShown && !hudInk;
+    }, null, { timeout: 15000 });
+    const leak = await page.evaluate(readLeak);
     expect(leak.phase).not.toBe('playing');
     expect(leak.miniShown).toBe(false);
     expect(leak.hudInk).toBe(false);
@@ -435,7 +508,13 @@ test.describe('desktop', () => {
       G.clearArena();
       G.step(240);
     });
-    await page.waitForTimeout(1500);
+    // step() advances the sim synchronously; game.phase flips to 'won' (and
+    // the victory screen appears) on the next rendered tick.
+    await page.waitForFunction(
+      () => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase === 'won',
+      null,
+      { timeout: 15000 },
+    );
     await expect(page.getByText('GAME OVER')).toBeVisible();
     await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'TITLE' })).toBeVisible();
@@ -463,6 +542,10 @@ test.describe('desktop', () => {
   });
 
   test('authored-map death offers RETRY MAP / TITLE, not a new maze', async ({ page }) => {
+    // The sim-time-gated lockout below can legitimately need many real ticks
+    // on a slow/throttled renderer (verified under 6x CPU throttling), so
+    // give the whole test more room than the default budget.
+    test.setTimeout(90000);
     await page.goto(BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
@@ -472,7 +555,15 @@ test.describe('desktop', () => {
       return s?.phase === 'playing';
     });
     await page.evaluate(() => (window as unknown as { __GAME__: { killPlayer: () => void } }).__GAME__.killPlayer());
-    await page.waitForTimeout(2400);
+    // Looks like a wall-clock lockout, but it's driven by sim.phaseTimer
+    // (simulated seconds accumulated per tick, capped by dtReal — see
+    // sim/sim.ts and app/game.ts), so it can lag wall-clock time on a slow
+    // renderer. Wait for the sim to actually finish, not a fixed sleep.
+    await page.waitForFunction(
+      () => (window as unknown as { __GAME__: { state: () => { phase: string } } }).__GAME__.state().phase === 'dead',
+      null,
+      { timeout: 75000 },
+    );
     await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'TITLE' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'COPY LINK' })).toBeVisible();
@@ -511,13 +602,18 @@ test.describe('mobile', () => {
     const before = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
     const fire = page.locator('#btn-fire');
     await fire.dispatchEvent('touchstart', { touches: [{ identifier: 1, clientX: 300, clientY: 600 }] });
-    await page.waitForTimeout(600);
+    await page.waitForFunction(
+      (b0) => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets < b0,
+      before,
+      { timeout: 15000 },
+    );
     await fire.dispatchEvent('touchend', { touches: [] });
     const after = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
     expect(after).toBeLessThan(before);
-    // after unlatch, ammo stops dropping
+    // after unlatch, ammo stops dropping — an invariant across a span of
+    // ticks, not a threshold to converge on, so wait real frames instead.
     const settled = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
-    await page.waitForTimeout(400);
+    await waitFrames(page, 20);
     const still = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
     expect(still).toBe(settled);
   });

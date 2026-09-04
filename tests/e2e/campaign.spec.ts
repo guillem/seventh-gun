@@ -163,13 +163,26 @@ test.describe('campaign desktop', () => {
   });
 
   test('death retry restores the map and entry loadout', async ({ page }) => {
+    // The sim-time-gated lockout below can legitimately need many real ticks
+    // on a slow/throttled renderer (verified under 6x CPU throttling), so
+    // give the whole test more room than the default budget.
+    test.setTimeout(90000);
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
       return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
     });
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.killPlayer());
-    await page.waitForTimeout(2400);
+    // The death lockout is gated by sim.phaseTimer, which accumulates
+    // simulated seconds per rendered tick (capped by dtReal in app/game.ts),
+    // not wall-clock seconds — a slow/software-rendered runner can take much
+    // longer than 2.4s of real time to accumulate 2.0s of sim time. Wait for
+    // the sim to actually finish instead of assuming a fixed sleep suffices.
+    await page.waitForFunction(
+      () => (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'dead',
+      null,
+      { timeout: 75000 },
+    );
     await expect(page.getByRole('button', { name: 'RETRY MAP' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'QUIT TO TITLE' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'NEW MAZE' })).toHaveCount(0);
