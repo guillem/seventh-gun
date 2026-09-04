@@ -143,11 +143,16 @@ builds and starts the container before it can publish. The GitHub Release is
 created only after npm and GHCR publication complete. A rerun keeps an already
 published matching npm version and retries the remaining stages.
 
-For the first npm publication only, add a short-lived automation token as the
-`NPM_BOOTSTRAP_TOKEN` repository secret. After that publish succeeds, remove the
-secret and configure npm trusted publishing for `guillem/seventh-gun` with the
-GitHub Actions workflow `.github/workflows/release.yml`; later releases use the
-workflow's OIDC provenance permission instead of a stored npm credential.
+For the first npm publication only, add a short-lived granular access token with
+read/write permission and **Bypass 2FA** enabled as the `NPM_BOOTSTRAP_TOKEN`
+repository secret. It must permit creating the new unscoped package; npm may
+require All Packages for that bootstrap. Never paste the token into an issue or
+chat. After publication, configure npm trusted publishing for owner `guillem`,
+repository `seventh-gun`, workflow filename **`release.yml`** (not its directory
+path), no environment, and explicitly allow direct `npm publish`. Verify the
+configuration, remove the bootstrap secret, and revoke the short-lived token.
+Later releases use OIDC instead of a stored npm credential.
 Run the Release workflow manually from `main` first: it performs every artifact
 check and a read-only `npm whoami` with that secret, but never publishes. Do not
-create the version tag until this validation passes.
+create the version tag until this validation passes. `npm whoami` proves only
+authentication: separately confirm the token's write and Bypass 2FA permissions.
