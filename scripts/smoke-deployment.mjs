@@ -42,7 +42,10 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
     socket.addEventListener('message', ({ data }) => {
       try {
         const message = JSON.parse(String(data));
-        if (message.t === 'full') throw new Error('Arena is full; could not validate a join');
+        if (message.t === 'full') {
+          finish(null, { asset: assetUrl.pathname, arena: 'full', snapshots: 'not checked: room at capacity' });
+          return;
+        }
         if (message.t === 'welcome') {
           if (!Number.isInteger(message.id) || typeof message.seed !== 'string' ||
               !message.snapshot?.players?.some((player) => player.id === message.id)) {
@@ -63,7 +66,10 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     if (!process.argv[2]) throw new Error('Usage: node scripts/smoke-deployment.mjs <game-url>');
-    console.log('Game HTML, JavaScript, arena welcome and advancing snapshots OK:', await smokeDeployment(process.argv[2]));
+    const result = await smokeDeployment(process.argv[2]);
+    console.log(result.arena === 'full'
+      ? 'Game assets and arena routing OK; room full, advancing snapshots not checked:'
+      : 'Game assets, arena welcome and advancing snapshots OK:', result);
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
