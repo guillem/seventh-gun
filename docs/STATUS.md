@@ -204,6 +204,16 @@ muzzle-flash colours. None of those break a build.
 
 ## Open / next
 
+- **Product race: a client joining as the last player leaves can be dropped.**
+  `shutdown()` in `server/room.ts` closes every socket with no `playerId` yet,
+  and a client that is mid-join has none — so it is torn down along with the
+  empty room. Surfaced on CI as `arena()` reporting `connected` and then going
+  null a moment later. Self-heals in play (the client shows ARENA OFFLINE and
+  can rejoin), so it is not a blocker, but it is a real race and not a test
+  artifact. Fix would be to skip sockets that are mid-join in `shutdown()`, or
+  to re-check the player count after the join completes.
+  `tests/e2e/arena.spec.ts` "an emptied room is recycled" retries through it
+  rather than pretending it does not happen.
 - **Playtest round 3.** Specifically: does the slab's raised fireball arc feel
   worse, and do the new viewmodels read at a glance in a real fight?
 - **Viewmodels want a second art pass.** The pistol and shotgun got full

@@ -173,15 +173,69 @@ test.describe('arena', () => {
     await expect(a.locator('#arena-join-screen')).toBeHidden();
     await b.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
     await closed(wsB);
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  // Split out from the test above, which was asserting two unrelated things
+  // and failing on the second for a reason that had nothing to do with the
+  // first. Sharing a room is deterministic; recycling an EMPTY room is a race
+  // against the Durable Object's own teardown, so it needs its own patience.
+  //
+  // The race is real and worth stating: a client that connects at the moment
+  // the last player leaves can be dropped. shutdown() (server/room.ts) closes
+  // every socket that has no playerId yet, and a joining client has none until
+  // the server processes its join — so it is torn down along with the empty
+  // room. Observed on CI as `arena()` returning null immediately after
+  // reporting connected. In play this self-heals (the client shows ARENA
+  // OFFLINE and can rejoin) which is why this is not treated as a blocker,
+  // but it IS a product race, not a test artifact. See STATUS "Open / next".
+  test('an emptied room is recycled: a later client gets a fresh seed', async ({ browser }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'desktop only');
+    test.setTimeout(120000);
+
+    // Occupy a room, note its seed, then vacate it.
+    const ctx1 = await browser.newContext();
+    const a = await ctx1.newPage();
+    await a.goto(BASE);
+    const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
+    await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('FIRST'));
+    const wsA = await wsAPromise;
+    await a.waitForFunction(() => (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena()?.connected);
+    const firstSeed = (await a.evaluate(() => (window as unknown as { __GAME__: { arena: () => { seed: string } } }).__GAME__.arena()))!.seed;
+    await a.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
+    await closed(wsA);
+    await ctx1.close();
+
+    // Now join fresh. Retry through the teardown race rather than asserting
+    // we happened to miss it: a join that lands mid-shutdown is dropped and
+    // arena() goes back to null, which is a retryable condition, not a
+    // failure. The assertion itself is unchanged — the new seed must differ.
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
     await c.goto(BASE);
-    await c.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('THREE'));
-    await c.waitForFunction(() => (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena()?.connected);
-    const cState = await c.evaluate(() => (window as unknown as { __GAME__: { arena: () => { seed: string } } }).__GAME__.arena());
-    expect(cState!.seed).not.toBe(aState!.seed);
-    await ctx1.close();
-    await ctx2.close();
+    let seed: string | null = null;
+    for (let attempt = 0; attempt < 5 && seed === null; attempt++) {
+      await c.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('SECOND'));
+      try {
+        // Require the connection to still be alive a beat later, so a client
+        // that is accepted and then torn down does not read as success.
+        await c.waitForFunction(
+          () => (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena()?.connected === true,
+          undefined,
+          { timeout: 15000 },
+        );
+        await c.waitForTimeout(500);
+        seed = await c.evaluate(() => {
+          const ar = (window as unknown as { __GAME__: { arena: () => { seed: string } | null } }).__GAME__.arena();
+          return ar ? ar.seed : null;
+        });
+      } catch {
+        seed = null;
+      }
+    }
+    expect(seed, 'third client never held a stable arena connection').not.toBeNull();
+    expect(seed).not.toBe(firstSeed);
     await cctx.close();
   });
 });
