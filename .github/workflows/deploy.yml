@@ -94,11 +94,10 @@ jobs:
       - name: Smoke check the deployment
         run: |
           set -euo pipefail
-          url="https://seventh-gun.default-428.workers.dev/health"
+          url="https://seventh-gun.default-428.workers.dev"
           for i in $(seq 1 10); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" || true)
-            if [ "$code" = "200" ]; then echo "health OK"; exit 0; fi
-            echo "attempt $i: got '$code', retrying"; sleep 6
+            if node scripts/smoke-deployment.mjs "$url"; then exit 0; fi
+            echo "attempt $i failed, retrying"; sleep 6
           done
-          echo "::error::worker did not return 200 from /health after deploy"
+          echo "::error::deployed game failed its asset and arena smoke check"
           exit 1

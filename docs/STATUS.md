@@ -1,7 +1,19 @@
 # STATUS
 
-Updated: 2026-09-04 — arena playtest round 2: input/HUD fixes, muzzle
-offsets, viewmodel redesign.
+Updated: 2026-09-05 — approved audit repairs are underway. See
+`REPAIR-PLAN.md` for the ordered work and acceptance gates.
+
+The audit found real room lifecycle, network timing, audio, projectile,
+secret visibility and resource cleanup defects despite the passing baseline
+(281 unit / 83 browser tests, 11 skips). Historical playtest notes below are
+not a claim that these later findings are resolved.
+
+Stage 1 adds a deployment probe for HTML, the referenced JavaScript asset,
+arena welcome and advancing snapshots. It passed against the current Worker.
+Room/connection regression fixes are being prepared on `codex/arena-safety`.
+Secret and packaging fixes are prepared in isolated worktrees. PR #26 already
+exists and remains unmerged. npm CLI authentication is still required before
+publication; no payment method is needed or to be added.
 
 GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
 
