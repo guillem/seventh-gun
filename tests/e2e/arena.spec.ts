@@ -58,6 +58,19 @@ test.describe('arena', () => {
     // The map must actually render something, not just flip the phase flag
     // — arena fills WorldView.explored with all-1s (net/client.ts) so the
     // full-map overlay should paint every walkable cell, not stay blank.
+    // this.phase flips synchronously in the keydown handler, but the canvas
+    // itself is only painted from tickArena() on the next rendered frame —
+    // reading pixels with no wait assumes a frame has already snuck in
+    // between the keypress and this evaluate(), which is not guaranteed on
+    // a slow/throttled renderer. Poll for the painted-pixel count instead.
+    await page.waitForFunction(() => {
+      const c = document.getElementById('fullmap-canvas') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 0; i < d.length; i += 4) if (d[i] || d[i + 1] || d[i + 2]) n++;
+      return n > 1000;
+    }, null, { timeout: 15000 });
     const paintedPixels = await page.evaluate(() => {
       const c = document.getElementById('fullmap-canvas') as HTMLCanvasElement;
       const g = c.getContext('2d')!;
@@ -105,12 +118,16 @@ test.describe('arena', () => {
     const b = await ctx2.newPage();
     await a.goto(BASE);
     await b.goto(BASE);
+    const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
     await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TEST'));
+    const wsA = await wsAPromise;
     await a.waitForFunction(() => {
       const ar = (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena();
       return ar?.connected;
     });
+    const wsBPromise = b.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
     await b.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TWO'));
+    const wsB = await wsBPromise;
     await b.waitForFunction(() => {
       const ar = (window as unknown as { __GAME__?: { arena: () => { connected: boolean; players: unknown[] } | null } }).__GAME__?.arena();
       return ar?.connected && ar.players.length === 2;
@@ -119,10 +136,21 @@ test.describe('arena', () => {
     const bState = await b.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string } } }).__GAME__.arena());
     expect(aState!.players.length).toBe(2);
     expect(aState!.seed).toBe(bState!.seed);
+    // ArenaClient.close() is fire-and-forget on the client (net/client.ts) —
+    // it does not wait for the server to process the close, so the room can
+    // still show a nonzero player count server-side for a moment after this
+    // call returns. If a third client joined before the DO tears the empty
+    // room down, it would land in the SAME room/seed instead of a fresh one.
+    // Wait for each socket's own close handshake to finish (which requires
+    // the server to have already responded) instead of guessing a fixed
+    // sleep is enough — this scales with however long the local worker
+    // actually takes under load.
     await a.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
+    if (!wsA.isClosed()) await new Promise<void>((resolve) => wsA.once('close', () => resolve()));
     await expect(a.locator('#title-screen')).toBeVisible();
     await expect(a.locator('#arena-join-screen')).toBeHidden();
     await b.evaluate(() => (window as unknown as { __GAME__: { leaveArena: () => void } }).__GAME__.leaveArena());
+    if (!wsB.isClosed()) await new Promise<void>((resolve) => wsB.once('close', () => resolve()));
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
     await c.goto(BASE);
