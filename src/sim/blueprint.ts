@@ -118,6 +118,35 @@ function inGrid(x: number, z: number): boolean {
   return x >= 0 && z >= 0 && x < GRID_W && z < GRID_H;
 }
 
+/** A walkable face bordering a solid map cell.  `dx`/`dz` point from the
+ * solid cell toward the player, which also makes them suitable for mounting
+ * a readable wall control. */
+export interface ExposedWallFace {
+  dx: -1 | 0 | 1;
+  dz: -1 | 0 | 1;
+}
+
+export function findExposedWallFace(
+  grid: Uint8Array, w: number, h: number, x: number, z: number, reachable?: Uint8Array,
+): ExposedWallFace | undefined {
+  const faces: ExposedWallFace[] = [
+    { dx: -1, dz: 0 }, { dx: 1, dz: 0 }, { dx: 0, dz: -1 }, { dx: 0, dz: 1 },
+  ];
+  return faces.find(({ dx, dz }) => {
+    const nx = x + dx, nz = z + dz;
+    return nx >= 0 && nz >= 0 && nx < w && nz < h
+      && grid[nz * w + nx] === 1 && (!reachable || reachable[nz * w + nx] === 1);
+  });
+}
+
+/** The side of a secret plate visible from the non-secret side. */
+export function secretPlatePublicFace(
+  room: { x: number; z: number; w: number; h: number }, cx: number, cz: number, axis: 'x' | 'z',
+): ExposedWallFace {
+  if (axis === 'x') return { dx: room.x + room.w / 2 >= cx ? -1 : 1, dz: 0 };
+  return { dx: 0, dz: room.z + room.h / 2 >= cz ? -1 : 1 };
+}
+
 function carveRect(grid: Uint8Array, r: { x: number; z: number; w: number; h: number }): void {
   for (let z = r.z; z < r.z + r.h; z++) {
     for (let x = r.x; x < r.x + r.w; x++) {
@@ -130,25 +159,35 @@ function roomOrAdjacent(r: { x: number; z: number; w: number; h: number }, x: nu
   return x >= r.x - 1 && x < r.x + r.w + 1 && z >= r.z - 1 && z < r.z + r.h + 1;
 }
 
-function bfsReach(grid: Uint8Array, startX: number, startZ: number, solid: Set<number>): Uint8Array {
-  const seen = new Uint8Array(GRID_W * GRID_H);
-  if (!inGrid(startX, startZ)) return seen;
-  const q: number[] = [cellKey(startX, startZ)];
+function inRoom(r: { x: number; z: number; w: number; h: number }, x: number, z: number): boolean {
+  return x >= r.x && x < r.x + r.w && z >= r.z && z < r.z + r.h;
+}
+
+export function reachableFloorCells(
+  grid: Uint8Array, w: number, h: number, startX: number, startZ: number, solid: Set<number> = new Set(),
+): Uint8Array {
+  const seen = new Uint8Array(w * h);
+  if (startX < 0 || startZ < 0 || startX >= w || startZ >= h) return seen;
+  const q: number[] = [startZ * w + startX];
   if (grid[q[0]] === 0 || solid.has(q[0])) return seen;
   seen[q[0]] = 1;
   for (let i = 0; i < q.length; i++) {
     const c = q[i];
-    const x = c % GRID_W, z = (c / GRID_W) | 0;
+    const x = c % w, z = (c / w) | 0;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       const nx = x + dx, nz = z + dz;
-      if (!inGrid(nx, nz)) continue;
-      const nk = cellKey(nx, nz);
+      if (nx < 0 || nz < 0 || nx >= w || nz >= h) continue;
+      const nk = nz * w + nx;
       if (seen[nk] || grid[nk] === 0 || solid.has(nk)) continue;
       seen[nk] = 1;
       q.push(nk);
     }
   }
   return seen;
+}
+
+function bfsReach(grid: Uint8Array, startX: number, startZ: number, solid: Set<number>): Uint8Array {
+  return reachableFloorCells(grid, GRID_W, GRID_H, startX, startZ, solid);
 }
 
 function losBlocked(
@@ -420,6 +459,81 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
     checkEntityCell(`${e.type} enemy`, e.x, e.z, e.roomId);
   }
 
+  const secretDefs = bp.secrets ?? [];
+  const validPlate = (s: BlueprintSecret) =>
+    Number.isFinite(s.cx) && Number.isInteger(s.cx)
+    && Number.isFinite(s.cz) && Number.isInteger(s.cz)
+    && (s.axis === 'x' || s.axis === 'z');
+
+  for (const s of secretDefs) {
+    const label = `secret ${s.name ? `'${s.name}'` : s.roomId}`;
+    if (!SECRET_KINDS.includes(s.kind)) errors.push(`${label} has unknown kind '${s.kind}'`);
+    if (s.axis !== 'x' && s.axis !== 'z') errors.push(`${label} has invalid axis '${s.axis}'`);
+    if (!Number.isFinite(s.cx) || !Number.isInteger(s.cx) || !Number.isFinite(s.cz) || !Number.isInteger(s.cz)) {
+      errors.push(`${label} plate center must use finite integer cells`);
+    }
+    if (!Number.isFinite(s.roomId) || !Number.isInteger(s.roomId)) errors.push(`${label} room id must be a finite integer`);
+    if (s.hp !== undefined && (!Number.isFinite(s.hp) || !Number.isInteger(s.hp) || s.hp < 1)) {
+      errors.push(`${label} hp must be a positive finite integer`);
+    }
+    if (s.trigger && (!Number.isFinite(s.trigger.x) || !Number.isInteger(s.trigger.x)
+      || !Number.isFinite(s.trigger.z) || !Number.isInteger(s.trigger.z))) {
+      errors.push(`${label} trigger must use finite integer cells`);
+    }
+    const room = roomById.get(s.roomId);
+    if (!room) errors.push(`${label} names missing room ${s.roomId}`);
+    else if (room.kind !== 'secret') errors.push(`${label} room ${s.roomId} is not a secret room`);
+
+    const cells = validPlate(s) ? expandDoorCells(s.cx, s.cz, s.axis) : [];
+    for (const [x, z] of cells) if (!isFloor(x, z)) errors.push(`${label} plate cell ${x},${z} is not floor`);
+    if (room && cells.length) {
+      let meetsSecretRoom = false;
+      let meetsPublicFloor = false;
+      for (const [x, z] of cells) {
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const nx = x + dx, nz = z + dz;
+          if (inRoom(room, nx, nz)) meetsSecretRoom = true;
+          else if (isFloor(nx, nz)) meetsPublicFloor = true;
+        }
+      }
+      if (!meetsSecretRoom || !meetsPublicFloor) {
+        errors.push(`${label} plate does not connect its secret room to public floor`);
+      }
+    }
+
+    const remote = s.kind === 'remote-use' || s.kind === 'remote-shoot';
+    if (!remote && s.trigger) errors.push(`${label} has a trigger but is not remote`);
+    if (remote) {
+      if (!s.trigger) {
+        errors.push(`${label} is remote but has no trigger`);
+      } else if (!Number.isFinite(s.trigger.x) || !Number.isInteger(s.trigger.x)
+        || !Number.isFinite(s.trigger.z) || !Number.isInteger(s.trigger.z)) {
+        // The geometry error above is more useful than treating NaN as a wall.
+      } else if (!inGrid(s.trigger.x, s.trigger.z) || grid[cellKey(s.trigger.x, s.trigger.z)] !== 0) {
+        errors.push(`${label} trigger ${s.trigger.x},${s.trigger.z} is not a wall cell`);
+      } else if (!findExposedWallFace(grid, GRID_W, GRID_H, s.trigger.x, s.trigger.z)) {
+        errors.push(`${label} trigger ${s.trigger.x},${s.trigger.z} has no exposed wall face`);
+      }
+    }
+  }
+
+  for (const room of rooms.filter(r => r.kind === 'secret')) {
+    const associated = secretDefs.filter(s => s.roomId === room.id);
+    if (associated.length === 0) errors.push(`secret room ${room.id} has no secret definition`);
+    if (associated.length > 1) errors.push(`secret room ${room.id} has multiple secret definitions`);
+  }
+  const plateOwner = new Map<number, string>();
+  for (const s of secretDefs) {
+    if (!validPlate(s)) continue;
+    const label = `secret ${s.name ? `'${s.name}'` : s.roomId}`;
+    for (const [x, z] of expandDoorCells(s.cx, s.cz, s.axis)) {
+      const key = cellKey(x, z);
+      const other = plateOwner.get(key);
+      if (other) errors.push(`${label} plate overlaps ${other} at ${x},${z}`);
+      else plateOwner.set(key, label);
+    }
+  }
+
   if (bp.playerStart && !isFloor(bp.playerStart.x, bp.playerStart.z)) {
     errors.push('playerStart is not on floor');
   }
@@ -428,6 +542,43 @@ function compileInner(bp: MapBlueprint, opts: CompileOpts = {}): { map: GameMap;
   for (const d of doors) for (const [x, z] of d.cells) blocked.add(cellKey(x, z));
   for (const [x, z] of seal.cells) blocked.add(cellKey(x, z));
   for (const s of secrets) for (const [x, z] of s.cells) blocked.add(cellKey(x, z));
+  if (startRoom) {
+    const sx = startRoom.x + (startRoom.w >> 1), sz = startRoom.z + (startRoom.h >> 1);
+    // Doors and the arena seal have their own progression checks above. For
+    // secret validation, model that normal progression as open and prove that
+    // a closed secret plate neither hides its own control nor strands its
+    // room after it opens.
+    const secretSolid = new Set<number>();
+    for (const s of secrets) for (const [x, z] of s.cells) secretSolid.add(cellKey(x, z));
+    const closedReach = bfsReach(grid, sx, sz, secretSolid);
+    for (const s of secrets) {
+      const label = `secret ${s.name ? `'${s.name}'` : s.roomId}`;
+      const room = roomById.get(s.roomId);
+      if (!room) continue;
+      const controlCells: [number, number][] = [];
+      if ((s.kind === 'remote-use' || s.kind === 'remote-shoot') && s.trigger) {
+        const face = findExposedWallFace(grid, GRID_W, GRID_H, s.trigger.x, s.trigger.z, closedReach);
+        if (face) controlCells.push([s.trigger.x + face.dx, s.trigger.z + face.dz]);
+      } else {
+        for (const [x, z] of s.cells) {
+          for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+            const nx = x + dx, nz = z + dz;
+            if (!isFloor(nx, nz) || inRoom(room, nx, nz)) continue;
+            controlCells.push([nx, nz]);
+          }
+        }
+      }
+      if (!controlCells.some(([x, z]) => closedReach[cellKey(x, z)])) {
+        errors.push(`${label} control is unreachable while its plate is closed`);
+      }
+
+      const opened = new Set(secretSolid);
+      for (const [x, z] of s.cells) opened.delete(cellKey(x, z));
+      const afterOpen = bfsReach(grid, sx, sz, opened);
+      const roomCenter = cellKey(room.x + (room.w >> 1), room.z + (room.h >> 1));
+      if (!afterOpen[roomCenter]) errors.push(`${label} room is unreachable after opening its plate`);
+    }
+  }
   for (const e of enemies) {
     const d = Math.hypot(e.x - playerStart.x, e.z - playerStart.z);
     if (d < 16) errors.push(`enemy ${e.id} is within 16u of spawn (${d.toFixed(1)})`);

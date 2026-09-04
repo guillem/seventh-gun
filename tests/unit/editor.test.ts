@@ -106,7 +106,10 @@ describe('editor model', () => {
     doc.linkRooms(arena.id, secret.id);
     doc.bp.secrets = [{
       kind: 'plate-use',
-      cx: secret.x - 1, cz: secret.z + 2, axis: 'x',
+      // The three-cell plate sits in the linked corridor, immediately before
+      // the secret room. It must be carved floor while collision keeps it
+      // closed until the secret is found.
+      cx: secret.x - 1, cz: secret.z + 4, axis: 'x',
       roomId: secret.id,
       name: 's-test-cache',
     }];
