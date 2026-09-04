@@ -31,9 +31,9 @@ try {
   const html = await (await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(10_000) })).text();
   const asset = html.match(/src="([^"]+\.js)"/u)?.[1];
   if (!asset || !(await fetch(`http://127.0.0.1:${port}${asset}`, { signal: AbortSignal.timeout(10_000) })).ok) throw new Error('packed client asset was not served');
-  if ((await fetch(`http://127.0.0.1:${port}/%zz`)).status !== 400) throw new Error('malformed request was not rejected');
+  if ((await fetch(`http://127.0.0.1:${port}/%zz`, { signal: AbortSignal.timeout(10_000) })).status !== 400) throw new Error('malformed request was not rejected');
   const binary = new WebSocket(`ws://127.0.0.1:${port}/arena`);
-  await once(binary, 'open');
+  await deadline(once(binary, 'open'), 'binary frame open');
   binary.send(Buffer.from([1, 2, 3]));
   const [binaryCode] = await deadline(once(binary, 'close'), 'binary frame close');
   if (binaryCode !== 1003) throw new Error(`binary arena frame closed with ${binaryCode}, expected 1003`);

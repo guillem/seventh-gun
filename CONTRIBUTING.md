@@ -1,8 +1,8 @@
 # Contributing
 
 Thanks for looking. This is a small, opinionated project — a seeded 90s-style
-FPS where *everything* is generated from a seed. The rules below mostly exist to
-keep that property true.
+FPS with seed-generated mazes and assets plus seven authored campaign maps. The
+rules below keep the procedural systems deterministic and maintainable.
 
 ## Getting set up
 

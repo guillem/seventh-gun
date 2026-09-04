@@ -231,6 +231,7 @@ export function serve(opts: ServeOptions = {}): RunningServer {
     shuttingDown = true;
     shutdownPromise = new Promise((resolve) => {
       let settled = false;
+      let httpClosed = false;
       let forceClose: ReturnType<typeof setTimeout> | undefined;
       const finish = () => {
         if (settled) return;
@@ -239,13 +240,16 @@ export function serve(opts: ServeOptions = {}): RunningServer {
         resolve();
       };
       const maybeFinish = () => {
-        if (arenaSockets.size === 0) finish();
+        if (httpClosed && arenaSockets.size === 0) finish();
       };
 
       // Stop new HTTP upgrades first, then give joined and pending clients a
       // normal WebSocket close handshake. The close handlers run room cleanup
       // and stop its injected scheduler after every client has acknowledged.
-      server.close(() => maybeFinish());
+      server.close(() => {
+        httpClosed = true;
+        maybeFinish();
+      });
       for (const ws of arenaSockets.keys()) {
         if (ws.readyState === ws.OPEN) ws.close(1001, 'server shutting down');
         else ws.terminate();
@@ -259,7 +263,9 @@ export function serve(opts: ServeOptions = {}): RunningServer {
         for (const ws of arenaSockets.keys()) ws.terminate();
         for (const socket of connections) socket.destroy();
         server.closeAllConnections?.();
-        finish();
+        // server.close's callback settles only after the destroyed HTTP
+        // sockets are actually gone; do not let PID 1 exit early or linger.
+        maybeFinish();
       }, 1_000);
       forceClose.unref();
       if (settled) clearTimeout(forceClose);
