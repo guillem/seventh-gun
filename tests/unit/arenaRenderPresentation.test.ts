@@ -6,6 +6,7 @@ import { encode, PROTOCOL_V, type ServerMessage } from '../../src/net/protocol';
 import { generateArena, arenaGridHash } from '../../src/sim/arenagen';
 import { ARENA_GEN_VERSION } from '../../src/sim/arenaConstants';
 import type { ArenaSnapshot } from '../../src/sim/arena';
+import { emptyInput } from '../../src/sim/sim';
 
 beforeAll(() => {
   if (typeof document !== 'undefined') return;
@@ -97,5 +98,11 @@ describe('arena render presentation', () => {
     // The delayed renderer is still sampling the prior live snapshot, so
     // this verifies tombstone filtering rather than only early-map removal.
     expect(client.worldView()!.projectiles.some((p) => p.id === 44)).toBe(false);
+    clock = 1400;
+    // Tombstones outlive the 100 ms delayed render window, then retire once
+    // stale samples are pruned rather than accumulating for a whole match.
+    client.stepLocal(0, emptyInput());
+    expect(client.worldView()!.projectiles.some((p) => p.id === 44)).toBe(false);
+    expect((client as unknown as { despawnedProjectiles: Map<number, number> }).despawnedProjectiles.size).toBe(0);
   });
 });
