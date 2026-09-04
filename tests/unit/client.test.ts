@@ -32,8 +32,9 @@ class SilentSock implements ArenaNetSocket {
   addEventListener(): void { /* deliberately silent */ }
 }
 
-function snap(partial: Partial<ArenaSnapshot> & { players: ArenaSnapshot['players'] }): ArenaSnapshot {
-  return { tick: 0, projectiles: [], pickups: [], ...partial };
+type TestPlayer = Omit<ArenaSnapshot['players'][number], 'spawnCount'> & { spawnCount?: number };
+function snap(partial: Omit<Partial<ArenaSnapshot>, 'players'> & { players: TestPlayer[] }): ArenaSnapshot {
+  return { tick: 0, projectiles: [], pickups: [], ...partial, players: partial.players.map((player) => ({ ...player, spawnCount: player.spawnCount ?? 1 })) };
 }
 
 describe('ArenaClient', () => {
@@ -48,7 +49,7 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c1', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c1', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [player] }),
     });
@@ -58,8 +59,8 @@ describe('ArenaClient', () => {
 
     // These arrive through the socket listener after welcome, not through the
     // direct test helper. They must continue to drive the live client.
-    sock.push({ v: 1, t: 'snap', snapshot: snap({ tick: 3, players: [{ ...player, x: 12 }] }) });
-    sock.push({ v: 1, t: 'events', es: [{ t: 'playerSpawn', id: 0 }] });
+    sock.push({ v: 2, t: 'snap', snapshot: snap({ tick: 3, players: [{ ...player, x: 12 }] }) });
+    sock.push({ v: 2, t: 'events', es: [{ t: 'playerSpawn', id: 0 }] });
     expect(client.tick).toBe(3);
     expect(client.takeEvents()).toEqual([{ t: 'playerSpawn', id: 0 }]);
   });
@@ -68,9 +69,17 @@ describe('ArenaClient', () => {
     const sock = new FakeSock();
     const client = new ArenaClient(() => sock);
     const pending = client.connect('ws://x/arena', 'TEST');
-    sock.push({ v: 1, t: 'welcome' } as unknown as ServerMessage);
+    sock.push({ v: 2, t: 'welcome' } as unknown as ServerMessage);
     await expect(pending).rejects.toBe('offline');
     expect(client.connected).toBe(false);
+  });
+
+  it('reports an incompatible deployed protocol without waiting for timeout', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const pending = client.connect('ws://x/arena', 'TEST');
+    sock.push({ v: 1, t: 'full' } as unknown as ServerMessage);
+    await expect(pending).rejects.toBe('protocol');
   });
 
   it('can cancel a pending connect and times out a silent endpoint', async () => {
@@ -94,7 +103,7 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c-send', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c-send', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0, snapshot: snap({ players: [player] }),
     });
     await pending;
@@ -118,7 +127,7 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c2', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c2', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [base] }),
     });
@@ -143,16 +152,16 @@ describe('ArenaClient', () => {
     const client = new ArenaClient(() => sock);
     const welcome = client.connect('ws://x/arena', 'A');
     sock.push({
-      v: 1, t: 'welcome', id: player.id, seed: 'client-resend-overflow', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: player.id, seed: 'client-resend-overflow', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot(),
     });
     await welcome;
     const sentStarts: number[] = [];
     sock.onSend = (data) => {
-      const message = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      const message = JSON.parse(data) as { t?: string; spawnCount?: number; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
       if (message.t === 'input' && message.seq != null && message.inputs) {
         sentStarts.push(message.seq);
-        sim.pushInput(player.id, message.seq, message.inputs);
+        sim.pushInput(player.id, message.spawnCount!, message.seq, message.inputs);
       }
     };
     const walk = { ...emptyInput(), moveZ: 1, yaw: player.yaw, pitch: 0 };
@@ -174,7 +183,8 @@ describe('ArenaClient', () => {
 
   it('interpolation returns a pose between two snapshots at 100ms', async () => {
     const sock = new FakeSock();
-    const client = new ArenaClient(() => sock);
+    let clock = 0;
+    const client = new ArenaClient(() => sock, () => clock);
     const map = generateArena('c3');
     const p = client.connect('ws://x/arena', 'A');
     const mk = (x: number, z: number) => ({
@@ -188,13 +198,15 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c3', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c3', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [self, mk(0, 0)] }),
     });
     await p;
-    client.ingestSnapshot(snap({ players: [self, mk(0, 0)] }), 1000);
-    client.ingestSnapshot(snap({ players: [self, mk(10, 0)] }), 1100);
+    clock = 1000;
+    client.ingestSnapshot(snap({ players: [self, mk(0, 0)] }));
+    clock = 1100;
+    client.ingestSnapshot(snap({ players: [self, mk(10, 0)] }));
     const mid = client.interpolateAt(1150);
     const other = mid?.players.find((pl) => pl.id === 1);
     expect(other?.x).toBeGreaterThan(0);
@@ -203,7 +215,8 @@ describe('ArenaClient', () => {
 
   it('brackets 20 Hz and jittered snapshots, including shortest-arc look and removals', async () => {
     const sock = new FakeSock();
-    const client = new ArenaClient(() => sock);
+    let clock = 0;
+    const client = new ArenaClient(() => sock, () => clock);
     const map = generateArena('c3-jitter');
     const p = client.connect('ws://x/arena', 'A');
     const self = {
@@ -217,12 +230,12 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     });
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c3-jitter', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c3-jitter', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [self, other(0, 0, 3.1, -0.4)] }),
     });
     await p;
-    const at = performance.now() + 1000;
+    const at = 1000;
     client.ingestSnapshot(snap({ tick: 3, players: [self, other(3, 0, 3.1, -0.4)] }), at);
     client.ingestSnapshot(snap({ tick: 6, players: [self, other(6, 5, -3.1, 0.4)] }), at + 50);
     client.ingestSnapshot(snap({ tick: 9, players: [self, other(9, 10, -3.0, 0.8)] }), at + 100);
@@ -247,7 +260,7 @@ describe('ArenaClient', () => {
     const map = generateArena('c4');
     const p = client.connect('ws://x/arena', 'A');
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c4', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c4', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({
         players: [{
@@ -278,8 +291,8 @@ describe('ArenaClient', () => {
     const rivalClient = new ArenaClient(() => rivalSock, () => clock);
     const welcomeA = client.connect('ws://x/arena', 'A');
     const welcomeB = rivalClient.connect('ws://x/arena', 'B');
-    sock.push({ v: 1, t: 'welcome', id: player.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
-    rivalSock.push({ v: 1, t: 'welcome', id: rival.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
+    sock.push({ v: 2, t: 'welcome', id: player.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
+    rivalSock.push({ v: 2, t: 'welcome', id: rival.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
     await Promise.all([welcomeA, welcomeB]);
 
     type Due = { at: number; run: () => void };
@@ -293,8 +306,8 @@ describe('ArenaClient', () => {
       for (const item of ready) delayed.splice(delayed.indexOf(item), 1);
     };
     const wireInput = (id: number, n: number) => (data: string) => {
-      const message = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
-      if (message.t === 'input' && message.seq != null && message.inputs) schedule(() => sim.pushInput(id, message.seq!, message.inputs!), n + message.seq);
+      const message = JSON.parse(data) as { t?: string; spawnCount?: number; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      if (message.t === 'input' && message.spawnCount != null && message.seq != null && message.inputs) schedule(() => sim.pushInput(id, message.spawnCount!, message.seq!, message.inputs!), n + message.seq);
     };
     sock.onSend = wireInput(player.id, 0);
     rivalSock.onSend = wireInput(rival.id, 2);
@@ -321,13 +334,13 @@ describe('ArenaClient', () => {
       const events = sim.takeEvents();
       serverShots += events.filter((event) => event.t === 'shot' && event.id === player.id).length;
       if (events.length && i < 600) {
-        schedule(() => sock.push({ v: 1, t: 'events', es: events }), i);
-        schedule(() => rivalSock.push({ v: 1, t: 'events', es: events }), i + 1);
+        schedule(() => sock.push({ v: 2, t: 'events', es: events }), i);
+        schedule(() => rivalSock.push({ v: 2, t: 'events', es: events }), i + 1);
       }
       if (i < 600 && sim.tick % 3 === 0) {
         const snapshot = sim.snapshot();
-        schedule(() => sock.push({ v: 1, t: 'snap', snapshot }), i + 3);
-        schedule(() => rivalSock.push({ v: 1, t: 'snap', snapshot }), i + 4);
+        schedule(() => sock.push({ v: 2, t: 'snap', snapshot }), i + 3);
+        schedule(() => rivalSock.push({ v: 2, t: 'snap', snapshot }), i + 4);
       }
       const remote = client.others().find((other) => other.id === rival.id);
       if (remote) {
@@ -362,7 +375,7 @@ describe('ArenaClient', () => {
       lastSeq: 10, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c-respawn', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c-respawn', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [base] }),
     });
@@ -376,6 +389,38 @@ describe('ArenaClient', () => {
     expect(Math.hypot(view.x - 40, view.z - 40)).toBeLessThan(0.05);
   });
 
+  it('resets life and connection state across missed death snapshots and reconnects', async () => {
+    const first = new FakeSock();
+    const second = new FakeSock();
+    const sockets = [first, second];
+    let clock = 0;
+    const client = new ArenaClient(() => sockets.shift()!, () => clock);
+    const map = generateArena('life-client');
+    const base = {
+      id: 0, name: 'A', colorIndex: 0, x: 10, z: 10, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
+    const connected = client.connect('ws://x/arena', 'A');
+    first.push({ v: 2, t: 'welcome', id: 0, seed: 'life-client', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(map.grid, map.pickups), tick: 100, snapshot: snap({ tick: 100, players: [{ ...base, spawnCount: 1 }] }) });
+    await connected;
+    for (let i = 0; i < 8; i++) { clock += STEP_DT * 1000; client.stepLocal(STEP_DT, { ...emptyInput(), moveZ: 1 }); }
+    expect(client.pendingCount()).toBeGreaterThan(0);
+
+    // The respawn snapshot can arrive without an observed dead snapshot.
+    clock += 50;
+    client.ingestSnapshot(snap({ tick: 103, players: [{ ...base, x: 40, z: 40, spawnCount: 2 }] }));
+    expect(client.pendingCount()).toBe(0);
+    for (let i = 0; i < 4; i++) { clock += STEP_DT * 1000; client.stepLocal(STEP_DT, { ...emptyInput(), switchGun: 1, fire: true }); }
+    const input = first.sent.map((text) => JSON.parse(text)).find((message) => message.t === 'input' && message.spawnCount === 2);
+    expect(input).toMatchObject({ v: 2, spawnCount: 2, seq: 1 });
+
+    const reconnected = client.connect('ws://x/arena', 'A');
+    second.push({ v: 2, t: 'welcome', id: 0, seed: 'life-client', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(map.grid, map.pickups), tick: 0, snapshot: snap({ players: [{ ...base, spawnCount: 1 }] }) });
+    await reconnected;
+    expect(client.debugState()?.tick).toBe(0);
+  });
+
   it('cosmetic shot stays silent when empty or dead', async () => {
     const sock = new FakeSock();
     const client = new ArenaClient(() => sock);
@@ -387,7 +432,7 @@ describe('ArenaClient', () => {
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
     sock.push({
-      v: 1, t: 'welcome', id: 0, seed: 'c-dry', genVersion: ARENA_GEN_VERSION,
+      v: 2, t: 'welcome', id: 0, seed: 'c-dry', genVersion: ARENA_GEN_VERSION,
       gridHash: arenaGridHash(map.grid, map.pickups), tick: 0,
       snapshot: snap({ players: [base] }),
     });

@@ -109,6 +109,7 @@ export interface ArenaSnapshot {
     protect: number;
     frags: number;
     deaths: number;
+    spawnCount: number;
     lastSeq: number;
     ammo: Record<AmmoType, number>;
   }[];
@@ -238,9 +239,9 @@ export class ArenaSim implements SolidState {
     this.events.push({ t: 'playerLeave', id });
   }
 
-  pushInput(id: number, seq: number, inputs: SimInput[]): void {
+  pushInput(id: number, spawnCount: number, seq: number, inputs: SimInput[]): void {
     const p = this.players.find((pp) => pp.id === id);
-    if (!p) return;
+    if (!p || !p.alive || spawnCount !== p.spawnCount) return;
     // `seq` is the first input; the rest are consecutive. Ignore anything
     // already queued or consumed so a resend at real RTT is a no-op.
     for (let i = 0; i < inputs.length; i++) {
@@ -250,7 +251,6 @@ export class ArenaSim implements SolidState {
       // not accept a later gap: acknowledging 12 while 9–11 were rejected
       // would make those controls unrecoverable on the client.
       if (s !== p.lastQueuedSeq + 1) break;
-      if (!p.alive) continue;
       const raw = inputs[i]!;
       const frame: SimInput = {
         ...raw,
@@ -393,6 +393,7 @@ export class ArenaSim implements SolidState {
         protect: Math.max(0, p.protectUntil - this.time),
         frags: p.frags,
         deaths: p.deaths,
+        spawnCount: p.spawnCount,
         lastSeq: p.lastSeq,
         ammo: { ...p.ammo },
       })),
@@ -476,8 +477,8 @@ export class ArenaSim implements SolidState {
     p.input = { ...emptyInput(), yaw: p.yaw, pitch: p.pitch, switchGun: null };
     p.queued = [];
     p.queuedSeqs = [];
-    // Keep lastSeq / lastQueuedSeq so in-flight pre-death inputs cannot
-    // be replayed from the new spawn cell.
+    p.lastSeq = 0;
+    p.lastQueuedSeq = 0;
 
     this.events.push({ t: 'playerSpawn', id: p.id });
   }

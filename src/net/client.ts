@@ -9,7 +9,7 @@ import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
 import { decodeServer, encode, type ServerMessage } from './protocol';
 
-export type ArenaConnectError = 'full' | 'offline' | 'mismatch';
+export type ArenaConnectError = 'full' | 'offline' | 'mismatch' | 'protocol';
 
 export interface ArenaNetSocket {
   send(data: string): void;
@@ -30,6 +30,7 @@ export class ArenaClient {
   id = -1;
   seed = '';
   tick = 0;
+  private spawnCount = -1;
   rtt = 0;
   closeReason: string | null = null;
   onClose: ((reason: string) => void) | null = null;
@@ -38,7 +39,7 @@ export class ArenaClient {
   private latest: { snap: ArenaSnapshot; at: number } | null = null;
   // Keep enough arrival-time history to bracket the 100 ms render delay at
   // the normal 20 Hz snapshot cadence. Arrival times are intentional here:
-  // v1 snapshots have no server clock suitable for interpolation.
+  // v2 snapshots have no server clock suitable for interpolation.
   private snapshots: { snap: ArenaSnapshot; at: number }[] = [];
   private events: ArenaEvent[] = [];
   private pending: { seq: number; input: SimInput }[] = [];
@@ -69,6 +70,7 @@ export class ArenaClient {
 
   async connect(url: string, name: string, timeoutMs = CONNECT_TIMEOUT_MS): Promise<void> {
     this.close();
+    this.resetConnectionState();
     return new Promise((resolve, reject) => {
       let settled = false;
       const sock = this.socketFactory(url);
@@ -98,12 +100,17 @@ export class ArenaClient {
       });
       sock.addEventListener('open', () => {
         if (!isCurrent() || settled) return;
-        this.send({ v: 1, t: 'join', name });
+        this.send({ v: 2, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
         if (!isCurrent()) return;
         const msg = decodeServer(String(ev.data));
-        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') {
+        if (msg === 'bad-v') {
+          if (settled) this.transportFailed('protocol');
+          else fail('protocol');
+          return;
+        }
+        if (msg === 'invalid' || msg === 'unknown') {
           if (settled) this.transportFailed('protocol');
           else fail('offline');
           return;
@@ -178,7 +185,7 @@ export class ArenaClient {
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
       this.pingSentAt = this.now();
-      this.send({ v: 1, t: 'ping', at: this.pingSentAt });
+      this.send({ v: 2, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
     if (!me?.alive) {
@@ -297,7 +304,7 @@ export class ArenaClient {
     // contiguous frame.
     const batch = this.pending.slice(0, 8);
     if (!batch.length) return;
-    this.send({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
+    this.send({ v: 2, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
   }
 
   private handleMessage(msg: ServerMessage): void {
@@ -342,6 +349,8 @@ export class ArenaClient {
     // or undo a death/removal. Equal ticks are harmless and keep test/debug
     // injection usable; the later arrival replaces the render sample.
     if (this.latest && snap.tick < this.latest.snap.tick) return false;
+    const me = snap.players.find((player) => player.id === this.id);
+    if (me && me.spawnCount !== this.spawnCount) this.resetLife(me.spawnCount, me.x, me.z, me.yaw, me.pitch);
     this.latest = { snap, at };
     this.snapshots.push({ snap, at });
     this.snapshots.sort((a, b) => a.at - b.at);
@@ -349,6 +358,58 @@ export class ArenaClient {
     this.snapshots = this.snapshots.filter((sample) => sample.at >= oldest);
     this.tick = snap.tick;
     return true;
+  }
+
+  private resetLife(spawnCount: number, x: number, z: number, yaw: number, pitch: number): void {
+    this.spawnCount = spawnCount;
+    this.pending = [];
+    this.nextSeq = 1;
+    this.acc = 0;
+    this.sendAcc = 0;
+    this.smoothDx = 0;
+    this.smoothDz = 0;
+    this.smoothUntil = 0;
+    this.localFireCd = 0;
+    this.cosmeticShot = null;
+    this.echoShotUntil = 0;
+    this.lastShotSeq = 0;
+    this.localX = x;
+    this.localZ = z;
+    this.localYaw = yaw;
+    this.localPitch = pitch;
+  }
+
+  private resetConnectionState(): void {
+    this.connected = false;
+    this.id = -1;
+    this.seed = '';
+    this.tick = 0;
+    this.rtt = 0;
+    this.closeReason = null;
+    this.latest = null;
+    this.snapshots = [];
+    this.events = [];
+    this.solid = null;
+    this.view = null;
+    this.spawnCount = -1;
+    this.pending = [];
+    this.nextSeq = 1;
+    this.sendAcc = 0;
+    this.pingAcc = 0;
+    this.pingSentAt = 0;
+    this.localX = 0;
+    this.localZ = 0;
+    this.localYaw = 0;
+    this.localPitch = 0;
+    this.acc = 0;
+    this.smoothDx = 0;
+    this.smoothDz = 0;
+    this.smoothUntil = 0;
+    this.localFireCd = 0;
+    this.cosmeticShot = null;
+    this.echoShotUntil = 0;
+    this.lastShotSeq = 0;
+    this.diedAt = null;
   }
 
   private reconcile(): void {
