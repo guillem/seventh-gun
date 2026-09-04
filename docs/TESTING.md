@@ -142,3 +142,9 @@ malformed HTTP handling, occupied-port error, and two arena clients. It also
 builds and starts the container before it can publish. The GitHub Release is
 created only after npm and GHCR publication complete. A rerun keeps an already
 published matching npm version and retries the remaining stages.
+
+For the first npm publication only, add a short-lived automation token as the
+`NPM_BOOTSTRAP_TOKEN` repository secret. After that publish succeeds, remove the
+secret and configure npm trusted publishing for `guillem/seventh-gun` with the
+GitHub Actions workflow `.github/workflows/release.yml`; later releases use the
+workflow's OIDC provenance permission instead of a stored npm credential.

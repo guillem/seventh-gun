@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Validate tag, version, ancestry, and release ordering
+      - name: Validate release tag or pre-tag main state
         run: node .github/scripts/release-preflight.mjs
 
   test:
@@ -132,6 +132,10 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: node .github/scripts/publish-npm.mjs
+        env:
+          # Bootstrap only the first publication. Remove this short-lived token
+          # after configuring npm trusted publishing for this repository.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
 
   publish-image:
     needs: [preflight, package-smoke, container-smoke, static-artifact]
