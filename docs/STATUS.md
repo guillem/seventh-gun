@@ -1,6 +1,7 @@
 # STATUS
 
-Updated: 2026-09-04 — arena playtest bugfixes + character art redesign.
+Updated: 2026-09-04 — arena playtest round 2: input/HUD fixes, muzzle
+offsets, viewmodel redesign.
 
 GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
 
@@ -94,16 +95,64 @@ both ends of every cycle. `EnemyDef.hoverBob` now widens the flyer volume, and
 `EnemyRenderer` reads the same field, so animation and hit volume cannot drift.
 `combatGolden` hashes were checked and did not move.
 
+## Playtest round 2 (2026-09-04, Chromium + Firefox)
+
+Confirmed fixed by a human: sound, pointer capture, RESUME, kill counting,
+remote players. Three new issues found, all fixed:
+
+- **`m` was swallowed by text inputs** ("chromium" typed as "chroiu"). The
+  global keydown handler `preventDefault()`s KeyM/Tab and ran for every
+  target; only the seed input defended itself with `stopPropagation`.
+  Pre-existing, not a regression. `isEditableTarget()` in `input.ts` now makes
+  the whole handler bail on input/textarea/contenteditable, which also stops
+  WASD driving the player while you type a name. The seed input's ad-hoc
+  guard was then dead and was removed.
+- **`m` now opens the MAP in arena, `Tab` the scoreboard.** They previously
+  shared one `onMapToggle` callback; now split into `onMapToggle` (KeyM) and
+  `onScoreboardToggle` (Tab). Campaign keeps Tab-opens-map. Arena movement and
+  fire are now frozen while the map is open, matching campaign.
+- **The always-on roster covered SEED/KILLS.** Roster panel moved to y=46.
+
+## Enemy projectiles leave the muzzle
+
+`EnemyDef.muzzleOffset` ({forward,right,up}, local frame, rotated by `e.yaw`)
+replaces the old centre-of-body spawn. Values derived by reading the meshes.
+Subtlety worth knowing: `e.timer` counts DOWN to 0 and the shot leaves at
+`timer<=0`, so the render arm is at its UN-aimed pose at the firing instant —
+the slab's bell offset is computed there, not at the windup pose.
+
+`combatGolden` hashes moved and were updated with evidence: final enemy HP sum
+is bit-identical, late checkpoints are byte-identical, only in-flight
+projectile coordinates shifted. **Coverage gap flagged:** the golden tapes fire
+husk only, so the other five offsets rest on mesh derivation plus
+`enemyMuzzleOffset.test.ts`'s rotation maths.
+
+One real trajectory change: the slab's fireball `dy` flips sign, so it now
+rises toward chest height instead of dropping into it. Not compensated for.
+
+## Viewmodels
+
+All seven guns rebuilt on a shared language documented at the top of
+`viewmodels.ts`: one set of armoured hands matching the marine, six materials
+defined once in the new `src/render/gunArt.ts`, 64px skins, and at most one
+unlit hot element per gun in that gun's muzzle-flash colour.
+
+`GUN_FLASH` in `gunArt.ts` is the single source of truth for those colours —
+`renderer.ts` fireVisual and every builder index it. They had drifted while the
+list existed twice (the Sunlance wore yellow rings while flashing cyan, and
+that yellow was the slab's accent). `tests/unit/gunArt.test.ts` locks it.
+
+`buildWorldGun` shares these builders, so the pedestal pickups changed too.
+
 ## Open / next
 
 - Owner: Cloudflare Workers Builds on `guillem/seventh-gun`, first join from
   home to pin the DO in Europe.
-- **Re-run the two-window playtest** against these fixes. Headless cannot
-  meaningfully verify audio output; that needs a human.
-- **Fireball spawns at the enemy's centre, not the launcher.** Harmless before,
-  visible now that the slab has a mortar bell. Needs a per-type spawn offset in
-  the sim — that changes projectile origin (collision, LOS) and will move the
-  `combatGolden` hashes, so it is a deliberate call, not a drive-by.
+- **Playtest round 3.** Specifically: does the slab's raised fireball arc feel
+  worse, and do the new viewmodels read at a glance in a real fight?
+- **Viewmodels want a second art pass.** The pistol and shotgun got full
+  design attention; the other five were built to the same language but more
+  quickly, and the Sunlance needed its emitter reworked after the fact.
 - Lattice density (#7) if maps feel samey.
 - Lag compensation is explicitly out of v1.
 
