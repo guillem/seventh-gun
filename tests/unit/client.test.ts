@@ -21,6 +21,12 @@ class FakeSock implements ArenaNetSocket {
   push(msg: ServerMessage): void { this.msg?.({ data: encode(msg) }); }
 }
 
+class SilentSock implements ArenaNetSocket {
+  close(): void { /* deliberately never reports close */ }
+  send(): void { /* deliberately never opens */ }
+  addEventListener(): void { /* deliberately silent */ }
+}
+
 function snap(partial: Partial<ArenaSnapshot> & { players: ArenaSnapshot['players'] }): ArenaSnapshot {
   return { tick: 0, projectiles: [], pickups: [], ...partial };
 }
@@ -45,6 +51,25 @@ describe('ArenaClient', () => {
     await p;
     expect(client.connected).toBe(true);
     expect(client.id).toBe(0);
+  });
+
+  it('rejects malformed server payloads before using them', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const pending = client.connect('ws://x/arena', 'TEST');
+    sock.push({ v: 1, t: 'welcome' } as unknown as ServerMessage);
+    await expect(pending).rejects.toBe('offline');
+    expect(client.connected).toBe(false);
+  });
+
+  it('can cancel a pending connect and times out a silent endpoint', async () => {
+    const cancelling = new ArenaClient(() => new SilentSock());
+    const pending = cancelling.connect('ws://x/arena', 'TEST', 1000);
+    cancelling.close();
+    await expect(pending).rejects.toBe('offline');
+
+    const timedOut = new ArenaClient(() => new SilentSock());
+    await expect(timedOut.connect('ws://x/arena', 'TEST', 1)).rejects.toBe('offline');
   });
 
   it('prediction replays un-acked inputs after a snapshot', async () => {

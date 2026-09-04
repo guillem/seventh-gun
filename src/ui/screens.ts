@@ -52,6 +52,7 @@ export class Screens {
   private arenaJoin!: HTMLDivElement;
   arenaNameInput!: HTMLInputElement;
   private arenaStatus!: HTMLElement;
+  private arenaJoinBtn!: HTMLButtonElement;
 
   // title controls
   seedInput!: HTMLInputElement;
@@ -306,6 +307,7 @@ export class Screens {
     this.mapCanvas = this.miniCanvas;
     this.arenaNameInput = this.arenaJoin.querySelector('#arena-name')!;
     this.arenaStatus = this.arenaJoin.querySelector('#arena-status')!;
+    this.arenaJoinBtn = this.arenaJoin.querySelector('#arena-join-btn')!;
 
     // difficulty selectors (title + pause share logic)
     const diffHosts: [string, HTMLDivElement][] = [
@@ -616,8 +618,13 @@ export class Screens {
     this.arenaStatus.textContent = text;
   }
 
+  setArenaJoining(joining: boolean): void {
+    this.arenaJoinBtn.disabled = joining;
+    this.arenaNameInput.disabled = joining;
+  }
+
   bindArenaJoin(handlers: { join: (name: string) => void; back: () => void }): void {
-    this.arenaJoin.querySelector('#arena-join-btn')!.addEventListener('click', () => {
+    this.arenaJoinBtn.addEventListener('click', () => {
       handlers.join(this.arenaNameInput.value);
     });
     this.arenaJoin.querySelector('#arena-back-btn')!.addEventListener('click', handlers.back);

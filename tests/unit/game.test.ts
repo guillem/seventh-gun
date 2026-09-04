@@ -128,6 +128,42 @@ describe('openArenaMenu() — pause menu cannot be occluded by the scoreboard', 
   });
 });
 
+describe('arena join lifecycle', () => {
+  it('does not start a second connection while one is pending', async () => {
+    const g = bareGame() as unknown as {
+      pendingArenaClient: unknown;
+      arenaClient: unknown;
+      audio: { unlock: () => Promise<void> };
+      joinArena: () => Promise<void>;
+    };
+    let unlocked = false;
+    g.pendingArenaClient = {};
+    g.arenaClient = null;
+    g.audio = { unlock: async () => { unlocked = true; } };
+    await g.joinArena();
+    expect(unlocked).toBe(false);
+  });
+
+  it('cancels the pending socket and invalidates its late completion', () => {
+    const g = bareGame() as unknown as {
+      arenaJoinToken: number;
+      pendingArenaClient: { close: () => void } | null;
+      screens: { setArenaJoining: (joining: boolean) => void };
+      cancelArenaJoin: () => void;
+    };
+    let closed = 0;
+    let joining: boolean | null = null;
+    g.arenaJoinToken = 4;
+    g.pendingArenaClient = { close: () => { closed++; } };
+    g.screens = { setArenaJoining: (v) => { joining = v; } };
+    g.cancelArenaJoin();
+    expect(closed).toBe(1);
+    expect(g.pendingArenaClient).toBeNull();
+    expect(g.arenaJoinToken).toBe(5);
+    expect(joining).toBe(false);
+  });
+});
+
 describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () => {
   function harness() {
     const messages: string[] = [];

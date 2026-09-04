@@ -39,7 +39,77 @@ export function isServerMessage(v: unknown): v is ServerMessage {
   const m = v as Record<string, unknown>;
   if (m.v !== 1) return false;
   if (typeof m.t !== 'string' || !SERVER_TS.has(m.t)) return false;
-  return true;
+  if (m.t === 'full') return true;
+  if (m.t === 'kicked') return m.reason === 'idle' || m.reason === 'mismatch' || m.reason === 'protocol';
+  if (m.t === 'pong') return finite(m.at) && finite(m.serverTime);
+  if (m.t === 'welcome') {
+    return integer(m.id, 0) && typeof m.seed === 'string' && m.seed.length > 0
+      && integer(m.genVersion, 0) && integer(m.gridHash) && integer(m.tick, 0)
+      && isSnapshot(m.snapshot);
+  }
+  if (m.t === 'snap') return isSnapshot(m.snapshot);
+  if (m.t === 'events') return Array.isArray(m.es) && m.es.every(isArenaEvent);
+  return false;
+}
+
+function finite(v: unknown): v is number { return typeof v === 'number' && Number.isFinite(v); }
+function integer(v: unknown, min = Number.MIN_SAFE_INTEGER): v is number {
+  return Number.isInteger(v) && (v as number) >= min;
+}
+
+function isSnapshot(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  return integer(s.tick, 0) && Array.isArray(s.players) && Array.isArray(s.projectiles) && Array.isArray(s.pickups)
+    && s.players.every(isArenaPlayer) && s.projectiles.every(isProjectile) && s.pickups.every(isPickup);
+}
+
+function isArenaPlayer(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const p = v as Record<string, unknown>;
+  const ammo = p.ammo as Record<string, unknown> | null;
+  return integer(p.id, 0) && typeof p.name === 'string' && integer(p.colorIndex, 0)
+    && finite(p.x) && finite(p.z) && finite(p.yaw) && finite(p.pitch) && finite(p.hp)
+    && integer(p.gun, 1) && integer(p.ownedMask, 0) && typeof p.alive === 'boolean'
+    && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.lastSeq, 0)
+    && !!ammo && ['bullets', 'shells', 'nails', 'grenades', 'cores', 'void'].every((key) => finite(ammo[key]));
+}
+
+function isProjectile(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const p = v as Record<string, unknown>;
+  return integer(p.id, 0) && typeof p.kind === 'string'
+    && ['nail', 'grenade', 'voidorb', 'plasma', 'spit', 'fireball', 'bolt', 'orb'].includes(p.kind)
+    && finite(p.x) && finite(p.y) && finite(p.z);
+}
+
+function isPickup(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const p = v as Record<string, unknown>;
+  return integer(p.id, 0) && typeof p.taken === 'boolean';
+}
+
+function isArenaEvent(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const e = v as Record<string, unknown>;
+  if (typeof e.t !== 'string') return false;
+  const hasId = integer(e.id, 0);
+  switch (e.t) {
+    case 'playerJoin': return hasId && typeof e.name === 'string' && integer(e.colorIndex, 0);
+    case 'playerLeave': case 'playerDie': case 'playerSpawn': case 'padRespawn': return hasId;
+    case 'kick': return hasId && (e.reason === 'idle' || e.reason === 'mismatch' || e.reason === 'protocol');
+    case 'shot': return hasId && integer(e.gun, 1) && finite(e.x) && finite(e.z) && finite(e.yaw);
+    case 'dryfire': return hasId && integer(e.gun, 1);
+    case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
+    case 'beam': return hasId && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
+    case 'spawnProjectile': return hasId && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z);
+    case 'explosion': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && finite(e.radius);
+    case 'playerHurt': return hasId && finite(e.damage) && finite(e.fromAngle);
+    case 'hitPlayer': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && typeof e.killed === 'boolean';
+    case 'frag': return integer(e.killerId, 0) && integer(e.victimId, 0) && typeof e.suicide === 'boolean';
+    case 'pickup': return hasId && typeof e.kind === 'string' && typeof e.label === 'string';
+    default: return false;
+  }
 }
 
 function isInputFrame(v: unknown): v is SimInput {

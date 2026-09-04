@@ -6,7 +6,11 @@ import { ARENA_GEN_VERSION } from '../../src/sim/arenaConstants';
 class FakeSock implements RoomSocket {
   closed: { code?: number; reason?: string } | null = null;
   sent: string[] = [];
-  send(text: string): void { this.sent.push(text); }
+  failSend = false;
+  send(text: string): void {
+    if (this.failSend) throw new Error('peer gone');
+    this.sent.push(text);
+  }
   close(code?: number, reason?: string): void { this.closed = { code, reason }; }
 }
 
@@ -158,7 +162,20 @@ describe('ArenaRoom', () => {
     expect(room.sim).not.toBeNull();
   });
 
-  it('shutdown closes leftover never-joined sockets', () => {
+  it('duplicate JOIN from one socket does not create a ghost player', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-dup', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    expect(room.playerCount).toBe(1);
+    room.onClose(a);
+    expect(room.playerCount).toBe(0);
+  });
+
+  it('pending joins survive last-player shutdown and can start the next room', () => {
     let now = 0;
     const sched = scheduler(() => now);
     const room = new ArenaRoom(() => now, () => 'seed-shut', sched);
@@ -169,6 +186,41 @@ describe('ArenaRoom', () => {
     room.onOpen(b);
     room.onClose(a);
     expect(room.sim).toBeNull();
-    expect(b.closed).toBeTruthy();
+    expect(b.closed).toBeNull();
+    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    expect(room.playerCount).toBe(1);
+  });
+
+  it('last-player close during a tick is safe with a pending socket in the copied list', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-tick', sched);
+    const a = new FakeSock();
+    const b = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onOpen(b);
+    now += 16_000;
+    expect(() => sched.fire()).not.toThrow();
+    expect(room.sim).toBeNull();
+    expect(b.closed).toBeNull();
+  });
+
+  it('a failed send only removes that socket and does not crash the tick', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-send', sched);
+    const a = new FakeSock();
+    const b = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 1, t: 'join', name: 'A' }));
+    room.onOpen(b);
+    room.onMessage(b, JSON.stringify({ v: 1, t: 'join', name: 'B' }));
+    a.failSend = true;
+    expect(() => {
+      for (let i = 0; i < 3; i++) sched.fire();
+    }).not.toThrow();
+    expect(a.closed).toBeTruthy();
+    expect(room.playerCount).toBe(1);
   });
 });

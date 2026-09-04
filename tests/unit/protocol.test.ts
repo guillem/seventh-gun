@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodeClient, isClientMessage, isServerMessage } from '../../src/net/protocol';
+import { decodeClient, decodeServer, isClientMessage, isServerMessage } from '../../src/net/protocol';
 
 describe('protocol guards', () => {
   it('accepts valid client frames', () => {
@@ -31,6 +31,17 @@ describe('protocol guards', () => {
   it('accepts valid server frames', () => {
     expect(isServerMessage({ v: 1, t: 'full' })).toBe(true);
     expect(isServerMessage({ v: 1, t: 'kicked', reason: 'idle' })).toBe(true);
+  });
+
+  it('rejects incomplete welcome and snapshot payloads', () => {
+    expect(isServerMessage({ v: 1, t: 'welcome' })).toBe(false);
+    expect(isServerMessage({ v: 1, t: 'snap', snapshot: { tick: 0, players: [], projectiles: [] } })).toBe(false);
+    expect(decodeServer(JSON.stringify({ v: 1, t: 'welcome', seed: 'x' }))).toBe('invalid');
+    expect(isServerMessage({ v: 1, t: 'kicked', reason: 'anything' })).toBe(false);
+  });
+
+  it('accepts validated zero-based event ids', () => {
+    expect(isServerMessage({ v: 1, t: 'events', es: [{ t: 'playerSpawn', id: 0 }] })).toBe(true);
   });
 
   it('rejects non-finite numbers and bad switchGun / seq', () => {
