@@ -246,6 +246,10 @@ export class ArenaSim implements SolidState {
     for (let i = 0; i < inputs.length; i++) {
       const s = seq + i;
       if (s <= p.lastQueuedSeq) continue;
+      // The client retransmits from its oldest unacknowledged sequence. Do
+      // not accept a later gap: acknowledging 12 while 9–11 were rejected
+      // would make those controls unrecoverable on the client.
+      if (s !== p.lastQueuedSeq + 1) break;
       if (!p.alive) continue;
       const raw = inputs[i]!;
       const frame: SimInput = {
@@ -287,9 +291,14 @@ export class ArenaSim implements SolidState {
       // Exactly one acknowledged input contributes to one fixed simulation
       // tick. Applying two queued controls in one tick acknowledged a short
       // action without simulating it, and could make delayed movement faster.
-      for (let n = 0; n < 1 && p.queued.length; n++) {
+      if (p.queued.length) {
         p.input = p.queued.shift()!;
         p.lastSeq = p.queuedSeqs.shift() ?? p.lastSeq;
+      } else {
+        // A network input is a single control frame, not a command to keep
+        // moving/firing until the next packet. Preserve the latest look pose
+        // for a stable camera, but neutralize every action between frames.
+        p.input = { ...emptyInput(), yaw: p.input.yaw, pitch: p.input.pitch };
       }
 
       const prevYaw = p.yaw;

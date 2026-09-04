@@ -43,7 +43,6 @@ export class ArenaClient {
   private events: ArenaEvent[] = [];
   private pending: { seq: number; input: SimInput }[] = [];
   private nextSeq = 1;
-  private lastSentSeq = 0;
   private sendAcc = 0;
   private pingAcc = 0;
   private localX = 0;
@@ -63,7 +62,10 @@ export class ArenaClient {
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
-  constructor(private socketFactory: SocketFactory = (url) => new WebSocket(url) as unknown as ArenaNetSocket) {}
+  constructor(
+    private socketFactory: SocketFactory = (url) => new WebSocket(url) as unknown as ArenaNetSocket,
+    private now: () => number = () => performance.now(),
+  ) {}
 
   async connect(url: string, name: string, timeoutMs = CONNECT_TIMEOUT_MS): Promise<void> {
     this.close();
@@ -119,7 +121,7 @@ export class ArenaClient {
           this.seed = msg.seed;
           this.tick = msg.tick;
           this.solid = { map, doors: [], secrets: [], sealIntact: false };
-          this.applySnap(msg.snapshot, performance.now());
+          this.applySnap(msg.snapshot, this.now());
           const me = msg.snapshot.players.find((p) => p.id === this.id);
           if (me) { this.localX = me.x; this.localZ = me.z; }
           this.connected = true;
@@ -154,7 +156,7 @@ export class ArenaClient {
   }
 
   shouldIgnoreEchoShot(actorId: number): boolean {
-    return actorId === this.id && performance.now() < this.echoShotUntil;
+    return actorId === this.id && this.now() < this.echoShotUntil;
   }
 
   /** Test helper: un-acked input count after reconcile. */
@@ -175,7 +177,7 @@ export class ArenaClient {
     this.pingAcc += dt;
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
-      this.pingSentAt = performance.now();
+      this.pingSentAt = this.now();
       this.send({ v: 1, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
@@ -198,7 +200,7 @@ export class ArenaClient {
     return this.view;
   }
 
-  others(now = performance.now()): {
+  others(now = this.now()): {
     id: number; name: string; colorIndex: number; x: number; z: number;
     yaw: number; pitch: number; hp: number; alive: boolean; gun: number;
   }[] {
@@ -232,7 +234,7 @@ export class ArenaClient {
   }
 
   /** Test helper: inject a snapshot as if it arrived from the server. */
-  ingestSnapshot(snap: ArenaSnapshot, at = performance.now()): void {
+  ingestSnapshot(snap: ArenaSnapshot, at = this.now()): void {
     this.applySnap(snap, at);
     this.reconcile();
     this.rebuildView();
@@ -280,7 +282,7 @@ export class ArenaClient {
     const ammo = w ? (me?.ammo[w.ammo] ?? 0) : 0;
     if (clamped.fire && this.localFireCd <= 0 && me?.alive && ammo > 0 && w) {
       this.cosmeticShot = { gun, x: this.localX, z: this.localZ, yaw: clamped.yaw };
-      this.echoShotUntil = performance.now() + 220;
+      this.echoShotUntil = this.now() + 220;
       this.lastShotSeq = seq;
       this.localFireCd = w.fireInterval;
     }
@@ -288,22 +290,25 @@ export class ArenaClient {
 
   private flushInputs(): void {
     if (!this.sock || !this.pending.length) return;
-    const fresh = this.pending.filter((p) => p.seq > this.lastSentSeq);
-    const batch = (fresh.length ? fresh : this.pending).slice(0, 8);
+    // Always begin at the oldest unacknowledged sequence. A server can reject
+    // a full queue, so sending only newer controls would create a sequence
+    // hole that it must not acknowledge past. Repeating an already accepted
+    // prefix is harmless: the server de-duplicates it before taking the next
+    // contiguous frame.
+    const batch = this.pending.slice(0, 8);
     if (!batch.length) return;
     this.send({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
-    this.lastSentSeq = batch[batch.length - 1]!.seq;
   }
 
   private handleMessage(msg: ServerMessage): void {
     if (msg.t === 'snap') {
-      this.applySnap(msg.snapshot, performance.now());
+      this.applySnap(msg.snapshot, this.now());
       this.reconcile();
       this.rebuildView();
     } else if (msg.t === 'events') {
       this.events.push(...msg.es);
     } else if (msg.t === 'pong') {
-      this.rtt = Math.max(0, performance.now() - msg.at);
+      this.rtt = Math.max(0, this.now() - msg.at);
     } else if (msg.t === 'kicked') {
       this.closeReason = msg.reason;
       this.sock?.close();
@@ -385,7 +390,7 @@ export class ArenaClient {
     } else {
       this.smoothDx = errX;
       this.smoothDz = errZ;
-      this.smoothUntil = performance.now() + 100;
+      this.smoothUntil = this.now() + 100;
     }
   }
 
@@ -431,8 +436,8 @@ export class ArenaClient {
     if (!this.solid || !this.latest) { this.view = null; return; }
     const me = this.latest.snap.players.find((p) => p.id === this.id);
     if (!me) { this.view = null; return; }
-    const interp = this.interpolatedSnap(performance.now());
-    const now = performance.now();
+    const interp = this.interpolatedSnap(this.now());
+    const now = this.now();
     const k = this.smoothUntil > now ? (this.smoothUntil - now) / 100 : 0;
     let sx = this.smoothDx * k;
     let sz = this.smoothDz * k;

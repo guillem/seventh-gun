@@ -147,19 +147,27 @@ describe('ArenaClient', () => {
       gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot(),
     });
     await welcome;
+    const sentStarts: number[] = [];
     sock.onSend = (data) => {
       const message = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
-      if (message.t === 'input' && message.seq != null && message.inputs) sim.pushInput(player.id, message.seq, message.inputs);
+      if (message.t === 'input' && message.seq != null && message.inputs) {
+        sentStarts.push(message.seq);
+        sim.pushInput(player.id, message.seq, message.inputs);
+      }
     };
     const walk = { ...emptyInput(), moveZ: 1, yaw: player.yaw, pitch: 0 };
     for (let i = 0; i < 16; i++) client.stepLocal(STEP_DT, walk);
     expect(player.queued.length).toBe(8);
     expect(player.lastQueuedSeq).toBe(8);
+    // Fresh frames 9..16 were generated while the queue was full, but the
+    // wire retries the oldest unacknowledged prefix instead of skipping it.
+    expect(sentStarts.slice(0, 3)).toEqual([1, 1, 1]);
 
     for (let i = 0; i < 8; i++) sim.step(STEP_DT);
     client.ingestSnapshot(sim.snapshot());
     expect(client.pendingCount()).toBeGreaterThan(0);
     (client as unknown as { flushInputs: () => void }).flushInputs();
+    expect(sentStarts.at(-1)).toBe(9);
     expect(player.queuedSeqs).toContain(9);
     expect(player.queuedSeqs).toContain(12);
   });
@@ -256,107 +264,91 @@ describe('ArenaClient', () => {
     expect(closed).toBe(false);
   });
 
-  it.each([50, 100, 200])('%ims RTT two-client walk agrees after jittered delivery', async (rttMs) => {
-    const sim = new ArenaSim('rtt-walk');
+  it.each([50, 100, 200])('%ims RTT preserves controls and smooth remote poses through jitter, bursts, and stalls', async (rttMs) => {
+    const sim = new ArenaSim('rtt-jitter');
     const player = sim.join('A');
-    if (player === 'full') throw new Error('full');
     const rival = sim.join('B');
-    if (rival === 'full') throw new Error('full');
-    const sock = new FakeSock();
-    const client = new ArenaClient(() => sock);
-    const rivalSock = new FakeSock();
-    const rivalClient = new ArenaClient(() => rivalSock);
-    const welcomeP = client.connect('ws://x/arena', 'A');
-    sock.push({
-      v: 1, t: 'welcome', id: player.id, seed: 'rtt-walk', genVersion: ARENA_GEN_VERSION,
-      gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick,
-      snapshot: sim.snapshot(),
-    });
-    const rivalWelcome = rivalClient.connect('ws://x/arena', 'B');
-    rivalSock.push({
-      v: 1, t: 'welcome', id: rival.id, seed: 'rtt-walk', genVersion: ARENA_GEN_VERSION,
-      gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick,
-      snapshot: sim.snapshot(),
-    });
-    await welcomeP;
-    await rivalWelcome;
-
-    const oneWay = rttMs / 2000;
+    if (player === 'full' || rival === 'full') throw new Error('full');
+    player.owned[2] = true;
+    player.ammo.shells = 4;
     let clock = 0;
+    const sock = new FakeSock();
+    const rivalSock = new FakeSock();
+    const client = new ArenaClient(() => sock, () => clock);
+    const rivalClient = new ArenaClient(() => rivalSock, () => clock);
+    const welcomeA = client.connect('ws://x/arena', 'A');
+    const welcomeB = rivalClient.connect('ws://x/arena', 'B');
+    sock.push({ v: 1, t: 'welcome', id: player.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
+    rivalSock.push({ v: 1, t: 'welcome', id: rival.id, seed: 'rtt-jitter', genVersion: ARENA_GEN_VERSION, gridHash: arenaGridHash(sim.map.grid, sim.map.pickups), tick: sim.tick, snapshot: sim.snapshot() });
+    await Promise.all([welcomeA, welcomeB]);
+
     type Due = { at: number; run: () => void };
     const delayed: Due[] = [];
+    const oneWay = rttMs / 2;
+    const jitter = (n: number) => [0, 7, -4, 11, -2][n % 5]!;
+    const schedule = (run: () => void, n: number) => delayed.push({ at: clock + Math.max(1, oneWay + jitter(n)), run });
     const flushDue = () => {
-      const keep: Due[] = [];
-      for (const d of delayed) {
-        if (clock >= d.at) d.run();
-        else keep.push(d);
-      }
-      delayed.length = 0;
-      delayed.push(...keep);
+      const ready = delayed.filter((item) => item.at <= clock).sort((a, b) => a.at - b.at);
+      for (const item of ready) item.run();
+      for (const item of ready) delayed.splice(delayed.indexOf(item), 1);
     };
+    const wireInput = (id: number, n: number) => (data: string) => {
+      const message = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
+      if (message.t === 'input' && message.seq != null && message.inputs) schedule(() => sim.pushInput(id, message.seq!, message.inputs!), n + message.seq);
+    };
+    sock.onSend = wireInput(player.id, 0);
+    rivalSock.onSend = wireInput(rival.id, 2);
 
-    sock.onSend = (data) => {
-      const msg = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
-      if (msg.t !== 'input' || msg.seq == null || !msg.inputs) return;
-      delayed.push({
-        at: clock + oneWay,
-        run: () => sim.pushInput(player.id, msg.seq!, msg.inputs!),
-      });
-    };
-    rivalSock.onSend = (data) => {
-      const msg = JSON.parse(data) as { t?: string; seq?: number; inputs?: ReturnType<typeof emptyInput>[] };
-      if (msg.t !== 'input' || msg.seq == null || !msg.inputs) return;
-      delayed.push({
-        at: clock + oneWay,
-        run: () => sim.pushInput(rival.id, msg.seq!, msg.inputs!),
-      });
-    };
-
-    const yaw = player.yaw;
-    const walk = { ...emptyInput(), moveZ: 1, yaw, pitch: 0 };
-    const rivalWalk = { ...emptyInput(), moveX: 1, yaw: rival.yaw, pitch: 0 };
-    const ticks = Math.round(2 / STEP_DT);
-    for (let i = 0; i < ticks; i++) {
-      clock += STEP_DT;
-      client.stepLocal(STEP_DT, walk);
-      rivalClient.stepLocal(STEP_DT, rivalWalk);
-      flushDue();
-      sim.step(STEP_DT);
-      if (sim.tick % 3 === 0) {
-        const snapNow = sim.snapshot();
-        delayed.push({
-          at: clock + oneWay,
-          run: () => client.ingestSnapshot(snapNow),
-        });
-        delayed.push({
-          at: clock + oneWay,
-          run: () => rivalClient.ingestSnapshot(snapNow),
-        });
+    const remoteDistances: number[] = [];
+    const remoteDeltas: number[] = [];
+    let lastRemote: { x: number; z: number } | null = null;
+    let serverShots = 0;
+    const advance = (i: number, inputs: boolean) => {
+      clock += STEP_DT * 1000;
+      if (inputs) {
+        client.stepLocal(STEP_DT, { ...emptyInput(), yaw: player.yaw, pitch: 0, moveZ: 1, switchGun: i === 12 ? 2 : null, fire: i === 24 });
+        rivalClient.stepLocal(STEP_DT, { ...emptyInput(), yaw: rival.yaw, pitch: 0, moveX: 1 });
+      } else if (i % 4 === 0) {
+        // Keep the transport retry cadence alive while no new local frame is
+        // produced, without manufacturing a final reconciliation snapshot.
+        (client as unknown as { flushInputs: () => void }).flushInputs();
+        (rivalClient as unknown as { flushInputs: () => void }).flushInputs();
       }
-    }
-    const idle = { ...emptyInput(), yaw, pitch: 0 };
-    for (let i = 0; i < Math.round(0.35 / STEP_DT); i++) {
-      clock += STEP_DT;
-      client.stepLocal(STEP_DT, idle);
-      rivalClient.stepLocal(STEP_DT, { ...emptyInput(), yaw: rival.yaw, pitch: 0 });
-      flushDue();
+      // Three skipped delivery passes emulate a brief event-loop stall; due
+      // packets are then released as a burst in deterministic timestamp order.
+      if (i % 29 >= 3) flushDue();
       sim.step(STEP_DT);
-      if (sim.tick % 3 === 0) {
+      const events = sim.takeEvents();
+      serverShots += events.filter((event) => event.t === 'shot' && event.id === player.id).length;
+      if (events.length && i < 600) {
+        schedule(() => sock.push({ v: 1, t: 'events', es: events }), i);
+        schedule(() => rivalSock.push({ v: 1, t: 'events', es: events }), i + 1);
+      }
+      if (i < 600 && sim.tick % 3 === 0) {
         const snapshot = sim.snapshot();
-        client.ingestSnapshot(snapshot);
-        rivalClient.ingestSnapshot(snapshot);
+        schedule(() => sock.push({ v: 1, t: 'snap', snapshot }), i + 3);
+        schedule(() => rivalSock.push({ v: 1, t: 'snap', snapshot }), i + 4);
       }
-    }
-    flushDue();
-    while (player.queued.length || rival.queued.length) sim.step(STEP_DT);
-    const final = sim.snapshot();
-    client.ingestSnapshot(final);
-    rivalClient.ingestSnapshot(final);
-    const view = client.worldView()!.player;
-    expect(Math.hypot(view.x - player.x, view.z - player.z)).toBeLessThan(0.05);
-    const rivalView = rivalClient.worldView()!.player;
-    expect(Math.hypot(rivalView.x - rival.x, rivalView.z - rival.z)).toBeLessThan(0.05);
-    expect(client.pendingCount()).toBeLessThanOrEqual(0.1 / STEP_DT + 4);
+      const remote = client.others().find((other) => other.id === rival.id);
+      if (remote) {
+        remoteDistances.push(Math.hypot(remote.x - rival.x, remote.z - rival.z));
+        if (lastRemote) remoteDeltas.push(Math.hypot(remote.x - lastRemote.x, remote.z - lastRemote.z));
+        lastRemote = remote;
+      }
+    };
+
+    for (let i = 0; i < 150; i++) advance(i, true);
+    for (let i = 150; i < 600 || delayed.length; i++) advance(i, false);
+
+    expect(player.gun).toBe(2);
+    expect(serverShots).toBe(1);
+    expect(rivalClient.takeEvents().filter((event) => event.t === 'shot' && event.id === player.id)).toHaveLength(1);
+    expect(Math.max(...remoteDistances)).toBeLessThan(3.5);
+    expect(Math.max(...remoteDeltas)).toBeLessThan(1);
+    // No direct final snapshot is injected: both server acknowledgements have
+    // advanced through the controls delivered before input stopped.
+    expect(player.lastSeq).toBeGreaterThanOrEqual(120);
+    expect(rival.lastSeq).toBeGreaterThanOrEqual(120);
   });
 
   it('does not replay lockout movement from the respawn cell', async () => {

@@ -67,12 +67,9 @@ describe('arena sim (server-authoritative)', () => {
     b.x = pair.victim.x; b.z = pair.victim.z;
     a.yaw = yawToTarget({ x: a.x, z: a.z }, { x: b.x, z: b.z }); a.pitch = 0;
     b.yaw = yawToTarget({ x: b.x, z: b.z }, { x: a.x, z: a.z }); b.pitch = 0;
-    a.input = { ...emptyInput(), yaw: a.yaw, pitch: a.pitch, fire: false, use: false, switchGun: null };
-    b.input = { ...emptyInput(), yaw: b.yaw, pitch: b.pitch, fire: false, use: false, switchGun: null };
-
     // Fire until B dies.
     for (let step = 0; step < 600; step++) {
-      a.input.fire = true;
+      sim.pushInput(a.id, step + 1, [inputTick({ yaw: a.yaw, pitch: a.pitch, fire: true })]);
       sim.step(STEP_DT);
       if (!b.alive) break;
     }
@@ -114,8 +111,7 @@ describe('arena sim (server-authoritative)', () => {
     for (let t = 0; t < Math.floor(1 / STEP_DT); t++) sim.step(STEP_DT);
 
     // Fire at t ~ 1s; victim should still be protected.
-    a.input = { ...emptyInput(), yaw: a.yaw, pitch: a.pitch, fire: true, use: false, switchGun: null };
-    b.input = { ...emptyInput(), yaw: b.yaw, pitch: b.pitch, fire: false, use: false, switchGun: null };
+    sim.pushInput(a.id, 1, [inputTick({ yaw: a.yaw, pitch: a.pitch, fire: true })]);
     const hpBefore = b.hp;
     sim.step(STEP_DT);
     expect(b.hp).toBe(hpBefore);
@@ -126,10 +122,11 @@ describe('arena sim (server-authoritative)', () => {
 
     // Continue to after 2.1s: victim should eventually take damage.
     a.protectUntil = 0;
+    let seq = 2;
     while (sim.time < 2.5 && b.hp === hpBefore) {
       a.yaw = yawToTarget({ x: a.x, z: a.z }, { x: b.x, z: b.z });
       a.pitch = 0;
-      a.input = { ...emptyInput(), yaw: a.yaw, pitch: 0, fire: true, use: false, switchGun: null };
+      sim.pushInput(a.id, seq++, [inputTick({ yaw: a.yaw, pitch: 0, fire: true })]);
       sim.step(STEP_DT);
     }
     expect(b.hp).toBeLessThan(hpBefore);
@@ -349,6 +346,28 @@ describe('arena sim (server-authoritative)', () => {
     switchSim.step(STEP_DT);
     expect(player.lastSeq).toBe(9);
     expect(player.gun).toBe(2);
+  });
+
+  it('rejects sequence gaps and neutralizes actions between network frames', () => {
+    const sim = new ArenaSim('arena-input-gaps');
+    const player = sim.join('A') as any;
+    const move = inputTick({ yaw: player.yaw, pitch: 0, moveZ: 1 });
+    sim.pushInput(player.id, 1, Array.from({ length: 8 }, () => move));
+    sim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    for (let i = 0; i < 3; i++) sim.step(STEP_DT);
+    // New controls can arrive while a full queue is being drained, but a
+    // later sequence cannot leapfrog the rejected fire at sequence 9.
+    sim.pushInput(player.id, 12, [move, move, move]);
+    expect(player.lastQueuedSeq).toBe(8);
+    while (player.queued.length) sim.step(STEP_DT);
+    sim.pushInput(player.id, 9, [inputTick({ yaw: player.yaw, pitch: 0, fire: true })]);
+    sim.step(STEP_DT);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot')).toHaveLength(1);
+
+    const before = { x: player.x, z: player.z };
+    for (let i = 0; i < 60; i++) sim.step(STEP_DT);
+    expect(Math.hypot(player.x - before.x, player.z - before.z)).toBeLessThan(1e-8);
+    expect(sim.takeEvents().filter((event) => event.t === 'shot')).toHaveLength(0);
   });
 
   it('kill by a player who already left is no credit and no suicide', () => {
