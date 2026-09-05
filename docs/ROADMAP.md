@@ -70,7 +70,8 @@ real XZ-circle × Y-slab volume so look-down shots on a close crawler connect.
 
 Global 10-player deathmatch on Cloudflare Workers + one Durable Object.
 Server-authoritative `ArenaSim`, 96×96 generator, client prediction.
-Lag compensation, spatial audio polish, and Netlify retirement are next.
+Reliability and presentation repairs are tracked in REPAIR-PLAN.md.
+Netlify remains a static mirror; lag compensation is optional future work.
 
 ## Next (ideas, not committed)
 - Human playtest on Normal against the 20–30 min target; tune from
