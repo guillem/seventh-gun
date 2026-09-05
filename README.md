@@ -34,8 +34,11 @@ seal on the finale arena. Clear the arena to win.
 | Left click / hold | fire |
 | 1–7 / wheel | switch guns |
 | E | use doors |
-| TAB / M | full map (pauses combat) |
-| ESC | pause |
+| TAB / M | full map (pauses campaign/maze combat) |
+| ESC | pause campaign/maze; arena menu |
+
+In arena, TAB shows the scoreboard and M opens the map. The server keeps
+fighting while a map or menu is open; your player remains vulnerable.
 
 Phones/tablets: floating left stick to move, drag right side to look,
 FIRE / USE / MAP buttons above the HUD.
@@ -69,6 +72,16 @@ windows). Campaign debug:
 
 There is no hosted service to sign up for and no accounts anywhere. You run it,
 your friends connect to you, and nothing leaves the box.
+
+The first packaged release is pending. Until it is published, build from source:
+
+```bash
+npm ci
+npm run build:dist
+npm start
+```
+
+After the first release, these distribution options will be available.
 
 **Docker** — the whole game plus the arena, one command:
 
@@ -115,8 +128,8 @@ Cloudflare dashboard before using it.
   bullets and rendering.
 - Three difficulties scale the whole economy; the layout stays identical.
 
-Start with [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Balance numbers live in [docs/GAME-DESIGN.md](docs/GAME-DESIGN.md).
+Start with [AGENTS.md](https://github.com/guillem/seventh-gun/blob/main/AGENTS.md) and [architecture](https://github.com/guillem/seventh-gun/blob/main/docs/ARCHITECTURE.md).
+Balance numbers live in [game design](https://github.com/guillem/seventh-gun/blob/main/docs/GAME-DESIGN.md).
 
 ## License
 

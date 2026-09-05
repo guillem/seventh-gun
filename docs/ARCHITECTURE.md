@@ -105,7 +105,7 @@ uses `src/sim/combat.ts`. The Durable Object in `server/` advances it from
 elapsed wall time in exact 1/60-second steps with bounded catch-up, then
 broadcasts 20 Hz snapshots over `/arena`. A snapshot acknowledges only input
 frames that have actually been simulated; frames are retransmitted in sequence
-and actions are neutral between frames. Arena protocol v2 tags each batch with
+and actions are neutral between frames. Arena protocol v3 tags each batch with
 the player's spawn epoch, so delayed controls cannot cross a respawn. Clients predict local movement and
 retain arrival-time snapshots bracketing a ~100 ms render delay for remote
 positions and look angles. Hits and pickups are server-only.

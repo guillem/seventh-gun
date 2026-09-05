@@ -24,15 +24,15 @@ client asset and observe advancing arena snapshots. This live check passed.
 The earlier reported deployment outage was not reproduced reliably; passing
 current checks does not establish its historical cause.
 
-## Repairs awaiting ordered integration
+## Gameplay repairs and remaining integration
 
-PR #29 stabilizes the simulation clock, acknowledges applied inputs, resets
+Merged PR #29 stabilizes the simulation clock, acknowledges applied inputs, resets
 prediction by player life, and bounds retransmission under 50–200 ms RTT
-and jitter. PR #30 adds protocol v3 projectile identity/direction, complete
+and jitter. merged PR #30 adds protocol v3 projectile identity/direction, complete
 3D beam endpoints, prediction echo matching, sustained sound prioritization,
 and arena HUD feedback. Browser protocol checks follow the shared version.
 
-PR #28 fixes secret clue/control facings and rejects invalid imported secret
+Merged PR #28 fixes secret clue/control facings and rejects invalid imported secret
 geometry. All 15 authored secrets have actual activation/reward coverage.
 Secret import/compile support is present; full visual secret-editing tools
 remain optional future work.
@@ -52,7 +52,7 @@ assuming earlier counts apply to later commits.
 
 Public release is pending final integration, history scanning, repository
 settings, and npm publishing access. The first npm publication needs the
-short-lived bootstrap credential described in CONTRIBUTING; afterward switch
+short-lived bootstrap credential described in [TESTING](TESTING.md#release-smoke-checks); afterward switch
 to trusted publishing and revoke it. No version has been published by this
 repair effort yet.
 

@@ -110,32 +110,22 @@ Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production
 builds don't advertise it).
 
-## Visual review (done before calling this done)
+## Visual review
 
-Method: run the built game in a real browser, `?e2e=1` debug API poses the
-scene (`pose`, `snapshot` returns a composited JPEG), plus real DOM
-screenshots for screens/touch UI.
+Earlier development used posed browser scenes and pixel metrics to check
+world/HUD visibility, crosshair clearance, muzzle flashes and touch layout.
+Those historical checks do not validate the current redesigned species or
+replace the September resource/presentation regression pass.
 
-- AI-vision pass (before the analyzer went down): world/HUD/lighting,
-  pistol viewmodel (hands visible, muzzle flash, crosshair clear), husk
-  (proper 3D zombie, face forward), slab (hulking 3D brute), wisp (glowing
-  hovering creature), wall decorations (skull + rune decals on panels).
-- Pixel-metric pass (analyzer outage fallback, `PIL`):
-  - (existing maze metrics)
-- Arena: `tests/e2e/arena.spec.ts` (title button, `joinArena`, two contexts,
-  re-seed after last leave) and `tests/e2e/arena-server.spec.ts` (`/health`,
-  raw WebSocket welcome). Preview is the Cloudflare Vite plugin / workerd.
-  - crosshair clearance, all 7 guns: ≤1.3% non-background px in the 88px
-    center disc (excluding the crosshair strokes themselves);
-  - muzzle flash, all 7 guns: idle-vs-fire diff regions 36–60k px with
-    per-gun magnitude ordering (pistol small, shotgun/Seventh huge);
-  - crawler: silhouette spans 100% of the pose region (legs reach floor);
-  - door: glowing rune ring ≈3.2k orange px; pedestal: cyan rim ≈320 px;
-  - mobile portrait: HUD band present, hFOV not a slit (29 edge columns in
-    a mid band), FIRE button ≈6.7k dark-red px.
+Current automated coverage and rollout state are tracked in REPAIR-PLAN.md.
+Inspect the built game and Netlify preview for campaign/maze visuals; use a
+server-capable target for arena. Check all six species from wake through
+firing and death, all seven guns at pitched headings, secret controls, and
+repeated sessions for stable GPU resources. Use the `?e2e=1` debug API for
+repeatable scenes, never synthetic pointer-lock mouse movement.
 
-Re-run the aesthetic eyeball pass on the Netlify deploy preview; the metrics
-prove presence/clearance, not beauty.
+Human judgment of silhouettes, sound mix, and secret discoverability remains
+pending. Mobile Chromium emulation does not establish real Safari behavior.
 
 ## Release smoke checks
 
