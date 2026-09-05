@@ -208,6 +208,46 @@ describe('arena join lifecycle', () => {
   });
 });
 
+describe('tickArena() audio lifecycle', () => {
+  function arenaGame(view: { player: { hp: number; maxHp: number; x: number; z: number } } | null) {
+    const g = bareGame() as unknown as {
+      arenaClient: {
+        stepLocal: () => void; takeCosmeticShot: () => null; worldView: () => typeof view;
+        takeEvents: () => []; others: () => []; id: number; roster: () => [];
+      };
+      renderer: { camera: { rotation: { order: string; x: number; y: number } }; updateArena: () => void; render: () => void };
+      input: { poll: () => { moveX: number; moveZ: number; fire: boolean; switchGun: null } };
+      audio: { update: (dt: number, hp: number) => void };
+      hud: { draw: () => void; drawArenaRoster: () => void; drawArenaScoreboard: () => void };
+      arenaMenu: boolean; arenaScoreboard: boolean; phase: string; lastPx: number | null; lastPz: number | null;
+      miniCanvas: null; setMinimapVisible: () => void; tickArena: (dt: number) => void;
+    };
+    g.arenaClient = { stepLocal() {}, takeCosmeticShot: () => null, worldView: () => view, takeEvents: () => [], others: () => [], id: 1, roster: () => [] };
+    g.renderer = { camera: { rotation: { order: '', x: 0, y: 0 } }, updateArena() {}, render() {} };
+    g.input = { poll: () => ({ moveX: 0, moveZ: 0, fire: false, switchGun: null }) };
+    g.hud = { draw() {}, drawArenaRoster() {}, drawArenaScoreboard() {} };
+    g.arenaMenu = false; g.arenaScoreboard = false; g.phase = 'playing'; g.lastPx = null; g.lastPz = null;
+    g.miniCanvas = null; g.setMinimapVisible = () => {};
+    return g;
+  }
+
+  it('uses the arena view health once per rendered frame', () => {
+    const g = arenaGame({ player: { hp: 25, maxHp: 100, x: 4, z: 6 } });
+    const calls: [number, number][] = [];
+    g.audio = { update: (dt, hp) => calls.push([dt, hp]) };
+    g.tickArena(1 / 60);
+    expect(calls).toEqual([[1 / 60, 0.25]]);
+  });
+
+  it('uses full health once when no arena snapshot is available', () => {
+    const g = arenaGame(null);
+    const calls: [number, number][] = [];
+    g.audio = { update: (dt, hp) => calls.push([dt, hp]) };
+    g.tickArena(1 / 60);
+    expect(calls).toEqual([[1 / 60, 1]]);
+  });
+});
+
 describe('handleArenaEvent pickup — bug 4 (cross-player pickup messages)', () => {
   function harness() {
     const messages: string[] = [];

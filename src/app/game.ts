@@ -947,15 +947,15 @@ export class Game {
     const sim = this.sim;
 
     this.hud.update(dtReal);
+
+    if (this.runKind === 'arena' && this.arenaClient) {
+      this.tickArena(dtReal);
+      return;
+    }
     this.audio.update(dtReal, sim ? sim.player.hp / sim.player.maxHp : 1);
 
     if (!sim && this.runKind !== 'arena') {
       this.renderer.render();
-      return;
-    }
-
-    if (this.runKind === 'arena' && this.arenaClient) {
-      this.tickArena(dtReal);
       return;
     }
 
@@ -1039,8 +1039,10 @@ export class Game {
     } else {
       this.setMinimapVisible(false);
       this.hud.clear();
-      this.renderer.render();
     }
+    // GameRenderer.update owns scene state only. Render once after every
+    // world layer and HUD input have consumed this simulation frame.
+    this.renderer.render();
   };
 
   private lastPx: number | null = null;
@@ -1075,7 +1077,12 @@ export class Game {
     }
     const view = client.worldView();
     for (const e of client.takeEvents()) this.handleArenaEvent(e, client.id);
-    if (!view) { this.renderer.render(); return; }
+    if (!view) {
+      this.audio.update(dtReal, 1);
+      this.renderer.render();
+      return;
+    }
+    this.audio.update(dtReal, view.player.hp / view.player.maxHp);
     const others = client.others();
     const moving = Math.abs(view.player.x - (this.lastPx ?? view.player.x)) + Math.abs(view.player.z - (this.lastPz ?? view.player.z)) > 0.001;
     this.lastPx = view.player.x; this.lastPz = view.player.z;

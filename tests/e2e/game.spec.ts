@@ -26,6 +26,28 @@ async function waitFrames(page: import('@playwright/test').Page, n: number): Pro
 }
 
 test.describe('desktop', () => {
+  test('maze and campaign ticks each perform one renderer frame after scene updates', async ({ page }) => {
+    await page.goto(BASE);
+    const deltas = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          startRun: (seed: string) => void; startCampaign: (n: number) => void;
+          renderStats: () => { frames: number }; tickNow: () => void;
+        };
+      }).__GAME__;
+      return [
+        () => G.startRun('e2e-one-maze-frame'),
+        () => G.startCampaign(1),
+      ].map(start => {
+        start();
+        const before = G.renderStats().frames;
+        G.tickNow();
+        return G.renderStats().frames - before;
+      });
+    });
+    expect(deltas).toEqual([1, 1]);
+  });
+
   test('boots to title and starts a run', async ({ page }) => {
     await page.goto(BASE);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('SEVENTH');
@@ -362,11 +384,12 @@ test.describe('desktop', () => {
           startRun: (seed: string) => void; give: (gun: number) => void;
           killSome: (count: number) => void; tickNow: () => void;
           pose: (opts: { gun: number; fire: boolean }) => void;
-          debugInfo: () => { render: { geometries: number; textures: number } };
+          renderStats: () => { frames: number; geometries: number; textures: number };
         };
       }).__GAME__;
       G.startRun('e2e-render-lifecycle');
       await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      const before = G.renderStats().frames;
       for (let gun = 1; gun <= 7; gun++) {
         G.give(gun);
         G.tickNow(); // compile and draw each concrete viewmodel before replacing it
@@ -374,20 +397,28 @@ test.describe('desktop', () => {
         G.tickNow(); // allocate and expire a representative muzzle/FX path
       }
       G.killSome(4);
-      // FX and particle allocations have finite lifetimes.  Wait rendered
-      // frames rather than a wall-clock timeout so software WebGL is covered.
+      // The next startRun calls setRun(), which clears transient FX. A short
+      // rendered span is enough to submit the allocations; waiting until every
+      // particle expires makes this GPU guard disproportionately slow on
+      // software WebGL.
       await new Promise<void>(resolve => {
         let frames = 0;
-        const step = () => { if (++frames >= 120) resolve(); else requestAnimationFrame(step); };
+        const step = () => { if (++frames >= 12) resolve(); else requestAnimationFrame(step); };
         requestAnimationFrame(step);
       });
-      return G.debugInfo().render;
+      const after = G.renderStats();
+      // One explicit tick after each give and fire, plus active rAF frames,
+      // proves this GPU check exercises real draws rather than scene-only
+      // updates.
+      if (after.frames - before < 14) throw new Error('campaign renderer did not draw each gun and FX pass');
+      return after;
     });
 
     await exercise(); // warm texture/program caches and establish current-gun topology
     const baseline = await exercise();
     const repeated = await exercise();
-    expect(repeated).toEqual(baseline);
+    expect({ geometries: repeated.geometries, textures: repeated.textures })
+      .toEqual({ geometries: baseline.geometries, textures: baseline.textures });
   });
 
   test('full map opens on Tab, shows fog of war and player marker, pauses combat', async ({ page }) => {
