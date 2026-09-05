@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
-import { copyFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Two build targets share this config.
 //
@@ -19,11 +20,16 @@ export default defineConfig(({ mode, isSsrBuild }) => ({
     ...(mode === 'portable' ? [] : [cloudflare()]),
     {
       name: 'ship-license-notices',
-      closeBundle() {
-        if (!isSsrBuild) {
-          copyFileSync('LICENSE', 'dist/client/LICENSE');
-          copyFileSync('THIRD-PARTY.md', 'dist/client/THIRD-PARTY.md');
-        }
+      // Worker-first Cloudflare builds run before the client output exists.
+      // Emit the notices only in Vite's client environment, where Rollup owns
+      // the final asset directory. The portable SSR pass is server-only too.
+      applyToEnvironment(environment) {
+        return environment.config.consumer === 'client';
+      },
+      generateBundle() {
+        const root = this.environment.config.root;
+        this.emitFile({ type: 'asset', fileName: 'LICENSE', source: readFileSync(resolve(root, 'LICENSE')) });
+        this.emitFile({ type: 'asset', fileName: 'THIRD-PARTY.md', source: readFileSync(resolve(root, 'THIRD-PARTY.md')) });
       },
     },
   ],
