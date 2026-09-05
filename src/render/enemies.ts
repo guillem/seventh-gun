@@ -1,6 +1,7 @@
 // Enemy meshes: procedural organic/biomechanic demons with faces, walk /
 // attack / pain / death animation and blob contact shadows.
 import * as THREE from 'three';
+import { disposeOwnedObject } from './dispose';
 import { getTextures } from './textures';
 import type { EnemyEnt } from '../sim/sim';
 import { ENEMIES } from '../sim/enemyTypes';
@@ -36,9 +37,6 @@ function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshLambertMaterial {
   return m;
 }
 
-function box(w: number, h: number, d: number, m: THREE.Material): THREE.Mesh {
-  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
-}
 function cyl(rt: number, rb: number, h: number, m: THREE.Material, seg = 7): THREE.Mesh {
   return new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m);
 }
@@ -908,7 +906,7 @@ export class EnemyRenderer {
     const alive = new Set(enemies.map(e => e.id));
     for (const [id, rig] of this.rigs) {
       if (!alive.has(id)) {
-        this.scene.remove(rig.group);
+        disposeOwnedObject(rig.group);
         this.rigs.delete(id);
       }
     }
@@ -1024,7 +1022,7 @@ export class EnemyRenderer {
   }
 
   dispose(): void {
-    for (const [, rig] of this.rigs) this.scene.remove(rig.group);
+    for (const [, rig] of this.rigs) disposeOwnedObject(rig.group);
     this.rigs.clear();
   }
 

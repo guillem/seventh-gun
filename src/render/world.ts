@@ -3,6 +3,7 @@
 // Campaign runs swap the theme atlas for getCampaignTextures(artId) and add
 // extra artwork; maze / #m= keep the shared four-theme look.
 import * as THREE from 'three';
+import { disposeOwnedObject } from './dispose';
 import { CELL, CEIL_H, WALL_H, cellToWorld } from '../sim/types';
 import type { GameMap, Room, Theme } from '../sim/types';
 import { findExposedWallFace, reachableFloorCells, secretPlatePublicFace } from '../sim/blueprint';
@@ -400,6 +401,6 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     plateMeshes,
     sealMesh,
     sky,
-    dispose: () => { for (const g of disposables) g.dispose(); },
+    dispose: () => { disposeOwnedObject(group); },
   };
 }

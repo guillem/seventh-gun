@@ -1,6 +1,5 @@
 // Game orchestrator: loop, phases (title/playing/paused/dying/dead/won),
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
-import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
 import type { ArenaEvent } from '../sim/arena';
 import { ArenaClient } from '../net/client';
@@ -1088,6 +1087,8 @@ export class Game {
     this.setMinimapVisible(true);
     if (this.miniCanvas) this.hud.drawMinimap(view, 0, false);
     if (fullMapOpen) this.hud.drawMinimap(view, 0, true);
+    // updateArena has finished every world and remote-player update; this is
+    // the one world + viewmodel render for the arena frame.
     this.renderer.render();
   }
 
@@ -1500,6 +1501,7 @@ export class Game {
         rigs: this.renderer.enemyRigInfo.slice(0, 8),
         muzzle: this.renderer.muzzleState,
         updateCount: this.renderer.enemyUpdateCount,
+        render: this.renderer.debugStats,
         simEnemies: this.sim ? this.sim.enemies.slice(0, 8).map(e => ({
           id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1),
           dead: e.dead, hp: +e.hp.toFixed(1),

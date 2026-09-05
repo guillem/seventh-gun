@@ -353,6 +353,36 @@ test.describe('desktop', () => {
     for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
   });
 
+  test('replaying a warmed fight and cycling guns leaves GPU allocations stable', async ({ page }) => {
+    test.setTimeout(60000);
+    await page.goto(BASE);
+    const exercise = async () => page.evaluate(async () => {
+      const G = (window as unknown as {
+        __GAME__: {
+          startRun: (seed: string) => void; give: (gun: number) => void;
+          killSome: (count: number) => void; debugInfo: () => { render: { geometries: number; textures: number } };
+        };
+      }).__GAME__;
+      G.startRun('e2e-render-lifecycle');
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      for (let gun = 1; gun <= 7; gun++) G.give(gun);
+      G.killSome(4);
+      // FX and particle allocations have finite lifetimes.  Wait rendered
+      // frames rather than a wall-clock timeout so software WebGL is covered.
+      await new Promise<void>(resolve => {
+        let frames = 0;
+        const step = () => { if (++frames >= 120) resolve(); else requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      });
+      return G.debugInfo().render;
+    });
+
+    await exercise(); // warm texture/program caches and establish current-gun topology
+    const baseline = await exercise();
+    const repeated = await exercise();
+    expect(repeated).toEqual(baseline);
+  });
+
   test('full map opens on Tab, shows fog of war and player marker, pauses combat', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-map'));

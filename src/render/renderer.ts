@@ -2,8 +2,7 @@
 // Renders the world, then clears depth and renders the viewmodel pass so
 // guns never clip into walls.
 import * as THREE from 'three';
-import { CELL, WALL_H } from '../sim/types';
-import type { Sim } from '../sim/sim';
+import { WALL_H } from '../sim/types';
 import type { WorldView } from '../sim/view';
 import { PlayerRenderer, type RemotePlayerPose } from './players';
 import { enemyVolumeY } from '../sim/enemyTypes';
@@ -18,6 +17,7 @@ import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
 import { applyRadialFogDeep, installRadialFog } from './radialFog';
+import { disposeOwnedObject } from './dispose';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -43,6 +43,7 @@ export class GameRenderer {
   private muzzleSprite: THREE.Sprite | null = null;
   private muzzleLife = 0;
   private baseFov = 75;
+  private renderFrames = 0;
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
     installRadialFog();
@@ -103,7 +104,6 @@ export class GameRenderer {
 
   setRun(sim: WorldView, artId?: CampaignArtId): void {
     if (this.world) {
-      this.scene.remove(this.world.group);
       this.world.dispose();
     }
     this.fx.clearTransient();
@@ -141,7 +141,7 @@ export class GameRenderer {
   setGun(id: number): void {
     if (id === this.currentGun && this.viewModel) return;
     this.currentGun = id;
-    if (this.viewModel) this.vmHolder.remove(this.viewModel.group);
+    if (this.viewModel) disposeOwnedObject(this.viewModel.group);
     this.viewModel = buildViewModel(id);
     this.vmHolder.add(this.viewModel.group);
     // switch dip animation
@@ -151,7 +151,7 @@ export class GameRenderer {
   private updateMuzzleSprite(color: number, size: number): void {
     if (!this.viewModel) return;
     if (this.muzzleSprite) {
-      this.muzzleSprite.removeFromParent();
+      disposeOwnedObject(this.muzzleSprite);
       this.muzzleSprite = null;
     }
     const mat = new THREE.SpriteMaterial({
@@ -229,7 +229,7 @@ export class GameRenderer {
         this.muzzleSprite.material.rotation = (this.muzzleSprite.material.rotation ?? 0) + dt * 30;
       }
       if (this.muzzleLife <= 0 && this.muzzleSprite) {
-        this.viewModel?.muzzle.remove(this.muzzleSprite);
+        disposeOwnedObject(this.muzzleSprite);
         this.muzzleSprite = null;
       }
     }
@@ -284,7 +284,6 @@ export class GameRenderer {
       rig.group.visible = visible;
     }
 
-    this.render();
   }
 
   updateArena(dt: number, view: WorldView, remotes: RemotePlayerPose[], moving: boolean): void {
@@ -300,7 +299,17 @@ export class GameRenderer {
     return this.enemies.updateCount;
   }
 
+  /** E2E-only callers read this through Game's debug API. */
+  get debugStats(): { frames: number; geometries: number; textures: number } {
+    return {
+      frames: this.renderFrames,
+      geometries: this.renderer.info.memory.geometries,
+      textures: this.renderer.info.memory.textures,
+    };
+  }
+
   render(): void {
+    this.renderFrames++;
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
     this.renderer.clearDepth();

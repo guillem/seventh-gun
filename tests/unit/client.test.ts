@@ -356,7 +356,7 @@ describe('ArenaClient', () => {
       hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
-    const other = (tick: number, x: number, yaw: number, pitch: number) => ({
+    const other = (_tick: number, x: number, yaw: number, pitch: number) => ({
       id: 1, name: 'B', colorIndex: 1, x, z: 0, yaw, pitch,
       hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
