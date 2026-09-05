@@ -384,6 +384,7 @@ test.describe('desktop', () => {
           startRun: (seed: string) => void; give: (gun: number) => void;
           killSome: (count: number) => void; tickNow: () => void;
           shoot: () => { spent?: boolean }; step: (count: number) => void;
+          state: () => { ammo: { nails: number } };
           pose: (opts: { gun: number; fire: boolean }) => void;
           renderStats: () => { frames: number; geometries: number; textures: number };
         };
@@ -404,7 +405,11 @@ test.describe('desktop', () => {
       G.tickNow();
       G.step(30); // let pistol cooldown elapse before switching to the launcher
       G.give(4);
-      if (!G.shoot().spent) throw new Error('projectile FX shot was rejected');
+      // G.shoot().spent reports the pistol's bullet stack for older debug
+      // callers, so verify the Spiker's own ammo source directly.
+      const nails = G.state().ammo.nails;
+      G.shoot();
+      if (G.state().ammo.nails !== nails - 1) throw new Error('projectile FX shot was rejected');
       G.tickNow();
       G.killSome(4);
       // The next startRun calls setRun(), which clears transient FX. A short
