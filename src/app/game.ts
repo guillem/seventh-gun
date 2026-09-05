@@ -1510,6 +1510,7 @@ export class Game {
         camera: { yaw: +this.renderer.camera.rotation.y.toFixed(3), pitch: +this.renderer.camera.rotation.x.toFixed(3) },
         lastAimDir: this.sim ? this.sim.lastAimDir : null,
       }),
+      renderStats: () => this.renderer.debugStats,
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
       setTouch: (v: boolean) => {
         this.input.isTouch = v;

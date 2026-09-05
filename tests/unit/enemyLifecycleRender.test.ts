@@ -4,7 +4,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ENEMIES } from '../../src/sim/enemyTypes';
-import type { EnemyEnt } from '../../src/sim/sim';
+import { Sim, emptyInput, type EnemyEnt } from '../../src/sim/sim';
 import type { EnemyType } from '../../src/sim/types';
 import { makeRng } from '../../src/sim/rng';
 
@@ -38,6 +38,31 @@ function enemy(type: EnemyType, id: number): EnemyEnt {
 }
 
 describe('six species renderer lifecycle', () => {
+  it('wakes, completes a normal attack, fires, and dies for every species in the simulation', () => {
+    for (const type of TYPES) {
+      const sim = new Sim(`six-species-${type}`, 'normal');
+      // The test owns a simple unobstructed floor so each species follows its
+      // real idle → alert → chase → windup route without generator geometry
+      // deciding whether it can see the player.
+      sim.map.grid.fill(1);
+      for (const other of sim.enemies) { other.dead = true; other.hp = 0; }
+      const e = sim.enemies[0]!;
+      Object.assign(e, {
+        type, def: ENEMIES[type], x: 20, z: 10, yaw: 0,
+        hp: ENEMIES[type].hp, maxHp: ENEMIES[type].hp,
+        speed: ENEMIES[type].speed, accuracy: 0,
+        state: 'idle', awakened: false, dead: false, attackCd: 0,
+        burstLeft: 0, burstTimer: 0, timer: 0,
+      });
+      sim.player.x = 20; sim.player.z = 20;
+      for (let step = 0; step < 180 && sim.projectiles.length === 0; step++) sim.step(emptyInput());
+      expect(e.awakened, `${type} wakes`).toBe(true);
+      expect(sim.projectiles.length, `${type} fires after windup`).toBeGreaterThan(0);
+      sim.damageEnemy(e, e.hp + 1, 0);
+      expect(e.dead, `${type} dies`).toBe(true);
+    }
+  });
+
   it('builds, culls, attacks, and reaches a death pose for every species', async () => {
     const { EnemyRenderer } = await import('../../src/render/enemies');
     const scene = new THREE.Scene();

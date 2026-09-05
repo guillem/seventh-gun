@@ -41,11 +41,11 @@ test.describe('arena', () => {
     await joinArena(page, 'ONEFRAME');
     const frames = await page.evaluate(() => {
       const G = (window as unknown as {
-        __GAME__: { debugInfo: () => { render: { frames: number } }; tickNow: () => void };
+        __GAME__: { renderStats: () => { frames: number }; tickNow: () => void };
       }).__GAME__;
-      const before = G.debugInfo().render.frames;
+      const before = G.renderStats().frames;
       G.tickNow();
-      return { before, after: G.debugInfo().render.frames };
+      return { before, after: G.renderStats().frames };
     });
     expect(frames.after - frames.before).toBe(1);
   });

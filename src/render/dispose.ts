@@ -17,7 +17,9 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
       geometry?: THREE.BufferGeometry;
       material?: THREE.Material | THREE.Material[];
     };
-    if (renderable.geometry) geometries.add(renderable.geometry);
+    // Three.Sprite assigns every sprite its internal shared quad geometry.
+    // It is not owned by a muzzle, label, particle, or projectile instance.
+    if (renderable.geometry && !(node as THREE.Sprite).isSprite) geometries.add(renderable.geometry);
     const material = renderable.material;
     if (Array.isArray(material)) material.forEach(m => materials.add(m));
     else if (material) materials.add(material);

@@ -30,4 +30,17 @@ describe('disposeOwnedObject', () => {
     expect(labelDispose).toHaveBeenCalledTimes(1);
     expect(cachedDispose).not.toHaveBeenCalled();
   });
+
+  it('does not dispose Three’s shared sprite quad while a different sprite remains live', () => {
+    const root = new THREE.Group();
+    const transient = new THREE.Sprite(new THREE.SpriteMaterial());
+    const live = new THREE.Sprite(new THREE.SpriteMaterial());
+    root.add(transient);
+    const spriteGeometryDispose = vi.spyOn(transient.geometry, 'dispose');
+
+    disposeOwnedObject(root);
+
+    expect(transient.geometry).toBe(live.geometry);
+    expect(spriteGeometryDispose).not.toHaveBeenCalled();
+  });
 });

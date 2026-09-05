@@ -141,7 +141,14 @@ export class GameRenderer {
   setGun(id: number): void {
     if (id === this.currentGun && this.viewModel) return;
     this.currentGun = id;
-    if (this.viewModel) disposeOwnedObject(this.viewModel.group);
+    if (this.viewModel) {
+      // A flash belongs to its current gun. Disposing the whole old model
+      // also disposes that sprite, so clear the live reference before a later
+      // frame can try to retire the same material again.
+      this.muzzleSprite = null;
+      this.muzzleLife = 0;
+      disposeOwnedObject(this.viewModel.group);
+    }
     this.viewModel = buildViewModel(id);
     this.vmHolder.add(this.viewModel.group);
     // switch dip animation

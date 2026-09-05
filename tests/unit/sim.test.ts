@@ -1,6 +1,7 @@
 // Difficulty multipliers + determinism + enemy behavior guarantees.
 import { describe, it, expect } from 'vitest';
 import { Sim, emptyInput } from '../../src/sim/sim';
+import { ENEMIES } from '../../src/sim/enemyTypes';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import { generateMap } from '../../src/sim/mapgen';
 import type { SimInput } from '../../src/sim/sim';
@@ -78,6 +79,57 @@ describe('determinism', () => {
 });
 
 describe('enemy behavior guarantees', () => {
+  it('does not launch a windup or later burst shot after the player rounds a close corner', () => {
+    const sim = new Sim('occluded-windup', 'normal');
+    // A one-cell corner between the slab and the final player position. The
+    // opening position has LOS, so this uses the normal chase → windup path.
+    sim.map.grid.fill(1);
+    sim.map.grid[10 * sim.map.w + 10] = 0; // world [20,22] × [20,22]
+    for (const other of sim.enemies) { other.dead = true; other.hp = 0; }
+    const slab = sim.enemies[0]!;
+    Object.assign(slab, {
+      type: 'slab', def: ENEMIES.slab, x: 19.05, z: 20.9, yaw: 0,
+      hp: ENEMIES.slab.hp, maxHp: ENEMIES.slab.hp, speed: ENEMIES.slab.speed,
+      state: 'chase', awakened: true, attackCd: 0, burstLeft: 0, timer: 0,
+    });
+    slab.dead = false;
+    sim.player.x = 19.05; sim.player.z = 22.56;
+    sim.step(input()); // legal LOS starts the normal 0.55s slab windup
+    expect(slab.state).toBe('attack');
+
+    sim.player.x = 21; // round the corner while the enemy is winding up
+    expect(hasLineOfSight(sim, slab.x, slab.z, sim.player.x, sim.player.z)).toBe(false);
+    for (let i = 0; i < 40; i++) sim.step(input());
+    expect(sim.projectiles).toHaveLength(0);
+    expect(sim.player.hp).toBe(100);
+  });
+
+  it('keeps an unobstructed shot, but suppresses a newly occluded burst slot', () => {
+    const sim = new Sim('occluded-burst', 'normal');
+    sim.map.grid.fill(1);
+    sim.map.grid[10 * sim.map.w + 10] = 0;
+    for (const other of sim.enemies) { other.dead = true; other.hp = 0; }
+    const slab = sim.enemies[0]!;
+    Object.assign(slab, {
+      type: 'slab', def: { ...ENEMIES.slab, burst: 2, burstGap: 0.2 },
+      x: 19.05, z: 20.9, yaw: 0, hp: ENEMIES.slab.hp, maxHp: ENEMIES.slab.hp,
+      speed: ENEMIES.slab.speed, state: 'chase', awakened: true, attackCd: 0,
+      burstLeft: 0, timer: 0,
+    });
+    slab.dead = false;
+    sim.player.x = 19.05; sim.player.z = 22.56;
+    sim.step(input());
+    for (let i = 0; i < 34; i++) sim.step(input());
+    expect(sim.projectiles).toHaveLength(1); // first shot still behaves normally
+
+    sim.player.x = 21;
+    expect(hasLineOfSight(sim, slab.x, slab.z, sim.player.x, sim.player.z)).toBe(false);
+    for (let i = 0; i < 18; i++) sim.step(input());
+    expect(sim.projectiles).toHaveLength(1); // second scheduled slot was consumed, not fired
+    expect(slab.state).toBe('chase');
+    expect(slab.attackCd).toBeGreaterThan(0);
+  });
+
   it('enemies wake by proximity, sight cone and gunshot noise', () => {
     const sim = new Sim('wake-seed', 'normal');
     // teleport an enemy far away, fire, it should wake via noise
@@ -104,6 +156,7 @@ describe('enemy behavior guarantees', () => {
 
   it('enemy projectiles are dodgeable: they travel, not teleport', () => {
     const sim = new Sim('proj-seed', 'normal');
+    sim.map.grid.fill(1); // keep this projectile regression independent of generated walls
     const e = sim.enemies[0];
     e.x = sim.player.x; e.z = sim.player.z - 12;
     e.state = 'attack'; e.awakened = true; e.timer = 0; e.burstLeft = 1; e.attackCd = 0;
