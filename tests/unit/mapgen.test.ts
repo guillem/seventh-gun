@@ -3,10 +3,9 @@ import { describe, it, expect } from 'vitest';
 import { generateMap, mapStats } from '../../src/sim/mapgen';
 import { Sim, emptyInput } from '../../src/sim/sim';
 import { CELL, ECONOMY_FLOOR } from '../../src/sim/types';
-import type { GameMap, Difficulty } from '../../src/sim/types';
+import type { GameMap } from '../../src/sim/types';
 import { hasLineOfSight } from '../../src/sim/physics';
 import { WEAPONS } from '../../src/sim/weapons';
-import { ENEMIES } from '../../src/sim/enemyTypes';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 
 function bfsReach(map: GameMap, treatSolid: Set<number>): Uint8Array {
@@ -101,7 +100,6 @@ describe('mapgen validity (300-seed sweep)', { timeout: 20_000 }, () => {
     for (const s of seeds) {
       const sim = new Sim(s, 'normal');
       const map = sim.map;
-      const start = map.rooms.find(r => r.kind === 'start')!;
       for (const e of map.enemies) {
         const d = Math.hypot(e.x - sim.player.x, e.z - sim.player.z);
         expect(d, `enemy ${e.id} too close to spawn in seed ${s}`).toBeGreaterThan(14);

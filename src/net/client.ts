@@ -4,7 +4,7 @@ import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import { STEP_DT, type PickupEnt, type PlayerState, type ProjectileEnt, type SimInput } from '../sim/sim';
 import { createPowerupState } from '../sim/powerups';
 import { moveCircle, type SolidState } from '../sim/physics';
-import { PLAYER_RADIUS } from '../sim/types';
+import { PLAYER_RADIUS, type GameMap } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
 import { MAX_INPUTS_PER_BATCH, decodeServer, encode, PROTOCOL_V, type ServerMessage } from './protocol';
@@ -55,6 +55,12 @@ export class ArenaClient {
   private smoothUntil = 0;
   private solid: SolidState | null = null;
   private view: WorldView | null = null;
+  // Arena exploration is permanently full and secrets are absent. Reuse these
+  // map-sized values across every reconstructed network view instead of
+  // allocating two grids on every rendered arena frame.
+  private arenaExplored: Uint8Array | null = null;
+  private arenaSecretCell: Uint8Array | null = null;
+  private arenaViewMap: GameMap | null = null;
   private localGun = 1;
   private predictedShots = new Set<string>();
   private pingSentAt = 0;
@@ -425,6 +431,9 @@ export class ArenaClient {
     this.events = [];
     this.solid = null;
     this.view = null;
+    this.arenaExplored = null;
+    this.arenaSecretCell = null;
+    this.arenaViewMap = null;
     this.spawnCount = -1;
     this.pending = [];
     this.nextSeq = 1;
@@ -590,7 +599,11 @@ export class ArenaClient {
       gravity: p.gravity, radius: p.radius, damage: 0, splashRadius: 0, damageSelfPct: 0, age: p.age,
     }));
     const map = this.solid.map;
-    const explored = new Uint8Array(map.w * map.h).fill(1);
+    if (this.arenaViewMap !== map || !this.arenaExplored || !this.arenaSecretCell) {
+      this.arenaViewMap = map;
+      this.arenaExplored = new Uint8Array(map.w * map.h).fill(1);
+      this.arenaSecretCell = new Uint8Array(map.w * map.h);
+    }
     this.view = {
       map,
       player,
@@ -603,8 +616,8 @@ export class ArenaClient {
       enemies: [],
       pickups,
       projectiles,
-      explored,
-      secretCell: new Uint8Array(map.w * map.h),
+      explored: this.arenaExplored,
+      secretCell: this.arenaSecretCell,
       powerups: createPowerupState(),
       killCount: me.frags,
       arenaEntered: true,

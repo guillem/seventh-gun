@@ -33,6 +33,21 @@ function fireFrom(sim: Sim, e: EnemyEnt): { x: number; y: number; z: number } {
 }
 
 describe('enemy projectile muzzle offset', () => {
+  it('every species emits from its authored muzzle at its actual height', () => {
+    const sim = new Sim('muzzle-offset-all-species', 'normal');
+    sim.player.x = 500; sim.player.z = 500;
+    const types: EnemyType[] = ['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend'];
+    for (const type of types) {
+      const def = ENEMIES[type];
+      const yaw = 0.73;
+      const p = fireFrom(sim, testEnemy(type, 4, -6, yaw));
+      const baseline = def.flying ? def.hoverY : def.height * 0.72;
+      expect(p.x, `${type} muzzle x`).toBeCloseTo(4 + def.muzzleOffset.forward * Math.sin(yaw) + def.muzzleOffset.right * Math.cos(yaw), 5);
+      expect(p.z, `${type} muzzle z`).toBeCloseTo(-6 + def.muzzleOffset.forward * Math.cos(yaw) - def.muzzleOffset.right * Math.sin(yaw), 5);
+      expect(p.y, `${type} muzzle height`).toBeCloseTo(baseline + def.muzzleOffset.up, 5);
+    }
+  });
+
   it('slab: mortar spawn rotates with yaw, including a +x vs -x facing flip', () => {
     const sim = new Sim('muzzle-offset-1', 'normal');
     sim.player.x = 500; sim.player.z = 500; // far off-axis: aim error is 0 (accuracy 0) so it can't mask the origin math

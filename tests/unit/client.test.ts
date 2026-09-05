@@ -296,12 +296,22 @@ describe('ArenaClient', () => {
     player.ammo.shells = 2;
     let generated = 0;
     const lags: number[] = [];
+    let stoppedPosition: { x: number; z: number } | null = null;
     for (let i = 0; i < 1800; i++) {
       now += STEP_DT * 1000;
       client.stepLocal(STEP_DT, { ...emptyInput(), moveZ: i < 180 ? 1 : 0, switchGun: i === 60 ? 2 : null, fire: i === 60 });
       generated++;
       flush();
       tick();
+      if (i === 204) {
+        // Frame 181 is the first neutral control. It must have been applied
+        // within 24 fixed ticks (400 ms), even at the worst tested RTT/jitter.
+        expect(player.lastSeq).toBeGreaterThanOrEqual(181);
+        stoppedPosition = { x: player.x, z: player.z };
+      } else if (stoppedPosition) {
+        expect(player.x).toBeCloseTo(stoppedPosition.x, 10);
+        expect(player.z).toBeCloseTo(stoppedPosition.z, 10);
+      }
       if (i > 300 && i % 60 === 0) lags.push(generated - player.lastSeq);
     }
     expect(maxBytes).toBeLessThanOrEqual(MAX_ARENA_MESSAGE_BYTES);
@@ -356,7 +366,7 @@ describe('ArenaClient', () => {
       hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
     };
-    const other = (tick: number, x: number, yaw: number, pitch: number) => ({
+    const other = (_tick: number, x: number, yaw: number, pitch: number) => ({
       id: 1, name: 'B', colorIndex: 1, x, z: 0, yaw, pitch,
       hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
       lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
@@ -519,6 +529,27 @@ describe('ArenaClient', () => {
     client.ingestSnapshot(snap({ players: [{ ...base, x: 40, z: 40, lastSeq: 10 }] }));
     const view = client.worldView()!.player;
     expect(Math.hypot(view.x - 40, view.z - 40)).toBeLessThan(0.05);
+  });
+
+  it('reuses full-arena fog grids while rebuilding network views', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const map = generateArena('view-grid-cache');
+    const p = client.connect('ws://x/arena', 'A');
+    const player = {
+      id: 0, name: 'A', colorIndex: 0, x: 20, z: 20, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
+    sock.push({ v: 3, t: 'welcome', id: 0, seed: 'view-grid-cache', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(map.grid, map.pickups), tick: 0, snapshot: snap({ players: [player] }) });
+    await p;
+    const first = client.worldView()!;
+    client.stepLocal(STEP_DT, { ...emptyInput(), yaw: 0, pitch: 0 });
+    const next = client.worldView()!;
+    expect(next).not.toBe(first);
+    expect(next.explored).toBe(first.explored);
+    expect(next.secretCell).toBe(first.secretCell);
   });
 
   it('resets life and connection state across missed death snapshots and reconnects', async () => {

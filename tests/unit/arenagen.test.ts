@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateArena, arenaGridHash } from '../../src/sim/arenagen';
-import { CELL, PLAYER_RADIUS } from '../../src/sim/types';
+import { CELL } from '../../src/sim/types';
 
 function floodFillConnected(grid: Uint8Array, w: number, h: number): boolean {
   let start = -1;
@@ -173,4 +173,3 @@ describe('arenagen (Arena 96x96 generator)', () => {
     expect(arenaGridHash(a.grid, a.pickups)).toBe(arenaGridHash(b.grid, b.pickups));
   });
 });
-

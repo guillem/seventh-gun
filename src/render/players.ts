@@ -27,6 +27,7 @@
 // limb forward. Pose asymmetry lives in child groups so the walk cycle
 // never overwrites it.
 import * as THREE from 'three';
+import { disposeOwnedObject } from './dispose';
 import { PLAYER_HEIGHT } from '../sim/types';
 import { hasVisualLineOfSight, type SolidState } from '../sim/physics';
 import { applyRadialFog, applyRadialFogDeep } from './radialFog';
@@ -148,13 +149,13 @@ export class PlayerRenderer {
 
     for (const [id, rig] of this.rigs) {
       if (seen.has(id)) continue;
-      this.scene.remove(rig.group);
+      disposeOwnedObject(rig.group);
       this.rigs.delete(id);
     }
   }
 
   dispose(): void {
-    for (const rig of this.rigs.values()) this.scene.remove(rig.group);
+    for (const rig of this.rigs.values()) disposeOwnedObject(rig.group);
     this.rigs.clear();
   }
 
@@ -447,8 +448,10 @@ export class PlayerRenderer {
     g.fillStyle = '#c22a2a';
     g.fillRect(20, 40, 216 * Math.max(0, Math.min(1, p.hp / 100)), 10);
     const tex = new THREE.CanvasTexture(c);
-    (rig.nameSprite.material as THREE.SpriteMaterial).map?.dispose();
-    (rig.nameSprite.material as THREE.SpriteMaterial).map = tex;
-    (rig.nameSprite.material as THREE.SpriteMaterial).needsUpdate = true;
+    const sprite = rig.nameSprite;
+    (sprite.material as THREE.SpriteMaterial).map?.dispose();
+    sprite.userData.ownedTextures = [tex];
+    (sprite.material as THREE.SpriteMaterial).map = tex;
+    (sprite.material as THREE.SpriteMaterial).needsUpdate = true;
   }
 }

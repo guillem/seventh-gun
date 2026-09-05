@@ -36,6 +36,20 @@ async function closed(ws: import('@playwright/test').WebSocket, ms = 15000): Pro
 }
 
 test.describe('arena', () => {
+  test('an arena tick performs one renderer frame after all scene updates', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'desktop only');
+    await joinArena(page, 'ONEFRAME');
+    const frames = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: { renderStats: () => { frames: number }; tickNow: () => void };
+      }).__GAME__;
+      const before = G.renderStats().frames;
+      G.tickNow();
+      return { before, after: G.renderStats().frames };
+    });
+    expect(frames.after - frames.before).toBe(1);
+  });
+
   // Regression for the playtest bug: InputManager's window keydown handler
   // ran e.preventDefault() on every KeyM (map toggle) and unconditionally
   // added every key to its movement-key set, regardless of focus. Typing
