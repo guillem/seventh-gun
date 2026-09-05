@@ -1,20 +1,22 @@
 import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
-export const PROTOCOL_V = 1 as const;
+export const PROTOCOL_V = 2 as const;
+export const MAX_ARENA_MESSAGE_BYTES = 8192;
+export const MAX_INPUTS_PER_BATCH = 32;
 
 export type ClientMessage =
-  | { v: 1; t: 'join'; name: string }
-  | { v: 1; t: 'input'; seq: number; inputs: SimInput[] }
-  | { v: 1; t: 'ping'; at: number };
+  | { v: 2; t: 'join'; name: string }
+  | { v: 2; t: 'input'; spawnCount: number; seq: number; inputs: SimInput[] }
+  | { v: 2; t: 'ping'; at: number };
 
 export type ServerMessage =
-  | { v: 1; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
-  | { v: 1; t: 'snap'; snapshot: ArenaSnapshot }
-  | { v: 1; t: 'events'; es: ArenaEvent[] }
-  | { v: 1; t: 'full' }
-  | { v: 1; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { v: 1; t: 'pong'; at: number; serverTime: number };
+  | { v: 2; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
+  | { v: 2; t: 'snap'; snapshot: ArenaSnapshot }
+  | { v: 2; t: 'events'; es: ArenaEvent[] }
+  | { v: 2; t: 'full' }
+  | { v: 2; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
+  | { v: 2; t: 'pong'; at: number; serverTime: number };
 
 const CLIENT_TS = new Set(['join', 'input', 'ping']);
 const SERVER_TS = new Set(['welcome', 'snap', 'events', 'full', 'kicked', 'pong']);
@@ -22,13 +24,13 @@ const SERVER_TS = new Set(['welcome', 'snap', 'events', 'full', 'kicked', 'pong'
 export function isClientMessage(v: unknown): v is ClientMessage {
   if (!v || typeof v !== 'object') return false;
   const m = v as Record<string, unknown>;
-  if (m.v !== 1) return false;
+  if (m.v !== PROTOCOL_V) return false;
   if (typeof m.t !== 'string' || !CLIENT_TS.has(m.t)) return false;
   if (m.t === 'join') return typeof m.name === 'string';
   if (m.t === 'ping') return Number.isFinite(m.at);
   if (m.t === 'input') {
-    if (!Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
-    if (m.inputs.length > 8) return false;
+    if (!integer(m.spawnCount, 1) || !Number.isInteger(m.seq) || (m.seq as number) < 0 || !Array.isArray(m.inputs)) return false;
+    if (m.inputs.length > MAX_INPUTS_PER_BATCH) return false;
     return m.inputs.every(isInputFrame);
   }
   return false;
@@ -37,7 +39,7 @@ export function isClientMessage(v: unknown): v is ClientMessage {
 export function isServerMessage(v: unknown): v is ServerMessage {
   if (!v || typeof v !== 'object') return false;
   const m = v as Record<string, unknown>;
-  if (m.v !== 1) return false;
+  if (m.v !== PROTOCOL_V) return false;
   if (typeof m.t !== 'string' || !SERVER_TS.has(m.t)) return false;
   if (m.t === 'full') return true;
   if (m.t === 'kicked') return m.reason === 'idle' || m.reason === 'mismatch' || m.reason === 'protocol';
@@ -73,7 +75,7 @@ function isArenaPlayer(v: unknown): boolean {
   return integer(p.id, 0) && typeof p.name === 'string' && integer(p.colorIndex, 0)
     && finite(p.x) && finite(p.z) && finite(p.yaw) && finite(p.pitch) && finite(p.hp)
     && integer(p.gun, 1) && (p.gun as number) <= 7 && integer(p.ownedMask, 0) && typeof p.alive === 'boolean'
-    && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.lastSeq, 0)
+    && finite(p.protect) && integer(p.frags, 0) && integer(p.deaths, 0) && integer(p.spawnCount, 1) && integer(p.lastSeq, 0)
     && !!ammo && ['bullets', 'shells', 'nails', 'grenades', 'cores', 'void'].every((key) => finite(ammo[key]));
 }
 
@@ -138,7 +140,7 @@ export function decodeClient(text: string): ClientMessage | 'bad-v' | 'unknown' 
   try { parsed = JSON.parse(text); } catch { return 'invalid'; }
   if (!parsed || typeof parsed !== 'object') return 'invalid';
   const v = (parsed as { v?: unknown }).v;
-  if (v !== 1) return 'bad-v';
+  if (v !== PROTOCOL_V) return 'bad-v';
   if (isClientMessage(parsed)) return parsed;
   const t = (parsed as { t?: unknown }).t;
   if (typeof t === 'string' && !CLIENT_TS.has(t)) return 'unknown';
@@ -150,7 +152,7 @@ export function decodeServer(text: string): ServerMessage | 'bad-v' | 'unknown' 
   try { parsed = JSON.parse(text); } catch { return 'invalid'; }
   if (!parsed || typeof parsed !== 'object') return 'invalid';
   const v = (parsed as { v?: unknown }).v;
-  if (v !== 1) return 'bad-v';
+  if (v !== PROTOCOL_V) return 'bad-v';
   if (isServerMessage(parsed)) return parsed;
   const t = (parsed as { t?: unknown }).t;
   if (typeof t === 'string' && !SERVER_TS.has(t)) return 'unknown';

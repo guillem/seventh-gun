@@ -7,9 +7,9 @@ import { moveCircle, type SolidState } from '../sim/physics';
 import { PLAYER_RADIUS } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
-import { decodeServer, encode, type ServerMessage } from './protocol';
+import { MAX_INPUTS_PER_BATCH, decodeServer, encode, type ServerMessage } from './protocol';
 
-export type ArenaConnectError = 'full' | 'offline' | 'mismatch';
+export type ArenaConnectError = 'full' | 'offline' | 'mismatch' | 'protocol';
 
 export interface ArenaNetSocket {
   send(data: string): void;
@@ -30,17 +30,20 @@ export class ArenaClient {
   id = -1;
   seed = '';
   tick = 0;
+  private spawnCount = -1;
   rtt = 0;
   closeReason: string | null = null;
   onClose: ((reason: string) => void) | null = null;
 
   private sock: ArenaNetSocket | null = null;
   private latest: { snap: ArenaSnapshot; at: number } | null = null;
-  private previous: { snap: ArenaSnapshot; at: number } | null = null;
+  // Keep enough arrival-time history to bracket the 100 ms render delay at
+  // the normal 20 Hz snapshot cadence. Arrival times are intentional here:
+  // v2 snapshots have no server clock suitable for interpolation.
+  private snapshots: { snap: ArenaSnapshot; at: number }[] = [];
   private events: ArenaEvent[] = [];
   private pending: { seq: number; input: SimInput }[] = [];
   private nextSeq = 1;
-  private lastSentSeq = 0;
   private sendAcc = 0;
   private pingAcc = 0;
   private localX = 0;
@@ -60,10 +63,14 @@ export class ArenaClient {
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
-  constructor(private socketFactory: SocketFactory = (url) => new WebSocket(url) as unknown as ArenaNetSocket) {}
+  constructor(
+    private socketFactory: SocketFactory = (url) => new WebSocket(url) as unknown as ArenaNetSocket,
+    private now: () => number = () => performance.now(),
+  ) {}
 
   async connect(url: string, name: string, timeoutMs = CONNECT_TIMEOUT_MS): Promise<void> {
     this.close();
+    this.resetConnectionState();
     return new Promise((resolve, reject) => {
       let settled = false;
       const sock = this.socketFactory(url);
@@ -88,17 +95,25 @@ export class ArenaClient {
       });
       sock.addEventListener('close', (ev) => {
         if (!isCurrent()) return;
-        if (!settled) { fail('offline'); return; }
+        if (!settled) {
+          fail(ev.code === 4000 && ev.reason === 'protocol' ? 'protocol' : 'offline');
+          return;
+        }
         this.transportFailed(ev.reason || 'disconnected');
       });
       sock.addEventListener('open', () => {
         if (!isCurrent() || settled) return;
-        this.send({ v: 1, t: 'join', name });
+        this.send({ v: 2, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
         if (!isCurrent()) return;
         const msg = decodeServer(String(ev.data));
-        if (msg === 'bad-v' || msg === 'invalid' || msg === 'unknown') {
+        if (msg === 'bad-v') {
+          if (settled) this.transportFailed('protocol');
+          else fail('protocol');
+          return;
+        }
+        if (msg === 'invalid' || msg === 'unknown') {
           if (settled) this.transportFailed('protocol');
           else fail('offline');
           return;
@@ -116,7 +131,7 @@ export class ArenaClient {
           this.seed = msg.seed;
           this.tick = msg.tick;
           this.solid = { map, doors: [], secrets: [], sealIntact: false };
-          this.applySnap(msg.snapshot, performance.now());
+          this.applySnap(msg.snapshot, this.now());
           const me = msg.snapshot.players.find((p) => p.id === this.id);
           if (me) { this.localX = me.x; this.localZ = me.z; }
           this.connected = true;
@@ -151,7 +166,7 @@ export class ArenaClient {
   }
 
   shouldIgnoreEchoShot(actorId: number): boolean {
-    return actorId === this.id && performance.now() < this.echoShotUntil;
+    return actorId === this.id && this.now() < this.echoShotUntil;
   }
 
   /** Test helper: un-acked input count after reconcile. */
@@ -172,8 +187,8 @@ export class ArenaClient {
     this.pingAcc += dt;
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
-      this.pingSentAt = performance.now();
-      this.send({ v: 1, t: 'ping', at: this.pingSentAt });
+      this.pingSentAt = this.now();
+      this.send({ v: 2, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
     if (!me?.alive) {
@@ -195,7 +210,7 @@ export class ArenaClient {
     return this.view;
   }
 
-  others(now = performance.now()): {
+  others(now = this.now()): {
     id: number; name: string; colorIndex: number; x: number; z: number;
     yaw: number; pitch: number; hp: number; alive: boolean; gun: number;
   }[] {
@@ -229,7 +244,7 @@ export class ArenaClient {
   }
 
   /** Test helper: inject a snapshot as if it arrived from the server. */
-  ingestSnapshot(snap: ArenaSnapshot, at = performance.now()): void {
+  ingestSnapshot(snap: ArenaSnapshot, at = this.now()): void {
     this.applySnap(snap, at);
     this.reconcile();
     this.rebuildView();
@@ -277,7 +292,7 @@ export class ArenaClient {
     const ammo = w ? (me?.ammo[w.ammo] ?? 0) : 0;
     if (clamped.fire && this.localFireCd <= 0 && me?.alive && ammo > 0 && w) {
       this.cosmeticShot = { gun, x: this.localX, z: this.localZ, yaw: clamped.yaw };
-      this.echoShotUntil = performance.now() + 220;
+      this.echoShotUntil = this.now() + 220;
       this.lastShotSeq = seq;
       this.localFireCd = w.fireInterval;
     }
@@ -285,22 +300,25 @@ export class ArenaClient {
 
   private flushInputs(): void {
     if (!this.sock || !this.pending.length) return;
-    const fresh = this.pending.filter((p) => p.seq > this.lastSentSeq);
-    const batch = (fresh.length ? fresh : this.pending).slice(0, 8);
+    // Always begin at the oldest unacknowledged sequence. A server can reject
+    // a full queue, so sending only newer controls would create a sequence
+    // hole that it must not acknowledge past. Repeating an already accepted
+    // prefix is harmless: the server de-duplicates it before taking the next
+    // contiguous frame.
+    const batch = this.pending.slice(0, MAX_INPUTS_PER_BATCH);
     if (!batch.length) return;
-    this.send({ v: 1, t: 'input', seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
-    this.lastSentSeq = batch[batch.length - 1]!.seq;
+    this.send({ v: 2, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
   }
 
   private handleMessage(msg: ServerMessage): void {
     if (msg.t === 'snap') {
-      this.applySnap(msg.snapshot, performance.now());
+      this.applySnap(msg.snapshot, this.now());
       this.reconcile();
       this.rebuildView();
     } else if (msg.t === 'events') {
       this.events.push(...msg.es);
     } else if (msg.t === 'pong') {
-      this.rtt = Math.max(0, performance.now() - msg.at);
+      this.rtt = Math.max(0, this.now() - msg.at);
     } else if (msg.t === 'kicked') {
       this.closeReason = msg.reason;
       this.sock?.close();
@@ -329,10 +347,72 @@ export class ArenaClient {
     onClose?.(reason);
   }
 
-  private applySnap(snap: ArenaSnapshot, at: number): void {
-    this.previous = this.latest;
+  private applySnap(snap: ArenaSnapshot, at: number): boolean {
+    // A packet which predates the current authority cannot resurrect a player
+    // or undo a death/removal. Equal ticks are harmless and keep test/debug
+    // injection usable; the later arrival replaces the render sample.
+    if (this.latest && snap.tick < this.latest.snap.tick) return false;
+    const me = snap.players.find((player) => player.id === this.id);
+    if (me && me.spawnCount !== this.spawnCount) this.resetLife(me.spawnCount, me.x, me.z, me.yaw, me.pitch);
     this.latest = { snap, at };
+    this.snapshots.push({ snap, at });
+    this.snapshots.sort((a, b) => a.at - b.at);
+    const oldest = Math.max(...this.snapshots.map((sample) => sample.at)) - 1000;
+    this.snapshots = this.snapshots.filter((sample) => sample.at >= oldest);
     this.tick = snap.tick;
+    return true;
+  }
+
+  private resetLife(spawnCount: number, x: number, z: number, yaw: number, pitch: number): void {
+    this.spawnCount = spawnCount;
+    this.pending = [];
+    this.nextSeq = 1;
+    this.acc = 0;
+    this.sendAcc = 0;
+    this.smoothDx = 0;
+    this.smoothDz = 0;
+    this.smoothUntil = 0;
+    this.localFireCd = 0;
+    this.cosmeticShot = null;
+    this.echoShotUntil = 0;
+    this.lastShotSeq = 0;
+    this.localX = x;
+    this.localZ = z;
+    this.localYaw = yaw;
+    this.localPitch = pitch;
+  }
+
+  private resetConnectionState(): void {
+    this.connected = false;
+    this.id = -1;
+    this.seed = '';
+    this.tick = 0;
+    this.rtt = 0;
+    this.closeReason = null;
+    this.latest = null;
+    this.snapshots = [];
+    this.events = [];
+    this.solid = null;
+    this.view = null;
+    this.spawnCount = -1;
+    this.pending = [];
+    this.nextSeq = 1;
+    this.sendAcc = 0;
+    this.pingAcc = 0;
+    this.pingSentAt = 0;
+    this.localX = 0;
+    this.localZ = 0;
+    this.localYaw = 0;
+    this.localPitch = 0;
+    this.acc = 0;
+    this.smoothDx = 0;
+    this.smoothDz = 0;
+    this.smoothUntil = 0;
+    this.localFireCd = 0;
+    this.cosmeticShot = null;
+    this.echoShotUntil = 0;
+    this.lastShotSeq = 0;
+    this.diedAt = null;
   }
 
   private reconcile(): void {
@@ -374,24 +454,34 @@ export class ArenaClient {
     } else {
       this.smoothDx = errX;
       this.smoothDz = errZ;
-      this.smoothUntil = performance.now() + 100;
+      this.smoothUntil = this.now() + 100;
     }
   }
 
   private interpolatedSnap(now: number): ArenaSnapshot | null {
-    if (!this.latest) return null;
-    if (!this.previous) return this.latest.snap;
+    if (!this.latest || !this.snapshots.length) return null;
     const target = now - INTERP_MS;
-    const t0 = this.previous.at;
-    const t1 = this.latest.at;
-    const u = t1 === t0 ? 1 : Math.max(0, Math.min(1, (target - t0) / (t1 - t0)));
-    const a = this.previous.snap;
-    const b = this.latest.snap;
+    let after = this.snapshots.find((sample) => sample.at >= target) ?? this.snapshots[this.snapshots.length - 1]!;
+    let before = this.snapshots[0]!;
+    for (const sample of this.snapshots) {
+      if (sample.at > target) break;
+      before = sample;
+    }
+    if (after.at < before.at) after = before;
+    const u = after.at === before.at ? 1 : Math.max(0, Math.min(1, (target - before.at) / (after.at - before.at)));
+    const a = before.snap;
+    const b = after.snap;
     return {
       tick: b.tick,
       players: b.players.map((p) => {
         const q = a.players.find((x) => x.id === p.id) ?? p;
-        return { ...p, x: q.x + (p.x - q.x) * u, z: q.z + (p.z - q.z) * u };
+        return {
+          ...p,
+          x: q.x + (p.x - q.x) * u,
+          z: q.z + (p.z - q.z) * u,
+          yaw: lerpAngle(q.yaw, p.yaw, u),
+          pitch: lerpAngle(q.pitch, p.pitch, u),
+        };
       }),
       projectiles: b.projectiles.map((p) => {
         const q = a.projectiles.find((x) => x.id === p.id) ?? p;
@@ -410,8 +500,8 @@ export class ArenaClient {
     if (!this.solid || !this.latest) { this.view = null; return; }
     const me = this.latest.snap.players.find((p) => p.id === this.id);
     if (!me) { this.view = null; return; }
-    const interp = this.interpolatedSnap(performance.now());
-    const now = performance.now();
+    const interp = this.interpolatedSnap(this.now());
+    const now = this.now();
     const k = this.smoothUntil > now ? (this.smoothUntil - now) / 100 : 0;
     let sx = this.smoothDx * k;
     let sz = this.smoothDz * k;
@@ -473,6 +563,11 @@ export class ArenaClient {
       arenaEnemiesRemaining: () => 0,
     };
   }
+}
+
+function lerpAngle(a: number, b: number, u: number): number {
+  const delta = Math.atan2(Math.sin(b - a), Math.cos(b - a));
+  return a + delta * u;
 }
 
 function maskToOwned(mask: number): boolean[] {

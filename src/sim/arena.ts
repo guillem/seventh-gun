@@ -109,6 +109,7 @@ export interface ArenaSnapshot {
     protect: number;
     frags: number;
     deaths: number;
+    spawnCount: number;
     lastSeq: number;
     ammo: Record<AmmoType, number>;
   }[];
@@ -238,16 +239,18 @@ export class ArenaSim implements SolidState {
     this.events.push({ t: 'playerLeave', id });
   }
 
-  pushInput(id: number, seq: number, inputs: SimInput[]): void {
+  pushInput(id: number, spawnCount: number, seq: number, inputs: SimInput[]): void {
     const p = this.players.find((pp) => pp.id === id);
-    if (!p) return;
+    if (!p || !p.alive || spawnCount !== p.spawnCount) return;
     // `seq` is the first input; the rest are consecutive. Ignore anything
     // already queued or consumed so a resend at real RTT is a no-op.
     for (let i = 0; i < inputs.length; i++) {
       const s = seq + i;
       if (s <= p.lastQueuedSeq) continue;
-      p.lastQueuedSeq = s;
-      if (!p.alive) continue;
+      // The client retransmits from its oldest unacknowledged sequence. Do
+      // not accept a later gap: acknowledging 12 while 9–11 were rejected
+      // would make those controls unrecoverable on the client.
+      if (s !== p.lastQueuedSeq + 1) break;
       const raw = inputs[i]!;
       const frame: SimInput = {
         ...raw,
@@ -255,12 +258,14 @@ export class ArenaSim implements SolidState {
         moveZ: Math.max(-1, Math.min(1, raw.moveZ)),
         pitch: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, raw.pitch)),
       };
-      if (p.queued.length >= 8) {
-        p.queued.shift();
-        p.queuedSeqs.shift();
-      }
+      // Do not silently discard an accepted frame. In particular, a one-frame
+      // fire or weapon switch must either be simulated or remain unacknowledged
+      // so the client can resend it. Keeping the queue bounded also prevents a
+      // delayed client from converting a burst into extra movement time.
+      if (p.queued.length >= 8) break;
       p.queued.push(frame);
       p.queuedSeqs.push(s);
+      p.lastQueuedSeq = s;
       p.input = frame;
     }
   }
@@ -283,12 +288,17 @@ export class ArenaSim implements SolidState {
         continue;
       }
 
-      // Consume one queued input per tick; drain faster if the queue is
-      // backing up (workerd setInterval runs a bit under 60 Hz).
-      const take = p.queued.length > 4 ? 2 : 1;
-      for (let n = 0; n < take && p.queued.length; n++) {
+      // Exactly one acknowledged input contributes to one fixed simulation
+      // tick. Applying two queued controls in one tick acknowledged a short
+      // action without simulating it, and could make delayed movement faster.
+      if (p.queued.length) {
         p.input = p.queued.shift()!;
         p.lastSeq = p.queuedSeqs.shift() ?? p.lastSeq;
+      } else {
+        // A network input is a single control frame, not a command to keep
+        // moving/firing until the next packet. Preserve the latest look pose
+        // for a stable camera, but neutralize every action between frames.
+        p.input = { ...emptyInput(), yaw: p.input.yaw, pitch: p.input.pitch };
       }
 
       const prevYaw = p.yaw;
@@ -383,6 +393,7 @@ export class ArenaSim implements SolidState {
         protect: Math.max(0, p.protectUntil - this.time),
         frags: p.frags,
         deaths: p.deaths,
+        spawnCount: p.spawnCount,
         lastSeq: p.lastSeq,
         ammo: { ...p.ammo },
       })),
@@ -466,8 +477,8 @@ export class ArenaSim implements SolidState {
     p.input = { ...emptyInput(), yaw: p.yaw, pitch: p.pitch, switchGun: null };
     p.queued = [];
     p.queuedSeqs = [];
-    // Keep lastSeq / lastQueuedSeq so in-flight pre-death inputs cannot
-    // be replayed from the new spawn cell.
+    p.lastSeq = 0;
+    p.lastQueuedSeq = 0;
 
     this.events.push({ t: 'playerSpawn', id: p.id });
   }
