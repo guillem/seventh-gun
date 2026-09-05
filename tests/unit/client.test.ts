@@ -296,12 +296,22 @@ describe('ArenaClient', () => {
     player.ammo.shells = 2;
     let generated = 0;
     const lags: number[] = [];
+    let stoppedPosition: { x: number; z: number } | null = null;
     for (let i = 0; i < 1800; i++) {
       now += STEP_DT * 1000;
       client.stepLocal(STEP_DT, { ...emptyInput(), moveZ: i < 180 ? 1 : 0, switchGun: i === 60 ? 2 : null, fire: i === 60 });
       generated++;
       flush();
       tick();
+      if (i === 204) {
+        // Frame 181 is the first neutral control. It must have been applied
+        // within 24 fixed ticks (400 ms), even at the worst tested RTT/jitter.
+        expect(player.lastSeq).toBeGreaterThanOrEqual(181);
+        stoppedPosition = { x: player.x, z: player.z };
+      } else if (stoppedPosition) {
+        expect(player.x).toBeCloseTo(stoppedPosition.x, 10);
+        expect(player.z).toBeCloseTo(stoppedPosition.z, 10);
+      }
       if (i > 300 && i % 60 === 0) lags.push(generated - player.lastSeq);
     }
     expect(maxBytes).toBeLessThanOrEqual(MAX_ARENA_MESSAGE_BYTES);

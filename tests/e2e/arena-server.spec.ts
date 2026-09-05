@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { PROTOCOL_V } from '../../src/net/protocol';
 
 test.describe('arena server', () => {
   test('health and websocket welcome', async ({ page }, testInfo) => {
@@ -6,12 +7,12 @@ test.describe('arena server', () => {
     const health = await page.request.get('/health');
     expect(await health.text()).toBe('ok');
     await page.goto('/?e2e=1');
-    const got = await page.evaluate(async () => {
+    const got = await page.evaluate(async (version) => {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${proto}://${location.host}/arena`);
       return await new Promise<string>((resolve, reject) => {
         const t = setTimeout(() => reject(new Error('timeout')), 5000);
-        ws.onopen = () => ws.send(JSON.stringify({ v: 3, t: 'join', name: 'E2E' }));
+        ws.onopen = () => ws.send(JSON.stringify({ v: version, t: 'join', name: 'E2E' }));
         ws.onmessage = (ev) => {
           clearTimeout(t);
           resolve(String(ev.data));
@@ -19,9 +20,9 @@ test.describe('arena server', () => {
         };
         ws.onerror = () => reject(new Error('ws error'));
       });
-    });
+    }, PROTOCOL_V);
     const msg = JSON.parse(got);
     expect(msg.t).toBe('welcome');
-    expect(msg.v).toBe(1);
+    expect(msg.v).toBe(PROTOCOL_V);
   });
 });
