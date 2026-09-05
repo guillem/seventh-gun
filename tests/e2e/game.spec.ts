@@ -383,6 +383,7 @@ test.describe('desktop', () => {
         __GAME__: {
           startRun: (seed: string) => void; give: (gun: number) => void;
           killSome: (count: number) => void; tickNow: () => void;
+          shoot: () => { spent?: boolean }; step: (count: number) => void;
           pose: (opts: { gun: number; fire: boolean }) => void;
           renderStats: () => { frames: number; geometries: number; textures: number };
         };
@@ -396,6 +397,15 @@ test.describe('desktop', () => {
         G.pose({ gun, fire: true });
         G.tickNow(); // allocate and expire a representative muzzle/FX path
       }
+      // Exercise the actual sim event paths too: hitscan makes a tracer and
+      // the launcher creates a geometry-owning projectile rig.
+      G.give(1);
+      if (!G.shoot().spent) throw new Error('hitscan FX shot was rejected');
+      G.tickNow();
+      G.step(30); // let pistol cooldown elapse before switching to the launcher
+      G.give(4);
+      if (!G.shoot().spent) throw new Error('projectile FX shot was rejected');
+      G.tickNow();
       G.killSome(4);
       // The next startRun calls setRun(), which clears transient FX. A short
       // rendered span is enough to submit the allocations; waiting until every
