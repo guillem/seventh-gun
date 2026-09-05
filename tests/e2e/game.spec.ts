@@ -360,12 +360,19 @@ test.describe('desktop', () => {
       const G = (window as unknown as {
         __GAME__: {
           startRun: (seed: string) => void; give: (gun: number) => void;
-          killSome: (count: number) => void; debugInfo: () => { render: { geometries: number; textures: number } };
+          killSome: (count: number) => void; tickNow: () => void;
+          pose: (opts: { gun: number; fire: boolean }) => void;
+          debugInfo: () => { render: { geometries: number; textures: number } };
         };
       }).__GAME__;
       G.startRun('e2e-render-lifecycle');
       await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      for (let gun = 1; gun <= 7; gun++) G.give(gun);
+      for (let gun = 1; gun <= 7; gun++) {
+        G.give(gun);
+        G.tickNow(); // compile and draw each concrete viewmodel before replacing it
+        G.pose({ gun, fire: true });
+        G.tickNow(); // allocate and expire a representative muzzle/FX path
+      }
       G.killSome(4);
       // FX and particle allocations have finite lifetimes.  Wait rendered
       // frames rather than a wall-clock timeout so software WebGL is covered.

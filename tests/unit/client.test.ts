@@ -531,6 +531,27 @@ describe('ArenaClient', () => {
     expect(Math.hypot(view.x - 40, view.z - 40)).toBeLessThan(0.05);
   });
 
+  it('reuses full-arena fog grids while rebuilding network views', async () => {
+    const sock = new FakeSock();
+    const client = new ArenaClient(() => sock);
+    const map = generateArena('view-grid-cache');
+    const p = client.connect('ws://x/arena', 'A');
+    const player = {
+      id: 0, name: 'A', colorIndex: 0, x: 20, z: 20, yaw: 0, pitch: 0,
+      hp: 100, gun: 1, ownedMask: 1, alive: true, protect: 0, frags: 0, deaths: 0,
+      lastSeq: 0, ammo: { bullets: 70, shells: 0, nails: 0, grenades: 0, cores: 0, void: 0 },
+    };
+    sock.push({ v: 3, t: 'welcome', id: 0, seed: 'view-grid-cache', genVersion: ARENA_GEN_VERSION,
+      gridHash: arenaGridHash(map.grid, map.pickups), tick: 0, snapshot: snap({ players: [player] }) });
+    await p;
+    const first = client.worldView()!;
+    client.stepLocal(STEP_DT, { ...emptyInput(), yaw: 0, pitch: 0 });
+    const next = client.worldView()!;
+    expect(next).not.toBe(first);
+    expect(next.explored).toBe(first.explored);
+    expect(next.secretCell).toBe(first.secretCell);
+  });
+
   it('resets life and connection state across missed death snapshots and reconnects', async () => {
     const first = new FakeSock();
     const second = new FakeSock();
