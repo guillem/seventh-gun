@@ -56,8 +56,22 @@ try {
   });
   const [one, two] = await deadline(Promise.all([connect(), connect()]), 'arena joins');
   if (one.message.seed !== two.message.seed || one.message.gridHash !== two.message.gridHash) throw new Error('clients did not join the same arena');
-  one.ws.send(JSON.stringify({ v: 3, t: 'input', spawnCount: one.message.snapshot.players.find((player) => player.id === one.message.id).spawnCount, seq: 1,
-    inputs: Array.from({ length: 32 }, () => ({ moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false })) }));
+  const spawnCount = one.message.snapshot.players.find((player) => player.id === one.message.id).spawnCount;
+  const legalBatch = JSON.stringify({ v: 3, t: 'input', spawnCount, seq: 1,
+    inputs: Array.from({ length: 32 }, () => ({ moveX: 0, moveZ: 0, yaw: 0, pitch: 0, fire: false, use: false, switchGun: null })) });
+  const legalBytes = Buffer.byteLength(legalBatch);
+  if (legalBytes <= 2_048 || legalBytes > 8_192) throw new Error(`legal input batch has unexpected ${legalBytes}-byte size`);
+  const acknowledged = deadline(new Promise((resolveAck, reject) => {
+    one.ws.on('message', (raw) => {
+      try {
+        const message = JSON.parse(raw.toString());
+        const self = message.t === 'snap' && message.snapshot.players.find((player) => player.id === one.message.id);
+        if (self?.lastSeq >= 1) resolveAck();
+      } catch (error) { reject(error); }
+    });
+  }), 'legal 32-frame input acknowledgement');
+  one.ws.send(legalBatch);
+  await acknowledged;
   const occupied = spawn(process.execPath, [cli, '--port', String(port), '--host', '127.0.0.1']);
   const [code] = await deadline(once(occupied, 'exit'), 'occupied-port failure');
   if (code === 0) throw new Error('packed CLI accepted an occupied port');
