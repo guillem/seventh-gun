@@ -26,6 +26,28 @@ async function waitFrames(page: import('@playwright/test').Page, n: number): Pro
 }
 
 test.describe('desktop', () => {
+  test('maze and campaign ticks each perform one renderer frame after scene updates', async ({ page }) => {
+    await page.goto(BASE);
+    const deltas = await page.evaluate(() => {
+      const G = (window as unknown as {
+        __GAME__: {
+          startRun: (seed: string) => void; startCampaign: (n: number) => void;
+          renderStats: () => { frames: number }; tickNow: () => void;
+        };
+      }).__GAME__;
+      return [
+        () => G.startRun('e2e-one-maze-frame'),
+        () => G.startCampaign(1),
+      ].map(start => {
+        start();
+        const before = G.renderStats().frames;
+        G.tickNow();
+        return G.renderStats().frames - before;
+      });
+    });
+    expect(deltas).toEqual([1, 1]);
+  });
+
   test('boots to title and starts a run', async ({ page }) => {
     await page.goto(BASE);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('SEVENTH');
@@ -351,6 +373,67 @@ test.describe('desktop', () => {
     const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs);
     expect(rigs.length).toBeGreaterThan(3);
     for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
+  });
+
+  test('replaying a warmed fight and cycling guns leaves GPU allocations stable', async ({ page }) => {
+    test.setTimeout(60000);
+    await page.goto(BASE);
+    const exercise = async () => page.evaluate(async () => {
+      const G = (window as unknown as {
+        __GAME__: {
+          startRun: (seed: string) => void; give: (gun: number) => void;
+          killSome: (count: number) => void; tickNow: () => void;
+          shoot: () => { spent?: boolean }; step: (count: number) => void;
+          state: () => { ammo: { nails: number } };
+          pose: (opts: { gun: number; fire: boolean }) => void;
+          renderStats: () => { frames: number; geometries: number; textures: number };
+        };
+      }).__GAME__;
+      G.startRun('e2e-render-lifecycle');
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      const before = G.renderStats().frames;
+      for (let gun = 1; gun <= 7; gun++) {
+        G.give(gun);
+        G.tickNow(); // compile and draw each concrete viewmodel before replacing it
+        G.pose({ gun, fire: true });
+        G.tickNow(); // allocate and expire a representative muzzle/FX path
+      }
+      // Exercise the actual sim event paths too: hitscan makes a tracer and
+      // the launcher creates a geometry-owning projectile rig.
+      G.give(1);
+      if (!G.shoot().spent) throw new Error('hitscan FX shot was rejected');
+      G.tickNow();
+      G.step(30); // let pistol cooldown elapse before switching to the launcher
+      G.give(4);
+      // G.shoot().spent reports the pistol's bullet stack for older debug
+      // callers, so verify the Spiker's own ammo source directly.
+      const nails = G.state().ammo.nails;
+      G.shoot();
+      if (G.state().ammo.nails !== nails - 1) throw new Error('projectile FX shot was rejected');
+      G.tickNow();
+      G.killSome(4);
+      // The next startRun calls setRun(), which clears transient FX. A short
+      // rendered span is enough to submit the allocations; waiting until every
+      // particle expires makes this GPU guard disproportionately slow on
+      // software WebGL.
+      await new Promise<void>(resolve => {
+        let frames = 0;
+        const step = () => { if (++frames >= 12) resolve(); else requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      });
+      const after = G.renderStats();
+      // One explicit tick after each give and fire, plus active rAF frames,
+      // proves this GPU check exercises real draws rather than scene-only
+      // updates.
+      if (after.frames - before < 14) throw new Error('campaign renderer did not draw each gun and FX pass');
+      return after;
+    });
+
+    await exercise(); // warm texture/program caches and establish current-gun topology
+    const baseline = await exercise();
+    const repeated = await exercise();
+    expect({ geometries: repeated.geometries, textures: repeated.textures })
+      .toEqual({ geometries: baseline.geometries, textures: baseline.textures });
   });
 
   test('full map opens on Tab, shows fog of war and player marker, pauses combat', async ({ page }) => {

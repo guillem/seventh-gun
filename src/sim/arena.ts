@@ -609,7 +609,7 @@ export class ArenaSim implements SolidState {
     }
   }
 
-  private damagePlayer(victim: ArenaPlayer, fromId: number, t: number, damage: number, fromX: number, fromZ: number): void {
+  private damagePlayer(victim: ArenaPlayer, fromId: number, _t: number, damage: number, fromX: number, fromZ: number): void {
     if (!victim.alive) return;
     if (victim.protectUntil > this.time) return;
     const dmg = Math.max(1, damage);

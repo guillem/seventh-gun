@@ -1,4 +1,4 @@
-import { makeRng, type Rng } from './rng';
+import { makeRng } from './rng';
 import { CELL, type GameMap, type Room, type Theme, cellToWorld, type PickupDef } from './types';
 import { placeCosmetics } from './cosmetics';
 import { WEAPONS } from './weapons';
@@ -39,11 +39,6 @@ function carveRect(grid: Uint8Array, w: number, x: number, z: number, rw: number
   }
 }
 
-function roomThemeForSlot(slotZ: number): Theme {
-  const cycle: Theme[] = ['industrial', 'organic', 'stone', 'tech'];
-  return cycle[slotZ % cycle.length]!;
-}
-
 function neighborFloorCount(grid: Uint8Array, w: number, x: number, z: number): number {
   let c = 0;
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
@@ -52,26 +47,6 @@ function neighborFloorCount(grid: Uint8Array, w: number, x: number, z: number): 
     if (grid[nz * w + nx] === 1) c++;
   }
   return c;
-}
-
-function roomsInsideRoomCells(mapGrid: Uint8Array, w: number, h: number, rooms: Room[], onlyInterior: boolean): Map<number, [number, number][]> {
-  const out = new Map<number, [number, number][]>();
-  for (const r of rooms) {
-    const x0 = onlyInterior ? r.x + 1 : r.x;
-    const z0 = onlyInterior ? r.z + 1 : r.z;
-    const x1 = onlyInterior ? r.x + r.w - 1 : r.x + r.w - 1;
-    const z1 = onlyInterior ? r.z + r.h - 1 : r.z + r.h - 1;
-    const cells: [number, number][] = [];
-    for (let z = z0; z <= z1; z++) {
-      for (let x = x0; x <= x1; x++) {
-        if (x < 1 || z < 1 || x >= w - 1 || z >= h - 1) continue;
-        if (mapGrid[z * w + x] !== 1) continue;
-        cells.push([x, z]);
-      }
-    }
-    out.set(r.id, cells);
-  }
-  return out;
 }
 
 function computeFloorReachable(grid: Uint8Array, w: number, h: number): boolean {
@@ -331,7 +306,6 @@ export function generateArena(seed: string): GameMap {
     const sealBreak = { type: 'gun' as const, gun: 7 };
 
     // Pads (content stream, ids in placement order).
-    const padIds = { gun2: 0 };
     const used = new Set<number>();
     const floorNeighborOk = (cx: number, cz: number) => neighborFloorCount(grid, w, cx, cz) >= 3;
     const key = (x: number, z: number) => z * w + x;
@@ -539,4 +513,3 @@ export function generateArena(seed: string): GameMap {
 
   throw new Error(`generateArena: could not place a connected arena for seed=${seed}`);
 }
-

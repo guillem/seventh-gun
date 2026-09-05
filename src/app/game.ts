@@ -1,6 +1,5 @@
 // Game orchestrator: loop, phases (title/playing/paused/dying/dead/won),
 // input -> sim stepping, event fan-out to renderer/audio/HUD, debug API.
-import * as THREE from 'three';
 import { Sim, STEP_DT, emptyInput } from '../sim/sim';
 import type { ArenaEvent } from '../sim/arena';
 import { ArenaClient } from '../net/client';
@@ -948,15 +947,15 @@ export class Game {
     const sim = this.sim;
 
     this.hud.update(dtReal);
+
+    if (this.runKind === 'arena' && this.arenaClient) {
+      this.tickArena(dtReal);
+      return;
+    }
     this.audio.update(dtReal, sim ? sim.player.hp / sim.player.maxHp : 1);
 
     if (!sim && this.runKind !== 'arena') {
       this.renderer.render();
-      return;
-    }
-
-    if (this.runKind === 'arena' && this.arenaClient) {
-      this.tickArena(dtReal);
       return;
     }
 
@@ -1040,8 +1039,10 @@ export class Game {
     } else {
       this.setMinimapVisible(false);
       this.hud.clear();
-      this.renderer.render();
     }
+    // GameRenderer.update owns scene state only. Render once after every
+    // world layer and HUD input have consumed this simulation frame.
+    this.renderer.render();
   };
 
   private lastPx: number | null = null;
@@ -1076,7 +1077,12 @@ export class Game {
     }
     const view = client.worldView();
     for (const e of client.takeEvents()) this.handleArenaEvent(e, client.id);
-    if (!view) { this.renderer.render(); return; }
+    if (!view) {
+      this.audio.update(dtReal, 1);
+      this.renderer.render();
+      return;
+    }
+    this.audio.update(dtReal, view.player.hp / view.player.maxHp);
     const others = client.others();
     const moving = Math.abs(view.player.x - (this.lastPx ?? view.player.x)) + Math.abs(view.player.z - (this.lastPz ?? view.player.z)) > 0.001;
     this.lastPx = view.player.x; this.lastPz = view.player.z;
@@ -1088,6 +1094,8 @@ export class Game {
     this.setMinimapVisible(true);
     if (this.miniCanvas) this.hud.drawMinimap(view, 0, false);
     if (fullMapOpen) this.hud.drawMinimap(view, 0, true);
+    // updateArena has finished every world and remote-player update; this is
+    // the one world + viewmodel render for the arena frame.
     this.renderer.render();
   }
 
@@ -1500,6 +1508,7 @@ export class Game {
         rigs: this.renderer.enemyRigInfo.slice(0, 8),
         muzzle: this.renderer.muzzleState,
         updateCount: this.renderer.enemyUpdateCount,
+        render: this.renderer.debugStats,
         simEnemies: this.sim ? this.sim.enemies.slice(0, 8).map(e => ({
           id: e.id, type: e.type, x: +e.x.toFixed(1), z: +e.z.toFixed(1),
           dead: e.dead, hp: +e.hp.toFixed(1),
@@ -1508,6 +1517,7 @@ export class Game {
         camera: { yaw: +this.renderer.camera.rotation.y.toFixed(3), pitch: +this.renderer.camera.rotation.x.toFixed(3) },
         lastAimDir: this.sim ? this.sim.lastAimDir : null,
       }),
+      renderStats: () => this.renderer.debugStats,
       showAllEnemies: (v: boolean) => { this.renderer.showAllEnemies = v; },
       setTouch: (v: boolean) => {
         this.input.isTouch = v;

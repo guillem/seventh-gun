@@ -769,7 +769,13 @@ export class Sim {
           e.timer -= dt;
           if (e.timer <= 0) {
         if (e.burstLeft > 0) {
-          this.enemyShoot(e);
+          // A target can round a corner during windup or between burst
+          // shots. Do not launch a splash projectile at a player who is
+          // already geometrically occluded: its impact is blocked by the
+          // wall, but its radius can still damage through that same wall.
+          // Consume the scheduled burst slot either way so cover does not
+          // retune cadence, cooldowns, or the enemy's field-of-view rules.
+          if (hasLineOfSight(this, e.x, e.z, p.x, p.z)) this.enemyShoot(e);
           e.burstLeft--;
           e.timer = e.def.burstGap;
               if (e.burstLeft === 0) {

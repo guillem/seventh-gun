@@ -5,6 +5,7 @@ import { getTextures } from './textures';
 import { getProjectileSprite, isProjectileKind, type ProjectileKind } from './projectiles';
 import type { ProjectileEnt } from '../sim/sim';
 import { applyRadialFogDeep } from './radialFog';
+import { disposeOwnedObject } from './dispose';
 
 // Energy bolts all share one recipe: a small solid core so the shot has a hard
 // centre, a painted additive corona billboard, and two shrinking trail puffs
@@ -258,7 +259,7 @@ export class FxRenderer {
     const ids = new Set(projectiles.map(p => p.id));
     for (const [id, mesh] of this.projectileMeshes) {
       if (!ids.has(id)) {
-        this.scene.remove(mesh);
+        disposeOwnedObject(mesh);
         this.projectileMeshes.delete(id);
       }
     }
@@ -288,7 +289,7 @@ export class FxRenderer {
       e.life += dt;
       const k = 1 - e.life / e.maxLife;
       if (e.life >= e.maxLife) {
-        this.scene.remove(e.obj);
+        disposeOwnedObject(e.obj);
         this.effects.splice(i, 1);
         continue;
       }
@@ -298,8 +299,7 @@ export class FxRenderer {
       const p = this.particles[i];
       p.life += dt;
       if (p.life >= p.maxLife) {
-        this.scene.remove(p.sprite);
-        (p.sprite.material as THREE.SpriteMaterial).dispose();
+        disposeOwnedObject(p.sprite);
         this.particles.splice(i, 1);
         continue;
       }
@@ -315,11 +315,11 @@ export class FxRenderer {
   }
 
   clearTransient(): void {
-    for (const e of this.effects) this.scene.remove(e.obj);
+    for (const e of this.effects) disposeOwnedObject(e.obj);
     this.effects.length = 0;
-    for (const p of this.particles) this.scene.remove(p.sprite);
+    for (const p of this.particles) disposeOwnedObject(p.sprite);
     this.particles.length = 0;
-    for (const [, m] of this.projectileMeshes) this.scene.remove(m);
+    for (const [, m] of this.projectileMeshes) disposeOwnedObject(m);
     this.projectileMeshes.clear();
   }
 }

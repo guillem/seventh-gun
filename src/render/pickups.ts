@@ -6,6 +6,7 @@ import { buildWorldGun } from './viewmodels';
 import type { PickupEnt } from '../sim/sim';
 import { AMMO_LABEL } from '../sim/weapons';
 import { applyRadialFogDeep } from './radialFog';
+import { disposeOwnedObject } from './dispose';
 
 const AMMO_COLOR: Record<string, number> = {
   bullets: 0xd8b23a, shells: 0xc4452a, nails: 0x9aa6ad,
@@ -30,6 +31,7 @@ function labelSprite(text: string, color: number): THREE.Sprite {
   tex.magFilter = THREE.NearestFilter;
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const s = new THREE.Sprite(mat);
+  s.userData.ownedTextures = [tex];
   s.scale.set(0.9, 0.22, 1);
   return s;
 }
@@ -179,7 +181,7 @@ export class PickupRenderer {
       const mesh = this.meshes.get(p.id);
       if (!mesh) continue;
       if (p.taken) {
-        this.scene.remove(mesh);
+        disposeOwnedObject(mesh);
         this.meshes.delete(p.id);
         continue;
       }
@@ -195,7 +197,7 @@ export class PickupRenderer {
   }
 
   dispose(): void {
-    for (const [, m] of this.meshes) this.scene.remove(m);
+    for (const [, m] of this.meshes) disposeOwnedObject(m);
     this.meshes.clear();
   }
 

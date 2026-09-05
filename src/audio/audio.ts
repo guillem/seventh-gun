@@ -9,7 +9,6 @@ export class AudioEngine {
   private ctx: Ctx | null = null;
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
-  private ambientGain: GainNode | null = null;
   private ambientNodes: OscillatorNode[] = [];
   private chaingunLoop: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private voiceEnds: number[] = [];
@@ -301,7 +300,6 @@ export class AudioEngine {
     const g = this.ctx.createGain();
     g.gain.value = 0.05;
     g.connect(this.out());
-    this.ambientGain = g;
     for (const [f, det] of [[46, 0], [46.4, 3], [69, -2]] as [number, number][]) {
       const o = this.ctx.createOscillator();
       o.type = 'sawtooth';
@@ -330,7 +328,6 @@ export class AudioEngine {
   stopAmbient(): void {
     for (const o of this.ambientNodes) { try { o.stop(); } catch { /* already stopped */ } }
     this.ambientNodes = [];
-    this.ambientGain = null;
   }
 
   stopLoops(): void {
