@@ -190,7 +190,12 @@ export class Hud {
     g.fillText(`KILLS ${sim.killCount}`, 12, 38);
 
     // ---- arena counter
-    if (sim.arenaEntered) {
+    if (sim.networkArena) {
+      g.textAlign = 'center';
+      g.font = 'bold 22px monospace';
+      g.fillStyle = 'rgba(120,210,255,0.95)';
+      g.fillText('ARENA // DEATHMATCH', W / 2, 34);
+    } else if (sim.arenaEntered) {
       const left = sim.arenaEnemiesRemaining();
       g.textAlign = 'center';
       g.font = 'bold 22px monospace';

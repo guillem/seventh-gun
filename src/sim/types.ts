@@ -140,8 +140,8 @@ export interface GameMap {
 export type SimEvent =
   | { t: 'shot'; gun: number; x: number; z: number; yaw: number }
   | { t: 'dryfire'; gun: number }
-  | { t: 'tracer'; x0: number; z0: number; x1: number; z1: number; kind: 'bullets' | 'rail' }
-  | { t: 'beam'; x0: number; z0: number; x1: number; z1: number }
+  | { t: 'tracer'; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; kind: 'bullets' | 'rail' }
+  | { t: 'beam'; x0: number; y0: number; z0: number; x1: number; y1: number; z1: number }
   | { t: 'spawnProjectile'; kind: ProjectileKind; x: number; y: number; z: number }
   | { t: 'explosion'; x: number; y: number; z: number; radius: number }
   | { t: 'hitEnemy'; x: number; y: number; z: number; killed: boolean; type: EnemyType }

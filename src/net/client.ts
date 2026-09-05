@@ -7,7 +7,7 @@ import { moveCircle, type SolidState } from '../sim/physics';
 import { PLAYER_RADIUS } from '../sim/types';
 import { WEAPONS } from '../sim/weapons';
 import type { WorldView } from '../sim/view';
-import { MAX_INPUTS_PER_BATCH, decodeServer, encode, type ServerMessage } from './protocol';
+import { MAX_INPUTS_PER_BATCH, decodeServer, encode, PROTOCOL_V, type ServerMessage } from './protocol';
 
 export type ArenaConnectError = 'full' | 'offline' | 'mismatch' | 'protocol';
 
@@ -39,7 +39,7 @@ export class ArenaClient {
   private latest: { snap: ArenaSnapshot; at: number } | null = null;
   // Keep enough arrival-time history to bracket the 100 ms render delay at
   // the normal 20 Hz snapshot cadence. Arrival times are intentional here:
-  // v2 snapshots have no server clock suitable for interpolation.
+  // v3 snapshots have no server clock suitable for interpolation.
   private snapshots: { snap: ArenaSnapshot; at: number }[] = [];
   private events: ArenaEvent[] = [];
   private pending: { seq: number; input: SimInput }[] = [];
@@ -55,11 +55,13 @@ export class ArenaClient {
   private smoothUntil = 0;
   private solid: SolidState | null = null;
   private view: WorldView | null = null;
-  private lastShotSeq = 0;
+  private localGun = 1;
+  private predictedShots = new Set<string>();
   private pingSentAt = 0;
   private localFireCd = 0;
   private cosmeticShot: { gun: number; x: number; z: number; yaw: number } | null = null;
-  private echoShotUntil = 0;
+  private earlyProjectiles = new Map<number, { projectile: ArenaSnapshot['projectiles'][number]; receivedAt: number; expiresAt: number }>();
+  private despawnedProjectiles = new Map<number, number>();
   private diedAt: number | null = null;
   private cancelPendingConnect: (() => void) | null = null;
 
@@ -103,7 +105,7 @@ export class ArenaClient {
       });
       sock.addEventListener('open', () => {
         if (!isCurrent() || settled) return;
-        this.send({ v: 2, t: 'join', name });
+        this.send({ v: PROTOCOL_V, t: 'join', name });
       });
       sock.addEventListener('message', (ev) => {
         if (!isCurrent()) return;
@@ -133,7 +135,7 @@ export class ArenaClient {
           this.solid = { map, doors: [], secrets: [], sealIntact: false };
           this.applySnap(msg.snapshot, this.now());
           const me = msg.snapshot.players.find((p) => p.id === this.id);
-          if (me) { this.localX = me.x; this.localZ = me.z; }
+          if (me) { this.localX = me.x; this.localZ = me.z; this.localGun = me.gun; }
           this.connected = true;
           this.rebuildView();
           if (!settled) {
@@ -165,8 +167,11 @@ export class ArenaClient {
     return s;
   }
 
-  shouldIgnoreEchoShot(actorId: number): boolean {
-    return actorId === this.id && this.now() < this.echoShotUntil;
+  shouldIgnoreEchoShot(actorId: number, spawnCount: number, inputSeq: number): boolean {
+    const key = `${actorId}:${spawnCount}:${inputSeq}`;
+    if (actorId !== this.id || spawnCount !== this.spawnCount || !this.predictedShots.has(key)) return false;
+    this.predictedShots.delete(key);
+    return true;
   }
 
   /** Test helper: un-acked input count after reconcile. */
@@ -188,7 +193,7 @@ export class ArenaClient {
     if (this.pingAcc >= 5) {
       this.pingAcc = 0;
       this.pingSentAt = this.now();
-      this.send({ v: 2, t: 'ping', at: this.pingSentAt });
+      this.send({ v: PROTOCOL_V, t: 'ping', at: this.pingSentAt });
     }
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
     if (!me?.alive) {
@@ -287,13 +292,17 @@ export class ArenaClient {
     this.localZ = moved.z;
     this.localFireCd = Math.max(0, this.localFireCd - STEP_DT);
     const me = this.latest?.snap.players.find((p) => p.id === this.id);
-    const gun = me?.gun ?? 1;
+    let gun = this.localGun || me?.gun || 1;
+    if (clamped.switchGun !== null && clamped.switchGun >= 1 && clamped.switchGun <= 7
+      && !!(me?.ownedMask && (me.ownedMask & (1 << (clamped.switchGun - 1))))) {
+      gun = clamped.switchGun;
+      this.localGun = gun;
+    }
     const w = WEAPONS[gun - 1];
     const ammo = w ? (me?.ammo[w.ammo] ?? 0) : 0;
     if (clamped.fire && this.localFireCd <= 0 && me?.alive && ammo > 0 && w) {
       this.cosmeticShot = { gun, x: this.localX, z: this.localZ, yaw: clamped.yaw };
-      this.echoShotUntil = this.now() + 220;
-      this.lastShotSeq = seq;
+      this.predictedShots.add(`${this.id}:${this.spawnCount}:${seq}`);
       this.localFireCd = w.fireInterval;
     }
   }
@@ -307,7 +316,7 @@ export class ArenaClient {
     // contiguous frame.
     const batch = this.pending.slice(0, MAX_INPUTS_PER_BATCH);
     if (!batch.length) return;
-    this.send({ v: 2, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
+    this.send({ v: PROTOCOL_V, t: 'input', spawnCount: this.spawnCount, seq: batch[0]!.seq, inputs: batch.map((b) => b.input) });
   }
 
   private handleMessage(msg: ServerMessage): void {
@@ -316,7 +325,9 @@ export class ArenaClient {
       this.reconcile();
       this.rebuildView();
     } else if (msg.t === 'events') {
+      for (const event of msg.es) this.noteEvent(event);
       this.events.push(...msg.es);
+      this.rebuildView();
     } else if (msg.t === 'pong') {
       this.rtt = Math.max(0, this.now() - msg.at);
     } else if (msg.t === 'kicked') {
@@ -363,6 +374,26 @@ export class ArenaClient {
     return true;
   }
 
+  private noteEvent(event: ArenaEvent): void {
+    if (event.t === 'despawnProjectile') {
+      this.earlyProjectiles.delete(event.projectileId);
+      this.despawnedProjectiles.set(event.projectileId, this.now() + 1100);
+      return;
+    }
+    if (event.t !== 'spawnProjectile') return;
+    this.despawnedProjectiles.delete(event.projectileId);
+    this.earlyProjectiles.set(event.projectileId, {
+      projectile: {
+        id: event.projectileId, ownerId: event.ownerId, kind: event.kind,
+        x: event.x, y: event.y, z: event.z, vx: event.vx, vy: event.vy, vz: event.vz,
+        gravity: event.gravity, radius: event.radius, age: event.age,
+      },
+      // Do not remove this just because the latest snapshot has it: the
+      // delayed render history can still be sampling the pre-spawn frame.
+      receivedAt: this.now(), expiresAt: this.now() + 600,
+    });
+  }
+
   private resetLife(spawnCount: number, x: number, z: number, yaw: number, pitch: number): void {
     this.spawnCount = spawnCount;
     this.pending = [];
@@ -374,8 +405,8 @@ export class ArenaClient {
     this.smoothUntil = 0;
     this.localFireCd = 0;
     this.cosmeticShot = null;
-    this.echoShotUntil = 0;
-    this.lastShotSeq = 0;
+    this.predictedShots.clear();
+    this.localGun = 1;
     this.localX = x;
     this.localZ = z;
     this.localYaw = yaw;
@@ -410,8 +441,10 @@ export class ArenaClient {
     this.smoothUntil = 0;
     this.localFireCd = 0;
     this.cosmeticShot = null;
-    this.echoShotUntil = 0;
-    this.lastShotSeq = 0;
+    this.predictedShots.clear();
+    this.earlyProjectiles.clear();
+    this.despawnedProjectiles.clear();
+    this.localGun = 1;
     this.diedAt = null;
   }
 
@@ -432,7 +465,9 @@ export class ArenaClient {
     this.pending = this.pending.filter((p) => p.seq > me.lastSeq);
     this.localX = me.x;
     this.localZ = me.z;
+    this.localGun = me.gun;
     for (const p of this.pending) {
+      if (p.input.switchGun !== null && !!(me.ownedMask & (1 << (p.input.switchGun - 1)))) this.localGun = p.input.switchGun;
       const speed = 6.5;
       const fx = -Math.sin(p.input.yaw), fz = -Math.cos(p.input.yaw);
       const rx = Math.cos(p.input.yaw), rz = -Math.sin(p.input.yaw);
@@ -500,8 +535,12 @@ export class ArenaClient {
     if (!this.solid || !this.latest) { this.view = null; return; }
     const me = this.latest.snap.players.find((p) => p.id === this.id);
     if (!me) { this.view = null; return; }
-    const interp = this.interpolatedSnap(this.now());
     const now = this.now();
+    // Keep render-history retention bounded even if the connection goes quiet
+    // after a despawn event. Tombstones may then expire without an old live
+    // snapshot being sampled again.
+    this.snapshots = this.snapshots.filter((sample) => sample.at >= now - 1000);
+    const interp = this.interpolatedSnap(now);
     const k = this.smoothUntil > now ? (this.smoothUntil - now) / 100 : 0;
     let sx = this.smoothDx * k;
     let sz = this.smoothDz * k;
@@ -523,10 +562,10 @@ export class ArenaClient {
       pitch: this.localPitch,
       hp: me.hp,
       maxHp: 100,
-      gun: me.gun,
+      gun: this.localGun,
       owned: maskToOwned(me.ownedMask),
       ammo: { ...me.ammo },
-      fireCd: 0,
+      fireCd: this.localFireCd,
       dryCd: 0,
       bloom: 0,
       useCd: 0,
@@ -535,10 +574,20 @@ export class ArenaClient {
       const live = this.latest!.snap.pickups.find((p) => p.id === pk.id);
       return { ...pk, taken: live?.taken ?? false };
     });
-    const projectiles: ProjectileEnt[] = (interp?.projectiles ?? []).map((p) => ({
+    for (const [id, early] of this.earlyProjectiles) if (early.expiresAt <= now) this.earlyProjectiles.delete(id);
+    for (const [id, expiresAt] of this.despawnedProjectiles) if (expiresAt <= now) this.despawnedProjectiles.delete(id);
+    const snapshotProjectiles = (interp?.projectiles ?? []).filter((p) => !this.despawnedProjectiles.has(p.id));
+    const snapshotIds = new Set(snapshotProjectiles.map((p) => p.id));
+    const early = [...this.earlyProjectiles.values()].map((entry) => {
+      const elapsed = Math.max(0, (now - entry.receivedAt) / 1000);
+      return { ...entry.projectile, x: entry.projectile.x + entry.projectile.vx * elapsed,
+        y: entry.projectile.y + entry.projectile.vy * elapsed - entry.projectile.gravity * elapsed * elapsed / 2,
+        z: entry.projectile.z + entry.projectile.vz * elapsed, age: entry.projectile.age + elapsed };
+    });
+    const projectiles: ProjectileEnt[] = [...snapshotProjectiles, ...early.filter((p) => !snapshotIds.has(p.id))].map((p) => ({
       id: p.id, kind: p.kind, fromPlayer: true,
-      x: p.x, y: p.y, z: p.z, vx: 0, vy: 0, vz: 0,
-      gravity: 0, radius: 0.2, damage: 0, splashRadius: 0, damageSelfPct: 0, age: 0,
+      x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz,
+      gravity: p.gravity, radius: p.radius, damage: 0, splashRadius: 0, damageSelfPct: 0, age: p.age,
     }));
     const map = this.solid.map;
     const explored = new Uint8Array(map.w * map.h).fill(1);
@@ -559,6 +608,7 @@ export class ArenaClient {
       powerups: createPowerupState(),
       killCount: me.frags,
       arenaEntered: true,
+      networkArena: true,
       hasKey: false,
       arenaEnemiesRemaining: () => 0,
     };

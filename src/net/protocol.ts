@@ -1,22 +1,22 @@
 import type { ArenaEvent, ArenaSnapshot } from '../sim/arena';
 import type { SimInput } from '../sim/sim';
 
-export const PROTOCOL_V = 2 as const;
+export const PROTOCOL_V = 3 as const;
 export const MAX_ARENA_MESSAGE_BYTES = 8192;
 export const MAX_INPUTS_PER_BATCH = 32;
 
 export type ClientMessage =
-  | { v: 2; t: 'join'; name: string }
-  | { v: 2; t: 'input'; spawnCount: number; seq: number; inputs: SimInput[] }
-  | { v: 2; t: 'ping'; at: number };
+  | { v: typeof PROTOCOL_V; t: 'join'; name: string }
+  | { v: typeof PROTOCOL_V; t: 'input'; spawnCount: number; seq: number; inputs: SimInput[] }
+  | { v: typeof PROTOCOL_V; t: 'ping'; at: number };
 
 export type ServerMessage =
-  | { v: 2; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
-  | { v: 2; t: 'snap'; snapshot: ArenaSnapshot }
-  | { v: 2; t: 'events'; es: ArenaEvent[] }
-  | { v: 2; t: 'full' }
-  | { v: 2; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
-  | { v: 2; t: 'pong'; at: number; serverTime: number };
+  | { v: typeof PROTOCOL_V; t: 'welcome'; id: number; seed: string; genVersion: number; gridHash: number; tick: number; snapshot: ArenaSnapshot }
+  | { v: typeof PROTOCOL_V; t: 'snap'; snapshot: ArenaSnapshot }
+  | { v: typeof PROTOCOL_V; t: 'events'; es: ArenaEvent[] }
+  | { v: typeof PROTOCOL_V; t: 'full' }
+  | { v: typeof PROTOCOL_V; t: 'kicked'; reason: 'idle' | 'mismatch' | 'protocol' }
+  | { v: typeof PROTOCOL_V; t: 'pong'; at: number; serverTime: number };
 
 const CLIENT_TS = new Set(['join', 'input', 'ping']);
 const SERVER_TS = new Set(['welcome', 'snap', 'events', 'full', 'kicked', 'pong']);
@@ -84,7 +84,9 @@ function isProjectile(v: unknown): boolean {
   const p = v as Record<string, unknown>;
   return integer(p.id, 0) && typeof p.kind === 'string'
     && ['nail', 'grenade', 'voidorb', 'plasma', 'spit', 'fireball', 'bolt', 'orb'].includes(p.kind)
-    && finite(p.x) && finite(p.y) && finite(p.z);
+    && integer(p.ownerId, 0) && finite(p.x) && finite(p.y) && finite(p.z)
+    && finite(p.vx) && finite(p.vy) && finite(p.vz) && finite(p.gravity)
+    && finite(p.radius) && finite(p.age);
 }
 
 function isPickup(v: unknown): boolean {
@@ -102,16 +104,20 @@ function isArenaEvent(v: unknown): boolean {
     case 'playerJoin': return hasId && typeof e.name === 'string' && integer(e.colorIndex, 0);
     case 'playerLeave': case 'playerDie': case 'playerSpawn': case 'padRespawn': return hasId;
     case 'kick': return hasId && (e.reason === 'idle' || e.reason === 'mismatch' || e.reason === 'protocol');
-    case 'shot': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw);
+    case 'shot': return hasId && integer(e.shotId, 1) && integer(e.spawnCount, 1) && integer(e.inputSeq, 0)
+      && integer(e.gun, 1) && (e.gun as number) <= 7 && finite(e.x) && finite(e.z) && finite(e.yaw) && finite(e.pitch);
     case 'dryfire': return hasId && integer(e.gun, 1) && (e.gun as number) <= 7;
-    case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
-    case 'beam': return hasId && finite(e.x0) && finite(e.z0) && finite(e.x1) && finite(e.z1);
-    case 'spawnProjectile': return hasId && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z);
+    case 'tracer': return hasId && e.kind === 'bullets' && finite(e.x0) && finite(e.y0) && finite(e.z0) && finite(e.x1) && finite(e.y1) && finite(e.z1);
+    case 'beam': return hasId && finite(e.x0) && finite(e.y0) && finite(e.z0) && finite(e.x1) && finite(e.y1) && finite(e.z1);
+    case 'spawnProjectile': return hasId && integer(e.projectileId, 1) && integer(e.ownerId, 0)
+      && typeof e.kind === 'string' && finite(e.x) && finite(e.y) && finite(e.z)
+      && finite(e.vx) && finite(e.vy) && finite(e.vz) && finite(e.gravity) && finite(e.radius) && finite(e.age);
+    case 'despawnProjectile': return integer(e.projectileId, 1);
     case 'explosion': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && finite(e.radius);
     case 'playerHurt': return hasId && finite(e.damage) && finite(e.fromAngle);
     case 'hitPlayer': return hasId && finite(e.x) && finite(e.y) && finite(e.z) && typeof e.killed === 'boolean';
     case 'frag': return integer(e.killerId, 0) && integer(e.victimId, 0) && typeof e.suicide === 'boolean';
-    case 'pickup': return hasId && typeof e.kind === 'string' && typeof e.label === 'string';
+    case 'pickup': return integer(e.playerId, 0) && integer(e.pickupId, 0) && typeof e.kind === 'string' && typeof e.label === 'string';
     default: return false;
   }
 }

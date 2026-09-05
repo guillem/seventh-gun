@@ -109,3 +109,8 @@ and actions are neutral between frames. Arena protocol v2 tags each batch with
 the player's spawn epoch, so delayed controls cannot cross a respawn. Clients predict local movement and
 retain arrival-time snapshots bracketing a ~100 ms render delay for remote
 positions and look angles. Hits and pickups are server-only.
+
+Arena wire protocol v3 deliberately rejects other versions. Snapshots carry
+projectile owner, velocity and lifetime state, while combat events carry
+authoritative shot and pickup identities; clients can therefore render the
+first projectile frame and suppress only the matching locally predicted shot.
