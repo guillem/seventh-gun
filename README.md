@@ -1,8 +1,9 @@
 # SEVENTH GUN
 
 A seeded, late-1990s-style first-person shooter that runs entirely in the
-browser. Every maze, texture, sound and demon is generated from a seed —
-no asset packs, no backend, no accounts.
+browser. Every maze, texture, sound and demon is generated from a seed; the
+seven campaign maps are authored. There are no asset packs or accounts. The
+optional arena runs on Cloudflare Workers or the portable Node server.
 
 *Every run builds a new nightmare. The Seventh Gun ends it.*
 
@@ -19,8 +20,9 @@ seal on the finale arena. Clear the arena to win.
   the code down. Stored in this browser only.
 - **CAMPAIGN** is seven authored maps listed by name. Map 1 is always
   open; each win unlocks the next. The guns stay with you; HP resets
-  each map. Progress is saved in this browser (`CONTINUE` from map 2 on).
-- Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
+  each map. Hidden pockets and powerups reward exploration. Progress is saved
+  in this browser (`CONTINUE` from map 2 on).
+- Runs target ~20–30 min on Normal; human pacing validation is pending. Easy if you die in the first minute, Hard
   if you don't.
 
 ## Controls
@@ -32,8 +34,11 @@ seal on the finale arena. Clear the arena to win.
 | Left click / hold | fire |
 | 1–7 / wheel | switch guns |
 | E | use doors |
-| TAB / M | full map (pauses combat) |
-| ESC | pause |
+| TAB / M | full map (pauses campaign/maze combat) |
+| ESC | pause campaign/maze; arena menu |
+
+In arena, TAB shows the scoreboard and M opens the map. The server keeps
+fighting while a map or menu is open; your player remains vulnerable.
 
 Phones/tablets: floating left stick to move, drag right side to look,
 FIRE / USE / MAP buttons above the HUD.
@@ -63,6 +68,53 @@ windows). Campaign debug:
 `startCampaign(n)`, `completeMap()`, `campaign`. Arena debug (`?e2e=1`):
 `joinArena(name)`, `leaveArena()`, `arena()`.
 
+## Run it on your own machine
+
+There is no hosted service to sign up for and no accounts anywhere. You run it,
+your friends connect to you, and nothing leaves the box.
+
+The first packaged release is pending. Until it is published, build from source:
+
+```bash
+npm ci
+npm run build:dist
+npm start
+```
+
+After the first release, these distribution options will be available.
+
+**Docker** — the whole game plus the arena, one command:
+
+```bash
+docker run -p 8080:8080 ghcr.io/guillem/seventh-gun
+```
+
+**npx** — same thing if you already have Node 22+:
+
+```bash
+npx seventh-gun            # --port 8080 --host 0.0.0.0
+```
+
+Both print a LAN URL on startup. Anyone who can reach that address can open it
+and join **MULTIPLAYER ARENA** — one shared room, running on your hardware.
+Behind a reverse proxy on another domain, set `ALLOWED_ORIGINS=https://your.domain`.
+
+**Static files only** — grab `seventh-gun-<version>-static.tar.gz` from
+[Releases](https://github.com/guillem/seventh-gun/releases) and drop it in any
+web server. Campaign, random mazes and the editor all work; the arena needs a
+server, so it reports offline. Point unknown paths at `index.html` so shared
+`#m=` map links survive a refresh.
+
+**Your own Cloudflare account** — the arena on the Workers free plan, in *your*
+account, on your own subdomain. Clone and deploy:
+
+```bash
+npm ci && npm run build && npx wrangler deploy
+```
+
+This is the supported deployment path. Configure the account and domain in the
+Cloudflare dashboard before using it.
+
 ## Under the hood
 
 - **Vite + TypeScript + Three.js**, native-resolution WebGL, procedural
@@ -76,5 +128,13 @@ windows). Campaign debug:
   bullets and rendering.
 - Three difficulties scale the whole economy; the layout stays identical.
 
-Start with [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Balance numbers live in [docs/GAME-DESIGN.md](docs/GAME-DESIGN.md).
+Start with [AGENTS.md](https://github.com/guillem/seventh-gun/blob/main/AGENTS.md) and [architecture](https://github.com/guillem/seventh-gun/blob/main/docs/ARCHITECTURE.md).
+Balance numbers live in [game design](https://github.com/guillem/seventh-gun/blob/main/docs/GAME-DESIGN.md).
+
+## License
+
+[MIT](LICENSE). Textures, meshes and sounds are generated at runtime; random
+mazes are seed-generated and campaign maps are authored here. There are no
+asset packs, fonts or third-party art. The client bundles
+[three.js](https://threejs.org) and the Node server uses `ws`; see
+[THIRD-PARTY.md](THIRD-PARTY.md).

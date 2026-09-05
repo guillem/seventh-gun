@@ -1,0 +1,9 @@
+services:
+  seventh-gun:
+    image: ghcr.io/guillem/seventh-gun:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    # Uncomment if you put this behind a reverse proxy on another domain:
+    # environment:
+    #   ALLOWED_ORIGINS: "https://guns.example.com"

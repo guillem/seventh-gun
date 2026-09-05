@@ -1,261 +1,77 @@
 # STATUS
 
-Updated: 2026-09-05 — approved audit repairs are underway. See
-`REPAIR-PLAN.md` for the ordered work and acceptance gates.
+Updated 2026-09-05. The September repair implementation is complete; the
+first tagged package release is pending npm publishing authorization.
+See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
+integration and rollout gates. A local passing build is not a publication.
 
-The audit found real room lifecycle, network timing, audio, projectile,
-secret visibility and resource cleanup defects despite the passing baseline
-(281 unit / 83 browser tests, 11 skips). Historical playtest notes below are
-not a claim that these later findings are resolved.
+## Product
 
-Stage 1 merged as PR #27 (main 145681b): independent review, 280 unit tests,
-83 browser tests (11 skips), Netlify preview and live Worker probe passed.
-Cloudflare's post-merge rollout is still being verified. The deployment probe
-checks HTML, JavaScript and advancing arena snapshots; a full room is explicitly
-reported as capacity-limited.
+Seeded mazes, seven authored campaign maps, an editor, 15 campaign secrets,
+seven weapons, six enemy species, and arena deathmatch are implemented.
+Maze `GEN_VERSION` remains 4; `ARENA_GEN_VERSION` remains 1. Repairs preserve
+authored layouts and the accepted retro art direction. Arena contains remote
+players, not AI monsters.
 
-Stage 2 is in PR #29: fixed elapsed-time stepping, one simulated input per
-acknowledgement, overflow resend and snapshot-history interpolation. Focused
-clock/input/20 Hz/jitter/two-client latency tests pass; review and CI are pending.
-Stage 3 projectile, sound and mode feedback work is underway on top of it.
+Cloudflare Workers is production at
+<https://seventh-gun.default-428.workers.dev>. A Durable Object owns the
+shared arena. Netlify is a static mirror at
+<https://seventh-gun.netlify.app>; arena is offline there unless explicitly
+configured for an allowed Worker origin. Never add a Cloudflare payment
+method. `/arena` and `/health` are the only worker-first routes.
 
-Secret repairs in PR #28 cleared review, including malformed imports, all fifteen
-interactions and preserved-enemy traversal/visibility checks; CI and ordered merge
-remain. Packaging PR #26 remains unmerged. Its hardening passes 281 unit tests,
-Node 22/24 packed-install checks, build/typecheck and zero dependency audit findings.
-Release review found gating fixes still needed; the expert confirmed a container
-shutdown defect, now being repaired. These are not publication-ready claims.
+## Repair implementation
 
-npm CLI authentication is still required before publication. No payment method
-is needed or to be added. Stage 3 includes the confirmed pickup entity/player
-identity mismatch and removes the old time-window-only shot suppression.
+- PR #27: cancellable joins, room teardown, duplicate/malformed transport
+  handling, and deployment checks for real assets and advancing snapshots.
+- PR #29: fixed wall-clock stepping, applied-input acknowledgements,
+  per-life prediction reset, bounded retransmission and interpolation.
+- PR #30: protocol v3 projectile direction/identity, full 3D beams, matching
+  predicted shot echoes, sustained sound prioritization and deathmatch HUD.
+- PR #28: outward secret clues, exposed remote controls and invalid-import
+  rejection. All 15 secrets have real activation/reward coverage.
+- PR #31: owned GPU resource disposal, one render per frame in every mode,
+  cached arena grids, six-species lifecycle tests, correct arena health audio,
+  and a geometric visibility check when enemies finish firing windup.
+- PR #26: portable Node server and distribution, full notices, clean-build
+  asset emission, minimum-Node/artifact checks, safe shutdown and gated release.
 
-GEN_VERSION still 4. Maze layout unchanged. `ARENA_GEN_VERSION` is 1.
+The narrow enemy visibility fix changes combat outcomes; an expert verified
+all 90 golden samples match the old baseline with only that guard removed,
+and the new baseline with it enabled. General splash rules are unchanged.
 
-## State: Arena deathmatch
+## Verified and remaining gates
 
-Title **MULTIPLAYER ARENA** joins one global Cloudflare Durable Object room
-(`/arena`). Server ticks `ArenaSim` at 60 Hz, snapshots at 20 Hz. Clients
-predict movement and interpolate others. Last player to leave deletes the
-map; next join reseeds.
+Cloudflare protocol v3 has passed live asset/welcome/advancing-snapshot checks
+and browser arena rendering. The earlier reported outage was not reliably
+reproduced, so its historical cause remains unknown. CI checks every later
+Worker rollout with the same product-level probe.
 
-Combat helpers live in `src/sim/combat.ts` (shared with maze `Sim`). The
-projectile-spreadDir pitch normalise vs pre-extraction is accepted
-(`DECISIONS.md`). Golden tape owns guns 1–7 with pitched aim.
+The combined implementation passed 332 unit tests before two additional FX
+ownership tests were added. Focused tests for those paths pass. Installed
+package checks passed on Node 22.23.2 and 24.18.1, including a valid >2 KiB
+input batch acknowledged under the 8 KiB cap, malformed transport, two room
+clients and bounded shutdown. The combined container served assets, joined
+two clients and shut down in 70 ms locally. Clean Cloudflare and portable
+builds emit matching notices; the portable SSR pass preserves client assets.
+Use the final CI result for the exact aggregate count on a later commit.
 
-## Arena playtest fixes (2026-09-04)
+Repeated GPU tests submit real draws and accepted shots, and compare stable
+geometry/texture counts. Real FX clear/expiry tests also observe material
+and geometry disposal. The repeated-GPU scenario uses maze sessions;
+campaign decor/secrets and remote label churn rely on the same reviewed
+ownership logic rather than dedicated repeated-GPU scenarios.
 
-First human two-window playtest found four bugs; investigating them found five
-more. All fixed, all covered by tests.
+No package version has been published by this repair effort. The first npm
+publication needs the short-lived credential described in
+[TESTING](TESTING.md#release-smoke-checks), then trusted publishing must replace
+it and the bootstrap token must be revoked. Before tagging, verify repository
+visibility/protection, repeat the history scan, and run the manual Release
+workflow from main. Never create a release tag while authorization or gates
+remain incomplete.
 
-- **Silent arena.** `unlock()` is the only place the AudioContext is built, and
-  `startArena()` never routed through `beginPlay()`. `joinArena()` now unlocks
-  as its first statement, inside the click's user-gesture window.
-- **RESUME did nothing — three independent causes**, all needed:
-  1. `resume()` guarded on `phase === 'paused'`; arena only sets `arenaMenu`.
-  2. An empty but opaque `#scoreboard-screen` `.screen` div was appended after
-     `#pause-screen`, so it painted over the menu and swallowed the click.
-     Deleted — the scoreboard is canvas-drawn on `#hud` and the div did nothing.
-  3. **`openArenaMenu()` never released pointer lock.** With the mouse captured
-     there is no cursor to click RESUME with. It now mirrors `togglePause()`
-     (`input.paused = true` + `releaseLock()`), and `closeArenaMenu()` clears
-     `paused` or the player resumes into a frozen body.
-- **"Map shows a grey layer".** `m`/Tab is the scoreboard in arena, not the map;
-  the grey layer was the empty div above. Arena full-map draw also wired up.
-- **Pickup cross-talk.** The `pickup` handler showed a HUD message for any
-  player's pickup — no `e.id === selfId` filter. A genuine bug for real players
-  on separate machines, not a shared-browser artifact. Frag messages stay global.
-- **Remote players fogged wrong.** `players.ts` never called `applyRadialFog`.
-- **`pose()` showed enemy backs.** `e.yaw = p.yaw + Math.PI` pointed them away
-  (rig local +z is forward, see `sim.ts` `atan2(dx, dz)`). Every posed review
-  screenshot before this was of the enemies' backs.
-- **Enemy eyes stuck flared.** Three writers to `eyeMat.color`, no idle restore,
-  and the attack flare compounded off its own mutated value. Flares now derive
-  from a stored `EnemyRig.eyeBase`, so each species flares in its own hue.
-
-No cross-window keypress leak was found — no `BroadcastChannel`, `SharedWorker`,
-or shared client id. The pickup messages made input look like it was leaking.
-
-## Character art redesign (2026-09-04)
-
-Player feedback: crawler and wisp good, husk/slab/hierophant/fiend bad. The
-measured correlation was inverted from intuition — the two liked designs were
-the *least* elaborate in the codebase (crawler 76-line mesh / 33-line skin) and
-the four disliked ones the *most* (fiend 96/108). Detail was never the winning
-variable; silhouette and a restrained palette were.
-
-Redesigned husk, slab, hierophant, fiend; **crawler and wisp deliberately
-untouched**. Recipe: one lathe or scaled-sphere body mass, limbs as
-`TubeGeometry` on `CatmullRomCurve3`, pose asymmetry baked into child groups so
-the animation cannot clobber it, a map-less pale Lambert for hard parts (a
-Lambert tint can only darken a map), 64px skins, and exactly one accent hue on
-the eyes with any second accent kept small and far from the face.
-
-Skins went 84/91/98/108 → 30/33/25/24 lines. **No 128px canvas remains.**
-Accents: crawler red, husk acid-green, slab molten yellow, hierophant violet,
-fiend ember orange-red, wisp blue.
-
-`src/render/players.ts` was a placeholder (capsule + sphere, no rig, no
-animation). Now a marine: helmet/visor, pauldrons, cuirass, gauntlets, boots,
-rifle, walk cycle from smoothed positional delta, fall-and-topple death, blob
-shadow. Skins in the new `src/render/playerArt.ts`. `PLAYER_PALETTES` kept its
-length and slot order; two colliding values were replaced (olive read as dim
-yellow, steel-blue sat between blue and teal).
-
-Retro-unlit still holds — Lambert/Basic only, no lights, no shadow maps. See
-`DECISIONS.md`; the PBR pass was rejected in PR #20 and is not to be revisited.
-
-## Hit volumes now match the art
-
-The redesigns grew heads, horns and mitres, and art rendering above
-`enemyVolumeY(def).yMax` is unhittable — a shot at a visible skull misses. The
-hierophant's mitre had 0.14u above the ceiling; husk and fiend had zero margin.
-
-`tests/unit/enemyHitbox.test.ts` now measures built geometry against the volume
-the sim shoots at, per enemy, with headroom for each locomotion branch's bob.
-Thin held props (staff shaft/finial, wisp tentacles) are excluded by thickness
-(`< 0.12`), not by a per-enemy slack allowance — a blanket allowance hides fat
-masses like a mitre.
-
-The wisp's flying volume ignored its hover bob entirely, so it left the box at
-both ends of every cycle. `EnemyDef.hoverBob` now widens the flyer volume, and
-`EnemyRenderer` reads the same field, so animation and hit volume cannot drift.
-`combatGolden` hashes were checked and did not move.
-
-## Playtest round 2 (2026-09-04, Chromium + Firefox)
-
-Confirmed fixed by a human: sound, pointer capture, RESUME, kill counting,
-remote players. Three new issues found, all fixed:
-
-- **`m` was swallowed by text inputs** ("chromium" typed as "chroiu"). The
-  global keydown handler `preventDefault()`s KeyM/Tab and ran for every
-  target; only the seed input defended itself with `stopPropagation`.
-  Pre-existing, not a regression. `isEditableTarget()` in `input.ts` now makes
-  the whole handler bail on input/textarea/contenteditable, which also stops
-  WASD driving the player while you type a name. The seed input's ad-hoc
-  guard was then dead and was removed.
-- **`m` now opens the MAP in arena, `Tab` the scoreboard.** They previously
-  shared one `onMapToggle` callback; now split into `onMapToggle` (KeyM) and
-  `onScoreboardToggle` (Tab). Campaign keeps Tab-opens-map. Arena movement and
-  fire are now frozen while the map is open, matching campaign.
-- **The always-on roster covered SEED/KILLS.** Roster panel moved to y=46.
-
-## Enemy projectiles leave the muzzle
-
-`EnemyDef.muzzleOffset` ({forward,right,up}, local frame, rotated by `e.yaw`)
-replaces the old centre-of-body spawn. Values derived by reading the meshes.
-Subtlety worth knowing: `e.timer` counts DOWN to 0 and the shot leaves at
-`timer<=0`, so the render arm is at its UN-aimed pose at the firing instant —
-the slab's bell offset is computed there, not at the windup pose.
-
-`combatGolden` hashes moved and were updated with evidence: final enemy HP sum
-is bit-identical, late checkpoints are byte-identical, only in-flight
-projectile coordinates shifted. **Coverage gap flagged:** the golden tapes fire
-husk only, so the other five offsets rest on mesh derivation plus
-`enemyMuzzleOffset.test.ts`'s rotation maths.
-
-One real trajectory change: the slab's fireball `dy` flips sign, so it now
-rises toward chest height instead of dropping into it. Not compensated for.
-
-## Viewmodels
-
-All seven guns rebuilt on a shared language documented at the top of
-`viewmodels.ts`: one set of armoured hands matching the marine, six materials
-defined once in the new `src/render/gunArt.ts`, 64px skins, and at most one
-unlit hot element per gun in that gun's muzzle-flash colour.
-
-`GUN_FLASH` in `gunArt.ts` is the single source of truth for those colours —
-`renderer.ts` fireVisual and every builder index it. They had drifted while the
-list existed twice (the Sunlance wore yellow rings while flashing cyan, and
-that yellow was the slab's accent). `tests/unit/gunArt.test.ts` locks it.
-
-`buildWorldGun` shares these builders, so the pedestal pickups changed too.
-
-## Deployment
-
-Two live targets. Both auto-deploy from `main`; neither needs a manual step.
-
-| | URL | Serves | Trigger |
-|---|---|---|---|
-| Netlify | https://seventh-gun.netlify.app | static client only, **no arena** | auto on push |
-| Cloudflare | https://seventh-gun.default-428.workers.dev | client **and** arena | GitHub Actions on green tests |
-
-**The Worker serves the whole game, not just the socket.** `wrangler.jsonc`
-sets `assets.directory: ./dist/client` with `run_worker_first: ["/arena",
-"/health"]`, so the Cloudflare URL is the complete product.
-
-**No env var is needed for the arena.** `game.ts` resolves the socket as
-`VITE_ARENA_WS_URL ?? ${wss|ws}://${location.host}/arena`, and
-`server/index.ts` always allows same-origin — so on Cloudflare it just works.
-`VITE_ARENA_WS_URL` + `ALLOWED_ORIGINS` are only needed for the other shape
-(Netlify-hosted client dialling Cloudflare), which we deliberately do not use.
-
-**Netlify degrades correctly.** Its host has no `/arena`, so a join attempt
-fails in ~5s and shows **ARENA OFFLINE**; the maze/campaign game is unaffected.
-Verified against the live site, not just locally — note `vite preview` runs
-workerd via `@cloudflare/vite-plugin` and DOES serve the arena, so it is NOT a
-valid stand-in for Netlify. Test the static path by serving `dist/client` with
-a plain HTTP server.
-
-### Cost — free tier, structurally safe
-
-Cloudflare free plan, no payment method on the account. **Exceeding a free
-limit returns an error rather than billing.** Durable Objects are the
-SQLite-backed kind (`new_sqlite_classes`), which is what the free plan allows;
-KV-backed DOs are paid-only.
-
-Limits: 100k requests/day, 13,000 GB-s/day, 5 GB storage; Workers Builds (not
-used) would be 3,000 min/month. GitHub Actions on a private repo: 2,000
-min/month with a $0 default spending limit.
-
-`server/index.ts` uses `server.accept()`, **not** the WebSocket Hibernation
-API, so the room object stays resident while anyone is connected — about 28
-hours of room-alive time per day at 128 MB. `shutdown()` stops the tick loop
-and drops idle sockets (15s) when the room empties, so it does not accrue
-overnight. **If the compute cap is ever approached, switching to Hibernation
-is the single highest-leverage change** — it removes the cost of idle players.
-
-### CI
-
-`.github/workflows/deploy.yml`. Push to `main` → typecheck + unit + e2e, then
-deploy the Worker only if all pass, then retry `/health` until 200. Pull
-requests run checks and never deploy. Auth is the repo secret
-`CLOUDFLARE_API_TOKEN`; the account ID is the repo *variable*
-`CLOUDFLARE_ACCOUNT_ID` (not sensitive).
-
-Chosen over Cloudflare Workers Builds — which is simpler and needs no token —
-because Workers Builds only runs a build command and cannot refuse to ship a
-red suite. In one session the tests caught an unhittable hierophant mitre,
-enemy eyes stuck permanently flared, and gun accents drifting off their own
-muzzle-flash colours. None of those break a build.
-
-## Open / next
-
-- **Product race: a client joining as the last player leaves can be dropped.**
-  `shutdown()` in `server/room.ts` closes every socket with no `playerId` yet,
-  and a client that is mid-join has none — so it is torn down along with the
-  empty room. Surfaced on CI as `arena()` reporting `connected` and then going
-  null a moment later. Self-heals in play (the client shows ARENA OFFLINE and
-  can rejoin), so it is not a blocker, but it is a real race and not a test
-  artifact. Fix would be to skip sockets that are mid-join in `shutdown()`, or
-  to re-check the player count after the join completes.
-  `tests/e2e/arena.spec.ts` "an emptied room is recycled" retries through it
-  rather than pretending it does not happen.
-- **Playtest round 3.** Specifically: does the slab's raised fireball arc feel
-  worse, and do the new viewmodels read at a glance in a real fight?
-- **Viewmodels want a second art pass.** The pistol and shotgun got full
-  design attention; the other five were built to the same language but more
-  quickly, and the Sunlance needed its emitter reworked after the fact.
-- Lattice density (#7) if maps feel samey.
-- Lag compensation is explicitly out of v1.
-
-## Where things are
-
-- Arena sim/gen: `src/sim/arena.ts`, `arenagen.ts`, `arenaConstants.ts`, `combat.ts`
-- Net: `src/net/protocol.ts`, `src/net/client.ts`
-- Worker: `server/index.ts`, `server/room.ts`, `wrangler.jsonc`
-- Enemy art: `src/render/enemies.ts` + `skin*` in `src/render/textures.ts`
-- Player art: `src/render/players.ts`, `src/render/playerArt.ts`
-- Hit volumes: `enemyVolumeY` in `src/sim/enemyTypes.ts`
-- Render/HUD: `src/ui/hud.ts` roster/scoreboard (canvas, no DOM overlay)
-- Debug: `joinArena` / `leaveArena` / `arena()` / `pose()` / `snapshot()` on `?e2e=1`
+Human checks remain for sustained multiplayer sound on separate machines,
+secret discoverability without debug knowledge, enemy silhouettes, and real
+Safari/touch devices. Chromium mobile emulation is not Safari validation.
+Lag compensation, a full visual secret editor, balance changes and new art
+direction remain outside this repair.

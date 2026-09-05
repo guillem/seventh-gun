@@ -9,7 +9,7 @@ app (Game, input, debug API)
  ├─> render (Three.js scene)                          reads WorldView + events
  ├─> net    (ArenaClient, protocol)                   prediction / interpolation
  └─> sim    (deterministic, headless)                 maze Sim + ArenaSim
-server/  Cloudflare Worker + Durable Object (imports sim + protocol only)
+server/  runtime-agnostic room; Worker and Node adapters (imports sim + protocol only)
 ```
 
 - `src/sim/` is pure TypeScript: no Three, no DOM, no `Math.random`. Fixed
@@ -105,7 +105,7 @@ uses `src/sim/combat.ts`. The Durable Object in `server/` advances it from
 elapsed wall time in exact 1/60-second steps with bounded catch-up, then
 broadcasts 20 Hz snapshots over `/arena`. A snapshot acknowledges only input
 frames that have actually been simulated; frames are retransmitted in sequence
-and actions are neutral between frames. Arena protocol v2 tags each batch with
+and actions are neutral between frames. Arena protocol v3 tags each batch with
 the player's spawn epoch, so delayed controls cannot cross a respawn. Clients predict local movement and
 retain arrival-time snapshots bracketing a ~100 ms render delay for remote
 positions and look angles. Hits and pickups are server-only.
@@ -114,3 +114,7 @@ Arena wire protocol v3 deliberately rejects other versions. Snapshots carry
 projectile owner, velocity and lifetime state, while combat events carry
 authoritative shot and pickup identities; clients can therefore render the
 first projectile frame and suppress only the matching locally predicted shot.
+
+`server/index.ts` supplies the Cloudflare Durable Object adapter. `server/node/`
+supplies the portable HTTP/static-file and WebSocket adapter used by the npm
+package and container; it has no gameplay logic of its own.

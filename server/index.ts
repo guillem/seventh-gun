@@ -1,27 +1,10 @@
-import { ArenaRoom, type TickScheduler } from './room';
+import { ArenaRoom } from './room';
+import { intervalScheduler } from './scheduler';
 
 export interface Env {
   ARENA: DurableObjectNamespace;
   ASSETS: Fetcher;
   ALLOWED_ORIGINS: string;
-}
-
-function intervalScheduler(): TickScheduler {
-  let handle: ReturnType<typeof setInterval> | null = null;
-  return {
-    start(fn, hz) {
-      if (handle) return;
-      handle = setInterval(fn, 1000 / hz);
-    },
-    stop() {
-      if (handle) clearInterval(handle);
-      handle = null;
-    },
-    timeout(fn, ms) {
-      const id = setTimeout(fn, ms);
-      return () => clearTimeout(id);
-    },
-  };
 }
 
 function originAllowed(req: Request, env: Env): boolean {

@@ -1,0 +1,42 @@
+name: Bug report
+description: Something broke, looked wrong, or played wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+  - type: input
+    id: seed
+    attributes:
+      label: Seed
+      description: >-
+        The seed and difficulty, if it happened in a maze run — with those the
+        exact world can be reproduced. MAP LOG on the title screen remembers
+        seeds you have played. Leave blank for campaign, editor or arena.
+      placeholder: "e.g. 8752b064, Normal"
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Where
+      options: [Random maze, Campaign, Editor, Multiplayer arena, Title screen, Other]
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: How were you running it
+      placeholder: "e.g. Docker on a VPS / npx on my laptop / seventh-gun.netlify.app"
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: "e.g. Firefox 141 on Linux, Safari on iOS 18"
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      render: text

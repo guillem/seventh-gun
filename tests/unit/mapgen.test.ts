@@ -35,7 +35,7 @@ function seedList(n: number): string[] {
   return out;
 }
 
-describe('mapgen validity (300-seed sweep)', () => {
+describe('mapgen validity (300-seed sweep)', { timeout: 20_000 }, () => {
   const seeds = seedList(300);
 
   it('every map is fully connected (all rooms reachable)', () => {

@@ -1,0 +1,12 @@
+node_modules
+dist
+test-results
+playwright-report
+.playwright-report
+.git
+.github
+.wrangler
+.netlify
+.claude
+docs
+*.log
