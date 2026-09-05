@@ -22,7 +22,7 @@ seal on the finale arena. Clear the arena to win.
   open; each win unlocks the next. The guns stay with you; HP resets
   each map. Hidden pockets and powerups reward exploration. Progress is saved
   in this browser (`CONTINUE` from map 2 on).
-- Runs are ~20–30 min on Normal. Easy if you die in the first minute, Hard
+- Runs target ~20–30 min on Normal; human pacing validation is pending. Easy if you die in the first minute, Hard
   if you don't.
 
 ## Controls

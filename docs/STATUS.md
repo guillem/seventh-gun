@@ -1,63 +1,77 @@
 # STATUS
 
-Updated 2026-09-05. The September repair plan is being executed in ordered
-PRs; see [REPAIR-PLAN.md](REPAIR-PLAN.md) for gates and rollout state.
-Do not equate a passing local branch with a deployed or published release.
+Updated 2026-09-05. The September repair implementation is complete; the
+first tagged package release is pending npm publishing authorization.
+See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
+integration and rollout gates. A local passing build is not a publication.
 
-## Product and deployment
+## Product
 
-Seventh Gun has seeded mazes, seven authored campaign maps, an editor,
-15 campaign secrets, seven weapons, six enemy species, and arena deathmatch.
-Maze `GEN_VERSION` remains 4; `ARENA_GEN_VERSION` remains 1. These repairs
-have not changed authored layouts or the accepted retro art direction.
+Seeded mazes, seven authored campaign maps, an editor, 15 campaign secrets,
+seven weapons, six enemy species, and arena deathmatch are implemented.
+Maze `GEN_VERSION` remains 4; `ARENA_GEN_VERSION` remains 1. Repairs preserve
+authored layouts and the accepted retro art direction. Arena contains remote
+players, not AI monsters.
 
 Cloudflare Workers is production at
 <https://seventh-gun.default-428.workers.dev>. A Durable Object owns the
 shared arena. Netlify is a static mirror at
 <https://seventh-gun.netlify.app>; arena is offline there unless explicitly
-configured to connect to an allowed Worker origin. Never add a Cloudflare
-payment method. `/arena` and `/health` are the only worker-first routes.
+configured for an allowed Worker origin. Never add a Cloudflare payment
+method. `/arena` and `/health` are the only worker-first routes.
 
-PR #27 is merged and deployed: joins are cancellable, room teardown and
-transport failure paths are guarded, and deployment checks load the actual
-client asset and observe advancing arena snapshots. This live check passed.
-The earlier reported deployment outage was not reproduced reliably; passing
-current checks does not establish its historical cause.
+## Repair implementation
 
-## Gameplay repairs and remaining integration
+- PR #27: cancellable joins, room teardown, duplicate/malformed transport
+  handling, and deployment checks for real assets and advancing snapshots.
+- PR #29: fixed wall-clock stepping, applied-input acknowledgements,
+  per-life prediction reset, bounded retransmission and interpolation.
+- PR #30: protocol v3 projectile direction/identity, full 3D beams, matching
+  predicted shot echoes, sustained sound prioritization and deathmatch HUD.
+- PR #28: outward secret clues, exposed remote controls and invalid-import
+  rejection. All 15 secrets have real activation/reward coverage.
+- PR #31: owned GPU resource disposal, one render per frame in every mode,
+  cached arena grids, six-species lifecycle tests, correct arena health audio,
+  and a geometric visibility check when enemies finish firing windup.
+- PR #26: portable Node server and distribution, full notices, clean-build
+  asset emission, minimum-Node/artifact checks, safe shutdown and gated release.
 
-Merged PR #29 stabilizes the simulation clock, acknowledges applied inputs, resets
-prediction by player life, and bounds retransmission under 50–200 ms RTT
-and jitter. merged PR #30 adds protocol v3 projectile identity/direction, complete
-3D beam endpoints, prediction echo matching, sustained sound prioritization,
-and arena HUD feedback. Browser protocol checks follow the shared version.
+The narrow enemy visibility fix changes combat outcomes; an expert verified
+all 90 golden samples match the old baseline with only that guard removed,
+and the new baseline with it enabled. General splash rules are unchanged.
 
-Merged PR #28 fixes secret clue/control facings and rejects invalid imported secret
-geometry. All 15 authored secrets have actual activation/reward coverage.
-Secret import/compile support is present; full visual secret-editing tools
-remain optional future work.
+## Verified and remaining gates
 
-Resource cleanup, one arena render per frame, and six-species visual
-validation are in progress. Existing packaging PR #26 is being completed
-after these gameplay repairs, with a portable Node server, MIT/third-party
-notices, installed-package tests, container checks, and gated releases.
+Cloudflare protocol v3 has passed live asset/welcome/advancing-snapshot checks
+and browser arena rendering. The earlier reported outage was not reliably
+reproduced, so its historical cause remains unknown. CI checks every later
+Worker rollout with the same product-level probe.
 
-## Verification and remaining work
+The combined implementation passed 332 unit tests before two additional FX
+ownership tests were added. Focused tests for those paths pass. Installed
+package checks passed on Node 22.23.2 and 24.18.1, including a valid >2 KiB
+input batch acknowledged under the 8 KiB cap, malformed transport, two room
+clients and bounded shutdown. The combined container served assets, joined
+two clients and shut down in 70 ms locally. Clean Cloudflare and portable
+builds emit matching notices; the portable SSR pass preserves client assets.
+Use the final CI result for the exact aggregate count on a later commit.
 
-The combined packaging/gameplay branch has passed 322 unit tests and packed
-artifact checks on Node 22 and 24, including bounded WebSocket transport and
-shutdown. Final rendering changes require a new combined validation pass.
-PR checks and live rollout checks are recorded in REPAIR-PLAN rather than
-assuming earlier counts apply to later commits.
+Repeated GPU tests submit real draws and accepted shots, and compare stable
+geometry/texture counts. Real FX clear/expiry tests also observe material
+and geometry disposal. The repeated-GPU scenario uses maze sessions;
+campaign decor/secrets and remote label churn rely on the same reviewed
+ownership logic rather than dedicated repeated-GPU scenarios.
 
-Public release is pending final integration, history scanning, repository
-settings, and npm publishing access. The first npm publication needs the
-short-lived bootstrap credential described in [TESTING](TESTING.md#release-smoke-checks); afterward switch
-to trusted publishing and revoke it. No version has been published by this
-repair effort yet.
+No package version has been published by this repair effort. The first npm
+publication needs the short-lived credential described in
+[TESTING](TESTING.md#release-smoke-checks), then trusted publishing must replace
+it and the bootstrap token must be revoked. Before tagging, verify repository
+visibility/protection, repeat the history scan, and run the manual Release
+workflow from main. Never create a release tag while authorization or gates
+remain incomplete.
 
-Human checks remain valuable for sustained multiplayer sound on separate
-machines, secret discoverability without debug knowledge, enemy silhouettes,
-and real Safari/touch devices. Automated mobile Chromium checks are not
-Safari validation. Lag compensation, a full secret editor, balance changes,
-and new art direction are outside this repair plan.
+Human checks remain for sustained multiplayer sound on separate machines,
+secret discoverability without debug knowledge, enemy silhouettes, and real
+Safari/touch devices. Chromium mobile emulation is not Safari validation.
+Lag compensation, a full visual secret editor, balance changes and new art
+direction remain outside this repair.
