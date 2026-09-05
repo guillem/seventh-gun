@@ -60,7 +60,7 @@ jobs:
       - run: npm run build:dist
       - run: test -f dist/client/LICENSE && test -f dist/client/THIRD-PARTY.md
       - id: pack
-        run: echo "tarball=$(npm pack --json | node -e \"let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s)[0].filename))\")" >> "$GITHUB_OUTPUT"
+        run: node .github/scripts/pack.mjs
       - run: node .github/scripts/smoke-package.mjs "${{ steps.pack.outputs.tarball }}"
       - uses: actions/upload-artifact@v4
         if: matrix.node == 24
