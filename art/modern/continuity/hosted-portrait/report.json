@@ -1,0 +1,4084 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app",
+  "baseline": false,
+  "portrait": true,
+  "capturedAt": "2026-10-03T09:49:02.025Z",
+  "errors": [],
+  "stages": [
+    {
+      "name": "start",
+      "frameCount": 78,
+      "maxFrameMs": 583.4000000000005,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 31,
+        "linkProgram": 31,
+        "texImage2D": 0,
+        "texSubImage2D": 235,
+        "bufferData": 3482
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 37,
+      "gun": 1,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 80,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-shot",
+      "frameCount": 72,
+      "maxFrameMs": 16.800000000000182,
+      "p95FrameMs": 16.800000000000182,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 152,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "second-shot",
+      "frameCount": 72,
+      "maxFrameMs": 16.80000000000109,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 224,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "hall",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 816,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 60,
+        "z": 95.7
+      },
+      "render": {
+        "frames": 292,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-room-boundary",
+      "frameCount": 68,
+      "maxFrameMs": 16.80000000000109,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 816,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 60,
+        "z": 96.3
+      },
+      "render": {
+        "frames": 363,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "room-interior",
+      "frameCount": 68,
+      "maxFrameMs": 16.80000000000109,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 1224,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 60,
+        "z": 109
+      },
+      "render": {
+        "frames": 434,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "return-room-boundary",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 816,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 60,
+        "z": 95.7
+      },
+      "render": {
+        "frames": 505,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "room-from-outside",
+      "frameCount": 69,
+      "maxFrameMs": 16.80000000000109,
+      "p95FrameMs": 16.80000000000109,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 828,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 60,
+        "z": 93
+      },
+      "render": {
+        "frames": 576,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-1-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 1,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 647,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-2-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.700000000000728,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 2,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 715,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-3-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 3,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 783,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-4-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 4,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 851,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-5-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 5,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 919,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-6-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.799999999999272,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 6,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 987,
+        "geometries": 652,
+        "textures": 236
+      }
+    },
+    {
+      "name": "first-gun-7-effect",
+      "frameCount": 68,
+      "maxFrameMs": 16.799999999999272,
+      "p95FrameMs": 16.700000000000728,
+      "calls": {
+        "createProgram": 0,
+        "linkProgram": 0,
+        "texImage2D": 0,
+        "texSubImage2D": 0,
+        "bufferData": 0
+      },
+      "programs": 31,
+      "lights": [
+        {
+          "type": "AmbientLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0.08,
+          "color": 10794946,
+          "shadow": false
+        },
+        {
+          "type": "HemisphereLight",
+          "p": [
+            0,
+            1,
+            0
+          ],
+          "intensity": 0.22,
+          "color": 7441045,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            55,
+            3.57,
+            52.24
+          ],
+          "intensity": 35.37429612390697,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            67.76,
+            3.57,
+            115
+          ],
+          "intensity": 36.925759254768494,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            85,
+            3.57,
+            56.24
+          ],
+          "intensity": 40.57049381900579,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            95,
+            3.57,
+            108.24
+          ],
+          "intensity": 34.58806438352913,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            125,
+            3.57,
+            91.76
+          ],
+          "intensity": 33.739556714706126,
+          "color": 15843751,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            129.76,
+            3.57,
+            65
+          ],
+          "intensity": 42.75115606449545,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            115,
+            3.57,
+            45.76
+          ],
+          "intensity": 39.74270123317838,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            65,
+            3.57,
+            66.24
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            145.76,
+            3.57,
+            85
+          ],
+          "intensity": 24,
+          "color": 16760449,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            135,
+            3.57,
+            20.24
+          ],
+          "intensity": 32.55829993989319,
+          "color": 15582887,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            0,
+            0,
+            0
+          ],
+          "intensity": 0,
+          "color": 16765857,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            46,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            61,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            76,
+            8.56,
+            85.5
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            91,
+            8.56,
+            89
+          ],
+          "intensity": 180,
+          "color": 16764569,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            41,
+            16.23,
+            80.8
+          ],
+          "intensity": 70,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            71,
+            16.23,
+            80.8
+          ],
+          "intensity": 52.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "SpotLight",
+          "p": [
+            100,
+            16.23,
+            80.8
+          ],
+          "intensity": 42.5,
+          "color": 13952511,
+          "shadow": false
+        },
+        {
+          "type": "PointLight",
+          "p": [
+            33.2,
+            3.8,
+            87
+          ],
+          "intensity": 22,
+          "color": 15123608,
+          "shadow": false
+        }
+      ],
+      "environmentIntensity": 0.08,
+      "assetImageUploads": 0,
+      "gun": 7,
+      "player": {
+        "x": 19,
+        "z": 87
+      },
+      "render": {
+        "frames": 1055,
+        "geometries": 652,
+        "textures": 236
+      }
+    }
+  ],
+  "limitations": [
+    "One local Apple GPU/browser run, not a universal frame-time guarantee; portrait uses the same desktop GPU.",
+    "Browser-only instrumentation exposes the normal running game and counts WebGL calls; no GPU synchronization queries.",
+    "Baseline overrides renderer/FX/lighting TypeScript from baselineRef but uses the current assets; comparison measures rendering behavior, not geometry before/after."
+  ],
+  "context": {
+    "attributes": {
+      "alpha": true,
+      "antialias": true,
+      "depth": true,
+      "desynchronized": false,
+      "failIfMajorPerformanceCaveat": false,
+      "powerPreference": "high-performance",
+      "premultipliedAlpha": true,
+      "preserveDrawingBuffer": false,
+      "stencil": false,
+      "xrCompatible": false
+    },
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "debugApiAbsent": true,
+    "size": [
+      780,
+      1688
+    ]
+  }
+}

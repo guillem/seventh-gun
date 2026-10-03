@@ -1,0 +1,18 @@
+{
+  "implementation": "7b165caf9416c6d9a54f6d044c0a6abc1abf3a2c",
+  "preview": "https://deploy-preview-32--seventh-gun.netlify.app",
+  "files": [
+    {
+      "path": "/assets/index-D-xryEZ5.js",
+      "bytes": 1116991,
+      "sha256": "44e42f465bd85040ae1a7d3e2d1964f187b5530aa17319a18569081de2636079",
+      "matchesBuiltFile": true
+    },
+    {
+      "path": "/assets/index-CiAH5ZR0.css",
+      "bytes": 9734,
+      "sha256": "b4ccf309576c4fe94b7294cd2f59a210e86c44fadaee3c8f7dfff97586a18ca0",
+      "matchesBuiltFile": true
+    }
+  ]
+}

@@ -92,3 +92,8 @@ assertions in locally installed Chrome. The bundled headless Chromium on this
 Mac reports ANGLE/SwiftShader (Vulkan software rendering); the default config
 and CI remain unchanged unless that setting is supplied. Software-rendered
 timing is recorded separately and is not used for gameplay frame-rate claims.
+
+Restart an existing Cloudflare local `npm run preview` after rebuilding: its
+asset manifest can retain old bundle filenames and serve fallback HTML for the
+new JavaScript. Final verification used a restarted server and the exact
+JavaScript/CSS hashes served by Netlify.

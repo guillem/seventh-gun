@@ -13,7 +13,9 @@
     "skipped": 13,
     "retries": 0,
     "fullSuite": true,
-    "command": "PLAYWRIGHT_CHANNEL=chrome npm exec --offline --cache /private/tmp/seventh-gun-npm-cache --package=node@24 -- node node_modules/playwright/cli.js test --retries=0 --reporter=line"
+    "command": "PLAYWRIGHT_CHANNEL=chrome npm exec --offline --cache /private/tmp/seventh-gun-npm-cache --package=node@24 -- node node_modules/playwright/cli.js test --retries=0 --reporter=line",
+    "verifiedImplementation": "7b165caf9416c6d9a54f6d044c0a6abc1abf3a2c",
+    "builtJavascript": "index-D-xryEZ5.js"
   },
   "softwareBrowserPartial": {
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
@@ -27,5 +29,176 @@
     "files": 96,
     "bytes": 31636814
   },
-  "preview": "pending"
+  "preview": {
+    "url": "https://deploy-preview-32--seventh-gun.netlify.app/",
+    "implementation": "7b165caf9416c6d9a54f6d044c0a6abc1abf3a2c",
+    "assets": "96 of 96 match bytes and SHA-256",
+    "bundle": "JavaScript and CSS exactly match local build",
+    "pr": 32,
+    "draft": true,
+    "mainUnchanged": "8bf93b320a48eed89ec6017b891acd23c9d26b20"
+  },
+  "coldActions": {
+    "after": {
+      "stages": 14,
+      "maxObservedFrameMs": 16.8,
+      "newPrograms": 0,
+      "newImageUploads": 0,
+      "newVertexBufferUploads": 0,
+      "errors": [],
+      "context": {
+        "attributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        },
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+        "debugApiAbsent": true,
+        "size": [
+          2880,
+          1800
+        ]
+      }
+    },
+    "portrait": {
+      "stages": 14,
+      "maxObservedFrameMs": 16.8,
+      "newPrograms": 0,
+      "newImageUploads": 0,
+      "newVertexBufferUploads": 0,
+      "errors": [],
+      "context": {
+        "attributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        },
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+        "debugApiAbsent": true,
+        "size": [
+          780,
+          1688
+        ]
+      }
+    },
+    "production": {
+      "stages": 14,
+      "maxObservedFrameMs": 16.8,
+      "newPrograms": 0,
+      "newImageUploads": 0,
+      "newVertexBufferUploads": 0,
+      "errors": [],
+      "context": {
+        "attributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        },
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+        "debugApiAbsent": true,
+        "size": [
+          2880,
+          1800
+        ]
+      }
+    },
+    "hosted": {
+      "stages": 14,
+      "maxObservedFrameMs": 16.8,
+      "newPrograms": 0,
+      "newImageUploads": 0,
+      "newVertexBufferUploads": 0,
+      "errors": [],
+      "context": {
+        "attributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        },
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+        "debugApiAbsent": true,
+        "size": [
+          2880,
+          1800
+        ]
+      }
+    },
+    "hosted-portrait": {
+      "stages": 14,
+      "maxObservedFrameMs": 16.8,
+      "newPrograms": 0,
+      "newImageUploads": 0,
+      "newVertexBufferUploads": 0,
+      "errors": [],
+      "context": {
+        "attributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        },
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+        "debugApiAbsent": true,
+        "size": [
+          780,
+          1688
+        ]
+      }
+    }
+  },
+  "campaignEntryViews": {
+    "count": 14,
+    "layouts": [
+      "desktop",
+      "portrait"
+    ],
+    "normalControls": true,
+    "minFps": 60,
+    "maxP95ms": 16.8,
+    "errors": [],
+    "report": "campaign-profiles.json",
+    "screenshots": "/private/tmp/seventh-gun-continuity-campaigns"
+  },
+  "ci": {
+    "run": 37114062416,
+    "statusAtVerification": "in_progress",
+    "note": "Separate GitHub workflow, not represented as green. Previous CI browser runs reached the time limit."
+  },
+  "runnerNotes": [
+    "After rebuilding, the existing Cloudflare local preview retained its old asset manifest and served fallback HTML for the new JavaScript filename. The stale server run was interrupted; preview was restarted before final verification. This was local harness state, not a hosted preview failure."
+  ]
 }

@@ -1,6 +1,6 @@
 # STATUS
 
-## Rendering continuity — 2026-10-03, preview verification pending
+## Rendering continuity — delivered 2026-10-03
 
 Fixes the user's first-shot/first-room stalls, global lighting changes at room
 boundaries, and checker-like doorway jambs. Still on
@@ -31,7 +31,11 @@ contexts; that work is shown explicitly before play. These are selected views
 on a desktop GPU; physical phones/Safari remain untested.
 
 All 109 applicable desktop/mobile browser checks pass without retries, with
-13 intentional skips. Final Netlify verification is pending.
+13 intentional skips. Netlify implementation `7b165ca` is live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>. All 96 assets match byte
+counts and SHA-256 hashes, and hosted JavaScript/CSS match the final local build.
+Hosted normal-mode desktop/touch cold-action checks and fourteen local campaign
+entry/control views are recorded in `art/modern/continuity/`.
 The bundled Chromium backend was identified locally as SwiftShader;
 its partial run is retained separately. `PLAYWRIGHT_CHANNEL=chrome` selects the
 hardware browser for the same assertions; default CI settings remain unchanged.

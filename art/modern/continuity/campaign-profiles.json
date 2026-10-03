@@ -1,0 +1,422 @@
+{
+  "base": "http://localhost:4173/",
+  "mode": "campaign-entry-views",
+  "browserChannel": "chrome",
+  "capturedAt": "2026-10-03T09:45:03.808Z",
+  "limitations": [
+    "Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.",
+    "Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.",
+    "Local startup timing does not represent an uncached public network download.",
+    "Campaign results sample the normal entry view only, not traversal, combat, or the most expensive room of each map.",
+    "Each scenario unlocks campaign selection in an isolated browser context; it does not modify a real player save.",
+    "Map identity is observed from the campaign menu and text drawn on the visible HUD; the debug API is absent."
+  ],
+  "scenarios": [
+    {
+      "name": "campaign-01-foundry-desktop",
+      "campaign": {
+        "index": 1,
+        "id": "01-foundry",
+        "title": "THE FOUNDRY",
+        "seed": "campaign:01-foundry",
+        "menuLabel": "1 THE FOUNDRY",
+        "hudSeed": "SEED campaign:01-foundry",
+        "hudTitle": "THE FOUNDRY",
+        "debugApiAbsent": true
+      },
+      "startupMs": 294,
+      "frames": 180,
+      "fps": 59.99999999999999,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999955,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 797,
+      "trianglesPerFrame": 572909,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-01-foundry-portrait",
+      "campaign": {
+        "index": 1,
+        "id": "01-foundry",
+        "title": "THE FOUNDRY",
+        "seed": "campaign:01-foundry",
+        "menuLabel": "1 THE FOUNDRY",
+        "hudSeed": "SEED campaign:01-foundry",
+        "hudTitle": "THE FOUNDRY",
+        "debugApiAbsent": true
+      },
+      "startupMs": 275,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 379,
+      "trianglesPerFrame": 282346,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-02-gullet-desktop",
+      "campaign": {
+        "index": 2,
+        "id": "02-gullet",
+        "title": "THE GULLET",
+        "seed": "campaign:02-gullet",
+        "menuLabel": "2 THE GULLET",
+        "hudSeed": "SEED campaign:02-gullet",
+        "hudTitle": "THE GULLET",
+        "debugApiAbsent": true
+      },
+      "startupMs": 266,
+      "frames": 180,
+      "fps": 60.00400026668445,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 881,
+      "trianglesPerFrame": 1014311,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-02-gullet-portrait",
+      "campaign": {
+        "index": 2,
+        "id": "02-gullet",
+        "title": "THE GULLET",
+        "seed": "campaign:02-gullet",
+        "menuLabel": "2 THE GULLET",
+        "hudSeed": "SEED campaign:02-gullet",
+        "hudTitle": "THE GULLET",
+        "debugApiAbsent": true
+      },
+      "startupMs": 256,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999727,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 286,
+      "trianglesPerFrame": 344050,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-03-catacombs-desktop",
+      "campaign": {
+        "index": 3,
+        "id": "03-catacombs",
+        "title": "THE CATACOMBS",
+        "seed": "campaign:03-catacombs",
+        "menuLabel": "3 THE CATACOMBS",
+        "hudSeed": "SEED campaign:03-catacombs",
+        "hudTitle": "THE CATACOMBS",
+        "debugApiAbsent": true
+      },
+      "startupMs": 277,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1002,
+      "trianglesPerFrame": 769851,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-03-catacombs-portrait",
+      "campaign": {
+        "index": 3,
+        "id": "03-catacombs",
+        "title": "THE CATACOMBS",
+        "seed": "campaign:03-catacombs",
+        "menuLabel": "3 THE CATACOMBS",
+        "hudSeed": "SEED campaign:03-catacombs",
+        "hudTitle": "THE CATACOMBS",
+        "debugApiAbsent": true
+      },
+      "startupMs": 287,
+      "frames": 180,
+      "fps": 60.00400026668444,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 441,
+      "trianglesPerFrame": 338868,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-04-pit-desktop",
+      "campaign": {
+        "index": 4,
+        "id": "04-pit",
+        "title": "THE PIT",
+        "seed": "campaign:04-pit",
+        "menuLabel": "4 THE PIT",
+        "hudSeed": "SEED campaign:04-pit",
+        "hudTitle": "THE PIT",
+        "debugApiAbsent": true
+      },
+      "startupMs": 281,
+      "frames": 180,
+      "fps": 60.00000000000001,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999955,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 725,
+      "trianglesPerFrame": 449555,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-04-pit-portrait",
+      "campaign": {
+        "index": 4,
+        "id": "04-pit",
+        "title": "THE PIT",
+        "seed": "campaign:04-pit",
+        "menuLabel": "4 THE PIT",
+        "hudSeed": "SEED campaign:04-pit",
+        "hudTitle": "THE PIT",
+        "debugApiAbsent": true
+      },
+      "startupMs": 264,
+      "frames": 180,
+      "fps": 60.00400026668445,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999955,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 276,
+      "trianglesPerFrame": 183368,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-05-spire-desktop",
+      "campaign": {
+        "index": 5,
+        "id": "05-spire",
+        "title": "THE SPIRE",
+        "seed": "campaign:05-spire",
+        "menuLabel": "5 THE SPIRE",
+        "hudSeed": "SEED campaign:05-spire",
+        "hudTitle": "THE SPIRE",
+        "debugApiAbsent": true
+      },
+      "startupMs": 286,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 853,
+      "trianglesPerFrame": 528227,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-05-spire-portrait",
+      "campaign": {
+        "index": 5,
+        "id": "05-spire",
+        "title": "THE SPIRE",
+        "seed": "campaign:05-spire",
+        "menuLabel": "5 THE SPIRE",
+        "hudSeed": "SEED campaign:05-spire",
+        "hudTitle": "THE SPIRE",
+        "debugApiAbsent": true
+      },
+      "startupMs": 265,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999727,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 366,
+      "trianglesPerFrame": 231230,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-06-ward-desktop",
+      "campaign": {
+        "index": 6,
+        "id": "06-ward",
+        "title": "THE WARD",
+        "seed": "campaign:06-ward",
+        "menuLabel": "6 THE WARD",
+        "hudSeed": "SEED campaign:06-ward",
+        "hudTitle": "THE WARD",
+        "debugApiAbsent": true
+      },
+      "startupMs": 285,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999727,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1110,
+      "trianglesPerFrame": 413737,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-06-ward-portrait",
+      "campaign": {
+        "index": 6,
+        "id": "06-ward",
+        "title": "THE WARD",
+        "seed": "campaign:06-ward",
+        "menuLabel": "6 THE WARD",
+        "hudSeed": "SEED campaign:06-ward",
+        "hudTitle": "THE WARD",
+        "debugApiAbsent": true
+      },
+      "startupMs": 266,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999727,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 485,
+      "trianglesPerFrame": 187108,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-07-sanctum-desktop",
+      "campaign": {
+        "index": 7,
+        "id": "07-sanctum",
+        "title": "THE SANCTUM",
+        "seed": "campaign:07-sanctum",
+        "menuLabel": "7 THE SANCTUM",
+        "hudSeed": "SEED campaign:07-sanctum",
+        "hudTitle": "THE SANCTUM",
+        "debugApiAbsent": true
+      },
+      "startupMs": 273,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1195,
+      "trianglesPerFrame": 973391,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    },
+    {
+      "name": "campaign-07-sanctum-portrait",
+      "campaign": {
+        "index": 7,
+        "id": "07-sanctum",
+        "title": "THE SANCTUM",
+        "seed": "campaign:07-sanctum",
+        "menuLabel": "7 THE SANCTUM",
+        "hudSeed": "SEED campaign:07-sanctum",
+        "hudTitle": "THE SANCTUM",
+        "debugApiAbsent": true
+      },
+      "startupMs": 266,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 507,
+      "trianglesPerFrame": 440922,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": []
+    }
+  ]
+}
