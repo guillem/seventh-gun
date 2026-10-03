@@ -105,7 +105,10 @@ caps DPR at two. Actual phone testing and wider level/combat profiling remain
 review work. The standard production-build warning about the large JavaScript
 bundle remains; this first slice has no new runtime package dependencies.
 
-## Remaining art passes
+## Remaining art passes at the first milestone (historical)
+
+This early checklist is superseded by the complete roster/campaign expansion
+recorded at the end of this document.
 
 Review the playable slice before expanding the six remaining weapon models,
 five remaining enemy families, arena player models, pickups and effects.
@@ -173,3 +176,42 @@ Editable sources, exact imagegen prompts, checksums and actual closed/open-door
 screenshots are under `art/modern/entrance/`. The previous screenshots remain
 available for comparison. This pass keeps the existing pistol, hands and husk;
 their model/animation improvements remain a separate subsequent milestone.
+
+
+## Complete roster and campaign expansion — 2026-10-03
+
+The user approved the remaining art pass in full. The unfinished-roster notes
+above are historical milestone records. All seven weapons now use saved Blender
+models with fitted hands and idle/equip/fire clips. All six enemy species use
+skinned models with idle/walk/attack/hit/death clips. Saved pickup props and an
+arena marine complete the dynamic set. Animation remains cosmetic and follows
+existing simulation state/cooldowns; it does not move collision roots.
+
+All seven campaign identities now use original saved modular architecture and
+generated material specimens, with shallow eye-level relief and overhead detail.
+There are 28 reusable modules in the shared kit. The authored Foundry opening
+keeps its earlier geometry and lightmap. The rest of the campaign uses real-time
+lighting; it does not have seven full bespoke lightmap bakes. New floor courses,
+ceiling treatments and a generated overcast panorama complete this pass.
+
+Saved transparent flash/smoke images replace the modern effect imagery. Desktop
+adds modest half-resolution contact shading; touch keeps direct rendering. Twelve
+new generated image files (nine surfaces, sky and two effects) retain exact prompts
+and originals. Twenty-one new generated recordings and eleven documented edits
+bring the pack to forty sound samples, covering all guns, species and feedback.
+
+The complete runtime pack is 84 files / 26,803,216 bytes before transport
+compression. Editable sources, scripts, prompts, provenance, checksums and actual
+gameplay evidence are indexed in `art/modern/roster/README.md`. The 27-capture
+review gallery includes every weapon on desktop/portrait, every campaign, and
+all six positively identified enemy species. It is actual rendered gameplay,
+not generated concept imagery.
+
+All simulation/network/server code remains unchanged. GPU resource ownership
+now includes cloned skeleton textures and animation mixers; animated parts use
+outer-rig culling so a cached rest-pose sphere cannot hide moving limbs. Local
+unit suite: 383 passed. Three TypeScript projects and production build pass.
+Normal Chrome on Apple M5 Pro measures approximately 60 fps across the initial
+four standard views, p95 16.7–16.8 ms. Final browser/hosted results are maintained
+in STATUS.md. This remains a stylized original game with rectangular layouts and
+reused modules, rather than photorealistic parity with the menu illustration.

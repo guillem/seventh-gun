@@ -1,0 +1,121 @@
+[
+  {
+    "id": 1,
+    "name": "Viper Pistol",
+    "triangles": 15124,
+    "bytes": 905412,
+    "muzzle": [
+      0,
+      0.057,
+      -0.329
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 0.3
+  },
+  {
+    "id": 2,
+    "name": "Ripjaw Shotgun",
+    "triangles": 15360,
+    "bytes": 858080,
+    "muzzle": [
+      0,
+      0.065,
+      -0.626
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 1.05
+  },
+  {
+    "id": 3,
+    "name": "Hornet Chaingun",
+    "triangles": 14036,
+    "bytes": 744200,
+    "muzzle": [
+      0,
+      0.055,
+      -0.557
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 0.095
+  },
+  {
+    "id": 4,
+    "name": "Spiker",
+    "triangles": 16496,
+    "bytes": 974152,
+    "muzzle": [
+      0,
+      0.059,
+      -0.484
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 0.22
+  },
+  {
+    "id": 5,
+    "name": "Bile Launcher",
+    "triangles": 13004,
+    "bytes": 650792,
+    "muzzle": [
+      0,
+      0.061,
+      -0.473
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 1.15
+  },
+  {
+    "id": 6,
+    "name": "Sunlance",
+    "triangles": 15656,
+    "bytes": 826804,
+    "muzzle": [
+      0,
+      0.064,
+      -0.604
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 1.05
+  },
+  {
+    "id": 7,
+    "name": "The Seventh",
+    "triangles": 13832,
+    "bytes": 719800,
+    "muzzle": [
+      0,
+      0.055,
+      -0.53
+    ],
+    "clips": [
+      "idle",
+      "fire",
+      "equip"
+    ],
+    "fireDuration": 1.35
+  }
+]

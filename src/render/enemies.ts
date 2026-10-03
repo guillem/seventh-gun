@@ -1,10 +1,11 @@
-// Enemy meshes: procedural organic/biomechanic demons with faces, walk /
-// attack / pain / death animation and blob contact shadows.
+// Saved skeletal enemy roster for the experimental art pack; the original
+// factories remain available before preload and for legacy headless fixtures.
 import * as THREE from 'three';
 import { disposeOwnedObject } from './dispose';
 import { getTextures } from './textures';
 import type { EnemyEnt } from '../sim/sim';
 import { ENEMIES } from '../sim/enemyTypes';
+import type { EnemyType } from '../sim/types';
 import { applyRadialFog, applyRadialFogDeep } from './radialFog';
 import { getModernAssets, cloneOwnedModel } from './modernAssets';
 
@@ -30,6 +31,12 @@ export interface EnemyRig {
   radius: number;
   height: number;
   shadow: THREE.Mesh;
+  authored?: {
+    model: THREE.Group;
+    mixer: THREE.AnimationMixer;
+    actions: Map<string, THREE.AnimationAction>;
+    active: string;
+  };
 }
 
 function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshLambertMaterial {
@@ -875,44 +882,101 @@ function shadowMesh(r: number): THREE.Mesh {
 
 // ------------------------------------------------------------------ manager
 
-function buildModernHusk(): EnemyRig | null {
+const EYE_COLORS: Record<EnemyType, number> = {
+  husk: 0x9dff3a, crawler: 0xff2b2b, slab: 0xffa039,
+  wisp: 0x45dfff, hierophant: 0xc44dff, fiend: 0xff7a2a,
+};
+
+function buildModernEnemy(type: EnemyType): EnemyRig | null {
   const assets = getModernAssets();
-  if (!assets) return null;
+  const source = assets?.enemyModels?.[type];
+  const clips = assets?.enemyClips?.[type];
+  if (!source || !clips?.length) return null;
   const group = new THREE.Group();
   const yawGroup = new THREE.Group();
   const body = new THREE.Group();
-  const model = cloneOwnedModel(assets.husk);
+  const model = cloneOwnedModel(source);
+  model.name = `authored-${type}`;
   body.add(model);
   yawGroup.add(body);
   group.add(yawGroup);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x9dff3a });
+  const eyeMat = new THREE.MeshBasicMaterial({ color: EYE_COLORS[type] });
   const eyes: THREE.Mesh[] = [];
   const replaced = new Set<THREE.Material>();
   model.traverse(node => {
-    if (!(node instanceof THREE.Mesh) || !/eye|optic/i.test(node.name)) return;
-    for (const material of Array.isArray(node.material) ? node.material : [node.material]) replaced.add(material);
+    if (!(node instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    if (!materials.some(material => material.name.startsWith('eye.'))) return;
+    for (const material of materials) replaced.add(material);
     node.material = eyeMat;
     eyes.push(node);
   });
-  // GLB materials may be shared with non-eye meshes. Only retire unused ones.
   const used = new Set<THREE.Material>();
   model.traverse(node => {
     if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) used.add(material);
   });
   replaced.forEach(material => { if (!used.has(material)) material.dispose(); });
-  if (!eyes.length) {
-    // Own the flare material even if an asset revision omits eye geometry.
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), eyeMat);
-    eye.position.set(0, 1.72, 0.2);
-    body.add(eye);
-    eyes.push(eye);
-  }
-  const shadow = shadowMesh(0.55);
+  const def = ENEMIES[type];
+  const shadow = shadowMesh(type === 'crawler' ? 0.72 : def.radius);
   group.add(shadow);
-  const nodes = (names: string[]) => names.map(name => model.getObjectByName(name)).filter((node): node is THREE.Object3D => !!node);
-  return { group, yawGroup, body, head: model.getObjectByName('head'), eyes,
-    legs: nodes(['leg_l', 'leg_r']), arms: nodes(['arm_l', 'arm_r']), extras: [],
-    eyeMat, baseY: 0, radius: ENEMIES.husk.radius, height: ENEMIES.husk.height, shadow };
+  const mixer = new THREE.AnimationMixer(model);
+  const actions = new Map(clips.map(clip => {
+    const action = mixer.clipAction(clip);
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    return [clip.name, action] as const;
+  }));
+  const rig: EnemyRig = {
+    group, yawGroup, body, head: model.getObjectByName('head'), eyes,
+    legs: [], arms: [], extras: [], eyeMat,
+    baseY: def.flying ? def.hoverY : 0, radius: def.radius, height: def.height, shadow,
+    authored: { model, mixer, actions, active: '' },
+  };
+  body.position.y = rig.baseY;
+  sampleAuthored(rig, 'idle', 0);
+  return rig;
+}
+
+/** Scrub exported keyframes using simulation phase/timers. Render FPS never
+ * changes an attack's cadence or advances a hidden/cull-restored character. */
+function sampleAuthored(rig: EnemyRig, name: string, fraction: number): void {
+  const authored = rig.authored!;
+  const action = authored.actions.get(name);
+  if (!action) return;
+  if (authored.active !== name) {
+    authored.mixer.stopAllAction();
+    action.reset().play();
+    action.paused = true;
+    authored.active = name;
+  }
+  action.time = THREE.MathUtils.clamp(fraction, 0, 1) * action.getClip().duration;
+  authored.mixer.update(0);
+}
+
+function animateAuthored(rig: EnemyRig, e: EnemyEnt): void {
+  const def = ENEMIES[e.type];
+  if (e.state === 'attack') {
+    // The initial windup uses windup; later shots use the unchanged burst gap.
+    const span = e.burstLeft < def.burst ? def.burstGap : def.windup;
+    sampleAuthored(rig, 'attack', 1 - e.timer / Math.max(0.01, span));
+  } else if (e.state === 'pain') {
+    sampleAuthored(rig, 'hit', 1 - e.timer / Math.max(0.01, def.painTime));
+  } else if (e.state === 'chase') {
+    sampleAuthored(rig, 'walk', (e.animPhase * (e.type === 'crawler' ? 1.7 : 1.1)) % 1);
+  } else {
+    sampleAuthored(rig, 'idle', (e.animPhase * 0.5) % 1);
+  }
+  // Hover is the same def.hoverBob contract used by enemyVolumeY. Grounded
+  // feet stay rooted; gait flexion is entirely in the authored skeleton.
+  rig.body.position.y = rig.baseY + (def.flying ? Math.sin(e.animPhase * 2.2) * def.hoverBob : 0);
+}
+
+function disposeRig(rig: EnemyRig): void {
+  if (rig.authored) {
+    rig.authored.mixer.stopAllAction();
+    rig.authored.mixer.uncacheRoot(rig.authored.model);
+  }
+  disposeOwnedObject(rig.group);
 }
 
 export class EnemyRenderer {
@@ -928,10 +992,8 @@ export class EnemyRenderer {
   private build(type: string): EnemyRig {
     const tex = getTextures();
     const rig = (() => {
-      if (type === 'husk') {
-        const modern = buildModernHusk();
-        if (modern) return modern;
-      }
+      const modern = buildModernEnemy(type as EnemyType);
+      if (modern) return modern;
       switch (type) {
         case 'crawler': return buildCrawler(tex);
         case 'slab': return buildSlab(tex);
@@ -951,7 +1013,7 @@ export class EnemyRenderer {
     const alive = new Set(enemies.map(e => e.id));
     for (const [id, rig] of this.rigs) {
       if (!alive.has(id)) {
-        disposeOwnedObject(rig.group);
+        disposeRig(rig);
         this.rigs.delete(id);
       }
     }
@@ -978,7 +1040,8 @@ export class EnemyRenderer {
         // fall over, then sink
         const dt2 = simTime - e.deathTime;
         const fall = Math.min(1, dt2 / 0.45);
-        rig.group.rotation.x = -fall * Math.PI / 2 * 0.92;
+        if (rig.authored) sampleAuthored(rig, 'death', Math.max(0, dt2) / 0.625);
+        else rig.group.rotation.x = -fall * Math.PI / 2 * 0.92;
         rig.body.position.y = rig.baseY * (1 - fall);
         if (dt2 > 1.6) {
           const sink = Math.min(1, (dt2 - 1.6) / 1.2);
@@ -998,7 +1061,9 @@ export class EnemyRenderer {
       const moving = e.state === 'chase';
       const speedNorm = moving ? e.speed / 5 : 0;
 
-      if (e.type === 'crawler') {
+      if (rig.authored) {
+        animateAuthored(rig, e);
+      } else if (e.type === 'crawler') {
         // skitter: legs ripple forward/back
         rig.legs.forEach((leg, i) => {
           const ph = e.animPhase * 14 + i * 1.7;
@@ -1041,8 +1106,10 @@ export class EnemyRenderer {
       const base = rig.eyeBase;
       if (e.state === 'attack') {
         const t = Math.min(1, e.timer / Math.max(0.01, def.windup));
-        rig.body.rotation.x = -0.22 * t;
-        rig.arms.forEach(a => { a.rotation.x = -0.9 * t; });
+        if (!rig.authored) {
+          rig.body.rotation.x = -0.22 * t;
+          rig.arms.forEach(a => { a.rotation.x = -0.9 * t; });
+        }
         // Brighten toward hot/white as a function of windup t only, tinted
         // by this rig's own eye colour — never reads the mutated .color
         // (that used to compound frame over frame and hardcode orange).
@@ -1051,14 +1118,14 @@ export class EnemyRenderer {
           clampColor01(rig.eyeMat.color);
         }
       } else if (e.state === 'pain') {
-        rig.body.rotation.x = 0.3;
+        if (!rig.authored) rig.body.rotation.x = 0.3;
         // Distinct hot spike, still keyed off this rig's own eye colour.
         if (base) {
           rig.eyeMat.color.copy(base).lerp(EYE_FLARE_WHITE, 0.6).multiplyScalar(1.35);
           clampColor01(rig.eyeMat.color);
         }
       } else {
-        rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
+        if (!rig.authored) rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
         // Idle: restore resting eye colour (attack/pain flares must not stick).
         if (base) rig.eyeMat.color.copy(base);
       }
@@ -1067,7 +1134,7 @@ export class EnemyRenderer {
   }
 
   dispose(): void {
-    for (const [, rig] of this.rigs) disposeOwnedObject(rig.group);
+    for (const [, rig] of this.rigs) disposeRig(rig);
     this.rigs.clear();
   }
 

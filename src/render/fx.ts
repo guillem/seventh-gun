@@ -6,6 +6,7 @@ import { getProjectileSprite, isProjectileKind, type ProjectileKind } from './pr
 import type { ProjectileEnt } from '../sim/sim';
 import { applyRadialFogDeep } from './radialFog';
 import { disposeOwnedObject } from './dispose';
+import { getModernAssets } from './modernAssets';
 
 // Energy bolts all share one recipe: a small solid core so the shot has a hard
 // centre, a painted additive corona billboard, and two shrinking trail puffs
@@ -114,6 +115,36 @@ export class FxRenderer {
   }
 
   explosion(x: number, y: number, z: number, radius: number): void {
+    const modern = getModernAssets();
+    if (modern) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: modern.flash, color: 0xffdcc0,
+        blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false }));
+      flash.scale.setScalar(radius * 1.7);
+      group.add(flash);
+      const clouds: THREE.Sprite[] = [];
+      for (let i = 0; i < 3; i++) {
+        const cloud = new THREE.Sprite(new THREE.SpriteMaterial({ map: modern.smoke, color: 0x766e62,
+          transparent: true, opacity: .55, depthWrite: false, rotation: i * 2.1 }));
+        cloud.position.set(Math.sin(i * 2.1) * radius * .15, .1 + i * .12, Math.cos(i * 2.1) * radius * .15);
+        cloud.scale.setScalar(radius * (.75 + i * .12));
+        group.add(cloud); clouds.push(cloud);
+      }
+      const light = new THREE.PointLight(0xffb171, 65, radius * 5, 1.8);
+      this.addEffect(group, .85, (t, k) => {
+        flash.material.opacity = Math.max(0, 1 - t / .19);
+        flash.scale.setScalar(radius * (1.3 + t));
+        clouds.forEach((cloud, i) => {
+          cloud.material.opacity = Math.min(1, t * 14) * k * .6;
+          cloud.scale.setScalar(radius * (.75 + i * .12 + t * .7));
+          cloud.position.y = .1 + i * .12 + t * .6;
+        });
+        light.intensity = 65 * Math.max(0, 1 - t / .25);
+      }, light);
+      this.spawnParticles(x, y, z, Math.round(8 + radius * 2), 0xffa875, 6, .35, .13);
+      return;
+    }
     const group = new THREE.Group();
     group.position.set(x, y, z);
     const ball = new THREE.Mesh(
@@ -139,12 +170,12 @@ export class FxRenderer {
   }
 
   blood(x: number, y: number, z: number, big = false): void {
-    this.spawnParticles(x, y, z, big ? 22 : 9, 0x8a1220, big ? 6 : 4, 0.5, 0.22);
+    this.spawnParticles(x, y, z, big ? 22 : 9, 0x8a1220, big ? 6 : 4, 0.5, 0.22, false);
   }
 
   gibs(x: number, y: number, z: number, color = 0x6a2430): void {
-    this.spawnParticles(x, y, z, 16, color, 7, 1.4, 0.3);
-    this.spawnParticles(x, y, z, 8, 0x3a0d16, 5, 1.6, 0.28);
+    this.spawnParticles(x, y, z, 16, color, 7, 1.4, 0.3, false);
+    this.spawnParticles(x, y, z, 8, 0x3a0d16, 5, 1.6, 0.28, false);
   }
 
   sealBreakFx(x: number, z: number): void {
@@ -163,17 +194,19 @@ export class FxRenderer {
     this.explosion(x, 2.2, z, 4);
   }
 
-  private makeParticle(color: number, size: number): THREE.Sprite {
-    const mat = new THREE.SpriteMaterial({ map: this.tex.particle, color, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+  private makeParticle(color: number, size: number, luminous = true): THREE.Sprite {
+    const modern = getModernAssets();
+    const mat = new THREE.SpriteMaterial({ map: modern ? luminous ? modern.flash : modern.smoke : this.tex.particle,
+      color, blending: modern && !luminous ? THREE.NormalBlending : THREE.AdditiveBlending, transparent: true, depthWrite: false });
     const s = new THREE.Sprite(mat);
     s.scale.setScalar(size);
     return s;
   }
 
-  spawnParticles(x: number, y: number, z: number, count: number, color: number, speed: number, life: number, size: number): void {
+  spawnParticles(x: number, y: number, z: number, count: number, color: number, speed: number, life: number, size: number, luminous = true): void {
     for (let i = 0; i < count; i++) {
       if (this.particles.length > 240) return;
-      const s = this.makeParticle(color, size * (0.6 + Math.random() * 0.8));
+      const s = this.makeParticle(color, size * (0.6 + Math.random() * 0.8), luminous);
       s.position.set(x, y, z);
       this.scene.add(s);
       this.particles.push({
@@ -196,9 +229,10 @@ export class FxRenderer {
       new THREE.MeshBasicMaterial({ color: spec.coreColor, fog: false }),
     );
     g.add(core);
-    const map = getProjectileSprite(kind);
+    const modern = getModernAssets();
+    const map = modern?.flash ?? getProjectileSprite(kind);
     const head = new THREE.Sprite(new THREE.SpriteMaterial({
-      map, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false,
+      map, color: modern ? spec.coreColor : 0xffffff, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false,
     }));
     head.scale.setScalar(spec.corona);
     g.add(head);
@@ -206,7 +240,7 @@ export class FxRenderer {
     // hangs off -z and stays behind the bolt whichever way it flies.
     for (let i = 1; i <= 2; i++) {
       const puff = new THREE.Sprite(new THREE.SpriteMaterial({
-        map, blending: THREE.AdditiveBlending, transparent: true,
+        map, color: modern ? spec.coreColor : 0xffffff, blending: THREE.AdditiveBlending, transparent: true,
         opacity: 0.45 / i, depthWrite: false, fog: false,
       }));
       puff.scale.setScalar(spec.trail * (1 - 0.28 * (i - 1)));

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "flash",
+    "source": "art/modern/roster/effects/flash.png",
+    "runtime": "public/modern/roster/effects/flash.webp",
+    "sourceSHA256": "ad96dc1ec770720019c8b9fb681e0bd4050ea511cd5d786805fe86aa8f08b7bb",
+    "runtimeSHA256": "b74b8b8def82722e3009db7413618891c014a61ff90d6bec3779be49730555ca",
+    "runtimeBytes": 75388
+  },
+  {
+    "id": "smoke",
+    "source": "art/modern/roster/effects/smoke.png",
+    "runtime": "public/modern/roster/effects/smoke.webp",
+    "sourceSHA256": "ac25dcf7b37baa23ae6b1218d836e896c9fcc0a4388beed050e03507fb72d357",
+    "runtimeSHA256": "012d147edc01c8365ddcddcfd8d99c0e805e61826cf0a559e4c1ba15c64ee4ec",
+    "runtimeBytes": 78846
+  }
+]

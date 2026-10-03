@@ -1,0 +1,42 @@
+{
+  "generator": "Built-in imagegen",
+  "usage": "Generated base-color materials. Not scanned measured PBR data.",
+  "items": [
+    {
+      "id": "weapon-metal",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Dark satin gunmetal, precision-machined titanium steel, subdued graphite gray with minute brushed machining, restrained rubbed edges and fine wear. Uniform enough for a firearm material, physically plausible."
+    },
+    {
+      "id": "glove",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Charcoal black tactical glove leather and rubberized synthetic hide, tightly packed tiny pebbled leather grain, subtle stretch wrinkles, faint grey worn high spots, matte."
+    },
+    {
+      "id": "fabric",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Muted grey olive tightly woven ballistic nylon textile, small realistic interlocking thread weave, slightly worn, uniform, subtle fine stitchless fibers. No folds."
+    },
+    {
+      "id": "carapace",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Weathered dark grey biomechanical chitin, fossilized organic bone armor with subtle striations and tiny natural pores, desaturated brown grey and ivory traces, leathery organic mineral character, no creature or face."
+    },
+    {
+      "id": "basalt",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Hewn dark basalt stone, dense charcoal mineral grains, thin irregular fractures and restrained dusty deposits, believable ancient subterranean masonry surface without visible brick grid."
+    },
+    {
+      "id": "organic",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Pale weathered ivory biomechanical organic wall tissue, calcified bone fibers with subtle grey burgundy capillary traces and layered ribbed mineral texture, dry matte organic surface, subdued rather than bloody."
+    },
+    {
+      "id": "ceramic",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Off-white industrial glazed ceramic wall surface, understated hairline crazing, tiny scratches and grey dust accumulation, clinical pale warm grey, large blank areas, no tile borders."
+    },
+    {
+      "id": "limestone",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Pale cool limestone dressed masonry material, finely granular matte stone, subtly chipped flecks and faint grey fossil striations, softly weathered, no brick grid."
+    },
+    {
+      "id": "alloy",
+      "prompt": "Original photorealistic game base-color material scan. Square 1024 by 1024 seamless tile, strictly orthographic straight-on macro surface, edge-to-edge material, extremely flat diffuse neutral illumination, no directional highlights, shadows, perspective, objects, symbols or text. Plausible fine irregular texture, no strong large repeating marks. Not a stylized illustration. Dark blue-black high-tech alloy wall surface with fine machining and small restrained iridescent mineral veins, satin low sheen, muted graphite charcoal, no visible panels or pictograms."
+    }
+  ]
+}

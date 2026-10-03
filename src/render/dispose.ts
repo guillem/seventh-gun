@@ -11,6 +11,7 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
+  const skeletons = new Set<THREE.Skeleton>();
   const instances = new Set<THREE.InstancedMesh>();
 
   root.traverse((node) => {
@@ -24,6 +25,7 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
     // Instance buffers belong to the object, not its geometry. Three removes
     // them only when InstancedMesh emits its own disposal event.
     if ((node as THREE.InstancedMesh).isInstancedMesh) instances.add(node as THREE.InstancedMesh);
+    if (node instanceof THREE.SkinnedMesh) skeletons.add(node.skeleton);
     const material = renderable.material;
     if (Array.isArray(material)) material.forEach(m => materials.add(m));
     else if (material) materials.add(material);
@@ -35,6 +37,7 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
   });
 
   root.removeFromParent();
+  skeletons.forEach(skeleton => skeleton.dispose());
   instances.forEach(instance => instance.dispose());
   geometries.forEach(geometry => geometry.dispose());
   materials.forEach(material => material.dispose());

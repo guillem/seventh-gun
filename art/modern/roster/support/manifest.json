@@ -1,0 +1,35 @@
+{
+  "glbBytes": 1889644,
+  "models": [
+    {
+      "node": "medikit",
+      "meshes": 4,
+      "triangles": 2504
+    },
+    {
+      "node": "ammo",
+      "meshes": 4,
+      "triangles": 2408
+    },
+    {
+      "node": "key",
+      "meshes": 3,
+      "triangles": 1768
+    },
+    {
+      "node": "powerup",
+      "meshes": 3,
+      "triangles": 1720
+    },
+    {
+      "node": "pedestal",
+      "meshes": 3,
+      "triangles": 1648
+    },
+    {
+      "node": "marine",
+      "meshes": 5,
+      "triangles": 15724
+    }
+  ]
+}

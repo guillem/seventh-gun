@@ -5,8 +5,35 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 
-export const MODERN_ASSET_VERSION = 'foundry-03';
+export const MODERN_ASSET_VERSION = 'roster-01';
 export const MODERN_ASSET_URLS = {
+  weaponMetal: '/modern/roster/materials/weapon-metal.webp',
+  glove: '/modern/roster/materials/glove.webp',
+  fabric: '/modern/roster/materials/fabric.webp',
+  carapace: '/modern/roster/materials/carapace.webp',
+  basalt: '/modern/roster/materials/basalt.webp',
+  organic: '/modern/roster/materials/organic.webp',
+  ceramic: '/modern/roster/materials/ceramic.webp',
+  limestone: '/modern/roster/materials/limestone.webp',
+  alloy: '/modern/roster/materials/alloy.webp',
+  sky: '/modern/roster/materials/sky.webp',
+  flash: '/modern/roster/effects/flash.webp',
+  smoke: '/modern/roster/effects/smoke.webp',
+  environmentKit: '/modern/roster/environment/kit.glb',
+  support: '/modern/roster/support/support.glb',
+  weapon1: '/modern/roster/weapons/1.glb',
+  weapon2: '/modern/roster/weapons/2.glb',
+  weapon3: '/modern/roster/weapons/3.glb',
+  weapon4: '/modern/roster/weapons/4.glb',
+  weapon5: '/modern/roster/weapons/5.glb',
+  weapon6: '/modern/roster/weapons/6.glb',
+  weapon7: '/modern/roster/weapons/7.glb',
+  enemy_husk: '/modern/roster/enemies/husk.glb',
+  enemy_crawler: '/modern/roster/enemies/crawler.glb',
+  enemy_slab: '/modern/roster/enemies/slab.glb',
+  enemy_wisp: '/modern/roster/enemies/wisp.glb',
+  enemy_hierophant: '/modern/roster/enemies/hierophant.glb',
+  enemy_fiend: '/modern/roster/enemies/fiend.glb',
   concrete: '/modern/textures/concrete.webp',
   steel: '/modern/textures/steel.webp',
   skin: '/modern/textures/dermal.webp',
@@ -26,6 +53,20 @@ export const MODERN_ASSET_URLS = {
 } as const;
 
 export interface ModernAssets {
+  weapons: Record<number, THREE.Group>;
+  weaponClips: Record<number, THREE.AnimationClip[]>;
+  enemyModels: Record<string, THREE.Group>;
+  enemyClips: Record<string, THREE.AnimationClip[]>;
+  environmentKit: THREE.Group;
+  support: THREE.Group;
+  surfaces: Record<string, THREE.Texture>;
+  weaponMetal: THREE.Texture;
+  glove: THREE.Texture;
+  fabric: THREE.Texture;
+  carapace: THREE.Texture;
+  flash: THREE.Texture;
+  smoke: THREE.Texture;
+  sky: THREE.Texture;
   concrete: THREE.Texture;
   steel: THREE.Texture;
   skin: THREE.Texture;
@@ -71,23 +112,15 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
     const loadModel = async (url: string) => {
       const model = await modelLoader.loadAsync(url);
       progress(++loaded, total);
+      model.scene.animations = model.animations;
       return model.scene;
     };
     // Settle every request before cleanup so a late success cannot leak after
     // another member of the pack fails. A retry starts from a clean cache.
-    const results = await Promise.allSettled([
-      loadTexture(MODERN_ASSET_URLS.concrete), loadTexture(MODERN_ASSET_URLS.steel),
-      loadTexture(MODERN_ASSET_URLS.skin), loadTexture(MODERN_ASSET_URLS.titanium),
-      loadModel(MODERN_ASSET_URLS.pistol), loadModel(MODERN_ASSET_URLS.husk),
-      loadModel(MODERN_ASSET_URLS.architecture),
-      loadModel(MODERN_ASSET_URLS.foundry), loadTexture(MODERN_ASSET_URLS.irradiance),
-      loadTexture(MODERN_ASSET_URLS.concreteNormal), loadTexture(MODERN_ASSET_URLS.concreteRoughness),
-      loadTexture(MODERN_ASSET_URLS.steelNormal), loadTexture(MODERN_ASSET_URLS.steelRoughness),
-      loadTexture(MODERN_ASSET_URLS.entranceDoor), loadTexture(MODERN_ASSET_URLS.entranceFloor),
-      loadModel(MODERN_ASSET_URLS.doorHardware),
-    ]);
-    const failure = results.find(result => result.status === 'rejected');
-    if (failure) {
+    const entries = Object.entries(MODERN_ASSET_URLS);
+    const results = await Promise.allSettled(entries.map(([, url]) =>
+      url.endsWith('.glb') ? loadModel(url) : loadTexture(url)));
+    if (results.some(result => result.status === 'rejected')) {
       for (const result of results) {
         if (result.status !== 'fulfilled') continue;
         if (result.value instanceof THREE.Texture) result.value.dispose();
@@ -95,22 +128,60 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       }
       throw new Error('The art pack could not be loaded. Check your connection and retry.');
     }
-    const values = results.map(result => (result as PromiseFulfilledResult<THREE.Texture | THREE.Group>).value);
+    const values = Object.fromEntries(results.map((result, index) =>
+      [entries[index][0], (result as PromiseFulfilledResult<THREE.Texture | THREE.Group>).value]));
+    const texture = (key: string) => values[key] as THREE.Texture;
+    const model = (key: string) => values[key] as THREE.Group;
+    const weapons = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i + 1, model(`weapon${i + 1}`)]));
+    const enemyModels = Object.fromEntries(['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend']
+      .map(type => [type, model(`enemy_${type}`)]));
     assets = {
-      concrete: values[0] as THREE.Texture, steel: values[1] as THREE.Texture,
-      skin: values[2] as THREE.Texture, titanium: values[3] as THREE.Texture,
-      pistol: values[4] as THREE.Group, husk: values[5] as THREE.Group,
-      architecture: values[6] as THREE.Group,
-      foundry: values[7] as THREE.Group, irradiance: values[8] as THREE.Texture,
-      concreteNormal: values[9] as THREE.Texture, concreteRoughness: values[10] as THREE.Texture,
-      steelNormal: values[11] as THREE.Texture, steelRoughness: values[12] as THREE.Texture,
-      entranceDoor: values[13] as THREE.Texture, entranceFloor: values[14] as THREE.Texture,
-      doorHardware: values[15] as THREE.Group,
+      concrete: texture('concrete'), steel: texture('steel'), skin: texture('skin'), titanium: texture('titanium'),
+      pistol: model('pistol'), husk: model('husk'), architecture: model('architecture'), foundry: model('foundry'),
+      irradiance: texture('irradiance'), concreteNormal: texture('concreteNormal'),
+      concreteRoughness: texture('concreteRoughness'), steelNormal: texture('steelNormal'),
+      steelRoughness: texture('steelRoughness'), entranceDoor: texture('entranceDoor'),
+      entranceFloor: texture('entranceFloor'), doorHardware: model('doorHardware'),
+      weapons, weaponClips: Object.fromEntries(Object.entries(weapons).map(([id, group]) => [id, group.animations])),
+      enemyModels, enemyClips: Object.fromEntries(Object.entries(enemyModels).map(([id, group]) => [id, group.animations])),
+      environmentKit: model('environmentKit'), support: model('support'),
+      surfaces: Object.fromEntries(['basalt', 'organic', 'ceramic', 'limestone', 'alloy', 'concrete', 'steel', 'entranceFloor']
+        .map(id => [id, texture(id)])),
+      weaponMetal: texture('weaponMetal'), glove: texture('glove'), fabric: texture('fabric'), carapace: texture('carapace'),
+      flash: texture('flash'), smoke: texture('smoke'), sky: texture('sky'),
     };
+    for (const map of [assets.weaponMetal, assets.glove, assets.fabric, assets.carapace, ...Object.values(assets.surfaces)]) {
+      map.flipY = false;
+    }
+    for (const map of [assets.flash, assets.smoke]) {
+      map.wrapS = map.wrapT = THREE.ClampToEdgeWrapping;
+    }
+    const rosterMaterials = new Set<THREE.Material>();
+    for (const root of [...Object.values(weapons), ...Object.values(enemyModels), assets.support]) root.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+        if (!(material instanceof THREE.MeshStandardMaterial) || rosterMaterials.has(material)) continue;
+        rosterMaterials.add(material);
+        const name = material.name.toLowerCase();
+        if (name.startsWith('weapon.metal') || name.startsWith('weapon.edge')) material.map = assets!.weaponMetal;
+        else if (name.startsWith('weapon.grip') || name.startsWith('hand.glove')) material.map = assets!.glove;
+        else if (name.startsWith('hand.fabric')) material.map = assets!.fabric;
+        else if (name.startsWith('enemy.skin')) material.map = assets!.skin;
+        else if (name.startsWith('enemy.armour')) material.map = assets!.carapace;
+        else if (name.startsWith('enemy.bone')) { material.map = assets!.titanium; material.metalness = 0.08; }
+        if (/^(support.metal|marine.steel)/.test(name)) material.map = assets!.weaponMetal;
+        else if (name.startsWith('marine.fabric')) material.map = assets!.fabric;
+        else if (name.startsWith('marine.dark')) material.map = assets!.glove;
+        material.envMapIntensity = name.startsWith('weapon.') ? 0.85 : 0.4;
+        // Keep the model's authored tint and roughness; all maps are base-color only.
+        material.needsUpdate = true;
+      }
+    });
     for (const texture of [assets.concreteNormal, assets.concreteRoughness, assets.steelNormal, assets.steelRoughness]) {
       texture.colorSpace = THREE.NoColorSpace;
       texture.flipY = false;
     }
+    assets.skin.flipY = assets.titanium.flipY = false;
     assets.entranceFloor.flipY = false;
     assets.entranceDoor.wrapS = assets.entranceDoor.wrapT = THREE.ClampToEdgeWrapping;
     assets.irradiance.flipY = false;
@@ -186,17 +257,20 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
 }
 
 function disposeCachedModel(root: THREE.Object3D): void {
+  const skeletons = new Set<THREE.Skeleton>();
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   root.traverse(node => {
     if (!(node instanceof THREE.Mesh)) return;
     geometries.add(node.geometry);
+    if (node instanceof THREE.SkinnedMesh) skeletons.add(node.skeleton);
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
       materials.add(material);
       for (const value of Object.values(material)) if (value instanceof THREE.Texture) textures.add(value);
     }
   });
+  skeletons.forEach(value => value.dispose());
   geometries.forEach(value => value.dispose());
   materials.forEach(value => value.dispose());
   textures.forEach(value => value.dispose());
@@ -216,6 +290,9 @@ export function cloneOwnedModel(source: THREE.Object3D): THREE.Group {
       return materials.get(material)!;
     };
     node.material = Array.isArray(node.material) ? node.material.map(cloneMaterial) : cloneMaterial(node.material);
+    // The outer rig already owns frustum/LOS culling. Three caches per-mesh
+    // skin bounds at the first pose, which omit later attack/death motion.
+    if (node instanceof THREE.SkinnedMesh) node.frustumCulled = false;
     node.castShadow = true;
     node.receiveShadow = true;
   });

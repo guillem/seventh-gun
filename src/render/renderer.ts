@@ -15,6 +15,7 @@ import { GUN_FLASH } from './gunArt';
 import { getTextures } from './textures';
 import { type CampaignArtId } from './campaignTextures';
 import { CAMPAIGN_FOG } from './campaignDecor';
+import { CAMPAIGN_ENVIRONMENT_PALETTES } from './campaignEnvironment';
 import { hasVisualLineOfSight } from '../sim/physics';
 import { applyRadialFogDeep, installRadialFog } from './radialFog';
 import { disposeOwnedObject } from './dispose';
@@ -24,6 +25,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ContactOcclusionPass } from './contactOcclusion';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -45,7 +47,10 @@ export class GameRenderer {
   private vmHolder = new THREE.Group();
   private currentGun = 0;
   private viewBob = 0;
+  private presentationTime = 0;
   private torch: THREE.PointLight;
+  private hemisphere: THREE.HemisphereLight;
+  private artId?: CampaignArtId;
   private muzzleSprite: THREE.Sprite | null = null;
   private muzzleLife = 0;
   private baseFov = 75;
@@ -88,6 +93,7 @@ export class GameRenderer {
     // lighting for dynamic meshes (enemies/pickups/doors)
     this.scene.add(new THREE.AmbientLight(modern ? 0xa4b7c2 : 0x77706d, modern ? 0.2 : 1.35));
     const hemi = new THREE.HemisphereLight(modern ? 0xc2d9e1 : 0x5a4850, modern ? 0x333028 : 0x2a2226, modern ? 0.55 : 0.7);
+    this.hemisphere = hemi;
     this.scene.add(hemi);
     this.torch = new THREE.PointLight(0xffd9a0, 26, 14, 1.8);
     this.scene.add(this.torch);
@@ -124,6 +130,7 @@ export class GameRenderer {
     if (modern && !window.matchMedia('(pointer: coarse)').matches) {
       this.composer = new EffectComposer(this.renderer);
       this.composer.addPass(new RenderPass(this.scene, this.camera));
+      this.composer.addPass(new ContactOcclusionPass(this.scene, this.camera));
       this.composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.18, 0.35, 1.1));
       this.composer.addPass(new OutputPass());
     }
@@ -171,10 +178,12 @@ export class GameRenderer {
     this.pickups.dispose();
     this.pickups.syncStart(sim.pickups);
     const resolved = artId;
+    this.artId = artId;
+    if (getModernAssets()) this.hemisphere.color.set(artId ? CAMPAIGN_ENVIRONMENT_PALETTES[artId].sky : 0xc2d9e1);
     this.world = buildWorld(sim.map, resolved);
     this.scene.add(this.world.group);
     this.scene.fog = getModernAssets()
-      ? sim.map.seed === 'campaign:01-foundry' ? new THREE.Fog(0x15282f, 24, 110) : new THREE.Fog(0x273942, 14, 72)
+      ? sim.map.seed === 'campaign:01-foundry' ? new THREE.Fog(0x15282f, 24, 110) : new THREE.Fog(resolved ? CAMPAIGN_ENVIRONMENT_PALETTES[resolved].fog : 0x273942, 14, 78)
       : resolved
       ? new THREE.Fog(CAMPAIGN_FOG[resolved], 8, 52)
       : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
@@ -206,12 +215,13 @@ export class GameRenderer {
       // frame can try to retire the same material again.
       this.muzzleSprite = null;
       this.muzzleLife = 0;
+      this.viewModel.dispose?.();
       disposeOwnedObject(this.viewModel.group);
     }
     this.viewModel = buildViewModel(id);
     this.vmHolder.add(this.viewModel.group);
     // switch dip animation
-    this.vmHolder.position.y = -0.35;
+    this.vmHolder.position.y = getModernAssets() ? 0 : -0.35;
   }
 
   private updateMuzzleSprite(color: number, size: number): void {
@@ -221,14 +231,14 @@ export class GameRenderer {
       this.muzzleSprite = null;
     }
     const mat = new THREE.SpriteMaterial({
-      map: getTextures().flash, color, blending: THREE.AdditiveBlending,
+      map: getModernAssets()?.flash ?? getTextures().flash, color, blending: THREE.AdditiveBlending,
       transparent: true, depthWrite: false, depthTest: false,
     });
     const s = new THREE.Sprite(mat);
-    s.scale.setScalar(size);
+    s.scale.setScalar(getModernAssets() ? size * 0.52 : size);
     this.viewModel.muzzle.add(s);
     this.muzzleSprite = s;
-    this.muzzleLife = 0.085;
+    this.muzzleLife = getModernAssets() ? 0.06 : 0.085;
   }
 
   get muzzleState(): { alive: boolean; attached: boolean; opacity: number; gunVisible: boolean } {
@@ -280,12 +290,14 @@ export class GameRenderer {
 
     // viewmodel state
     if (inputMoving) this.viewBob += dt;
+    this.presentationTime += dt;
     if (this.viewModel) {
       this.viewModel.update(dt, {
         moving: inputMoving ? 1 : 0,
         firing: p.fireCd > 0.04,
+        fireCooldown: p.fireCd,
         recoil: Math.max(0, Math.min(1, p.fireCd / 0.25)),
-        time: this.viewBob,
+        time: getModernAssets() ? this.presentationTime : this.viewBob,
       });
     }
     // muzzle sprite lifetime
@@ -380,7 +392,7 @@ export class GameRenderer {
       light.visible = !!source;
       if (!source) return;
       light.position.set(source.x, Math.min(source.y, 3.8), source.z);
-      light.color.setRGB(...source.color).lerp(new THREE.Color(0xf0d6b4), 0.65);
+      light.color.setRGB(...source.color).lerp(new THREE.Color(this.artId ? CAMPAIGN_ENVIRONMENT_PALETTES[this.artId].fixture : 0xf0d6b4), 0.7);
       light.intensity = 24 * source.intensity;
       light.distance = Math.min(24, source.radius * 1.2);
     });

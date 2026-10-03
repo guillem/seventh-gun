@@ -3,6 +3,14 @@
 export const MODERN_SAMPLE_IDS = [
   'pistol-a', 'pistol-b', 'shotgun', 'door-open', 'metal-impact',
   'husk-alert', 'husk-pain', 'industrial-ambient',
+  'chaingun', 'spiker', 'bile', 'sunlance', 'seventh',
+  'crawler-voice', 'crawler-pain', 'crawler-death',
+  'slab-voice', 'slab-pain', 'slab-death',
+  'wisp-voice', 'wisp-pain', 'wisp-death',
+  'hierophant-voice', 'hierophant-pain', 'hierophant-death',
+  'fiend-voice', 'fiend-pain', 'fiend-death', 'husk-death',
+  'explosion', 'dryfire', 'pickup', 'medical', 'key', 'powerup',
+  'hurt', 'seal', 'heartbeat', 'success', 'failure',
 ] as const;
 
 export type ModernSampleId = typeof MODERN_SAMPLE_IDS[number];

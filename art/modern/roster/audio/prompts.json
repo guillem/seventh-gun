@@ -1,0 +1,110 @@
+{
+  "provider": "Runway free workspace included credits",
+  "items": [
+    {
+      "id": "chaingun",
+      "duration": 1,
+      "promptText": "Heavy rotary science fiction cannon firing one single short shot: sharp mechanical bolt clack and tight low percussive report, dry close perspective, quick tail. No burst, no voices, no music."
+    },
+    {
+      "id": "spiker",
+      "duration": 1,
+      "promptText": "Industrial pneumatic nail launcher firing once: compressed air snap, heavy metal piston thunk and short sharp metallic zip. Isolated dry close sound, immediate onset, no music."
+    },
+    {
+      "id": "bile",
+      "duration": 1.4,
+      "promptText": "Science fiction pressure launcher firing once: deep sealed pressure vessel thump, compressed liquid gurgle and brief air hiss. Close isolated mechanical sound, immediate onset, no music."
+    },
+    {
+      "id": "sunlance",
+      "duration": 1.3,
+      "promptText": "Science fiction precision energy lance firing once: crisp electrical discharge crack followed by a thin high resonant metallic singing tail. Physical capacitor and arc character, no cartoon pew, no music."
+    },
+    {
+      "id": "seventh",
+      "duration": 2,
+      "promptText": "Massive alien containment emitter firing once: immediate sub bass pressure impact, resonating steel chamber and strange descending electrical resonance dissolving into air. No voice or music."
+    },
+    {
+      "id": "crawler-voice",
+      "duration": 1.5,
+      "promptText": "Small fictional insectoid creature making a short rasping chitter and dry mandible clicks. Natural organic foley, close isolated perspective, no words, no human voice, no music."
+    },
+    {
+      "id": "slab-voice",
+      "duration": 2,
+      "promptText": "Large fictional stone-armored creature making one deep chesty exhalation and rumbling growl, with subtle rocky grinding texture. Close isolated, no words, no human voice, no music."
+    },
+    {
+      "id": "wisp-voice",
+      "duration": 1.5,
+      "promptText": "Small fictional ethereal creature making a breathy airy whistle with soft crystalline overtones, rises then falls, delicate unusual animal call. Isolated, no words, no music."
+    },
+    {
+      "id": "hierophant-voice",
+      "duration": 2,
+      "promptText": "Fictional alien creature makes a low resonant hollow croak with several close harmonic tones and a papery rattle. Ancient and otherworldly animal call, no words, no human speech, no music."
+    },
+    {
+      "id": "fiend-voice",
+      "duration": 2,
+      "promptText": "Enormous fictional reptilian creature gives a powerful low rumbling animal call with rough throat vibration and a short exhale. Naturalistic designed creature foley, isolated, no words or music."
+    },
+    {
+      "id": "explosion",
+      "duration": 2,
+      "promptText": "Cinematic industrial pressure explosion: immediate sharp crack with a deep bass thump, brief scattering metal debris and airy dusty tail. One isolated event, no voices or music."
+    },
+    {
+      "id": "dryfire",
+      "duration": 0.5,
+      "promptText": "A precision mechanical tool trigger clicks once against an empty chamber. Small dry metal click and spring reset, extremely short isolated close sound, no music."
+    },
+    {
+      "id": "pickup",
+      "duration": 0.7,
+      "promptText": "Small futuristic equipment latch locking securely: soft metal click followed by a clean very brief two-tone electronic confirmation chime. Understated realistic interface foley, isolated, no music."
+    },
+    {
+      "id": "medical",
+      "duration": 0.8,
+      "promptText": "Compact futuristic medical injector: quiet latch click, tiny pressurized hiss and soft electronic confirmation. Close isolated foley, restrained, no voice or music."
+    },
+    {
+      "id": "key",
+      "duration": 0.8,
+      "promptText": "Electronic access card accepted by secure industrial reader: small tap then two delicate rising glassy tones with a quiet latch click. Restrained realistic game interface, no music."
+    },
+    {
+      "id": "powerup",
+      "duration": 1.2,
+      "promptText": "Small futuristic power module engaging: short rising electric coil resonance, clean click and soft low pulsing hum tail. Isolated, sophisticated industrial foley, no music."
+    },
+    {
+      "id": "hurt",
+      "duration": 0.5,
+      "promptText": "Heavy impact against padded protective body armor: muffled solid fabric thump with a brief rattle of hard plates. Single close hit, no human voice, no music."
+    },
+    {
+      "id": "seal",
+      "duration": 2,
+      "promptText": "Massive alien energy barrier powering down: descending electrical resonance and cracking crystalline static, finishing with a low bass pressure release. One isolated science fiction device sound, no music."
+    },
+    {
+      "id": "heartbeat",
+      "duration": 0.8,
+      "promptText": "A close muffled heartbeat double thump, deep soft physical low frequency pulse, quiet background, one heartbeat pair, no music or other sounds."
+    },
+    {
+      "id": "success",
+      "duration": 2,
+      "promptText": "A short cinematic science fiction completion sound: warm resonant metallic chime followed by three gentle rising harmonic tones, calm resolved tail. A single subtle game interface sting, no beat or voice."
+    },
+    {
+      "id": "failure",
+      "duration": 2,
+      "promptText": "A short cinematic science fiction shutdown sound: subdued low descending metallic tones with a soft relay click and a fading dark resonance. A single game interface cue, no voice or beat."
+    }
+  ]
+}

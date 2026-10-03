@@ -1,0 +1,427 @@
+{
+  "fileCount": 84,
+  "bytes": 26803216,
+  "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
+  "files": [
+    {
+      "path": "modern/audio/bile.mp3",
+      "bytes": 20157,
+      "sha256": "357f4bf5e04142f6b9e2a9d0f1161f4f97bb48a52340ebb76f84ca893f5acd4c"
+    },
+    {
+      "path": "modern/audio/chaingun.mp3",
+      "bytes": 4432,
+      "sha256": "5649622777bb8e5e51e982641a0b865fe19b48b341a54411914cea45f81e507e"
+    },
+    {
+      "path": "modern/audio/crawler-death.mp3",
+      "bytes": 27472,
+      "sha256": "63fa54c1e66c646818760a726db7d56b4577c662881e4ac67176d54f2861c9b5"
+    },
+    {
+      "path": "modern/audio/crawler-pain.mp3",
+      "bytes": 7357,
+      "sha256": "98462f9ff2dd5f179aa5b055bebee904d9f8ac0679e764c781e2e6435c113e09"
+    },
+    {
+      "path": "modern/audio/crawler-voice.mp3",
+      "bytes": 21620,
+      "sha256": "64ed2e27b137350a90d53257d2eb7a630bc77ff7ba64607b40f7f253dd21977e"
+    },
+    {
+      "path": "modern/audio/door-open.mp3",
+      "bytes": 27106,
+      "sha256": "fc5f648d027176437ab7bf204aba68c4092efeec22ffa6145f1d21223e031adf"
+    },
+    {
+      "path": "modern/audio/dryfire.mp3",
+      "bytes": 4066,
+      "sha256": "2b348ed316322c88caab4d96f8db8079578cf860d0f7fb33dc3f2aef1ab2d17d"
+    },
+    {
+      "path": "modern/audio/explosion.mp3",
+      "bytes": 28934,
+      "sha256": "610f307546e224e9fbe5de6e461bd4f8509ca343bdfe23d629dcde25e82a4f10"
+    },
+    {
+      "path": "modern/audio/failure.mp3",
+      "bytes": 28934,
+      "sha256": "eb0a47d23afa0a87f11b3dc0a26d375dfc8e93decd99101733e937af28240d1e"
+    },
+    {
+      "path": "modern/audio/fiend-death.mp3",
+      "bytes": 32226,
+      "sha256": "03db6fb13c9abbdef510dfcc37c872ff9be0e6e2561c5229b1b093231cc13014"
+    },
+    {
+      "path": "modern/audio/fiend-pain.mp3",
+      "bytes": 7357,
+      "sha256": "eed53e64a9bf26d1cab0df88a44fd0bd1890b7161ee4ae8ca3dc18d6afa0af18"
+    },
+    {
+      "path": "modern/audio/fiend-voice.mp3",
+      "bytes": 28934,
+      "sha256": "0780efd691a2e3846939b49ceea645203019197e0872280e6176fe638dfc2955"
+    },
+    {
+      "path": "modern/audio/heartbeat.mp3",
+      "bytes": 12112,
+      "sha256": "8dbe88ffc9374760a1d51c37c3bd13b93b2be0ec14821186e2ac36aee9292c4b"
+    },
+    {
+      "path": "modern/audio/hierophant-death.mp3",
+      "bytes": 32226,
+      "sha256": "8e39f623938bfb9bfeb69a66d519935e3cd7a8fdf7d49b5fe82594b0765f3ee9"
+    },
+    {
+      "path": "modern/audio/hierophant-pain.mp3",
+      "bytes": 7357,
+      "sha256": "9a1f47625e1542187e3fa7b56f4aaa624307bc6aef9d66cfb1cbcf441444fd30"
+    },
+    {
+      "path": "modern/audio/hierophant-voice.mp3",
+      "bytes": 28934,
+      "sha256": "44b95001412089f3bff764f41fed156da542ce6f203b1ab8ae4340629fb95efd"
+    },
+    {
+      "path": "modern/audio/hurt.mp3",
+      "bytes": 6260,
+      "sha256": "81600fe04f0ac6405123470357d571fd412c7e2ad147b1075b97e646d30a2aed"
+    },
+    {
+      "path": "modern/audio/husk-alert.mp3",
+      "bytes": 27472,
+      "sha256": "718317607bf08924ea3425c8abe14ad1c8bdc5fda45aa8c061c84e3460fddd5e"
+    },
+    {
+      "path": "modern/audio/husk-death.mp3",
+      "bytes": 19792,
+      "sha256": "1632b5f87576ea3b24d0d61794ac054a67d4fe53989bab319cccb376b25111e6"
+    },
+    {
+      "path": "modern/audio/husk-pain.mp3",
+      "bytes": 15037,
+      "sha256": "edb6f7d9ef6d5c73bb5fed7ab6e5616e8ae1b21091a18aba196ba2aa0ef75fc7"
+    },
+    {
+      "path": "modern/audio/industrial-ambient.mp3",
+      "bytes": 109392,
+      "sha256": "b7e8c0dc3499a3df07ea41bf8582cce620ebf4b93e9f7e743941289d7fd51c91"
+    },
+    {
+      "path": "modern/audio/key.mp3",
+      "bytes": 12112,
+      "sha256": "e4ad480616c80575af026d77767e5c988120c2559a1622946f5f0a1f9367c1bc"
+    },
+    {
+      "path": "modern/audio/medical.mp3",
+      "bytes": 10649,
+      "sha256": "9eb3483a98eeffcebc0f7d4ea01d500c53e5028e4d3da1522c5ad085ca58a55a"
+    },
+    {
+      "path": "modern/audio/metal-impact.mp3",
+      "bytes": 15037,
+      "sha256": "f3bff37dd0195f612108293c974b82e6ef011e5bed4a62dba96cfbb906ded6d1"
+    },
+    {
+      "path": "modern/audio/pickup.mp3",
+      "bytes": 8454,
+      "sha256": "d41881065b356f28c01c3384fa71a50f912472f17069e1a9fb3831966b6e51ec"
+    },
+    {
+      "path": "modern/audio/pistol-a.mp3",
+      "bytes": 15037,
+      "sha256": "fa129be7b350e9300a9cf8d5a9b4ee293c27b60d89e390de4de04fb9de640b1b"
+    },
+    {
+      "path": "modern/audio/pistol-b.mp3",
+      "bytes": 15037,
+      "sha256": "b73bbbdcf7182fccea4249f765b750662b926dd60213ae10b8a1d7d9d13c8150"
+    },
+    {
+      "path": "modern/audio/powerup.mp3",
+      "bytes": 17597,
+      "sha256": "6261e06813fff1a6ff6410f204720fbcb4d666850e4ddc2e8883dc89abb4f2d6"
+    },
+    {
+      "path": "modern/audio/seal.mp3",
+      "bytes": 28934,
+      "sha256": "899c68116efde1b8bcd64eff5187761d0dbbc11d081894cb5bd03f6191716bdb"
+    },
+    {
+      "path": "modern/audio/seventh.mp3",
+      "bytes": 28934,
+      "sha256": "8cd5bed7196342557a914a20cae29770e4dee37e9417bc31c16981480bf08692"
+    },
+    {
+      "path": "modern/audio/shotgun.mp3",
+      "bytes": 28934,
+      "sha256": "ed244302ee8eb6d8e674907a0bc95513d42628bce3ba83baf3a18a3bbf39e131"
+    },
+    {
+      "path": "modern/audio/slab-death.mp3",
+      "bytes": 32226,
+      "sha256": "55a79aa4860a93caa82abcba109a7ee35d59048f31ba03ddd3e261e6e0378102"
+    },
+    {
+      "path": "modern/audio/slab-pain.mp3",
+      "bytes": 7357,
+      "sha256": "d2a009e2f79f2be06d71d3c5e03d59b65b2f52cefd576f0908d0746f7eb18a89"
+    },
+    {
+      "path": "modern/audio/slab-voice.mp3",
+      "bytes": 28934,
+      "sha256": "4d0d8bd99eca4350203d0ebdfd94a410fdbb22dba4d2d37bc1a26516217bbdd1"
+    },
+    {
+      "path": "modern/audio/spiker.mp3",
+      "bytes": 6992,
+      "sha256": "904810639e5d3aece70b2dc32eb6bd6297a75098e9945b9f6a6c020bc1eba905"
+    },
+    {
+      "path": "modern/audio/success.mp3",
+      "bytes": 28934,
+      "sha256": "c0b2f0ac63573b104a2a8a52c1c03f682051500b40bf86631c2576ce6ef82fba"
+    },
+    {
+      "path": "modern/audio/sunlance.mp3",
+      "bytes": 18694,
+      "sha256": "c3c897a78c0ec28d4f87a591631fba23c14a8a21a155f71fc3c8fc4fb610f5eb"
+    },
+    {
+      "path": "modern/audio/wisp-death.mp3",
+      "bytes": 27472,
+      "sha256": "f703873a88d8429468d31f55fdc9b392bb6baa5eb9820b70c0764ed0aa04c944"
+    },
+    {
+      "path": "modern/audio/wisp-pain.mp3",
+      "bytes": 7357,
+      "sha256": "61e9174616c6891da236998ba01afe84debe3b1f7546a27cc67c834da90b7f0d"
+    },
+    {
+      "path": "modern/audio/wisp-voice.mp3",
+      "bytes": 21620,
+      "sha256": "5f665d0a39e5f3dd822d3b1294c3a91e0c2588110c1a7751225291aec55a0db8"
+    },
+    {
+      "path": "modern/foundry/concrete-normal.webp",
+      "bytes": 471324,
+      "sha256": "30078654201937ea4f5e59f2aaa2c1b2354fc0121e8d443cb492cfce2be625fa"
+    },
+    {
+      "path": "modern/foundry/concrete-roughness.webp",
+      "bytes": 39386,
+      "sha256": "38001c3134168386f1a693f2fde01e34ea16af58d8883d86ab92b71820e33a20"
+    },
+    {
+      "path": "modern/foundry/door-hardware.glb",
+      "bytes": 159284,
+      "sha256": "2cd42a12b3adeb234b27f2bd1f52fb1977a74b09c2252bfb0ae5e00d182659be"
+    },
+    {
+      "path": "modern/foundry/entrance-door.webp",
+      "bytes": 427900,
+      "sha256": "bcdb15cb9a02b1231e4127f894ee23d202505c783bf6a66ae0f84d6c87acdd4e"
+    },
+    {
+      "path": "modern/foundry/entrance-floor.webp",
+      "bytes": 559460,
+      "sha256": "17bc749ab233e075c945b7ab816b3679a16261d124388a764752a61416b8f5e1"
+    },
+    {
+      "path": "modern/foundry/environment.glb",
+      "bytes": 2937404,
+      "sha256": "1daa92ad3875c1bbc8c04526a215574865f015aaca4150f844cdfebdad49d9dd"
+    },
+    {
+      "path": "modern/foundry/irradiance.webp",
+      "bytes": 408800,
+      "sha256": "8afd7b97a938d34abe444a5f29f85108e69e86f4bcf3fdd09090c04662fd2c99"
+    },
+    {
+      "path": "modern/foundry/steel-normal.webp",
+      "bytes": 284762,
+      "sha256": "9de9ebf2075567d94e2448a6ddb0651206f72cbf245262756cb70ee1d96f269b"
+    },
+    {
+      "path": "modern/foundry/steel-roughness.webp",
+      "bytes": 44404,
+      "sha256": "3cd017fce4a88cf6976dd0cb62a3c8574c10b42ceb9d2aaaf765e3478efebe4b"
+    },
+    {
+      "path": "modern/models/architecture.glb",
+      "bytes": 306548,
+      "sha256": "d744ca69203412a4804c3991662e9e4fee26b5a02f4c985851fce3469a38d92e"
+    },
+    {
+      "path": "modern/models/husk.glb",
+      "bytes": 1292988,
+      "sha256": "77ade2424c7c0934cfb54940306a829eacf9606e685756524db627581f680d3b"
+    },
+    {
+      "path": "modern/models/pistol.glb",
+      "bytes": 1433332,
+      "sha256": "125b28879fa202cf51f8aa816687687829d0af0a2ed0e2caf21521d98939fd2f"
+    },
+    {
+      "path": "modern/roster/effects/flash.webp",
+      "bytes": 75388,
+      "sha256": "b74b8b8def82722e3009db7413618891c014a61ff90d6bec3779be49730555ca"
+    },
+    {
+      "path": "modern/roster/effects/smoke.webp",
+      "bytes": 78846,
+      "sha256": "012d147edc01c8365ddcddcfd8d99c0e805e61826cf0a559e4c1ba15c64ee4ec"
+    },
+    {
+      "path": "modern/roster/enemies/crawler.glb",
+      "bytes": 773132,
+      "sha256": "c89f6c3a7f66092eeee6c98b98c58f4c0d0da790d29409b69ec3148a663c1fc9"
+    },
+    {
+      "path": "modern/roster/enemies/fiend.glb",
+      "bytes": 796032,
+      "sha256": "65772c82fd0d421ad1a2ca5f39724fd960ae473e583be311641887d5ce0f4da1"
+    },
+    {
+      "path": "modern/roster/enemies/hierophant.glb",
+      "bytes": 949448,
+      "sha256": "d221d4bb1f2ddc4662f70cc6c90dede551f8e68b93c73b0e8f13197e298f654e"
+    },
+    {
+      "path": "modern/roster/enemies/husk.glb",
+      "bytes": 804892,
+      "sha256": "ed0a5c02e2c160fc30c67afe59a1931b51bb25479aff95f32ebbfa9800bd1f3d"
+    },
+    {
+      "path": "modern/roster/enemies/slab.glb",
+      "bytes": 825192,
+      "sha256": "fa8f4f132d7b486a7fef1738204c3fe0cfbc8159a2552bc5aa5ebc4e9176345d"
+    },
+    {
+      "path": "modern/roster/enemies/wisp.glb",
+      "bytes": 621020,
+      "sha256": "89428bfddcb8dbd2327d92f2b8fc0bce6c0aee9c60f17323d1bebe2c914cdd6f"
+    },
+    {
+      "path": "modern/roster/environment/kit.glb",
+      "bytes": 674204,
+      "sha256": "132eb354c35e1e9d3082d19ee8569ffaceabc2622570d0bee659f579f4c95b5c"
+    },
+    {
+      "path": "modern/roster/materials/alloy.webp",
+      "bytes": 349714,
+      "sha256": "de540fcb654b362fc5d5ee32e6d7d3c27804d8380fa7f0d1a92eafc24b8e7b7b"
+    },
+    {
+      "path": "modern/roster/materials/basalt.webp",
+      "bytes": 390774,
+      "sha256": "a030735930191c6049f20c5c457b0acea31337545c3af7507180677fd339d069"
+    },
+    {
+      "path": "modern/roster/materials/carapace.webp",
+      "bytes": 375370,
+      "sha256": "483b5b921d614f0e8b45dd6ad895886345872c859a3d747d12028a0b36ae38ef"
+    },
+    {
+      "path": "modern/roster/materials/ceramic.webp",
+      "bytes": 82474,
+      "sha256": "e78410b9b88086d1569ddc6b96aa7bc8c9a06092a035364188d86487b4289adf"
+    },
+    {
+      "path": "modern/roster/materials/fabric.webp",
+      "bytes": 378142,
+      "sha256": "1e818dc59678f994c2051a71a7d6b2e8cb3e0659229d1dc3d3b43b7b534e8ef7"
+    },
+    {
+      "path": "modern/roster/materials/glove.webp",
+      "bytes": 395674,
+      "sha256": "b07bb0b9b779d73feb5343f494d0f657a1cb93703e840da0dc6c2192d8b6c858"
+    },
+    {
+      "path": "modern/roster/materials/limestone.webp",
+      "bytes": 343680,
+      "sha256": "939909bdad621c928d8234ee6f99ad7de2b3e19fbde718581783928133ca8f85"
+    },
+    {
+      "path": "modern/roster/materials/organic.webp",
+      "bytes": 285524,
+      "sha256": "9039d7ab89c4cfeb437d9e6c6b84e753a02c0db21463eaf9caacdd11bdafbf97"
+    },
+    {
+      "path": "modern/roster/materials/sky.webp",
+      "bytes": 90586,
+      "sha256": "7bf2f79ff9b00af674aa1877f9905bb43fe99a51de6d71aa90aa45ec19a43ec0"
+    },
+    {
+      "path": "modern/roster/materials/weapon-metal.webp",
+      "bytes": 264154,
+      "sha256": "30b2058f6affc5f063bafc911fd119bbcc9e0dbc51afcc39cdf84e4754ea11cf"
+    },
+    {
+      "path": "modern/roster/support/support.glb",
+      "bytes": 1889644,
+      "sha256": "23cbd20158ce14726c3b12df8d5c6c8fd6ee344058cec1ff7a51c2d18e9bf678"
+    },
+    {
+      "path": "modern/roster/weapons/1.glb",
+      "bytes": 905412,
+      "sha256": "50e528881a212ec8f3e5d9a0ee5dec1bd195b555a956ccde0ad8357c9749237f"
+    },
+    {
+      "path": "modern/roster/weapons/2.glb",
+      "bytes": 858080,
+      "sha256": "1c0293d46ad3646492dbb7925296d7715d269de22e81884461e8b57bcb6d1132"
+    },
+    {
+      "path": "modern/roster/weapons/3.glb",
+      "bytes": 744200,
+      "sha256": "1e9b9bf78baa9f877730dbdeab4cf057e1a77dcdcb5290183fe22b7002295fdd"
+    },
+    {
+      "path": "modern/roster/weapons/4.glb",
+      "bytes": 974152,
+      "sha256": "4d74db38c4dea6634c8249bced2bd76c767407128d2a7f406273ecb32211ee49"
+    },
+    {
+      "path": "modern/roster/weapons/5.glb",
+      "bytes": 650792,
+      "sha256": "d197bb554f8e8c80c8ddafdffff524e8d0a0324407ee61fe0aaae1822a40b66a"
+    },
+    {
+      "path": "modern/roster/weapons/6.glb",
+      "bytes": 826804,
+      "sha256": "a67e1d9002470a9548253ecc1122bceba3c92c9c8b773bd4e9e9c544ae929c28"
+    },
+    {
+      "path": "modern/roster/weapons/7.glb",
+      "bytes": 719800,
+      "sha256": "480bc7a381fbdd35268af88fc296714d24b58c104973992f7d109f0c343d0c98"
+    },
+    {
+      "path": "modern/textures/concrete.webp",
+      "bytes": 316810,
+      "sha256": "83d7b8fc4cde1f70588b38dd4f8f209f2c93630ba218b0fc9f48f7d6af5cff36"
+    },
+    {
+      "path": "modern/textures/dermal.webp",
+      "bytes": 348418,
+      "sha256": "5d82ae7d569d0c1eee18bbb1f594f45b1ca6db1bcdb5156b2ef9cfe3d4a9ee4d"
+    },
+    {
+      "path": "modern/textures/foundry-concept.webp",
+      "bytes": 228802,
+      "sha256": "7567e0a21fdb50b3da0ab066acb816f8edf111a45955fa1cc4dcc5bf9b70fbe2"
+    },
+    {
+      "path": "modern/textures/steel.webp",
+      "bytes": 218286,
+      "sha256": "f44a60bd377bc41bfd096e802725a340cd50bd3120906650b1e4d18bada7666d"
+    },
+    {
+      "path": "modern/textures/titanium.webp",
+      "bytes": 344690,
+      "sha256": "16274283cea9b7685b30cd571acb82336943db288c829f0ac8de4365019570c0"
+    }
+  ]
+}

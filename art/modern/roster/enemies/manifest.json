@@ -1,0 +1,116 @@
+[
+  {
+    "type": "husk",
+    "triangles": 15496,
+    "materialMeshes": 5,
+    "bones": 18,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0.09,
+      1.668,
+      0.53
+    ],
+    "bytes": 804892
+  },
+  {
+    "type": "crawler",
+    "triangles": 15300,
+    "materialMeshes": 5,
+    "bones": 18,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0,
+      0.38,
+      0.64
+    ],
+    "bytes": 773132
+  },
+  {
+    "type": "slab",
+    "triangles": 17444,
+    "materialMeshes": 5,
+    "bones": 18,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0.68,
+      0.752,
+      0.5
+    ],
+    "bytes": 825192
+  },
+  {
+    "type": "wisp",
+    "triangles": 13050,
+    "materialMeshes": 5,
+    "bones": 13,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0,
+      -0.1,
+      0.34
+    ],
+    "bytes": 621020
+  },
+  {
+    "type": "hierophant",
+    "triangles": 18948,
+    "materialMeshes": 5,
+    "bones": 21,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0,
+      2.07,
+      0.24
+    ],
+    "bytes": 949448
+  },
+  {
+    "type": "fiend",
+    "triangles": 15342,
+    "materialMeshes": 5,
+    "bones": 19,
+    "clips": {
+      "idle": 2,
+      "walk": 1,
+      "attack": 1,
+      "hit": 0.5,
+      "death": 0.625
+    },
+    "muzzle": [
+      0,
+      2.216,
+      0.9
+    ],
+    "bytes": 796032
+  }
+]

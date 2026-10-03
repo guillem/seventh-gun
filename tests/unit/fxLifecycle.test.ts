@@ -16,6 +16,11 @@ function installCanvasStub(): void {
   };
 }
 
+const cache = vi.hoisted(() => ({ current: null as unknown }));
+vi.mock('../../src/render/modernAssets', async importOriginal => ({
+  ...await importOriginal<typeof import('../../src/render/modernAssets')>(),
+  getModernAssets: () => cache.current,
+}));
 beforeAll(installCanvasStub);
 
 describe('FX lifecycle ownership', () => {
@@ -68,4 +73,25 @@ describe('FX lifecycle ownership', () => {
     for (const dispose of disposals.geometries) expect(dispose).toHaveBeenCalledTimes(1);
     for (const dispose of disposals.materials) expect(dispose).toHaveBeenCalledTimes(1);
   });
+  it('uses saved transparent explosion layers and frees instance materials while preserving their cached textures', () => {
+    const flash = new THREE.Texture(), smoke = new THREE.Texture();
+    const flashDispose = vi.spyOn(flash, 'dispose'), smokeDispose = vi.spyOn(smoke, 'dispose');
+    cache.current = { flash, smoke };
+    try {
+      const scene = new THREE.Scene();
+      const fx = new FxRenderer(scene);
+      fx.explosion(3, 1, 0, 2);
+      const sprites: THREE.Sprite[] = [];
+      scene.traverse(node => { if (node instanceof THREE.Sprite) sprites.push(node); });
+      expect(sprites.some(sprite => sprite.material.map === flash)).toBe(true);
+      expect(sprites.filter(sprite => sprite.material.map === smoke)).toHaveLength(3);
+      const disposals = ownedDisposals(scene);
+      fx.update(2);
+      expect(scene.children).toHaveLength(0);
+      disposals.materials.forEach(dispose => expect(dispose).toHaveBeenCalledTimes(1));
+      expect(flashDispose).not.toHaveBeenCalled();
+      expect(smokeDispose).not.toHaveBeenCalled();
+    } finally { cache.current = null; flash.dispose(); smoke.dispose(); }
+  });
+
 });

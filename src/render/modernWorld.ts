@@ -6,10 +6,14 @@ import type { GameMap } from '../sim/types';
 import { applyRadialFog } from './radialFog';
 import { foundryCell } from './foundry';
 
-type Placement = { x: number; y: number; z: number; yaw: number };
+export type ArchitecturePlacement = { x: number; y: number; z: number; yaw: number; color?: THREE.Color };
+type Placement = ArchitecturePlacement;
 export const MODERN_ARCHITECTURE_CHUNK_SIZE = CELL * 8;
 
-function instancePart(parent: THREE.Group, source: THREE.Group, name: string, placements: Placement[]): void {
+export function instanceArchitecturePart(
+  parent: THREE.Group, source: THREE.Group, name: string, placements: Placement[],
+  configure?: (material: THREE.Material) => void,
+): void {
   const part = source.getObjectByName(name);
   if (!part || placements.length === 0) return;
   source.updateMatrixWorld(true);
@@ -33,7 +37,12 @@ function instancePart(parent: THREE.Group, source: THREE.Group, name: string, pl
     const geometry = node.geometry.clone();
     geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(origin, node.matrixWorld));
     const originals = Array.isArray(node.material) ? node.material : [node.material];
-    const materials = originals.map(material => { const clone = material.clone(); applyRadialFog(clone); return clone; });
+    const materials = originals.map(material => {
+      const clone = material.clone();
+      configure?.(clone);
+      applyRadialFog(clone);
+      return clone;
+    });
     for (const [key, chunk] of chunks) {
       const instanced = new THREE.InstancedMesh(geometry, Array.isArray(node.material) ? materials : materials[0], chunk.length);
       instanced.name = `modern-${name}`;
@@ -43,6 +52,7 @@ function instancePart(parent: THREE.Group, source: THREE.Group, name: string, pl
         transform.rotation.set(0, placement.yaw, 0);
         transform.updateMatrix();
         instanced.setMatrixAt(i, transform.matrix);
+        if (placement.color) instanced.setColorAt(i, placement.color);
       });
       instanced.instanceMatrix.needsUpdate = true;
       instanced.computeBoundingBox();
@@ -74,7 +84,7 @@ export function addModernArchitecture(parent: THREE.Group, map: GameMap, source:
       if ((x + z) % 2 === 0) pipes.push({ x: px, y: 3.65, z: pz, yaw });
     }
   }
-  instancePart(parent, source, 'wall_rib', ribs);
-  instancePart(parent, source, 'wall_fixture', fixtures);
-  instancePart(parent, source, 'pipe_run', pipes);
+  instanceArchitecturePart(parent, source, 'wall_rib', ribs);
+  instanceArchitecturePart(parent, source, 'wall_fixture', fixtures);
+  instanceArchitecturePart(parent, source, 'pipe_run', pipes);
 }

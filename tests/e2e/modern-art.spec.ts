@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { gotoGame, waitForGameReady } from '../helpers/boot';
+import { MODERN_SAMPLE_IDS } from '../../src/audio/samples';
+import { MODERN_ASSET_URLS } from '../../src/render/modernAssets';
 
 type GameApi = {
   state: () => { phase: string; kind?: string; campaign?: { map: number } };
@@ -42,6 +44,7 @@ test.describe('modern art bootstrap', () => {
     await gotoGame(page);
     await expect(page.getByText('EXPERIMENTAL ART LAB')).toBeVisible();
     await expect(page.getByRole('button', { name: 'PLAY THE FOUNDRY' })).toBeVisible();
+    expect([...loaded]).toEqual(expect.arrayContaining(Object.values(MODERN_ASSET_URLS)));
     expect([...loaded]).toEqual(expect.arrayContaining([
       '/modern/models/pistol.glb', '/modern/models/husk.glb', '/modern/models/architecture.glb',
       '/modern/textures/concrete.webp', '/modern/textures/steel.webp',
@@ -140,10 +143,10 @@ test.describe('modern art bootstrap', () => {
     });
     await gotoGame(page);
     await page.getByRole('button', { name: 'PLAY THE FOUNDRY' }).click();
-    await page.waitForFunction(() => {
+    await page.waitForFunction(expected => {
       const probe = (window as unknown as { __audioProbe: AudioProbe }).__audioProbe;
-      return probe.decoded === 8 && probe.activeLoops === 1;
-    });
+      return probe.decoded === expected && probe.activeLoops === 1;
+    }, MODERN_SAMPLE_IDS.length);
     const before = await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.sampledStarts);
     await page.evaluate(() => (window as unknown as { __GAME__: { shoot: () => void } }).__GAME__.shoot());
     const after = await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.sampledStarts);
@@ -156,10 +159,10 @@ test.describe('modern art bootstrap', () => {
     expect(await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.activeLoops)).toBe(0);
     await page.getByRole('button', { name: 'PLAY THE FOUNDRY' }).click();
     await page.waitForFunction(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.activeLoops === 1);
-    expect(await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.decoded)).toBe(8);
+    expect(await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.decoded)).toBe(MODERN_SAMPLE_IDS.length);
   });
 
-  for (const path of ['models/pistol.glb', 'audio/pistol-a.mp3', 'foundry/irradiance.webp']) {
+  for (const path of ['models/pistol.glb', 'audio/pistol-a.mp3', 'foundry/irradiance.webp', 'roster/enemies/husk.glb', 'roster/effects/flash.webp']) {
     test(`a failed ${path} exposes retry before gameplay and recovers`, async ({ page }) => {
       const pattern = `**/modern/${path}`;
       await page.route(pattern, route => route.fulfill({ status: 503, body: 'Temporarily unavailable' }));

@@ -1,0 +1,122 @@
+{
+  "modules": {
+    "catacombs_crown": {
+      "meshes": 1,
+      "triangles": 264
+    },
+    "catacombs_fixture": {
+      "meshes": 2,
+      "triangles": 88
+    },
+    "catacombs_relief": {
+      "meshes": 2,
+      "triangles": 924
+    },
+    "catacombs_trim": {
+      "meshes": 2,
+      "triangles": 144
+    },
+    "foundry_crown": {
+      "meshes": 2,
+      "triangles": 396
+    },
+    "foundry_fixture": {
+      "meshes": 3,
+      "triangles": 220
+    },
+    "foundry_relief": {
+      "meshes": 2,
+      "triangles": 468
+    },
+    "foundry_trim": {
+      "meshes": 2,
+      "triangles": 172
+    },
+    "gullet_crown": {
+      "meshes": 2,
+      "triangles": 332
+    },
+    "gullet_fixture": {
+      "meshes": 2,
+      "triangles": 900
+    },
+    "gullet_relief": {
+      "meshes": 2,
+      "triangles": 1008
+    },
+    "gullet_trim": {
+      "meshes": 2,
+      "triangles": 132
+    },
+    "pit_crown": {
+      "meshes": 2,
+      "triangles": 352
+    },
+    "pit_fixture": {
+      "meshes": 3,
+      "triangles": 220
+    },
+    "pit_relief": {
+      "meshes": 2,
+      "triangles": 560
+    },
+    "pit_trim": {
+      "meshes": 1,
+      "triangles": 132
+    },
+    "sanctum_crown": {
+      "meshes": 2,
+      "triangles": 440
+    },
+    "sanctum_fixture": {
+      "meshes": 2,
+      "triangles": 176
+    },
+    "sanctum_relief": {
+      "meshes": 2,
+      "triangles": 484
+    },
+    "sanctum_trim": {
+      "meshes": 1,
+      "triangles": 176
+    },
+    "spire_crown": {
+      "meshes": 1,
+      "triangles": 176
+    },
+    "spire_fixture": {
+      "meshes": 2,
+      "triangles": 88
+    },
+    "spire_relief": {
+      "meshes": 1,
+      "triangles": 352
+    },
+    "spire_trim": {
+      "meshes": 2,
+      "triangles": 144
+    },
+    "ward_crown": {
+      "meshes": 3,
+      "triangles": 264
+    },
+    "ward_fixture": {
+      "meshes": 2,
+      "triangles": 88
+    },
+    "ward_relief": {
+      "meshes": 4,
+      "triangles": 492
+    },
+    "ward_trim": {
+      "meshes": 2,
+      "triangles": 144
+    }
+  },
+  "bytes": 674204,
+  "authoring": "Original offline Blender assemblies; runtime instancing only",
+  "limits": {
+    "wallReliefMetres": 0.18,
+    "crownMinHeightMetres": 4.3
+  }
+}

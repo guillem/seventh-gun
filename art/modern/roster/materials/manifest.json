@@ -1,0 +1,82 @@
+[
+  {
+    "id": "alloy",
+    "source": "art/modern/roster/materials/alloy.png",
+    "runtime": "public/modern/roster/materials/alloy.webp",
+    "sourceSHA256": "673989e4774e58d39f84b12f49e76640e00f2edd1734081b0ded3798ec1109df",
+    "runtimeSHA256": "de540fcb654b362fc5d5ee32e6d7d3c27804d8380fa7f0d1a92eafc24b8e7b7b",
+    "runtimeBytes": 349714
+  },
+  {
+    "id": "basalt",
+    "source": "art/modern/roster/materials/basalt.png",
+    "runtime": "public/modern/roster/materials/basalt.webp",
+    "sourceSHA256": "87d1050076b1072dbd5747092bcaed062f2fc511397adae1fab16da8ff48bc5a",
+    "runtimeSHA256": "a030735930191c6049f20c5c457b0acea31337545c3af7507180677fd339d069",
+    "runtimeBytes": 390774
+  },
+  {
+    "id": "carapace",
+    "source": "art/modern/roster/materials/carapace.png",
+    "runtime": "public/modern/roster/materials/carapace.webp",
+    "sourceSHA256": "66421f695c788fe6f0fcad4267b32e3e35bd03cac9cf41b877d973651ccbc27d",
+    "runtimeSHA256": "483b5b921d614f0e8b45dd6ad895886345872c859a3d747d12028a0b36ae38ef",
+    "runtimeBytes": 375370
+  },
+  {
+    "id": "ceramic",
+    "source": "art/modern/roster/materials/ceramic.png",
+    "runtime": "public/modern/roster/materials/ceramic.webp",
+    "sourceSHA256": "e7205d0d18ae629535845452fe8e8fe589e2088dd81eab93bbdece2af3a6ff56",
+    "runtimeSHA256": "e78410b9b88086d1569ddc6b96aa7bc8c9a06092a035364188d86487b4289adf",
+    "runtimeBytes": 82474
+  },
+  {
+    "id": "fabric",
+    "source": "art/modern/roster/materials/fabric.png",
+    "runtime": "public/modern/roster/materials/fabric.webp",
+    "sourceSHA256": "345f99836cbbe2e5c385a305808b4a678fd05e8fb024ade237b583a8bfa35a56",
+    "runtimeSHA256": "1e818dc59678f994c2051a71a7d6b2e8cb3e0659229d1dc3d3b43b7b534e8ef7",
+    "runtimeBytes": 378142
+  },
+  {
+    "id": "glove",
+    "source": "art/modern/roster/materials/glove.png",
+    "runtime": "public/modern/roster/materials/glove.webp",
+    "sourceSHA256": "798b6eb5fa5de646a96fd521a63cb0abc867c804dbadebb34e22373aae8db377",
+    "runtimeSHA256": "b07bb0b9b779d73feb5343f494d0f657a1cb93703e840da0dc6c2192d8b6c858",
+    "runtimeBytes": 395674
+  },
+  {
+    "id": "limestone",
+    "source": "art/modern/roster/materials/limestone.png",
+    "runtime": "public/modern/roster/materials/limestone.webp",
+    "sourceSHA256": "77b705fac61fcdf4f341e9740494bba9f17017a9a71ce4d43c7451191c9d2ae5",
+    "runtimeSHA256": "939909bdad621c928d8234ee6f99ad7de2b3e19fbde718581783928133ca8f85",
+    "runtimeBytes": 343680
+  },
+  {
+    "id": "organic",
+    "source": "art/modern/roster/materials/organic.png",
+    "runtime": "public/modern/roster/materials/organic.webp",
+    "sourceSHA256": "574bfa7e54626e5c2c646357fb712d199e32bcb328e64b5154d0a661bf77dde2",
+    "runtimeSHA256": "9039d7ab89c4cfeb437d9e6c6b84e753a02c0db21463eaf9caacdd11bdafbf97",
+    "runtimeBytes": 285524
+  },
+  {
+    "id": "weapon-metal",
+    "source": "art/modern/roster/materials/weapon-metal.png",
+    "runtime": "public/modern/roster/materials/weapon-metal.webp",
+    "sourceSHA256": "2cd9192c68c2baa42057f31027c45e59499e40c6fa90c7d7aded63326e234f9f",
+    "runtimeSHA256": "30b2058f6affc5f063bafc911fd119bbcc9e0dbc51afcc39cdf84e4754ea11cf",
+    "runtimeBytes": 264154
+  },
+  {
+    "id": "sky",
+    "source": "art/modern/roster/materials/sky.png",
+    "runtime": "public/modern/roster/materials/sky.webp",
+    "sourceSHA256": "f734d28c269d6b02b40f7e9bbb727add3f30b13ce66c2b3c4ee3da5989316b9f",
+    "runtimeSHA256": "7bf2f79ff9b00af674aa1877f9905bb43fe99a51de6d71aa90aa45ec19a43ec0",
+    "runtimeBytes": 90586
+  }
+]
