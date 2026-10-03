@@ -12,6 +12,15 @@ attached to production in the Cloudflare dashboard, not in `main`'s
 `wrangler.jsonc`: a domain there would break the README's deploy-to-your-own-
 account path, and dashboard domains survive config deploys that list none.
 
+First art deploy (user-run `npx wrangler deploy`, version
+`523d79f9-ce74-49e5-b443-fac384bf7b93`) passed `scripts/smoke-deployment.mjs`
+(assets, arena welcome, advancing snapshots) on both
+<https://seventh-gun-art.default-428.workers.dev> and <https://art.seventhgun.com>.
+It serves the branch build (`index-BB85Hx6o.js`, real `modern/` GLBs). Production
+<https://seventhgun.com> still serves `main` (`index-DgFETa6F.js`) and passed the
+same smoke check; `www.seventhgun.com` 301-redirects to it via a Cloudflare Redirect
+Rule. Redeploy the art Worker by hand after pushing new art commits.
+
 ## Safari seed-field focus — 2026-10-03
 
 The user isolated the sound failure to clicking ENTER THE MAZE while the seed
