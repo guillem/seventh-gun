@@ -1,0 +1,132 @@
+// Normal-mode input and rendering probe; no production/debug API changes.
+// Start a dev/preview server, then:
+// PLAYWRIGHT_CHANNEL=chrome node scripts/profile-modern-art.mjs [url] [output]
+import { chromium } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const base = new URL(process.argv[2] ?? 'http://127.0.0.1:5175');
+base.searchParams.delete('e2e');
+base.searchParams.delete('test');
+const output = resolve(process.argv[3] ?? '/private/tmp/seventh-gun-art-performance');
+await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
+const report = {
+  base: base.href,
+  capturedAt: new Date().toISOString(),
+  limitations: [
+    'Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.',
+    'Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.',
+    'Local startup timing does not represent an uncached public network download.',
+  ],
+  scenarios: [],
+};
+
+async function sampleFrames(page) {
+  return page.evaluate(async () => {
+    await new Promise(resolveWarm => {
+      let frames = 0;
+      function warm() { if (++frames >= 30) resolveWarm(); else requestAnimationFrame(warm); }
+      requestAnimationFrame(warm);
+    });
+    const gaps = [];
+    let previous;
+    let start;
+    await new Promise(resolveSample => {
+      function frame(now) {
+        if (previous !== undefined) gaps.push(now - previous);
+        else start = { ...window.__profileCounters };
+        previous = now;
+        if (gaps.length >= 180) resolveSample();
+        else requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    });
+    const elapsed = gaps.reduce((sum, gap) => sum + gap, 0);
+    const sorted = gaps.slice().sort((a, b) => a - b);
+    const gl = document.querySelector('#game-canvas').getContext('webgl2');
+    const extension = gl.getExtension('WEBGL_debug_renderer_info');
+    return {
+      frames: gaps.length,
+      fps: 1000 * gaps.length / elapsed,
+      p50ms: sorted[Math.floor(sorted.length * .5)],
+      p95ms: sorted[Math.floor(sorted.length * .95)],
+      maxMs: sorted.at(-1),
+      drawsPerFrame: (window.__profileCounters.draws - start.draws) / gaps.length,
+      trianglesPerFrame: (window.__profileCounters.triangles - start.triangles) / gaps.length,
+      gpu: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : 'unavailable',
+      renderSize: [gl.drawingBufferWidth, gl.drawingBufferHeight],
+    };
+  });
+}
+
+try {
+  for (const config of [
+    { name: 'desktop', width: 1280, height: 800, scale: 1, touch: false },
+    { name: 'desktop-retina', width: 1280, height: 800, scale: 2, touch: false },
+    { name: 'mobile', width: 390, height: 844, scale: 3, touch: true },
+    { name: 'combat', width: 1280, height: 800, scale: 1, touch: false },
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width: config.width, height: config.height },
+      deviceScaleFactor: config.scale, isMobile: config.touch, hasTouch: config.touch,
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+    try {
+      await page.addInitScript(() => {
+        window.__profileCounters = { draws: 0, triangles: 0 };
+        const proto = WebGL2RenderingContext.prototype;
+        for (const key of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) {
+          const original = proto[key];
+          proto[key] = function (...args) {
+            const count = key.startsWith('drawElements') ? args[1] : args[2];
+            const instances = key.endsWith('Instanced') ? args[key === 'drawElementsInstanced' ? 4 : 3] : 1;
+            window.__profileCounters.draws++;
+            if (args[0] === this.TRIANGLES) window.__profileCounters.triangles += count / 3 * instances;
+            return original.apply(this, args);
+          };
+        }
+      });
+      const started = Date.now();
+      await page.goto(base.href);
+      const play = page.getByRole('button', { name: 'PLAY THE FOUNDRY' });
+      await play.waitFor({ timeout: 25_000 });
+      const startupMs = Date.now() - started;
+      if (await page.evaluate(() => '__GAME__' in window)) throw new Error('Profile requires normal mode, without the debug API.');
+      if (config.touch) await play.tap(); else await play.click();
+      await page.locator('#title-screen').waitFor({ state: 'hidden' });
+      if (config.name === 'combat') {
+        // Real movement reaches the first door, opens it, then enters the hall.
+        await page.keyboard.down('w'); await page.waitForTimeout(3500); await page.keyboard.up('w');
+        await page.keyboard.press('e'); await page.waitForTimeout(800);
+        await page.keyboard.down('w'); await page.waitForTimeout(1800); await page.keyboard.up('w');
+      }
+      const metrics = await sampleFrames(page);
+      await page.screenshot({ path: `${output}/${config.name}.png` });
+      if (config.touch) {
+        await page.locator('#btn-pause').tap();
+        await page.getByRole('button', { name: 'RESUME', exact: true }).tap();
+        await page.locator('#pause-screen').waitFor({ state: 'hidden' });
+        await page.locator('#btn-pause').tap();
+        await page.getByRole('button', { name: 'QUIT TO TITLE', exact: true }).tap();
+      } else {
+        await page.keyboard.press('Escape');
+        await page.getByRole('button', { name: 'QUIT TO TITLE', exact: true }).click();
+      }
+      await play.waitFor();
+      const result = { name: config.name, startupMs, ...metrics, menuExitPassed: true, errors };
+      report.scenarios.push(result);
+      console.log(JSON.stringify(result));
+      if (errors.length) throw new Error(`${config.name} produced browser errors.`);
+    } catch (error) {
+      report.failure = { name: config.name, message: String(error), errors };
+      throw error;
+    } finally {
+      await writeFile(`${output}/report.json`, JSON.stringify(report, null, 2) + '\n');
+      await context.close();
+    }
+  }
+} finally { await browser.close(); }

@@ -9,6 +9,28 @@ type GameApi = {
 type AudioProbe = { decoded: number; sampledStarts: number; activeLoops: number };
 
 test.describe('modern art bootstrap', () => {
+  test('normal touch menus can pause, resume and quit without gameplay controls intercepting taps', async ({ page }) => {
+    test.skip(!test.info().project.name.startsWith('mobile'), 'touch-only regression');
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    // Normal startup deliberately has no debug API or forced pointer events.
+    await page.goto('/');
+    const play = page.getByRole('button', { name: 'PLAY THE FOUNDRY' });
+    await expect(play).toBeVisible({ timeout: 25_000 });
+    expect(await page.evaluate(() => '__GAME__' in window)).toBe(false);
+    await play.tap();
+    await expect(page.locator('#title-screen')).toBeHidden();
+    await page.locator('#btn-pause').tap();
+    await expect(page.locator('#pause-screen')).toBeVisible();
+    await page.getByRole('button', { name: 'RESUME', exact: true }).tap();
+    await expect(page.locator('#pause-screen')).toBeHidden();
+    await page.locator('#btn-pause').tap();
+    await page.getByRole('button', { name: 'QUIT TO TITLE', exact: true }).tap();
+    await expect(play).toBeVisible();
+    await expect(page.locator('#touch-ui')).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
   test('loads saved models, textures and audio before the Foundry entry becomes usable', async ({ page }) => {
     const loaded = new Set<string>();
     const errors: string[] = [];
