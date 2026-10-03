@@ -19,8 +19,17 @@ First art deploy (user-run `npx wrangler deploy`, version
 It serves the branch build (`index-BB85Hx6o.js`, real `modern/` GLBs). Production
 <https://seventhgun.com> still serves `main` (`index-DgFETa6F.js`) and passed the
 same smoke check; `www.seventhgun.com` 301-redirects to it via a Cloudflare Redirect
-Rule. Pushes to this branch now redeploy the art Worker automatically
-(`.github/workflows/deploy-art.yml`, gated on the full suite).
+Rule. `.github/workflows/deploy-art.yml` redeploys the art Worker on every push,
+gated on the full suite (user's choice). **It has not deployed yet:** E2E on this
+branch has never completed in CI. All 22 branch CI runs through 179563a were
+cancelled, and the art workflow's first run (37125347622) hit the 20-minute job
+limit mid-E2E with nearly every test failing at the 30 s test timeout, with retries.
+The same tests pass locally (Apple M5 Pro, also with forced SwiftShader), so the
+likely cause is modern-art startup under software GL on slower runner CPUs.
+That is unconfirmed: the cancelled run printed no Playwright error summary.
+Until E2E fits in CI, deploy by hand (below / EXPERIMENTAL-ART.md).
+`main` was not affected: PR #33 (docs) merged, its deploy passed and
+seventhgun.com, www and workers.dev smoke-checked green afterwards.
 
 Local unit runs on Node 26 fail `secrets.test.ts` "campaign lights+decors hash"
 (also on `main`); Node 24 (CI) passes. Cause: `src/sim/cosmetics.ts` and
