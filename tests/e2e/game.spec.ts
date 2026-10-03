@@ -254,7 +254,7 @@ test.describe('desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
     await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-death'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
@@ -387,7 +387,7 @@ test.describe('desktop', () => {
   });
 
   test('replaying a warmed fight and cycling guns leaves GPU allocations stable', async ({ page }) => {
-    test.setTimeout(60000);
+    test.setTimeout(Math.max(test.info().timeout, 60000));
     await gotoGame(page, BASE);
     const exercise = async () => page.evaluate(async () => {
       const G = (window as unknown as {
@@ -639,7 +639,7 @@ test.describe('desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
     await gotoGame(page, BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);

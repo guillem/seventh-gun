@@ -54,6 +54,9 @@ test.describe('campaign desktop', () => {
     await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
     await page.locator('#c-diff-row button').filter({ hasText: 'Hard' }).click();
     await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
+    // A UI start shows #world-loading at once but only reaches 'playing' two
+    // frames later; let any start that was (wrongly) triggered finish first.
+    await expect(page.locator('#world-loading')).toHaveCount(0);
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     expect(state.phase).not.toBe('playing');
   });
@@ -91,6 +94,8 @@ test.describe('campaign desktop', () => {
     await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
     await expect(page.getByRole('button', { name: 'ENTER THE MAZE' })).toBeVisible();
     await page.locator('#diff-row button').filter({ hasText: 'Easy' }).click();
+    // As above: a start triggered by the click is not 'playing' yet.
+    await expect(page.locator('#world-loading')).toHaveCount(0);
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     const playingCampaignArt = state.phase === 'playing' && !!state.campaign?.artId;
     expect(playingCampaignArt).toBe(false);
@@ -167,7 +172,7 @@ test.describe('campaign desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
     await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
@@ -222,7 +227,7 @@ test.describe('campaign desktop', () => {
     // This roundtrip builds three campaign scenes; bundled Chromium
     // completed it in 34s even though the final resume check took
     // under a second. Keep the full UI flow within a scoped 60s budget.
-    test.setTimeout(60000);
+    test.setTimeout(Math.max(test.info().timeout, 60000));
     await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));

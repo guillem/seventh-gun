@@ -41,7 +41,7 @@ test.describe('modern art bootstrap', () => {
   });
 
   test('prepares GPU programs behind a painted loading screen before the first shot or room reveal', async ({ page }) => {
-    test.setTimeout(60000);
+    test.setTimeout(Math.max(test.info().timeout, 60000));
     await page.addInitScript(() => {
       const probe = { programs: 0, loadingPrograms: 0, loadingFrames: 0 };
       (window as unknown as { __gpuPreparation: typeof probe }).__gpuPreparation = probe;
@@ -149,8 +149,16 @@ test.describe('modern art bootstrap', () => {
       game.look(-90);
     });
     await page.keyboard.down('w');
-    await page.waitForFunction(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x > 33);
-    await page.waitForTimeout(200);
+    // Keep walking until the player has stopped advancing for ten frames. A
+    // fixed 200 ms pause is at most one frame on a software rasterizer, which
+    // left x under 34 whether or not the door blocked.
+    await page.waitForFunction(() => {
+      const w = window as unknown as { __GAME__: { state: () => { pos: { x: number } } }; __doorStall?: { x: number; frames: number } };
+      const x = w.__GAME__.state().pos.x;
+      const stall = (w.__doorStall ??= { x, frames: 0 });
+      if (x > stall.x + 0.001) { stall.x = x; stall.frames = 0; } else stall.frames++;
+      return x > 33 && stall.frames >= 10;
+    });
     await page.keyboard.up('w');
     const blockedX = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x);
     expect(blockedX).toBeGreaterThan(32.5);
