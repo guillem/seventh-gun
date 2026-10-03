@@ -73,12 +73,37 @@ Server-authoritative `ArenaSim`, 96×96 generator, client prediction.
 Reliability and presentation repairs are tracked in REPAIR-PLAN.md.
 Netlify remains a static mirror; lag compensation is optional future work.
 
-## Next (ideas, not committed)
-- Human playtest on Normal against the 20–30 min target; tune from
-  `docs/GAME-DESIGN.md` numbers.
-- Arena: lag compensation, spawn-distance feel, pad pacing with 2–3 players.
-
 ## Secrets v1 (campaign)
 
 15 authored pockets, four plate/remote kinds, WARD/WRATH/SEVENFOLD
 powerups, fog leak closed. Maze mode unchanged (`GEN_VERSION` 4).
+
+## September 2026 repair (done)
+
+PRs #26–#31: arena lifecycle and transport, fixed clock and interpolation,
+protocol v3 projectiles and sound, secret clues, render resource ownership,
+portable Node package and release gates. See REPAIR-PLAN.md. Production moved
+to <https://seventhgun.com> (PR #33).
+
+## Modern art experiment (separate branch, never merged)
+
+`codex/experimental-modern-art`, draft PR #32, deployed to its own Worker
+`seventh-gun-art` at <https://art.seventhgun.com>. Its docs live on that branch.
+
+## Backlog
+
+Recorded open items, not commitments.
+
+- Human playtest on Normal against the 20–30 min target; tune from
+  `docs/GAME-DESIGN.md` numbers. Human checks of silhouettes, sound mix and
+  secret discoverability are also still pending.
+- Arena: lag compensation, spawn-distance feel, pad pacing with 2–3 players.
+- Wall-decor shuffle uses `sort(() => rng.float() - 0.5)` in
+  `src/sim/cosmetics.ts` and `src/sim/mapgen.ts`, which is engine dependent
+  (Node 26 differs). A seeded Fisher-Yates fix changes maps and needs a
+  `GEN_VERSION` decision. Until then run unit tests on Node 22/24.
+- `SOCKET_IDLE_S` (15 s, `server/room.ts`) drops a client whose page is busy
+  building a world on a machine without a GPU. Server change; user decides.
+- First npm publication, then trusted publishing and token revocation
+  (TESTING.md "Release smoke checks"). Needs the user's npm credential.
+- Real Safari and physical phone testing (Chromium emulation only so far).

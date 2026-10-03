@@ -67,6 +67,10 @@ Three targets, one client build.
   Never add a Cloudflare payment method. `run_worker_first` is only `/arena` and `/health`.
   The domain is attached in the Cloudflare dashboard, **not** in `wrangler.jsonc`; do
   not add `routes` there (see DECISIONS.md, "Custom domain").
+  `deploy.yml` runs `scripts/check-prod-deploy-target.mjs` first and refuses any
+  other Worker name, any `routes`, or `workers_dev: false`. The art Worker
+  `seventh-gun-art` (art.seventhgun.com) deploys only from the never-merged
+  `codex/experimental-modern-art` branch, which has the opposite guard.
 - **Netlify** stays a static mirror: `publish = dist/client`. Arena is offline there
   unless `VITE_ARENA_WS_URL` / `ALLOWED_ORIGINS` point at the Worker.
 - **Portable Node** (`server/node/main.ts` -> `bin/seventh-gun.mjs`) is what ships to

@@ -84,6 +84,24 @@ placement shuffles with an engine-dependent `sort` (see STATUS.md).
 - `tests/unit/hud.test.ts` — health bar ends before gun slot 1 at several
   panel widths (the old `panelW * 0.2` bar overlaps).
 
+- Arena and server: `arenagen.test.ts` (96×96 generator invariants and
+  determinism), `protocol.test.ts` (v3 frame guards, 32-frame resend window
+  inside 8 KiB), `nodeServer.test.ts` (origin allow list, socket adapter),
+  `arenaPresentation.test.ts` / `arenaRenderPresentation.test.ts` (gun
+  yaw/pitch, pitched rail/nail geometry, projectile identity across delayed
+  samples), `players.test.ts` (remote rig fog), `screens.test.ts` (scoreboard
+  drawn on the HUD canvas, no opaque overlay), `audio.test.ts` (arena voice
+  admission), `game.test.ts` (arena pause/resume and join lifecycle).
+- Combat and enemies: `combatGolden.test.ts` (all guns, pitched aim, three
+  seeds, stable hashes), `enemyHitbox.test.ts` (art fills the hit volume),
+  `enemyMuzzleOffset.test.ts` (per-species muzzle origin and yaw),
+  `enemyEyeFlare.test.ts` (eye colour restored after windup/pain/death),
+  `enemyLifecycleRender.test.ts` (six species wake, attack, fire, die in sim
+  and renderer), `gunArt.test.ts` (single-sourced flash colours).
+- Resources: `dispose.test.ts` (owned GPU objects freed once, cached textures
+  kept), `fxLifecycle.test.ts` (tracers, explosions, particles and projectiles
+  released on clear and on expiry).
+
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
 ## E2E (playwright, `npm run test:e2e`)
@@ -121,7 +139,7 @@ world/HUD visibility, crosshair clearance, muzzle flashes and touch layout.
 Those historical checks do not validate the current redesigned species or
 replace the September resource/presentation regression pass.
 
-Current automated coverage and rollout state are tracked in REPAIR-PLAN.md.
+Current state is in STATUS.md; the September repair record is REPAIR-PLAN.md.
 Inspect the built game and Netlify preview for campaign/maze visuals; use a
 server-capable target for arena. Check all six species from wake through
 firing and death, all seven guns at pitched headings, secret controls, and

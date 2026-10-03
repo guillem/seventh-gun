@@ -9,8 +9,8 @@ differences to the expert reviewer rather than expanding scope.
 | 2 | Fixed clock, input acknowledgements, snapshot interpolation | Controlled clock + short controls + latency/jitter tests | Merged #29 after CI and review; controlled 30-second latency/jitter and stop gates pass. Cloudflare rollout and advancing-snapshot probe passed. |
 | 3 | Projectile/beam direction, sustained audio, mode feedback | Seven weapons/pitched views; audio load and echo matching | Merged #30 after CI and review; 304 unit tests passed. Combined Cloudflare rollout, live arena render and snapshot probe passed. |
 | 4 | Secret visibility, exposed controls, compiler validation | All 15 secrets/four kinds; legacy codec and seed sweep | Merged #28 after review, CI and preview; combined Cloudflare rollout passed |
-| 5 | Single render, resource ownership, enemy validation | Stable resource counts; six species' attack/death coverage | PR #31 reviewed; real frame, GPU, six-species and FX ownership checks pass; final CI is the merge gate |
-| 6 | Existing packaging PR #26, notices, release gates, dependencies/docs | Packed install Node22/24; container; safe release preflight | PR #26 integrates gameplay; packed Node22/24 and combined container pass; clean Cloudflare/portable notices verified; final CI is the merge gate |
+| 5 | Single render, resource ownership, enemy validation | Stable resource counts; six species' attack/death coverage | Merged #31 after CI |
+| 6 | Existing packaging PR #26, notices, release gates, dependencies/docs | Packed install Node22/24; container; safe release preflight | Merged #26 after CI; packed Node22/24 and combined container pass; clean Cloudflare/portable notices verified |
 | 7 | Public launch readiness and release | History scan, publishing access, anonymous artifacts | History reviewed (test WebSocket nonces excluded); npm bootstrap access requires user action; no publication yet |
 
 Full secret-editor tooling and lag compensation are separate optional features,
@@ -20,6 +20,5 @@ checks; record those limits honestly. Never add a Cloudflare payment method.
 
 Each implementation group gets a branch/PR, regression checks, a verified
 Netlify preview, and an arena check on a server-capable target before merge.
-The existing packaging PR remains open until the earlier fixes are integrated.
-Node transport changes live with that unmerged adapter and will be carried into
-PR #26; production room and connection fixes can land first on main.
+Stages 1–6 merged on 2026-09-05. Stage 7 (first npm publication) is still open;
+see the backlog in ROADMAP.md.
