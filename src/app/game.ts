@@ -13,6 +13,7 @@ import { AudioEngine } from '../audio/audio';
 import { Hud, exploredPct } from '../ui/hud';
 import { Screens, loadSettings, saveSettings, randomSeed, type Settings } from '../ui/screens';
 import { InputManager } from './input';
+import { afterPaint } from './afterPaint';
 import {
   loadMapLog,
   prependMapLog,
@@ -79,6 +80,10 @@ export class Game {
   private editor: EditorView | null = null;
   private fromEditor = false;
   private playtestAllGuns = false;
+  private preparingWorld = false;
+  private worldLoading: HTMLDivElement | null = null;
+  private cancelWorldPreparation: (() => void) | null = null;
+  private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, debug: boolean) {
     this.debug = debug;
@@ -151,9 +156,9 @@ export class Game {
   // ------------------------------------------------------------------ ui wiring
   private wireUi(): void {
     this.screens.bindTitle({
-      start: () => this.startRun(this.screens.seedInput.value.trim() || randomSeed()),
-      retry: () => this.retryCurrent(),
-      newMaze: () => this.secondaryCurrent(),
+      start: () => this.prepareWorld(() => this.startRun(this.screens.seedInput.value.trim() || randomSeed())),
+      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      newMaze: () => this.prepareSecondary(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       mute: () => {
         this.settings.muted = !this.settings.muted;
@@ -170,43 +175,46 @@ export class Game {
       back: () => { this.cancelArenaJoin(); this.screens.showArenaJoin(false); this.screens.showTitle(true); },
     });
     this.screens.bindCampaign({
-      begin: () => this.beginCampaign(),
-      continue: () => this.continueCampaign(),
+      begin: () => this.prepareWorld(() => this.beginCampaign()),
+      continue: () => this.prepareWorld(() => this.continueCampaign()),
       back: () => this.closeCampaign(),
-      playMap: (n) => this.playCampaignMap(n),
+      playMap: (n) => this.prepareWorld(() => this.playCampaignMap(n)),
     });
-    this.screens.bindIntermission(() => this.continueFromIntermission());
+    this.screens.bindIntermission(() => this.prepareWorld(() => this.continueFromIntermission()));
     this.screens.bindCampaignWin(() => this.toTitle());
     this.screens.bindEditor(() => this.openEditor());
     this.screens.bindMapLog({
       back: () => this.closeMapLog(),
-      play: (entry) => this.playFromLog(entry),
+      play: (entry) => this.prepareWorld(() => this.playFromLog(entry)),
       copy: (seed) => this.copySeed(seed),
     });
     this.screens.bindPause({
       resume: () => this.resume(),
-      retry: () => this.retryCurrent(),
-      newMaze: () => this.secondaryCurrent(),
+      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      newMaze: () => this.prepareSecondary(),
       quit: () => this.toTitle(),
       leaveArena: () => this.leaveArena(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       sens: (v) => { this.settings.sensitivity = v; this.input.sensitivity = v; saveSettings(this.settings); },
     });
     this.screens.bindVictory({
-      retry: () => this.retryCurrent(),
-      newMaze: () => this.secondaryCurrent(),
+      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      newMaze: () => this.prepareSecondary(),
     });
     this.screens.bindCopyLink(() => { void this.copyShareLink(); });
     this.screens.bindSaveLibrary(() => { void this.saveAuthoredToLibrary(); });
     this.screens.bindBackToEditor(() => this.returnToEditor());
     this.screens.setTouchUi({
-      fire: (down) => this.input.setFire(down),
-      use: () => { if (this.sim) this.sim.tryUse(); },
+      fire: (down) => {
+        if (down && !this.preparingWorld && this.isPlayingLike) this.audio.retryPlayback();
+        this.input.setFire(down);
+      },
+      use: () => { if (this.sim && !this.preparingWorld) this.sim.tryUse(); },
       map: () => this.toggleMap(!this.screens.isMapOpen()),
       pause: () => this.togglePause(),
     });
     this.screens.seedInput.addEventListener('keydown', (e) => {
-      if (e.code === 'Enter') this.startRun(this.screens.seedInput.value.trim() || randomSeed());
+      if (e.code === 'Enter') this.prepareWorld(() => this.startRun(this.screens.seedInput.value.trim() || randomSeed()));
       // No stopPropagation(): InputManager's window keydown now ignores any
       // event whose target is an editable element (isEditableTarget in
       // input.ts), so it never reaches the Tab/M/WASD handling below this
@@ -218,12 +226,14 @@ export class Game {
   private wireInput(): void {
     this.input.setCallbacks({
       onLook: (dyaw, dpitch) => {
+        if (this.preparingWorld) return;
         const cam = this.renderer.camera;
         cam.rotation.order = 'YXZ';
         cam.rotation.y += dyaw;
         cam.rotation.x = Math.max(-1.45, Math.min(1.45, cam.rotation.x + dpitch));
       },
       onPointerLockChange: () => {
+        if (this.preparingWorld) return;
         if (!this.input.pointerLocked && this.phase === 'playing' && !this.input.isTouch) {
           if (this.fromEditor) this.returnToEditor();
           else if (this.runKind === 'arena') this.openArenaMenu();
@@ -231,6 +241,7 @@ export class Game {
         }
       },
       onPauseToggle: () => {
+        if (this.preparingWorld) return;
         if (this.phase === 'editing') return;
         if (this.runKind === 'arena' && this.arenaScoreboard) {
           this.arenaScoreboard = false;
@@ -256,8 +267,9 @@ export class Game {
       // mode (campaign, maze, arena). Arena additionally has Tab for the
       // detailed scoreboard (onScoreboardToggle below); campaign has no
       // scoreboard, so its Tab is wired to this same handler too.
-      onMapToggle: () => this.handleMapToggle(),
+      onMapToggle: () => { if (!this.preparingWorld) this.handleMapToggle(); },
       onScoreboardToggle: () => {
+        if (this.preparingWorld) return;
         if (this.phase === 'editing') return;
         if (this.runKind !== 'arena') { this.handleMapToggle(); return; }
         // Full map (opened via 'm' / touch UI / debug API) closes on Tab
@@ -274,8 +286,9 @@ export class Game {
   private canvasClickLock(): void {
     const canvas = this.renderer.domElement;
     canvas.addEventListener('click', () => {
-      if (this.phase === 'playing' && !this.input.pointerLocked && !this.input.isTouch) {
-        this.input.requestLock();
+      if (!this.preparingWorld && this.phase === 'playing') {
+        this.audio.retryPlayback();
+        if (!this.input.pointerLocked && !this.input.isTouch) this.input.requestLock();
       }
     });
   }
@@ -305,11 +318,94 @@ export class Game {
     this.applyDifficulty(d);
     if (host !== 'diff-row') return;
     if (this.phase === 'title' && this.sim && this.runKind === 'maze') {
-      this.startRun(this.seed);
+      this.prepareWorld(() => this.startRun(this.seed));
     }
   }
 
   // ------------------------------------------------------------------ run flow
+  /** UI starts paint their loading state first; public/debug starts stay synchronous. */
+  private prepareWorld(action: () => void): void {
+    if (this.preparingWorld || this.disposed) return;
+    this.preparingWorld = true;
+    this.input.paused = true;
+    this.input.setFire(false);
+    this.accumulator = 0;
+    const overlay = document.createElement('div');
+    overlay.id = 'world-loading';
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.setAttribute('aria-busy', 'true');
+    overlay.innerHTML = '<div class="boot-mark" aria-hidden="true">VII</div>' +
+      '<div class="boot-label">SEVENTH GUN</div><h1>Preparing the world</h1>' +
+      '<p class="boot-status">Creating the scene. This may take a few seconds.</p>' +
+      '<div class="world-loading-line" aria-hidden="true"></div>';
+    document.body.appendChild(overlay);
+    this.worldLoading = overlay;
+
+    // Both browser permissions must begin inside the original user gesture.
+    const audioReady = this.audio.unlock();
+    if (!this.input.isTouch) this.input.requestLock();
+    const task = afterPaint(action);
+    this.cancelWorldPreparation = task.cancel;
+    const worldReady = task.done.then((completed) => {
+      if (completed && !this.disposed && this.worldLoading === overlay) {
+        overlay.querySelector('.boot-status')!.textContent = 'Scene ready. Preparing sound…';
+      }
+      return completed;
+    });
+    void Promise.all([worldReady, audioReady]).then(([completed]) => {
+      if (!completed || this.disposed) return;
+      this.cancelWorldPreparation = null;
+      // Discard clicks, wheel/weapon edges and elapsed loading time before play.
+      this.input.setFire(false);
+      this.input.poll(0, 0);
+      this.lastGunCycled = 0;
+      this.accumulator = 0;
+      this.lastTime = performance.now();
+      if (this.sim?.phase === 'playing' && this.isPlayingLike) this.audio.startAmbient();
+      this.input.paused = this.phase !== 'playing' && this.phase !== 'map';
+      this.preparingWorld = false;
+      this.worldLoading = null;
+      overlay.remove();
+    }).catch((error: unknown) => {
+      task.cancel();
+      if (this.disposed) return;
+      this.cancelWorldPreparation = null;
+      // Keep simulation frozen and return the cursor so recovery is possible.
+      this.input.paused = true;
+      this.input.releaseLock();
+      overlay.setAttribute('role', 'alert');
+      overlay.setAttribute('aria-busy', 'false');
+      overlay.querySelector('h1')!.textContent = 'The world could not be prepared';
+      overlay.querySelector('.boot-status')!.textContent =
+        error instanceof Error ? error.message : String(error);
+      overlay.querySelector('.world-loading-line')?.remove();
+      const actions = document.createElement('div');
+      actions.className = 'world-loading-actions';
+      const retry = document.createElement('button');
+      retry.textContent = 'TRY AGAIN';
+      retry.onclick = () => {
+        this.preparingWorld = false;
+        overlay.remove();
+        this.worldLoading = null;
+        this.prepareWorld(action);
+      };
+      const reload = document.createElement('button');
+      reload.textContent = 'RELOAD';
+      reload.onclick = () => window.location.reload();
+      actions.append(retry, reload);
+      overlay.append(actions);
+      retry.focus();
+      console.error('World preparation failed', error);
+    });
+  }
+
+  private prepareSecondary(): void {
+    // Campaign/map secondary buttons return to the title without building a world.
+    if (this.runKind === 'map' || this.runKind === 'campaign') this.secondaryCurrent();
+    else this.prepareWorld(() => this.secondaryCurrent());
+  }
+
   startRun(seed: string): void {
     this.runKind = 'maze';
     this.authoredBlueprint = null;
@@ -526,9 +622,15 @@ export class Game {
     this.deathHandled = false;
     this.winHandled = false;
     this.hud.showMessage(message);
-    this.audio.unlock().then(() => this.audio.startAmbient());
-    this.input.paused = false;
-    if (!this.input.isTouch) this.input.requestLock();
+    if (!this.preparingWorld) {
+      const startedSim = this.sim;
+      void this.audio.unlock().then(() => {
+        if (this.sim === startedSim && startedSim.phase === 'playing' &&
+          (this.phase === 'playing' || this.phase === 'paused' || this.phase === 'map')) this.audio.startAmbient();
+      });
+      this.input.paused = false;
+      if (!this.input.isTouch) this.input.requestLock();
+    }
     this.pushLookToCamera(this.sim.player.yaw, this.sim.player.pitch);
   }
 
@@ -832,7 +934,7 @@ export class Game {
     if (!this.editor) {
       this.editor = new EditorView();
       this.editor.bind({
-        playtest: (bp, allGuns) => this.startFromBlueprint(bp, undefined, { playtest: true, allGuns }),
+        playtest: (bp, allGuns) => this.prepareWorld(() => this.startFromBlueprint(bp, undefined, { playtest: true, allGuns })),
         toTitle: () => this.toTitle(),
         toast: (msg) => this.screens.showToast(msg),
         copyText,
@@ -904,6 +1006,7 @@ export class Game {
       return;
     }
     if (this.phase !== 'paused') return;
+    this.audio.retryPlayback();
     this.phase = 'playing';
     this.input.paused = false;
     this.screens.showPause(false);
@@ -944,6 +1047,7 @@ export class Game {
   tick(now: number): void {
     const dtReal = Math.min(0.1, (now - this.lastTime) / 1000);
     this.lastTime = now;
+    if (this.preparingWorld || this.disposed) return;
     const sim = this.sim;
 
     this.hud.update(dtReal);
@@ -1549,6 +1653,12 @@ export class Game {
   }
 
   dispose(): void {
+    this.disposed = true;
     cancelAnimationFrame(this.raf);
+    this.cancelWorldPreparation?.();
+    this.cancelWorldPreparation = null;
+    this.worldLoading?.remove();
+    this.worldLoading = null;
+    this.renderer.dispose();
   }
 }

@@ -32,6 +32,8 @@ import { PLAYER_HEIGHT } from '../sim/types';
 import { hasVisualLineOfSight, type SolidState } from '../sim/physics';
 import { applyRadialFog, applyRadialFogDeep } from './radialFog';
 import { getPlayerArt } from './playerArt';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
+import { getTextures } from './textures';
 
 // Ten hues spread round the wheel, all bright enough to survive the ~0.85
 // value of the plate map and the dim arena ambient. Slot order is unchanged
@@ -57,12 +59,12 @@ interface Rig {
   id: number;
   group: THREE.Group;       // at the feet; yaw applied here. Name sprite lives here.
   body: THREE.Group;        // the marine; topples on death
-  torso: THREE.Group;       // pelvis up: bob / breathe / twist
-  head: THREE.Group;        // pivot at the neck
-  legs: THREE.Group[];      // hip pivots  [right, left]
-  knees: THREE.Group[];
-  arms: THREE.Group[];      // shoulder pivots [right (gun), left]
-  elbows: THREE.Group[];
+  torso: THREE.Object3D;       // pelvis up: bob / breathe / twist
+  head: THREE.Object3D;        // pivot at the neck
+  legs: THREE.Object3D[];      // hip pivots  [right, left]
+  knees: THREE.Object3D[];
+  arms: THREE.Object3D[];      // shoulder pivots [right (gun), left]
+  elbows: THREE.Object3D[];
   shadow: THREE.Mesh;
   nameSprite: THREE.Sprite;
   labelKey: string;
@@ -191,6 +193,8 @@ export class PlayerRenderer {
       rig.body.rotation.set(0, 0, 0);
       rig.body.position.y = 0;
       rig.head.rotation.set(0, 0, 0);
+      rig.arms[0]!.rotation.z = 0.12;
+      rig.arms[1]!.rotation.z = -0.12;
       (rig.shadow.material as THREE.MeshBasicMaterial).opacity = 0.85;
     }
     const amp = Math.min(1, rig.speed / RUN_SPEED);
@@ -253,6 +257,8 @@ export class PlayerRenderer {
   }
 
   private makeRig(p: RemotePlayerPose): Rig {
+    const marine = getModernAssets()?.support?.getObjectByName('marine');
+    if (marine) return this.makeSavedRig(p, marine);
     const color = PLAYER_PALETTES[p.colorIndex % PLAYER_PALETTES.length]!;
     const art = getPlayerArt();
     const armour = lambert(color, art.plate);        // team colour
@@ -400,6 +406,58 @@ export class PlayerRenderer {
     // Every other in-world material fogs radially (radialFog.ts); match it
     // here so remote players don't fog on the stock camera-Z curve. Runs
     // after every mesh is in the group.
+    applyRadialFogDeep(group);
+    return {
+      id: p.id, group, body, torso, head, legs, knees, arms, elbows, shadow, nameSprite, labelKey: '',
+      px: p.x, pz: p.z, hasPrev: true, distAcc: 0, timeAcc: 0, speedTarget: 0, speed: 0,
+      phase: 0, time: 0, deathT: p.alive ? -1 : 1,
+    };
+  }
+
+  private makeSavedRig(p: RemotePlayerPose, source: THREE.Object3D): Rig {
+    const color = PLAYER_PALETTES[p.colorIndex % PLAYER_PALETTES.length]!;
+    const group = new THREE.Group();
+    const body = cloneOwnedModel(source);
+    const joint = (name: string): THREE.Object3D => {
+      const result = body.getObjectByName(name);
+      if (!result) throw new Error(`Marine asset is missing ${name}`);
+      return result;
+    };
+    const torso = joint('torso');
+    const head = joint('head');
+    const legs = [joint('leg_r'), joint('leg_l')];
+    const knees = [joint('knee_r'), joint('knee_l')];
+    const arms = [joint('arm_r'), joint('arm_l')];
+    const elbows = [joint('elbow_r'), joint('elbow_l')];
+    arms[0]!.rotation.y = 0.8;
+    arms[0]!.rotation.z = 0.12;
+    arms[1]!.rotation.z = -0.12;
+    body.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+        if (!(material instanceof THREE.MeshStandardMaterial)) continue;
+        if (material.name === 'marine.team') {
+          material.color.setHex(color);
+          material.emissive.setHex(color);
+          material.emissiveIntensity = 0.09;
+        } else if (material.name === 'marine.visor') {
+          material.color.setHex(color).lerp(new THREE.Color(0xffffff), 0.45);
+          material.emissive.copy(material.color);
+          material.emissiveIntensity = 0.45;
+        }
+      }
+    });
+    group.add(body);
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3),
+      new THREE.MeshBasicMaterial({ map: getTextures().shadow, transparent: true, depthWrite: false, opacity: 0.85 }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.02;
+    shadow.renderOrder = 2;
+    group.add(shadow);
+    const nameSprite = new THREE.Sprite(new THREE.SpriteMaterial({ depthTest: true }));
+    nameSprite.position.y = PLAYER_HEIGHT + 0.45;
+    nameSprite.scale.set(1.6, 0.4, 1);
+    group.add(nameSprite);
     applyRadialFogDeep(group);
     return {
       id: p.id, group, body, torso, head, legs, knees, arms, elbows, shadow, nameSprite, labelKey: '',

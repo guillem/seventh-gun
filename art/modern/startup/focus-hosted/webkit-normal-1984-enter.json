@@ -1,0 +1,134 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engine": "webkit",
+  "id": "normal-1984-enter",
+  "seed": "1984",
+  "trigger": "enter",
+  "fault": "none",
+  "baseline": false,
+  "capturedAt": "2026-10-03T11:20:25.821Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T11:20:25.821Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T11:20:31.364Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T11:20:32.160Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+  "bootMs": 5527,
+  "startupWallMs": 513,
+  "state": {
+    "at": 5676,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 5,
+    "audioState": "running",
+    "audioTime": 0.49066666666666664,
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 5164,
+      "overlayAddedAt": 5183,
+      "overlayRemovedAt": 5663,
+      "firstFaultAt": null,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 5164,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 5191,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 5197,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 5240,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 5656,
+          "ms": 416
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 5660,
+          "ms": 463
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 5660,
+          "ms": 469
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 5663,
+          "ms": 499
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "readyAfterGestureMs": 512,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 20,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "audioOutput": {
+    "state": "running",
+    "currentTime": 0.7226666666666667,
+    "peak": 0.02760486863553524,
+    "decodedSamples": 40
+  },
+  "screenshot": "webkit-normal-1984-enter.jpg",
+  "totalWallMs": 6339,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

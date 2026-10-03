@@ -1,0 +1,191 @@
+[
+  {
+    "id": "chaingun",
+    "taskId": "490f4a87-ca93-4a96-b18a-7f1bacbbea01",
+    "prompt": "Heavy rotary science fiction cannon firing one single short shot: sharp mechanical bolt clack and tight low percussive report, dry close perspective, quick tail. No burst, no voices, no music.",
+    "duration": 1,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 481,
+    "isFreePlan": true
+  },
+  {
+    "id": "spiker",
+    "taskId": "78cf405b-f952-4bfd-83d8-89258203eb50",
+    "prompt": "Industrial pneumatic nail launcher firing once: compressed air snap, heavy metal piston thunk and short sharp metallic zip. Isolated dry close sound, immediate onset, no music.",
+    "duration": 1,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 480,
+    "isFreePlan": true
+  },
+  {
+    "id": "bile",
+    "taskId": "ad483fc5-ad61-4091-b6e2-1e531facc860",
+    "prompt": "Science fiction pressure launcher firing once: deep sealed pressure vessel thump, compressed liquid gurgle and brief air hiss. Close isolated mechanical sound, immediate onset, no music.",
+    "duration": 1.4,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 478,
+    "isFreePlan": true
+  },
+  {
+    "id": "sunlance",
+    "taskId": "d049c386-6c0c-4d57-919c-8949ef3fca47",
+    "prompt": "Science fiction precision energy lance firing once: crisp electrical discharge crack followed by a thin high resonant metallic singing tail. Physical capacitor and arc character, no cartoon pew, no music.",
+    "duration": 1.3,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 476,
+    "isFreePlan": true
+  },
+  {
+    "id": "seventh",
+    "taskId": "1dd69b8d-5925-4261-9fad-395a6d25beb5",
+    "prompt": "Massive alien containment emitter firing once: immediate sub bass pressure impact, resonating steel chamber and strange descending electrical resonance dissolving into air. No voice or music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 474,
+    "isFreePlan": true
+  },
+  {
+    "id": "crawler-voice",
+    "taskId": "f8ff4990-3fcf-4b31-aa2a-51fe9af367b8",
+    "prompt": "Small fictional insectoid creature making a short rasping chitter and dry mandible clicks. Natural organic foley, close isolated perspective, no words, no human voice, no music.",
+    "duration": 1.5,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 472,
+    "isFreePlan": true
+  },
+  {
+    "id": "slab-voice",
+    "taskId": "a7be52f5-47ef-4d6d-ba6f-6274cbe3ab83",
+    "prompt": "Large fictional stone-armored creature making one deep chesty exhalation and rumbling growl, with subtle rocky grinding texture. Close isolated, no words, no human voice, no music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 470,
+    "isFreePlan": true
+  },
+  {
+    "id": "wisp-voice",
+    "taskId": "d5c031d2-fc4f-4d1d-9669-4dcba65149ef",
+    "prompt": "Small fictional ethereal creature making a breathy airy whistle with soft crystalline overtones, rises then falls, delicate unusual animal call. Isolated, no words, no music.",
+    "duration": 1.5,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 468,
+    "isFreePlan": true
+  },
+  {
+    "id": "hierophant-voice",
+    "taskId": "fd4a1b9d-c8f4-401c-a5ca-4511cae936bb",
+    "prompt": "Fictional alien creature makes a low resonant hollow croak with several close harmonic tones and a papery rattle. Ancient and otherworldly animal call, no words, no human speech, no music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 466,
+    "isFreePlan": true
+  },
+  {
+    "id": "fiend-voice",
+    "taskId": "e1fcd48c-54af-4cc2-bcff-121897339b29",
+    "prompt": "Enormous fictional reptilian creature gives a powerful low rumbling animal call with rough throat vibration and a short exhale. Naturalistic designed creature foley, isolated, no words or music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 464,
+    "isFreePlan": true
+  },
+  {
+    "id": "explosion",
+    "taskId": "63f93141-cb99-43db-8fca-ca1ebf26a05f",
+    "prompt": "Cinematic industrial pressure explosion: immediate sharp crack with a deep bass thump, brief scattering metal debris and airy dusty tail. One isolated event, no voices or music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 462,
+    "isFreePlan": true
+  },
+  {
+    "id": "dryfire",
+    "taskId": "64ed9411-3db5-4183-bcfc-ab64c7db1052",
+    "prompt": "A precision mechanical tool trigger clicks once against an empty chamber. Small dry metal click and spring reset, extremely short isolated close sound, no music.",
+    "duration": 0.5,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 461,
+    "isFreePlan": true
+  },
+  {
+    "id": "pickup",
+    "taskId": "0308e0cc-fc78-46c6-835c-9ccf2c25a432",
+    "prompt": "Small futuristic equipment latch locking securely: soft metal click followed by a clean very brief two-tone electronic confirmation chime. Understated realistic interface foley, isolated, no music.",
+    "duration": 0.7,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 460,
+    "isFreePlan": true
+  },
+  {
+    "id": "medical",
+    "taskId": "8c42b4f9-303c-40f3-b52b-aba5d4372d91",
+    "prompt": "Compact futuristic medical injector: quiet latch click, tiny pressurized hiss and soft electronic confirmation. Close isolated foley, restrained, no voice or music.",
+    "duration": 0.8,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 459,
+    "isFreePlan": true
+  },
+  {
+    "id": "key",
+    "taskId": "06bd313e-5f0b-47cc-a269-287a09583fa7",
+    "prompt": "Electronic access card accepted by secure industrial reader: small tap then two delicate rising glassy tones with a quiet latch click. Restrained realistic game interface, no music.",
+    "duration": 0.8,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 458,
+    "isFreePlan": true
+  },
+  {
+    "id": "powerup",
+    "taskId": "996ad198-92dc-48c9-abc4-120c9167a341",
+    "prompt": "Small futuristic power module engaging: short rising electric coil resonance, clean click and soft low pulsing hum tail. Isolated, sophisticated industrial foley, no music.",
+    "duration": 1.2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 456,
+    "isFreePlan": true
+  },
+  {
+    "id": "hurt",
+    "taskId": "6ef2bccd-5df9-442d-ba91-c9ea782caf13",
+    "prompt": "Heavy impact against padded protective body armor: muffled solid fabric thump with a brief rattle of hard plates. Single close hit, no human voice, no music.",
+    "duration": 0.5,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 455,
+    "isFreePlan": true
+  },
+  {
+    "id": "seal",
+    "taskId": "fcc90f74-18d6-4325-b57d-9c3c1ebd12fe",
+    "prompt": "Massive alien energy barrier powering down: descending electrical resonance and cracking crystalline static, finishing with a low bass pressure release. One isolated science fiction device sound, no music.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 453,
+    "isFreePlan": true
+  },
+  {
+    "id": "heartbeat",
+    "taskId": "e55c69b6-905b-4db0-af0e-44b91fbb87f8",
+    "prompt": "A close muffled heartbeat double thump, deep soft physical low frequency pulse, quiet background, one heartbeat pair, no music or other sounds.",
+    "duration": 0.8,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 452,
+    "isFreePlan": true
+  },
+  {
+    "id": "success",
+    "taskId": "44b8859a-7c43-4448-950c-d9f9612e6709",
+    "prompt": "A short cinematic science fiction completion sound: warm resonant metallic chime followed by three gentle rising harmonic tones, calm resolved tail. A single subtle game interface sting, no beat or voice.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 450,
+    "isFreePlan": true
+  },
+  {
+    "id": "failure",
+    "taskId": "9cf1a1ef-eb1e-4191-b734-6711bd3a70a6",
+    "prompt": "A short cinematic science fiction shutdown sound: subdued low descending metallic tones with a soft relay click and a fading dark resonance. A single game interface cue, no voice or beat.",
+    "duration": 2,
+    "status": "SUCCEEDED",
+    "creditsRemaining": 448,
+    "isFreePlan": true
+  }
+]

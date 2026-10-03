@@ -55,6 +55,131 @@ function bareGame(): GameClass {
   return Object.create(Game.prototype) as GameClass;
 }
 
+describe('gameplay gestures recover interrupted audio', () => {
+  it.each([false, true])('retries audio on a gameplay canvas click with pointer lock=%s', (pointerLocked) => {
+    let click!: () => void;
+    const retryPlayback = vi.fn();
+    const requestLock = vi.fn();
+    const g = Object.assign(bareGame(), {
+      phase: 'playing', preparingWorld: false,
+      renderer: { domElement: { addEventListener: (_event: string, handler: () => void) => { click = handler; } } },
+      audio: { retryPlayback },
+      input: { isTouch: false, pointerLocked, requestLock },
+    }) as unknown as { phase: string; preparingWorld: boolean; canvasClickLock: () => void };
+    g.canvasClickLock();
+    click();
+    expect(retryPlayback).toHaveBeenCalledOnce();
+    expect(requestLock).toHaveBeenCalledTimes(pointerLocked ? 0 : 1);
+    g.preparingWorld = true;
+    click();
+    g.preparingWorld = false;
+    g.phase = 'title';
+    click();
+    expect(retryPlayback).toHaveBeenCalledOnce();
+  });
+
+  it('retries only touch fire-down during gameplay', () => {
+    let fire!: (down: boolean) => void;
+    const retryPlayback = vi.fn();
+    const setFire = vi.fn();
+    const screens = new Proxy({
+      seedInput: { addEventListener() {} },
+      setTouchUi: (handlers: { fire: (down: boolean) => void }) => { fire = handlers.fire; },
+    }, { get: (target, key) => Reflect.get(target, key) ?? (() => {}) });
+    const g = Object.assign(bareGame(), {
+      screens, phase: 'playing', preparingWorld: false,
+      audio: { retryPlayback }, input: { setFire },
+    }) as unknown as { phase: string; preparingWorld: boolean; wireUi: () => void };
+    g.wireUi();
+    fire(true);
+    fire(false);
+    expect(retryPlayback).toHaveBeenCalledOnce();
+    expect(setFire.mock.calls).toEqual([[true], [false]]);
+    g.preparingWorld = true;
+    fire(true);
+    g.preparingWorld = false;
+    g.phase = 'title';
+    fire(true);
+    expect(retryPlayback).toHaveBeenCalledOnce();
+  });
+
+  it('retries sound when resuming a paused single-player run', () => {
+    const retryPlayback = vi.fn();
+    const input = { isTouch: true, paused: true };
+    const showPause = vi.fn();
+    const g = Object.assign(bareGame(), {
+      arenaMenu: false, phase: 'paused', input,
+      screens: { showPause }, audio: { retryPlayback },
+    }) as unknown as { phase: string; resume: () => void };
+    g.resume();
+    expect(retryPlayback).toHaveBeenCalledOnce();
+    expect(g.phase).toBe('playing');
+    expect(input.paused).toBe(false);
+    expect(showPause).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('world preparation status', () => {
+  it.each([false, true])('reports sound readiness after scene creation and respects disposal=%s', async (dispose) => {
+    const frames = new Map<number, FrameRequestCallback>();
+    let frameId = 0;
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.set(++frameId, callback);
+      return frameId;
+    });
+    vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
+    const status = { textContent: '' };
+    const overlay = {
+      id: '', innerHTML: '', setAttribute: vi.fn(), remove: vi.fn(),
+      querySelector: () => status,
+    };
+    const create = vi.spyOn(document, 'createElement').mockReturnValue(overlay as unknown as HTMLElement);
+    let audioReady!: () => void;
+    const input = { isTouch: true, paused: false, setFire: vi.fn(), poll: vi.fn() };
+    const g = Object.assign(bareGame(), {
+      disposed: false, preparingWorld: false, phase: 'title', input,
+      renderer: { dispose: vi.fn() },
+      audio: { unlock: () => new Promise<void>(resolve => { audioReady = resolve; }), startAmbient: vi.fn() },
+    }) as unknown as {
+      preparingWorld: boolean; phase: string; prepareWorld: (action: () => void) => void; dispose: () => void;
+    };
+    const action = vi.fn(() => { g.phase = 'playing'; });
+    try {
+      g.prepareWorld(action);
+      expect(overlay.innerHTML).toContain('Creating the scene');
+      expect(g.preparingWorld).toBe(true);
+      if (dispose) g.dispose();
+      for (let i = 0; i < 2; i++) {
+        const callbacks = [...frames.values()];
+        frames.clear();
+        callbacks.forEach(callback => callback(0));
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+      if (dispose) {
+        expect(action).not.toHaveBeenCalled();
+        expect(status.textContent).toBe('');
+      } else {
+        expect(action).toHaveBeenCalledOnce();
+        expect(status.textContent).toBe('Scene ready. Preparing sound…');
+        expect(overlay.remove).not.toHaveBeenCalled();
+        expect(input.paused).toBe(true);
+      }
+      audioReady();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(overlay.remove).toHaveBeenCalledOnce();
+      if (!dispose) {
+        expect(g.preparingWorld).toBe(false);
+        expect(input.paused).toBe(false);
+      }
+    } finally {
+      create.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe('resume() — bug 2 (arena pause menu Resume button)', () => {
   it('clears the arena menu and hides pause when resuming from the arena menu', () => {
     const g = bareGame() as unknown as {

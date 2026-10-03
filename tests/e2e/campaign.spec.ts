@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';
 
@@ -19,7 +20,7 @@ type GameApi = {
 
 test.describe('campaign desktop', () => {
   test('CAMPAIGN begins map 1', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
     await page.getByRole('button', { name: 'CAMPAIGN' }).click();
@@ -38,7 +39,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('campaign SKILL after a maze run does not start a maze', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => {
       localStorage.removeItem('seventh-gun.maplog');
       localStorage.removeItem('seventh-gun.campaign');
@@ -53,12 +54,15 @@ test.describe('campaign desktop', () => {
     await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
     await page.locator('#c-diff-row button').filter({ hasText: 'Hard' }).click();
     await expect(page.getByText('Seven maps. The guns stay with you.')).toBeVisible();
+    // A UI start shows #world-loading at once but only reaches 'playing' two
+    // frames later; let any start that was (wrongly) triggered finish first.
+    await expect(page.locator('#world-loading')).toHaveCount(0);
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     expect(state.phase).not.toBe('playing');
   });
 
   test('Foundry start does not grow the map log with campaign: seeds', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => {
       localStorage.removeItem('seventh-gun.maplog');
       localStorage.removeItem('seventh-gun.campaign');
@@ -80,7 +84,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('title Easy after quitting campaign does not start a campaign-art maze', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
@@ -90,6 +94,8 @@ test.describe('campaign desktop', () => {
     await page.getByRole('button', { name: 'QUIT TO TITLE' }).click();
     await expect(page.getByRole('button', { name: 'ENTER THE MAZE' })).toBeVisible();
     await page.locator('#diff-row button').filter({ hasText: 'Easy' }).click();
+    // As above: a start triggered by the click is not 'playing' yet.
+    await expect(page.locator('#world-loading')).toHaveCount(0);
     const state = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.state());
     const playingCampaignArt = state.phase === 'playing' && !!state.campaign?.artId;
     expect(playingCampaignArt).toBe(false);
@@ -101,7 +107,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('completing map 7 shows THE SEVENTH IS SILENT', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(7));
     await page.waitForFunction(() => {
@@ -114,7 +120,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('campaign screen lists seven named maps; map 2 unlocks after winning map 1', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.getByRole('button', { name: 'CAMPAIGN' }).click();
     const names = [
@@ -137,7 +143,7 @@ test.describe('campaign desktop', () => {
     const camp = await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.campaign());
     expect(camp.nextMap).toBe(2);
 
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.getByRole('button', { name: 'CAMPAIGN' }).click();
     await expect(page.getByRole('button', { name: /^2 THE GULLET/ })).toBeEnabled();
     await expect(page.getByRole('button', { name: /3 THE CATACOMBS/ })).toBeDisabled();
@@ -149,7 +155,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('startCampaign(n) plays the chosen map', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => {
       (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(3);
     });
@@ -166,8 +172,8 @@ test.describe('campaign desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
-    await page.goto(BASE);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
       return (window as unknown as { __GAME__?: GameApi }).__GAME__?.state()?.phase === 'playing';
@@ -197,7 +203,7 @@ test.describe('campaign desktop', () => {
   });
 
   test('completeMap then CONTINUE starts the next map', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
@@ -205,7 +211,8 @@ test.describe('campaign desktop', () => {
     });
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.completeMap());
     await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible();
-    await expect(page.getByText('THE FOUNDRY')).toBeVisible();
+    await expect(page.locator('#intermission-title')).toHaveText('THE FOUNDRY');
+    await expect(page.locator('#intermission-title')).toBeVisible();
     await page.getByRole('button', { name: 'CONTINUE' }).click();
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
@@ -217,7 +224,11 @@ test.describe('campaign desktop', () => {
   });
 
   test('title CONTINUE resumes after a completed map', async ({ page }) => {
-    await page.goto(BASE);
+    // This roundtrip builds three campaign scenes; bundled Chromium
+    // completed it in 34s even though the final resume check took
+    // under a second. Keep the full UI flow within a scoped 60s budget.
+    test.setTimeout(Math.max(test.info().timeout, 60000));
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));
     await page.waitForFunction(() => {
@@ -244,7 +255,7 @@ test.describe('campaign desktop', () => {
 test.describe('campaign mobile', () => {
   test('title panel still fits with CAMPAIGN and FIRE is ≥44px', async ({ page }) => {
     test.skip(!test.info().project.name.startsWith('mobile'), 'mobile-only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
     const panel = page.locator('#title-screen .panel');
     const panelBox = await panel.boundingBox();

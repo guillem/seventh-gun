@@ -7,6 +7,7 @@
 // Both are DOM/pointer-level failures that unit tests cannot see: the button
 // handler was reachable in isolation and still unclickable in a real browser.
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';
 
@@ -18,7 +19,7 @@ type GameApi = {
 };
 
 async function joinArena(page: import('@playwright/test').Page, name: string): Promise<void> {
-  await page.goto(BASE);
+  await gotoGame(page, BASE);
   await page.evaluate((n) => (window as unknown as { __GAME__: GameApi }).__GAME__.joinArena(n), name);
   // Wait for phase, not just the socket: startArena() sets phase='playing'
   // after the connection resolves, and Escape is a no-op before that.

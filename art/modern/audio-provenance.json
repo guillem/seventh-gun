@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-03",
+  "purpose": "Experimental modern-art slice for Seventh Gun; saved generated recordings, not runtime synthesis.",
+  "provider": "Runway sound effects",
+  "newCreditsSubmitted": 19,
+  "priorTestCredits": 1,
+  "lastReportedCredits": 480,
+  "plan": "Free",
+  "billingActions": "No trial, card, upgrade or purchase.",
+  "sources": [
+    {
+      "id": "metal-impact",
+      "taskId": "3cdc8428-20f3-4203-a539-afe47995b8cc",
+      "duration": 1,
+      "loop": false,
+      "promptText": "A single sharp impact on a heavy steel panel, followed by a short metallic ring. Close, dry studio recording, no voices, no music, no background ambience.",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/metal-impact.mp3",
+      "runtimeFile": "../../public/modern/audio/metal-impact.mp3"
+    },
+    {
+      "id": "pistol-a",
+      "duration": 1,
+      "promptText": "One single close 9mm service pistol gunshot, instant crisp dry crack at the very start, chunky mechanical slide clack, short natural concrete-room tail fading quickly. Powerful grounded modern FPS weapon sound. One shot only, no delay, no music, no voices.",
+      "loop": false,
+      "taskId": "013e70f7-d45b-4b24-91bf-4681dd885d41",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/pistol-a.mp3",
+      "runtimeFile": "../../public/modern/audio/pistol-a.mp3"
+    },
+    {
+      "id": "pistol-b",
+      "duration": 1,
+      "promptText": "One single close compact service pistol gunshot, immediate punchy dry crack on first frame, heavy metallic slide cycling, short tight interior tail. Alternate shot variation, modern realistic FPS weapon sound. No delay, one shot only, no music, no speech.",
+      "loop": false,
+      "taskId": "b5338688-3342-4f8b-834e-721182223aff",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/pistol-b.mp3",
+      "runtimeFile": "../../public/modern/audio/pistol-b.mp3"
+    },
+    {
+      "id": "shotgun",
+      "duration": 2,
+      "promptText": "One single powerful combat shotgun blast starting immediately, deep concussive close punch with sharp metallic crack and brief indoor decay, then subtle bolt action. Grounded cinematic industrial FPS weapon. No echo repeats, no music, no voices.",
+      "loop": false,
+      "taskId": "e1686f5a-c81c-466b-b2b5-1ffda3f38496",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/shotgun.mp3",
+      "runtimeFile": "../../public/modern/audio/shotgun.mp3"
+    },
+    {
+      "id": "door-open",
+      "duration": 2,
+      "promptText": "Heavy industrial steel blast door sliding upward: immediate latch clunk, powerful hydraulic piston hissing and motor whir, grinding metal rails, ending in a solid stop clunk. Dry close recording, one opening motion only, no voices, no music.",
+      "loop": false,
+      "taskId": "e8996f9d-65a2-4864-ac48-ed72e1d42d11",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/door-open.mp3",
+      "runtimeFile": "../../public/modern/audio/door-open.mp3"
+    },
+    {
+      "id": "husk-alert",
+      "duration": 2,
+      "promptText": "One human-sized infected biomechanical creature suddenly notices prey: short hostile low throaty rasp and breathy guttural snarl, strained human chest and wet artificial respirator texture. Close and dry, intense but restrained. No words, no music, no ambience.",
+      "loop": false,
+      "taskId": "da8c46e3-8775-45a4-877b-1de60f668baf",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/husk-alert.mp3",
+      "runtimeFile": "../../public/modern/audio/husk-alert.mp3"
+    },
+    {
+      "id": "husk-pain",
+      "duration": 1,
+      "promptText": "One short immediate pain bark from an infected biomechanical humanoid, guttural gasp mixed with dry metallic respirator rattle, half a second. Close and dry, grounded horror creature vocal. No words, no music, no background ambience.",
+      "loop": false,
+      "taskId": "73cfd7b6-a4f2-4f59-b982-c20d8eb4e289",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/husk-pain.mp3",
+      "runtimeFile": "../../public/modern/audio/husk-pain.mp3"
+    },
+    {
+      "id": "husk-death",
+      "duration": 2,
+      "promptText": "One dying infected biomechanical humanoid exhales a guttural low pained moan, raspy respirator gives out into a brief wet rattle then silence. Close dry recording, grounded industrial horror. Two seconds, no words, no music, no background ambience.",
+      "loop": false,
+      "taskId": "c39c8de4-59e2-4301-b51c-efa7b850a279",
+      "status": "FAILED",
+      "failure": "Runway input content moderation rejected the death vocal prompt. No retry or substitute generated; existing synthesized death sound retained."
+    },
+    {
+      "id": "industrial-ambient",
+      "duration": 8,
+      "loop": true,
+      "promptText": "Seamless quiet industrial underground facility ambience loop. Low steady ventilation fan air, distant muted machinery vibration, soft electrical transformer hum with subtle hollow concrete room resonance. Constant calm bed, no impacts, no alarms, no music, no speech.",
+      "taskId": "f86fb691-ed60-499f-b3a2-6deaa9201b0c",
+      "status": "SUCCEEDED",
+      "sourceFile": "audio-sources/industrial-ambient.mp3",
+      "runtimeFile": "../../public/modern/audio/industrial-ambient.mp3"
+    }
+  ],
+  "licenseNote": "Original AI-generated recordings produced for this project through the user's connected account. Provider task IDs and exact prompts retained as provenance; no paid stock or third-party game audio.",
+  "validation": "All saved files decoded successfully with FFmpeg. Processing trims leading silence from one-shots, applies a tail fade and peak normalization; ambient has a 250 ms crossfade seam. Browser E2E verified eight native WebAudio decodes after gesture, sampled pistol playback, and ambient quit/restart cleanup. Subjective sound and mix quality requires in-game review."
+}

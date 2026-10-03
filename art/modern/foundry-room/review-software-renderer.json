@@ -1,0 +1,15 @@
+{
+  "base": "http://127.0.0.1:5175/",
+  "capturedAt": "2026-10-03T01:42:15.967Z",
+  "limitations": [
+    "Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.",
+    "Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.",
+    "Local startup timing does not represent an uncached public network download."
+  ],
+  "scenarios": [],
+  "failure": {
+    "name": "desktop",
+    "message": "Error: page.evaluate: Error: Frame sample exceeded 30 seconds\n    at eval (eval at evaluate (:311:30), <anonymous>:2:73)",
+    "errors": []
+  }
+}

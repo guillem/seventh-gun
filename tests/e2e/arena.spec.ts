@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';
 
@@ -10,7 +11,7 @@ type GameApi = {
 };
 
 async function joinArena(page: import('@playwright/test').Page, name: string): Promise<void> {
-  await page.goto(BASE);
+  await gotoGame(page, BASE);
   await page.evaluate((n) => (window as unknown as { __GAME__: GameApi }).__GAME__.joinArena(n), name);
   await page.waitForFunction(() => {
     const g = (window as unknown as { __GAME__?: GameApi }).__GAME__;
@@ -59,7 +60,7 @@ test.describe('arena', () => {
   // real keystrokes.
   test('typing in the arena NAME field is not eaten by the global key handler', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'desktop only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.getByRole('button', { name: 'MULTIPLAYER ARENA' }).click();
     await expect(page.locator('#arena-join-screen')).toBeVisible();
     const input = page.locator('#arena-name');
@@ -125,7 +126,7 @@ test.describe('arena', () => {
   });
   test('title shows MULTIPLAYER ARENA and maze still starts', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop' && testInfo.project.name !== 'mobile', 'projects only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await expect(page.getByRole('button', { name: 'MULTIPLAYER ARENA' })).toBeVisible();
     if (testInfo.project.name === 'mobile') {
       const panel = page.locator('#title-screen .panel');
@@ -143,31 +144,37 @@ test.describe('arena', () => {
 
   test('joinArena connects and two contexts share a room', async ({ browser }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'desktop only');
-    // The heaviest test in the suite: three browser contexts, three full WebGL
-    // boots and three arena joins. ~18s on a dev machine, well past the 30s
-    // default on a runner doing software rasterisation. More patience only —
-    // every assertion below is unchanged.
     test.setTimeout(120000);
-    const ctx1 = await browser.newContext();
-    const ctx2 = await browser.newContext();
+    // Two full WebGL clients on one GPU-less runner share a single software
+    // rasterizer, and a client that is building its world cannot answer the
+    // server, which drops any socket silent for 15 s (server/room.ts). Measured
+    // on CI: joining one after the other at the default size took the second
+    // client 28-37 s and it was dropped every time; together at 320x200 both
+    // join in 1.4-2.3 s. The window size and the simultaneous start only keep
+    // the join clear of that limit; every assertion below is unchanged.
+    const viewport = { width: 320, height: 200 };
+    const ctx1 = await browser.newContext({ viewport });
+    const ctx2 = await browser.newContext({ viewport });
     const a = await ctx1.newPage();
     const b = await ctx2.newPage();
-    await a.goto(BASE);
-    await b.goto(BASE);
+    await gotoGame(a, BASE);
+    await gotoGame(b, BASE);
     const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
-    await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TEST'));
-    const wsA = await wsAPromise;
-    await a.waitForFunction(() => {
-      const ar = (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena();
-      return ar?.connected;
-    });
     const wsBPromise = b.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
-    await b.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TWO'));
+    await Promise.all([
+      a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TEST')),
+      b.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TWO')),
+    ]);
+    const wsA = await wsAPromise;
     const wsB = await wsBPromise;
-    await b.waitForFunction(() => {
+    // null means that client is not connected (never joined, or was dropped);
+    // a number is the roster it currently holds.
+    const roster = (page: import('@playwright/test').Page) => page.evaluate(() => {
       const ar = (window as unknown as { __GAME__?: { arena: () => { connected: boolean; players: unknown[] } | null } }).__GAME__?.arena();
-      return ar?.connected && ar.players.length === 2;
+      return ar?.connected ? ar.players.length : null;
     });
+    await expect.poll(() => roster(a), { timeout: 30000 }).toBe(2);
+    await expect.poll(() => roster(b), { timeout: 30000 }).toBe(2);
     const aState = await a.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string; tick: number } } }).__GAME__.arena());
     const bState = await b.evaluate(() => (window as unknown as { __GAME__: { arena: () => { players: unknown[]; seed: string } } }).__GAME__.arena());
     expect(aState!.players.length).toBe(2);
@@ -201,7 +208,7 @@ test.describe('arena', () => {
     // Occupy a room, note its seed, then vacate it.
     const ctx1 = await browser.newContext();
     const a = await ctx1.newPage();
-    await a.goto(BASE);
+    await gotoGame(a, BASE);
     const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
     await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('FIRST'));
     const wsA = await wsAPromise;
@@ -215,7 +222,7 @@ test.describe('arena', () => {
     // to join the next room; no retry masks that lifecycle guarantee.
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
-    await c.goto(BASE);
+    await gotoGame(c, BASE);
     await c.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('SECOND'));
     await c.waitForFunction(
       () => (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena()?.connected === true,

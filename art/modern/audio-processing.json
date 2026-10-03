@@ -1,0 +1,90 @@
+[
+  {
+    "id": "door-open",
+    "sourceBytes": 33062,
+    "runtimeBytes": 27106,
+    "sourceDuration": 2.0,
+    "duration": 1.8792743764172335,
+    "leadingTrimSeconds": 0.12072562358276644,
+    "runtimeSha256": "fc5f648d027176437ab7bf204aba68c4092efeec22ffa6145f1d21223e031adf",
+    "sourceSha256": "711f58ca5f9b59bd9acb8b578c9ec8780eb4d8dae41657815834dccb7ffe0713",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "husk-alert",
+    "sourceBytes": 33062,
+    "runtimeBytes": 27472,
+    "sourceDuration": 2.0,
+    "duration": 1.8932426303854875,
+    "leadingTrimSeconds": 0.10675736961451247,
+    "runtimeSha256": "718317607bf08924ea3425c8abe14ad1c8bdc5fda45aa8c061c84e3460fddd5e",
+    "sourceSha256": "53fc363375b2c654f4b6d93ccb2e7452c36a5c361f5d6d0b4a57a5c7ce0a3f71",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "husk-pain",
+    "sourceBytes": 17180,
+    "runtimeBytes": 15037,
+    "sourceDuration": 1.0,
+    "duration": 1.0,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "edb6f7d9ef6d5c73bb5fed7ab6e5616e8ae1b21091a18aba196ba2aa0ef75fc7",
+    "sourceSha256": "d6a35c9538a6120e0c71ffade4c2999047902894b0c4e16e560c68e14e5e6e9a",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "industrial-ambient",
+    "sourceBytes": 129193,
+    "runtimeBytes": 109392,
+    "sourceDuration": 8.0,
+    "duration": 7.75,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "b7e8c0dc3499a3df07ea41bf8582cce620ebf4b93e9f7e743941289d7fd51c91",
+    "sourceSha256": "b171a4d546cf1303670f61ce23b2727d028815666fcace8df5c669df13ab9926",
+    "processing": "mono 44.1kHz, peak normalized to -3dBFS, 250ms linear crossfade at loop seam, MP3 112kbps"
+  },
+  {
+    "id": "metal-impact",
+    "sourceBytes": 17180,
+    "runtimeBytes": 15037,
+    "sourceDuration": 1.0,
+    "duration": 1.0,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "f3bff37dd0195f612108293c974b82e6ef011e5bed4a62dba96cfbb906ded6d1",
+    "sourceSha256": "e07b4ec6a5dd619112d4ec9a0a49c9c02b2554d3a0ef14186dfcacfc349dc206",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "pistol-a",
+    "sourceBytes": 17180,
+    "runtimeBytes": 15037,
+    "sourceDuration": 1.0,
+    "duration": 1.0,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "fa129be7b350e9300a9cf8d5a9b4ee293c27b60d89e390de4de04fb9de640b1b",
+    "sourceSha256": "af45eba4c912fbdaceaa04a1123a6bcc436c4e78003d29fb8ce710ddbab3b9c5",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "pistol-b",
+    "sourceBytes": 17180,
+    "runtimeBytes": 15037,
+    "sourceDuration": 1.0,
+    "duration": 1.0,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "b73bbbdcf7182fccea4249f765b750662b926dd60213ae10b8a1d7d9d13c8150",
+    "sourceSha256": "03a73ae84377fe6b6944db8cb9efbaa984f80ae30ee8bcfe570fc9762038ffd1",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  },
+  {
+    "id": "shotgun",
+    "sourceBytes": 33062,
+    "runtimeBytes": 28934,
+    "sourceDuration": 2.0,
+    "duration": 2.0,
+    "leadingTrimSeconds": 0.0,
+    "runtimeSha256": "ed244302ee8eb6d8e674907a0bc95513d42628bce3ba83baf3a18a3bbf39e131",
+    "sourceSha256": "42fa43fa687c8e082d8fd281c155c4ac3d36c007cb76ce563b97c34e5f18e74a",
+    "processing": "mono 44.1kHz, leading silence trimmed, 30ms tail fade, peak normalized to -3dBFS, MP3 112kbps"
+  }
+]

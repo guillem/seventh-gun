@@ -1,0 +1,130 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engine": "webkit",
+  "id": "resume-stalled-1984",
+  "seed": "1984",
+  "trigger": "click",
+  "fault": "resume",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:51:31.434Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [
+    "Audio playback is still suspended; continuing without waiting for sound."
+  ],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:51:31.434Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:51:35.788Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:51:41.055Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+  "bootMs": 4341,
+  "startupWallMs": 5062,
+  "state": {
+    "at": 9058,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 9,
+    "audioState": "suspended",
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 4023,
+      "overlayAddedAt": 4025,
+      "overlayRemovedAt": 9028,
+      "firstFaultAt": 4024,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 4023
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 4049
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 4054
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 4097
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 4516,
+          "ms": 419
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 4520,
+          "ms": 466
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 4520,
+          "ms": 471
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 9027,
+          "ms": 5004
+        }
+      ],
+      "warnings": [
+        {
+          "at": 9027,
+          "message": "Audio playback is still suspended; continuing without waiting for sound."
+        }
+      ]
+    }
+  },
+  "readyAfterGestureMs": 5035,
+  "faultSettledMs": 5003,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 21,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "totalWallMs": 9621,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

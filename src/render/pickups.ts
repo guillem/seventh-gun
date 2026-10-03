@@ -7,6 +7,7 @@ import type { PickupEnt } from '../sim/sim';
 import { AMMO_LABEL } from '../sim/weapons';
 import { applyRadialFogDeep } from './radialFog';
 import { disposeOwnedObject } from './dispose';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
 
 const AMMO_COLOR: Record<string, number> = {
   bullets: 0xd8b23a, shells: 0xc4452a, nails: 0x9aa6ad,
@@ -28,12 +29,61 @@ function labelSprite(text: string, color: number): THREE.Sprite {
   g.textBaseline = 'middle';
   g.fillText(text.slice(0, 8), 64, 17);
   const tex = new THREE.CanvasTexture(c);
-  tex.magFilter = THREE.NearestFilter;
+  tex.magFilter = getModernAssets() ? THREE.LinearFilter : THREE.NearestFilter;
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const s = new THREE.Sprite(mat);
   s.userData.ownedTextures = [tex];
   s.scale.set(0.9, 0.22, 1);
   return s;
+}
+
+/** Clone saved props while preserving the familiar per-ammo and powerup hues.
+ * Labels remain dynamic UI because their text depends on simulation metadata. */
+export function buildSavedPickup(p: PickupEnt, support: THREE.Object3D): THREE.Group {
+  const group = new THREE.Group();
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1),
+    new THREE.MeshBasicMaterial({ map: getTextures().shadow, transparent: true, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.02;
+  group.add(shadow);
+  const nodeName = p.kind === 'gun' ? 'pedestal' : p.kind;
+  const source = support.getObjectByName(nodeName);
+  if (!source) throw new Error(`Support art pack is missing ${nodeName}`);
+  const prop = cloneOwnedModel(source);
+  const accent = p.kind === 'ammo' ? AMMO_COLOR[p.ammoType ?? 'bullets']
+    : p.kind === 'powerup' ? p.powerup === 'wrath' ? 0xA24BFF : p.powerup === 'sevenfold' ? 0x4DFF9B : 0x38C8FF
+      : 0x37e6ff;
+  prop.traverse(node => {
+    if (!(node instanceof THREE.Mesh)) return;
+    for (const mat of Array.isArray(node.material) ? node.material : [node.material]) {
+      if (!(mat instanceof THREE.MeshStandardMaterial) || mat.name !== 'support.accent') continue;
+      mat.color.setHex(accent);
+      mat.emissive.setHex(accent);
+      mat.emissiveIntensity = p.kind === 'powerup' ? 0.7 : 0.32;
+    }
+  });
+  group.add(prop);
+  if (p.kind === 'ammo') {
+    const label = labelSprite(AMMO_LABEL[p.ammoType ?? 'bullets'], accent);
+    label.position.set(0, 0.78, 0);
+    group.add(label);
+  } else if (p.kind === 'gun') {
+    const gun = buildWorldGun(p.gun ?? 1);
+    gun.position.y = 0.95;
+    group.add(gun);
+    group.userData.spin = gun;
+  } else if (p.kind === 'key') {
+    prop.position.y = 0.9;
+    group.userData.spin = prop;
+  } else if (p.kind === 'powerup') {
+    prop.position.y = 0.85;
+    group.userData.spin = prop;
+    const label = labelSprite(p.powerup === 'wrath' ? 'WRATH' : p.powerup === 'sevenfold' ? 'SEVEN' : 'WARD', accent);
+    label.position.set(0, 1.35, 0);
+    group.add(label);
+  }
+  applyRadialFogDeep(group);
+  return group;
 }
 
 export class PickupRenderer {
@@ -46,6 +96,8 @@ export class PickupRenderer {
   }
 
   private build(p: PickupEnt): THREE.Group {
+    const support = getModernAssets()?.support;
+    if (support) return buildSavedPickup(p, support);
     const tex = getTextures();
     const g = new THREE.Group();
     // ground shadow

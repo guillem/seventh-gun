@@ -1,5 +1,19 @@
 # SEVENTH GUN — agent instructions
 
+## Active experimental branch
+
+`codex/experimental-modern-art` is a user-requested art experiment. Keep all
+development on that branch, leave its PR in draft, and use Netlify Deploy
+Previews for review. **Do not merge, tag, publish, or deploy production.**
+This overrides the normal merge-after-preview workflow below for this branch.
+See `docs/EXPERIMENTAL-ART.md` and `docs/STATUS.md` for scope and progress.
+On this branch `wrangler.jsonc` names a separate Worker, `seventh-gun-art`, served
+at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy it via
+`.github/workflows/deploy-art.yml` (branch-only) after tests and
+`scripts/check-art-deploy-target.mjs`; see `docs/EXPERIMENTAL-ART.md`.
+CI runs E2E on Mesa llvmpipe (`E2E_GL=llvmpipe`) in six shards, because the
+default SwiftShader cannot render this branch in time; see `docs/TESTING.md`.
+
 A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
 with an optional Cloudflare Workers or portable Node arena server. Everything
 procedural (canvas textures, mesh factories, WebAudio synth). No paid assets,

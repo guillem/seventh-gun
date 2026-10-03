@@ -1,0 +1,53 @@
+{
+  "created": "2026-10-03",
+  "tool": "Blender 5.2.2 LTS, local CPU, four threads",
+  "authoring": "Original Blender environment and offline material specimens; entrance door and floor base colors generated with built-in imagegen. Other generated base colors reused unchanged. No purchased assets or external models.",
+  "runtime": [
+    {
+      "path": "public/modern/foundry/concrete-normal.webp",
+      "bytes": 471324,
+      "sha256": "30078654201937ea4f5e59f2aaa2c1b2354fc0121e8d443cb492cfce2be625fa"
+    },
+    {
+      "path": "public/modern/foundry/concrete-roughness.webp",
+      "bytes": 39386,
+      "sha256": "38001c3134168386f1a693f2fde01e34ea16af58d8883d86ab92b71820e33a20"
+    },
+    {
+      "path": "public/modern/foundry/door-hardware.glb",
+      "bytes": 159284,
+      "sha256": "2cd42a12b3adeb234b27f2bd1f52fb1977a74b09c2252bfb0ae5e00d182659be"
+    },
+    {
+      "path": "public/modern/foundry/entrance-door.webp",
+      "bytes": 427900,
+      "sha256": "bcdb15cb9a02b1231e4127f894ee23d202505c783bf6a66ae0f84d6c87acdd4e"
+    },
+    {
+      "path": "public/modern/foundry/entrance-floor.webp",
+      "bytes": 559460,
+      "sha256": "17bc749ab233e075c945b7ab816b3679a16261d124388a764752a61416b8f5e1"
+    },
+    {
+      "path": "public/modern/foundry/environment.glb",
+      "bytes": 2937404,
+      "sha256": "1daa92ad3875c1bbc8c04526a215574865f015aaca4150f844cdfebdad49d9dd"
+    },
+    {
+      "path": "public/modern/foundry/irradiance.webp",
+      "bytes": 408800,
+      "sha256": "8afd7b97a938d34abe444a5f29f85108e69e86f4bcf3fdd09090c04662fd2c99"
+    },
+    {
+      "path": "public/modern/foundry/steel-normal.webp",
+      "bytes": 284762,
+      "sha256": "9de9ebf2075567d94e2448a6ddb0651206f72cbf245262756cb70ee1d96f269b"
+    },
+    {
+      "path": "public/modern/foundry/steel-roughness.webp",
+      "bytes": 44404,
+      "sha256": "3cd017fce4a88cf6976dd0cb62a3c8574c10b42ceb9d2aaaf765e3478efebe4b"
+    }
+  ],
+  "updated": "2026-10-03 entrance detail pass"
+}

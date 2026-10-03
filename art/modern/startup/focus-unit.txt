@@ -1,0 +1,77 @@
+npm warn exec The following package was not found and will be installed: node@24.21.0
+
+ RUN  v3.2.7 /Users/guillem/Development/seventh-gun
+
+ ✓ tests/unit/enemyLifecycleRender.test.ts (2 tests) 190ms
+ ✓ tests/unit/enemyFeel.test.ts (10 tests) 113ms
+ ✓ tests/unit/supportRoster.test.ts (8 tests) 206ms
+ ✓ tests/unit/arenagen.test.ts (2 tests) 297ms
+ ✓ tests/unit/campaign.test.ts (14 tests) 163ms
+ ✓ tests/unit/client.test.ts (22 tests) 225ms
+ ✓ tests/unit/sim.test.ts (13 tests) 274ms
+ ✓ tests/unit/modernLighting.test.ts (31 tests) 82ms
+ ✓ tests/unit/secrets.test.ts (14 tests) 253ms
+ ✓ tests/unit/blueprint.test.ts (7 tests) 74ms
+ ✓ tests/unit/enemyHitbox.test.ts (7 tests) 40ms
+ ✓ tests/unit/arena.test.ts (14 tests) 61ms
+ ✓ tests/unit/powerups.test.ts (6 tests) 48ms
+ ✓ tests/unit/game.test.ts (17 tests) 500ms
+ ✓ tests/unit/players.test.ts (1 test) 47ms
+ ✓ tests/unit/enemyArt.test.ts (14 tests) 86ms
+ ✓ tests/unit/mapcodec.test.ts (6 tests) 55ms
+ ✓ tests/unit/campaignArt.test.ts (18 tests) 46ms
+ ✓ tests/unit/weaponRoster.test.ts (13 tests) 610ms
+   ✓ complete saved weapon roster > separates positive-area faces on different weapon parts instead of relying on depth order  306ms
+ ✓ tests/unit/enemyEyeFlare.test.ts (5 tests) 63ms
+ ✓ tests/unit/protocol.test.ts (10 tests) 8ms
+ ✓ tests/unit/editor.test.ts (12 tests) 23ms
+ ✓ tests/unit/enemyMuzzleOffset.test.ts (4 tests) 18ms
+ ✓ tests/unit/room.test.ts (13 tests) 33ms
+ ✓ tests/unit/fxLifecycle.test.ts (6 tests) 40ms
+ ✓ tests/unit/audio.test.ts (15 tests) 55ms
+ ✓ tests/unit/modernWorld.test.ts (4 tests) 19ms
+ ✓ tests/unit/campaignTextures.test.ts (17 tests) 16ms
+ ✓ tests/unit/arenaRenderPresentation.test.ts (2 tests) 19ms
+ ✓ tests/unit/campaignEnvironment.test.ts (8 tests) 561ms
+   ✓ saved campaign architecture > contains distinct authored modules for all seven identities and stays outside the combat volume  328ms
+ ✓ tests/unit/modernAssets.test.ts (4 tests) 13ms
+ ✓ tests/unit/mapLog.test.ts (9 tests) 9ms
+ ✓ tests/unit/architecture.test.ts (6 tests) 7ms
+ ✓ tests/unit/weapons.test.ts (34 tests) 870ms
+   ✓ weapon personalities > chaingun: bloom grows while held, tightens when released  509ms
+ ✓ tests/unit/arenaPresentation.test.ts (1 test) 10ms
+ ✓ tests/unit/prepareGpu.test.ts (2 tests) 4ms
+ ✓ tests/unit/dispose.test.ts (3 tests) 3ms
+ ✓ tests/unit/contactOcclusion.test.ts (1 test) 4ms
+ ✓ tests/unit/radialFog.test.ts (6 tests) 3ms
+ ✓ tests/unit/creatureMaterials.test.ts (2 tests) 3ms
+ ✓ tests/unit/gunArt.test.ts (4 tests) 3ms
+ ✓ tests/unit/hud.test.ts (5 tests) 2ms
+ ✓ tests/unit/nodeServer.test.ts (13 tests) 2ms
+ ✓ tests/unit/viewmodelLifecycle.test.ts (3 tests) 7ms
+ ✓ tests/unit/foundryLighting.test.ts (1 test) 2ms
+ ✓ tests/unit/afterPaint.test.ts (5 tests) 2ms
+ ✓ tests/unit/physics.test.ts (12 tests) 2ms
+ ✓ tests/unit/screens.test.ts (5 tests) 2ms
+ ✓ tests/unit/enemyRoster.test.ts (7 tests) 1014ms
+   ✓ six saved skeletal enemy assets > ships six skinned material draws and all five clips for every species  523ms
+   ✓ six saved skeletal enemy assets > keeps animated heads within the unchanged vertical gun volume and exact muzzle markers  431ms
+ ✓ tests/unit/foundry.test.ts (5 tests) 1222ms
+   ✓ authored Foundry environment > exports a complete walkable floor, atlas UVs and no new low obstacles in the play area  1152ms
+ ✓ tests/unit/combatGolden.test.ts (1 test) 3434ms
+   ✓ combat extraction golden > owns all guns, pitched aim, 3 seeds — hashes stay stable  3434ms
+ ✓ tests/unit/mapgen.test.ts (9 tests) 3825ms
+   ✓ mapgen validity (300-seed sweep) > every map is fully connected (all rooms reachable)  672ms
+   ✓ mapgen validity (300-seed sweep) > guns/key/arena are never locked behind a key door  576ms
+   ✓ mapgen validity (300-seed sweep) > key (when present) is reachable before its locked door  364ms
+   ✓ mapgen validity (300-seed sweep) > guns 2..7 appear exactly once each, in increasing route order  349ms
+   ✓ mapgen validity (300-seed sweep) > start is safe: no enemy in start room, none near, none with line of sight  816ms
+   ✓ mapgen validity (300-seed sweep) > doors: 2..3 total, at most one locked  344ms
+   ✓ mapgen validity (300-seed sweep) > has courtyards, varied room sizes, enemies and loot on every seed  343ms
+   ✓ mapgen validity (300-seed sweep) > ammo economy: available damage comfortably exceeds total enemy HP  354ms
+
+ Test Files  52 passed (52)
+      Tests  453 passed (453)
+   Start at  13:14:39
+   Duration  4.13s (transform 1.75s, setup 0ms, collect 5.34s, tests 14.67s, environment 4ms, prepare 1.74s)
+

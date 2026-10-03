@@ -1,0 +1,134 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engine": "chromium",
+  "id": "normal-1984-enter",
+  "seed": "1984",
+  "trigger": "enter",
+  "fault": "none",
+  "baseline": false,
+  "capturedAt": "2026-10-03T11:19:29.115Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T11:19:29.115Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T11:19:36.519Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T11:19:37.500Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "154.0.8037.98",
+  "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+  "bootMs": 7390,
+  "startupWallMs": 658,
+  "state": {
+    "at": 7792.0999999940395,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 6,
+    "audioState": "running",
+    "audioTime": 0.5386666666666666,
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 7135.0999999940395,
+      "overlayAddedAt": 7249.800000011921,
+      "overlayRemovedAt": 7789.9000000059605,
+      "firstFaultAt": null,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 0,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 7135.199999988079,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 7251.0999999940395,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 7255.5,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 7310,
+          "focusedElement": "seed-input"
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 7784.0999999940395,
+          "ms": 474.09999999403954
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 7787.300000011921,
+          "ms": 531.8000000119209
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 7787.4000000059605,
+          "ms": 536.3000000119209
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 7789.5999999940395,
+          "ms": 654.4000000059605
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "readyAfterGestureMs": 657,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 20,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "audioOutput": {
+    "state": "running",
+    "currentTime": 0.784,
+    "peak": 0.04014274477958679,
+    "decodedSamples": 40
+  },
+  "screenshot": "chromium-normal-1984-enter.jpg",
+  "totalWallMs": 8385,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

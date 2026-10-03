@@ -1,0 +1,123 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engine": "chromium",
+  "id": "normal-1984-click",
+  "seed": "1984",
+  "trigger": "click",
+  "fault": "none",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:50:48.503Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:50:48.503Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:50:58.792Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:50:59.754Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "154.0.8037.98",
+  "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+  "bootMs": 10277,
+  "startupWallMs": 658,
+  "state": {
+    "at": 10594.40000000596,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 7,
+    "audioState": "running",
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 9957.5,
+      "overlayAddedAt": 10070.09999999404,
+      "overlayRemovedAt": 10592.5,
+      "firstFaultAt": null,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 0,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 9957.59999999404
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 10071.40000000596
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 10075.800000011921
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 10128.90000000596
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 10587.300000011921,
+          "ms": 458.40000000596046
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 10590.200000017881,
+          "ms": 514.4000000059605
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 10590.40000000596,
+          "ms": 519
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 10592.300000011921,
+          "ms": 634.7000000178814
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "readyAfterGestureMs": 636.9000000059605,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 21,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "screenshot": "chromium-normal-1984-click.jpg",
+  "totalWallMs": 11251,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

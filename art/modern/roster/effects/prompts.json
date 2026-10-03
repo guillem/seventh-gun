@@ -1,0 +1,10 @@
+[
+  {
+    "id": "flash",
+    "prompt": "Photorealistic high-speed photograph of one small firearm muzzle gas flash isolated on a fully transparent background. Face-on roughly circular compact turbulent white-hot core, pale ivory center, fine amber ragged gas tongues and tiny sparks, softly fading translucent fringes. Organic asymmetric combustion detail, no star shape, no black background, no gun, no text, no smoke cloud. The effect occupies central 65 percent of a square canvas with ample completely transparent margin. A realistic VFX sprite for a grounded science fiction game."
+  },
+  {
+    "id": "smoke",
+    "prompt": "Photorealistic VFX sprite of one small diffuse puff of pale grey smoke and airborne dust isolated on a fully transparent background. Face-on soft voluminous turbulent wisps, nuanced grey opacity, wispy fully transparent feathered edges, subtle denser core, neutral lighting. No fire, no ground, no text, no black or white background. The smoke stays entirely inside central 70 percent of a square canvas with transparent margins. High-speed film production effect element."
+  }
+]

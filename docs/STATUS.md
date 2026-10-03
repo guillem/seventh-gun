@@ -1,5 +1,362 @@
 # STATUS
 
+## CI E2E on software GL — fixed 2026-10-03
+
+E2E had never completed on this branch's CI. Cause, measured on GitHub runners:
+Playwright's bundled headless shell renders WebGL with SwiftShader (Subzero JIT
+on x64 Linux), which needs 29 s to start the Foundry and 1.8 s per frame with
+this renderer. Mesa llvmpipe does the same full-quality frames in 7.0 s and
+0.39 s. No game or render code was changed; tests exercise what ships.
+Details and the measurement table are in [TESTING.md](TESTING.md) "E2E in CI".
+
+- `E2E_GL=llvmpipe` (CI only, `tests/helpers/softwareGl.ts`) with a global
+  setup that aborts on a silent SwiftShader fallback; CI-only limits in
+  `playwright.config.ts`; `deploy-art.yml` runs six E2E shards and the deploy
+  needs all of them. The draft PR's `deploy.yml` copy has no E2E and a renamed
+  test job, so it cannot satisfy `main`'s required check.
+- The two-client arena test could not pass on a GPU-less runner: the second
+  client's join took 28-37 s while the first rendered, and the server drops a
+  socket silent for 15 s (`server/room.ts` `SOCKET_IDLE_S`). It now starts both
+  joins together in 320x200 windows (1.4-2.3 s). Server and net code untouched.
+  The same limit could affect a player running two game tabs without a GPU;
+  changing it is a server change and is left to the user.
+- Two pre-existing weak assertions fixed in tests: "does not start a run"
+  checks read the phase before a wrongly triggered start could land, and the
+  entrance-door check was vacuous at software frame rates.
+
+First real run on this branch, 37143784123 (ea51a0c): typecheck, 456 unit tests,
+six E2E shards (113 passed, 13 skipped, 0 failed, 0 retried; slowest shard
+3.3 min, slowest test under 20 s against the 120 s CI limit), deploy-target
+check, deploy of `seventh-gun-art` version `9d6670ae-a678-4fd9-97bc-ad8d3043f8c2`
+and the smoke check on both art URLs: 4 min 45 s in total. Draft PR #32 has
+every check green for the first time. Production still serves `main`
+(`index-DgFETa6F.js`) and passes its smoke check. The throwaway `ci-diag/*`
+branches used for the measurements are deleted.
+
+Not done, deliberately: no lower render scale or lighter render profile for
+tests (not needed once the rasterizer was fixed, and it would stop E2E drawing
+what players get). Known product-side cost, unchanged: a Foundry frame is 797
+draws, 573k triangles and 24 lights with only frustum culling.
+
+## Art Worker for multiplayer review — 2026-10-03
+
+The user bought `seventhgun.com` and moved its DNS to Cloudflare (free plan,
+no payment method). This branch's `wrangler.jsonc` now names a separate Worker,
+`seventh-gun-art`, with custom domain `art.seventhgun.com` and `workers_dev`
+kept on. It has its own Durable Object room. Deploy steps and guard rails are in
+[EXPERIMENTAL-ART.md](EXPERIMENTAL-ART.md). Production `seventh-gun` and its CI
+deploy from `main` are unchanged. `seventhgun.com` and `www` are meant to be
+attached to production in the Cloudflare dashboard, not in `main`'s
+`wrangler.jsonc`: a domain there would break the README's deploy-to-your-own-
+account path, and dashboard domains survive config deploys that list none.
+
+First art deploy (user-run `npx wrangler deploy`, version
+`523d79f9-ce74-49e5-b443-fac384bf7b93`) passed `scripts/smoke-deployment.mjs`
+(assets, arena welcome, advancing snapshots) on both
+<https://seventh-gun-art.default-428.workers.dev> and <https://art.seventhgun.com>.
+It serves the branch build (`index-BB85Hx6o.js`, real `modern/` GLBs). Production
+<https://seventhgun.com> still serves `main` (`index-DgFETa6F.js`) and passed the
+same smoke check; `www.seventhgun.com` 301-redirects to it via a Cloudflare Redirect
+Rule. `.github/workflows/deploy-art.yml` redeploys the art Worker on every push,
+gated on the full suite (user's choice). Its first runs could not finish E2E on
+the default software renderer; see the section above for the cause and fix.
+`main` was not affected: PR #33 (docs) merged, its deploy passed and
+seventhgun.com, www and workers.dev smoke-checked green afterwards.
+
+Local unit runs on Node 26 fail `secrets.test.ts` "campaign lights+decors hash"
+(also on `main`); Node 24 (CI) passes. Cause: `src/sim/cosmetics.ts` and
+`src/sim/mapgen.ts` shuffle wall-decor directions with
+`sort(() => rng.float() - 0.5)`, whose order depends on the JS engine's sort
+(verified: same 5 comparator calls, different order on Node 24 vs 26). Campaign,
+blueprint and arena maps give cosmetics their own or final RNG use, so there only
+wall decors differ. In random mazes the decor loop shares `rng` with the later
+key-room pick (`mapgen.ts` ~468), so the vault key's room can differ by engine.
+The fix is a seeded Fisher-Yates shuffle, which changes generated maps and needs
+a `GEN_VERSION` decision, so it is deferred to the user and out of scope for this
+art branch. Run unit tests under Node 22/24 until then.
+
+## Safari seed-field focus — 2026-10-03
+
+The user isolated the sound failure to clicking ENTER THE MAZE while the seed
+input has focus. The same seed works with Enter, or after clicking outside the
+input first. The button now ends seed editing on pointer-down before its normal
+click initializes audio. Pointer-down alone does not launch; dragging away still
+cancels. This is a focused UI fix, with no audio/render/simulation/asset changes.
+
+453 unit tests and the production build pass. Eighteen normal-mode Chrome/WebKit
+checks pass across both seeds, three start methods, a control seed and injected
+audio failures. Fourteen healthy cases have a running audio clock, forty decoded
+recordings and nonzero game audio signal, without the five-second timeout.
+The retained-focus regression fails on the previous build as expected. See
+`art/modern/startup/FOCUS-FIX.md`. Native Safari confirmation remains pending;
+its test driver is disabled. All 113 desktop/mobile browser checks pass with
+13 intentional skips and no retries, including both focus regressions on both
+device profiles. Implementation `4411637` is verified live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: JavaScript/CSS match the
+tested build, and all fourteen hosted Chrome/WebKit start-path checks pass with
+running audio, all forty recordings decoded, and measured game sound output.
+Healthy starts took 500–686 ms here. Native Safari still needs the user's retest.
+Keep the experimental branch and draft PR #32; no production deployment.
+
+## Safari maze startup — 2026-10-03
+
+The user narrowed the `1984`/`1986` loading hang to Safari; Chrome loads quickly.
+The generator is unchanged from main and both layouts generate in about five
+milliseconds. Normal starts also pass in Playwright WebKit, so the exact native
+Safari trigger remains unconfirmed (Safari remote automation is disabled).
+
+Fixed an indefinite audio readiness gate that reproduces the reported loading
+state when a browser resume/decode promise stalls. Resume and decoding now run
+independently with a five-second deadline. Successful/late recordings remain
+usable; gameplay gestures can retry interrupted sound without blocking play.
+The loading message now distinguishes scene preparation from sound preparation.
+No renderer, generator, layout, simulation, balance or asset changes.
+
+451 unit tests, all three TypeScript projects and the production build pass.
+The full Chrome desktop/mobile suite passes 109 tests with 13 intentional skips,
+no retries. Ten normal-mode Chrome/WebKit startup checks pass, including both
+seeds, stalled resume/decode and late decode recovery. Baseline injected faults
+remain frozen after 15 seconds; fixed runs release at about five seconds.
+Map hashes remain `62624244` / `8f50b164`. Evidence and reproduction commands:
+`art/modern/startup/README.md`. Implementation `9af7a8e` is verified live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: JavaScript/CSS match the
+tested build byte-for-byte; all eight hosted Chrome/WebKit seed/audio checks
+pass, with unchanged hashes. Native Safari still needs user confirmation.
+Keep `codex/experimental-modern-art` and PR #32 draft; no production deployment.
+GitHub CI runs separately and was still in progress at verification.
+
+## Rendering continuity — delivered 2026-10-03
+
+Fixes the user's first-shot/first-room stalls, global lighting changes at room
+boundaries, and checker-like doorway jambs. Still on
+`codex/experimental-modern-art`, draft PR #32. Details and measurements are in
+`docs/RENDER-CONTINUITY.md` and `art/modern/continuity/`.
+
+Lights are now stationary and configured once per map. The Foundry hall and
+every side room remain lit from outside with constant ambient/weapon lighting.
+Three permanent FX light slots avoid shot-dependent shader layouts. Effects,
+all seven weapons and the muzzle sprite retain their prepared GPU resources.
+The actual composer/contact-shading and weapon paths upload/render resources
+before play; UI starts show a painted loading screen and await audio readiness.
+Blender removes overlap at all six passage boundaries and corrects portal heads
+to the six-metre corridor ceiling, with a replacement baked irradiance atlas.
+
+438 unit tests pass under Node 24; all three TypeScript projects and the build
+pass. Actual GLB tests find zero shared-plane doorway overlaps (48 triangles
+before), preserving the 370-cell floor. Runtime assets: 96 files / 31,636,814
+bytes. Simulation, map, balance, collision and network source files are unchanged.
+
+Fresh normal Chrome / Apple M5 Pro captures cover first/repeated fire, hall/room
+crossings, room interiors and all seven weapon effects at desktop and portrait
+DPR 2. After preparation, these actions create zero new GPU programs, image
+uploads or vertex buffers and stay near 16.7 ms/frame. Baseline first-shot and
+first-boundary checks created 18 and 23 programs. Initial preparation measured
+about three seconds with a cold driver compile, under one second on later
+contexts; that work is shown explicitly before play. These are selected views
+on a desktop GPU; physical phones/Safari remain untested.
+
+All 109 applicable desktop/mobile browser checks pass without retries, with
+13 intentional skips. Netlify implementation `7b165ca` is live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>. All 96 assets match byte
+counts and SHA-256 hashes, and hosted JavaScript/CSS match the final local build.
+Hosted normal-mode desktop/touch cold-action checks and fourteen local campaign
+entry/control views are recorded in `art/modern/continuity/`.
+The bundled Chromium backend was identified locally as SwiftShader;
+its partial run is retained separately. `PLAYWRIGHT_CHANNEL=chrome` selects the
+hardware browser for the same assertions; default CI settings remain unchanged.
+No merge, tag, release or production deployment.
+
+## Review refinement — delivered 2026-10-03
+
+The user reported camera-dependent black patches on Foundry column bases,
+whole-gun disappearance, simple creature anatomy/materials and overly bright
+warehouse lighting. Work remains on the experimental branch and draft PR #32.
+See `docs/ART-REFINEMENT.md` and `art/modern/refinement/` for scope and sources.
+
+Implemented: separate coplanar column/chamber faces; replace
+continuous roof wash with selected openings and warm practical pools; use matte
+concrete flooring and fixed actor-light locations. GPU occlusion queries reproduce
+whole-gun disappearance in the first frames of exaggerated equip clips; all seven
+clips now retain visible geometry (0 blank frames in 2,679 after-fix observations).
+All six creature species now have more developed anatomy,
+facial/joint detail and four new generated albedos plus eight Blender-baked
+normal/roughness maps. All 393 unit tests, all three TypeScript projects and the
+production build pass under Node 24.21.0. Runtime art is 96 files / 31,631,152
+bytes before compression.
+
+107 applicable browser checks are verified. The full desktop/mobile run passed
+106 with 13 intentional skips; one desktop campaign-resume test exceeded its
+30-second cumulative budget. A trace of the unchanged assertion passed in
+34.144 seconds, with its final state check taking 640ms. A scoped 60-second test
+budget now passes ordinary-config desktop and mobile reruns without retries.
+No campaign runtime change was required. Original failure evidence and the
+successful traces/timings are in `art/modern/refinement/campaign-resume/`.
+
+Netlify implementation `8cffc14` is verified at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: all 96 runtime files match
+local byte counts and SHA-256 checksums. Twenty-seven hosted actual-game views
+cover every weapon on desktop/portrait, all six positively identified species
+and all seven maps. Both layouts load all 96 files without game errors; every
+campaign map hash matches the previous milestone. The interactive before/after
+comparison is `art/modern/refinement/compare.html` (14 images, seven working
+sliders). Generated originals and exact prompts remain in its `materials/` folder.
+
+Hosted normal-mode Chrome / Apple M5 Pro holds approximately 60 fps across four
+general/control scenarios and fourteen campaign entry views, p95 16.7–16.8ms,
+with no game errors. Touch is emulated on the same desktop GPU, not a physical
+phone; these are selected views, not GPU-headroom or full-map guarantees.
+Netlify preview-toolbar telemetry is recorded separately. Aggregate evidence:
+`art/modern/refinement/validation.json`. Later commits record evidence and the
+scoped test budget without changing the verified runtime assets.
+
+The scene remains a stylized art experiment. Fixed practical lights are
+unshadowed and also affect baked surfaces; some light bleeding remains possible.
+Physical phones and Safari remain untested. GitHub-hosted CI is separate:
+implementation run `37107581322`, like the previous run, exceeded the explicit
+20-minute job limit. Typecheck/unit steps passed; E2E was cancelled and its
+failure-artifact step skipped. `art/modern/refinement/hosted/ci.json` records
+the annotation and timing. This establishes the CI limit, not the underlying
+graphics backend or a game defect; the PR is not represented as having green CI.
+
+No simulation, map, balance or network changes. Remote main remains `8bf93b3`;
+PR #32 remains draft. No merge, tag, release or production deployment.
+Next: user review of the refined preview.
+
+## Full roster and campaign art pass — delivered 2026-10-03
+
+Implemented on `codex/experimental-modern-art`, draft PR #32: seven animated
+weapons/fitted hands, six skinned enemy species, saved pickups/arena marine,
+28 environment modules across seven maps, twelve generated images and forty
+saved sound samples. Sources, exact prompts, provenance and review evidence are
+in [art/modern/roster](../art/modern/roster/README.md). Complete runtime payload:
+84 files / 26,803,216 bytes before transport compression. Three.js remains the
+engine; desktop adds restrained contact shading alongside the Foundry light bake.
+
+384 unit tests pass under Node 24.21.0, including the 300-seed sweep, golden combat,
+real GLB/animation/clearance/ownership checks and full sampled-audio dispatch.
+All three TypeScript projects and the production build pass. Actual-game review
+covers all seven weapons on desktop/portrait, all seven maps and six verified
+species, with no game errors or missing assets. Hardware Chrome / Apple M5 Pro
+holds about 60 fps in four normal-mode scenarios and all fourteen campaign entry
+views (seven maps, desktop and portrait), with p95 16.7–16.8 ms and no game errors.
+These are selected views on a desktop GPU, not traversal/phone/headroom guarantees.
+Physical phones and Safari remain untested. The full browser suite passed 105
+checks with 13 intentional skips; two obsolete rigid-body corpse assertions were
+updated to inspect actual skeletal death/reset poses and both fresh reruns pass.
+This verifies 107 browser checks across the full run and focused rerun. Source
+simulation/network/server files and authored map data are unchanged.
+
+Netlify implementation `4cb3253` is verified at
+<https://deploy-preview-32--seventh-gun.netlify.app/>. All 84 runtime assets match
+local byte counts and SHA-256 checksums. Hosted desktop/touch review captures
+all 27 views, loads all 84 assets per device, confirms all six species and matches
+all seven local map hashes (Foundry `ee306bc5`). No game errors or missing assets.
+Four hosted normal hardware/control scenarios also pass at approximately 60 fps,
+p95 16.7–16.8 ms. Blocked Netlify toolbar telemetry is recorded separately; the
+visual harness waits for actual game readiness rather than network idleness.
+Evidence is in `art/modern/roster/hosted/`; aggregate local results are in
+`art/modern/roster/validation.json`. Later commits only record evidence and improve
+verification scripts. Remote main remains `8bf93b3`; PR #32 remains draft.
+GitHub-hosted CI runs independently and was still in progress at this handoff.
+
+Next: user review of the complete playable art pass. Further art-direction changes
+should follow that feedback; this remains a modular game and does not reach the
+photorealism of its generated menu illustration. Only the Foundry opening has
+baked indirect lighting. Physical-device/Safari checks remain useful future QA.
+
+Keep the branch experimental and PR #32 draft. No merge, tag or production deploy.
+The milestone entries below preserve earlier stages of the same experiment.
+
+## Entrance detail pass — 2026-10-03
+
+The entrance and first doorway now use saved generated door/floor textures,
+Blender service panels, louvers, clipped cables, matte signage, warm caged lamps
+and attached door guard hardware. The updated lightmap reduces broad entrance
+fill, while a ceiling practical keeps the moving door readable. Original floor
+layout and door motion remain unchanged. Sources/prompts/screenshots are under
+`art/modern/entrance/`; old screenshots remain available for comparison.
+
+349 unit tests pass under Node 24.21.0. All TypeScript projects and the production
+build pass. Full desktop/mobile Playwright: **103 passed, 13 intentional skips**,
+zero failures/retries (8.0 minutes), including blocking/opening/traversing the new
+door. Normal-mode installed Chrome / Apple M5 Pro holds about 60 fps in all four
+views (desktop, retina, mobile emulation, first combat hall), p95 16.7–16.8 ms;
+real controls pass without game errors. Physical phones remain untested. Netlify
+implementation commit `0dbfd77` is verified: desktop/mobile entrance and open-door
+captures pass, nine Foundry asset checksums match, and map hash stays `ee306bc5`.
+Hosted normal controls and all four hardware profile scenarios pass without game
+errors. Blocked preview-toolbar telemetry is recorded separately in the reports.
+PR #32 remains draft and remote main remains `8bf93b3`. GitHub CI runs separately.
+Next art milestone: improve the pistol/hands and husk after reviewing this pass.
+The current art payload is 25 files / 10,075,650 bytes before compression.
+Keep the branch experimental and PR #32 draft; no merge, tag or production deploy.
+
+## Foundry architecture and lighting milestone — 2026-10-03
+
+Implemented on `codex/experimental-modern-art` / draft PR #32. The entrance,
+airlock and casting hall use a saved Blender scene with taller architecture,
+overhead machinery, galleries, a 2048² lightmap and baked normal/roughness maps.
+Desktop world rendering has restrained bloom; touch uses the direct path.
+The unchanged 370-cell floor footprint, doors and low-clearance geometry are
+checked against the exported GLB. No simulation files changed.
+
+348 unit tests, three TypeScript projects and the production build pass.
+The complete desktop/mobile Playwright suite passes: **101 passed, 13 intentional
+project skips**, no failures or retries (8.1 minutes). Installed Chrome on Apple
+M5 Pro holds about 60 fps in all four recorded normal-mode scenarios (desktop,
+retina, mobile emulation, first combat hall), with real entry/pause/quit checks.
+The bundled test browser uses SwiftShader: functional tests pass, but normal
+software-rendered performance is poor. Both reports are saved; real phones remain
+untested. Netlify deployed implementation commit `f69e25d`; hosted desktop and
+mobile checks load all 22 resources (8,226,436 bytes), retain map hash `ee306bc5`,
+and show no game errors. All six new assets match local SHA-256 checksums. Hosted
+normal-mode entry/pause/quit and four hardware performance scenarios pass. The
+preview toolbar's blocked telemetry is recorded separately in hosted reports.
+PR #32 remains draft; remote `main` remains `8bf93b3`. GitHub CI runs separately.
+Next step: user review of the entrance and first casting hall before more rooms. Sources and actual gameplay evidence are
+in `art/modern/foundry-room/`. Six new resources add 3.48 MB; the full experimental
+art payload is 8.23 MB / 22 files. No merge, release or production deployment.
+
+## Experimental modern art branch — 2026-10-03
+
+Active branch: `codex/experimental-modern-art`. **Do not merge or release.**
+The user authorized the first playable modern-art milestone and local Blender
+authoring. See [EXPERIMENTAL-ART.md](EXPERIMENTAL-ART.md) for scope, invariants,
+asset pipeline and review gates. Netlify draft-PR preview is the intended
+delivery. The first Foundry slice is implemented: saved generated textures and
+audio, editable Blender sources/GLBs, asset loading, modern lighting, title/HUD
+and touch integration. Runtime art is 4.74 MB across sixteen files. The other
+weapon/enemy families and bespoke character animation remain later art passes.
+
+Local verification: 346 unit tests pass under Node 24.21.0, all three TypeScript
+projects and the production build pass. Normal-mode desktop/retina and mobile
+emulation held about 60 fps on this Mac's Apple M5 Pro; this is not real-phone
+performance evidence. Visual review fixed portrait weapon cropping and touch
+controls intercepting pause-menu actions. The final repository Playwright run
+passes **99 tests with 13 intentional project skips**, zero failures/retries,
+under pinned Chromium 1234, desktop and mobile projects (6.0 minutes).
+
+Draft [PR #32](https://github.com/guillem/seventh-gun/pull/32) is open. Review at
+<https://deploy-preview-32--seventh-gun.netlify.app>. Verified the deployed desktop
+and mobile game boots, all sixteen art resources load (4,742,926 bytes), and
+Foundry retains hash `ee306bc5`. Local and hosted normal-mode entry, pause/resume,
+quit and first-combat-room rendering checks pass. Hosted preview-toolbar
+telemetry to Segment/Bugsnag is blocked in this test environment and recorded
+separately; game resources and game JavaScript have no observed errors.
+
+Reproduce with `scripts/inspect-modern-art.mjs` (fixed debug cameras) and
+`scripts/profile-modern-art.mjs` (real normal-mode controls). Sources, provenance,
+local performance report and gameplay screenshot are in `art/modern/`. GitHub
+CI also runs on the draft PR; no production deployment is enabled for PRs.
+Next step is user review of this first slice before expanding the remaining
+weapon/enemy roster, animation and environment composition.
+
+Node 26.10.0 on this machine has a pre-existing cosmetic secret snapshot mismatch:
+it also fails on the unchanged main baseline. Use Node 24, as CI does; no snapshot
+or simulation files were changed to accommodate the host runtime.
+
+The production history below is retained as the experiment's baseline.
+
 Updated 2026-09-05. The September repair implementation is complete; the
 first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for

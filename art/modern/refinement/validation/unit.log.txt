@@ -1,0 +1,71 @@
+npm warn exec The following package was not found and will be installed: node@24.21.0
+
+ RUN  v3.2.7 /Users/guillem/Development/seventh-gun
+
+ ✓ tests/unit/enemyArt.test.ts (14 tests) 88ms
+ ✓ tests/unit/blueprint.test.ts (7 tests) 72ms
+ ✓ tests/unit/enemyFeel.test.ts (10 tests) 121ms
+ ✓ tests/unit/enemyEyeFlare.test.ts (5 tests) 47ms
+ ✓ tests/unit/campaign.test.ts (14 tests) 174ms
+ ✓ tests/unit/supportRoster.test.ts (8 tests) 221ms
+ ✓ tests/unit/arenagen.test.ts (2 tests) 333ms
+   ✓ arenagen (Arena 96x96 generator) > basic invariants + determinism  319ms
+ ✓ tests/unit/arena.test.ts (14 tests) 59ms
+ ✓ tests/unit/client.test.ts (22 tests) 252ms
+ ✓ tests/unit/secrets.test.ts (14 tests) 218ms
+ ✓ tests/unit/sim.test.ts (13 tests) 375ms
+ ✓ tests/unit/game.test.ts (11 tests) 409ms
+ ✓ tests/unit/mapcodec.test.ts (6 tests) 53ms
+ ✓ tests/unit/enemyLifecycleRender.test.ts (2 tests) 96ms
+ ✓ tests/unit/players.test.ts (1 test) 41ms
+ ✓ tests/unit/powerups.test.ts (6 tests) 45ms
+ ✓ tests/unit/audio.test.ts (6 tests) 17ms
+ ✓ tests/unit/enemyHitbox.test.ts (7 tests) 72ms
+ ✓ tests/unit/room.test.ts (13 tests) 42ms
+ ✓ tests/unit/editor.test.ts (12 tests) 23ms
+ ✓ tests/unit/campaignArt.test.ts (18 tests) 46ms
+ ✓ tests/unit/arenaRenderPresentation.test.ts (2 tests) 21ms
+ ✓ tests/unit/weaponRoster.test.ts (12 tests) 692ms
+   ✓ complete saved weapon roster > separates positive-area faces on different weapon parts instead of relying on depth order  336ms
+ ✓ tests/unit/campaignTextures.test.ts (17 tests) 15ms
+ ✓ tests/unit/modernWorld.test.ts (4 tests) 22ms
+ ✓ tests/unit/enemyMuzzleOffset.test.ts (4 tests) 18ms
+ ✓ tests/unit/modernAssets.test.ts (4 tests) 11ms
+ ✓ tests/unit/mapLog.test.ts (9 tests) 18ms
+ ✓ tests/unit/architecture.test.ts (6 tests) 7ms
+ ✓ tests/unit/arenaPresentation.test.ts (1 test) 10ms
+ ✓ tests/unit/protocol.test.ts (10 tests) 9ms
+ ✓ tests/unit/fxLifecycle.test.ts (3 tests) 16ms
+ ✓ tests/unit/campaignEnvironment.test.ts (8 tests) 591ms
+ ✓ tests/unit/contactOcclusion.test.ts (1 test) 4ms
+ ✓ tests/unit/radialFog.test.ts (6 tests) 3ms
+ ✓ tests/unit/physics.test.ts (12 tests) 3ms
+ ✓ tests/unit/dispose.test.ts (3 tests) 3ms
+ ✓ tests/unit/hud.test.ts (5 tests) 4ms
+ ✓ tests/unit/creatureMaterials.test.ts (2 tests) 4ms
+ ✓ tests/unit/weapons.test.ts (34 tests) 939ms
+   ✓ weapon personalities > chaingun: bloom grows while held, tightens when released  601ms
+ ✓ tests/unit/screens.test.ts (5 tests) 2ms
+ ✓ tests/unit/gunArt.test.ts (4 tests) 4ms
+ ✓ tests/unit/enemyRoster.test.ts (7 tests) 982ms
+   ✓ six saved skeletal enemy assets > ships six skinned material draws and all five clips for every species  639ms
+ ✓ tests/unit/nodeServer.test.ts (13 tests) 4ms
+ ✓ tests/unit/foundryLighting.test.ts (2 tests) 3ms
+ ✓ tests/unit/foundry.test.ts (4 tests) 1192ms
+   ✓ authored Foundry environment > exports a complete walkable floor, atlas UVs and no new low obstacles in the play area  1178ms
+ ✓ tests/unit/combatGolden.test.ts (1 test) 3474ms
+   ✓ combat extraction golden > owns all guns, pitched aim, 3 seeds — hashes stay stable  3474ms
+ ✓ tests/unit/mapgen.test.ts (9 tests) 3869ms
+   ✓ mapgen validity (300-seed sweep) > every map is fully connected (all rooms reachable)  732ms
+   ✓ mapgen validity (300-seed sweep) > guns/key/arena are never locked behind a key door  498ms
+   ✓ mapgen validity (300-seed sweep) > key (when present) is reachable before its locked door  366ms
+   ✓ mapgen validity (300-seed sweep) > guns 2..7 appear exactly once each, in increasing route order  358ms
+   ✓ mapgen validity (300-seed sweep) > start is safe: no enemy in start room, none near, none with line of sight  830ms
+   ✓ mapgen validity (300-seed sweep) > doors: 2..3 total, at most one locked  346ms
+   ✓ mapgen validity (300-seed sweep) > has courtyards, varied room sizes, enemies and loot on every seed  365ms
+   ✓ mapgen validity (300-seed sweep) > ammo economy: available damage comfortably exceeds total enemy HP  367ms
+
+ Test Files  48 passed (48)
+      Tests  393 passed (393)
+   Start at  09:44:58
+   Duration  4.21s (transform 1.69s, setup 0ms, collect 4.99s, tests 14.72s, environment 5ms, prepare 1.73s)

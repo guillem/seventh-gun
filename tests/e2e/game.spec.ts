@@ -2,6 +2,7 @@
 // difficulty, seed reproducibility. Drives the ?e2e=1 debug API instead of
 // pointer lock (synthetic mousemove pointer-lock is flaky by design).
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 import { encodeBlueprint } from '../../src/sim/mapcodec';
 import { stripCosmetics } from '../../src/sim/blueprint';
 import { tinyCrawlerPlaytestBlueprint, tinyGunSealBlueprint } from '../helpers/authoredMaps';
@@ -27,7 +28,7 @@ async function waitFrames(page: import('@playwright/test').Page, n: number): Pro
 
 test.describe('desktop', () => {
   test('maze and campaign ticks each perform one renderer frame after scene updates', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     const deltas = await page.evaluate(() => {
       const G = (window as unknown as {
         __GAME__: {
@@ -49,7 +50,7 @@ test.describe('desktop', () => {
   });
 
   test('boots to title and starts a run', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('SEVENTH');
     await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
     await page.waitForFunction(() => {
@@ -64,7 +65,7 @@ test.describe('desktop', () => {
   });
 
   test('WASD walks the way you look (W forward, A/D strafe)', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-move'));
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
@@ -96,7 +97,7 @@ test.describe('desktop', () => {
   });
 
   test('shooting spends ammo, dry-fire does not spam', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-shoot'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     const before = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);
@@ -127,7 +128,7 @@ test.describe('desktop', () => {
   test('playtest pose: look(0, 22) then InputManager mousedown drops crawler hp', async ({ page }) => {
     // Live: pitch +0.384 (look-down 22°), player (15,71) crawler (15,67.8),
     // ammo spent, hp 18→18. aimDir.dirY was +sin(pitch) (up). Must be −sin.
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
     }, CRAWLER_BP);
@@ -189,7 +190,7 @@ test.describe('desktop', () => {
 
   test('playtest pose: level camera, crawler in lower FOV, InputManager click hits', async ({ page }) => {
     // Crosshair on the wall above a floor crawler at 3.2u (lower third).
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
     }, CRAWLER_BP);
@@ -217,7 +218,7 @@ test.describe('desktop', () => {
   });
 
   test('gun pickup grants the gun and a usable ammo stack', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-pickup'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.evaluate(() => (window as unknown as { __GAME__: { warpTo: (t: string) => void; step: (n: number) => void } }).__GAME__.warpTo('gun2'));
@@ -229,7 +230,7 @@ test.describe('desktop', () => {
   });
 
   test('medikit heals only when hurt', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-medikit'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.evaluate(() => (window as unknown as { __GAME__: { hurt: (n: number) => void } }).__GAME__.hurt(60));
@@ -253,8 +254,8 @@ test.describe('desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
-    await page.goto(BASE);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-death'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.evaluate(() => (window as unknown as { __GAME__: { killPlayer: () => void } }).__GAME__.killPlayer());
@@ -284,7 +285,7 @@ test.describe('desktop', () => {
   });
 
   test('win: arena clear shows GAME OVER / You won', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-win'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     // grab the seventh (breaks the seal), enter arena, clear it
@@ -311,7 +312,7 @@ test.describe('desktop', () => {
   });
 
   test('difficulty changes the economy for the same seed', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     const normal = await page.evaluate(async () => {
       const G = (window as unknown as { __GAME__: { startRun: (s: string, d: string) => void; state: () => Record<string, unknown> } }).__GAME__;
       G.startRun('e2e-diff', 'normal');
@@ -329,7 +330,7 @@ test.describe('desktop', () => {
   });
 
   test('same seed => identical map hash across runs', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     const hashes = await page.evaluate(async () => {
       const G = (window as unknown as { __GAME__: { startRun: (s: string) => void; state: () => { mapHash: string } } }).__GAME__;
       G.startRun('repro-e2e');
@@ -351,33 +352,43 @@ test.describe('desktop', () => {
   // so a new run must not reuse the previous run's rigs — enemies killed last
   // run used to come back sideways (death-pose rotation never reset).
   test('killed enemies stand upright when the same seed is replayed', async ({ page }) => {
-    await page.goto(BASE);
+    type RigSnapshot = {
+      id: number; rotX: number;
+      animation: { name: string; progress: number; rootBoneAngle: number } | null;
+    };
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
-    // kill enemies 0-2 and wait for the death fall to tilt their rigs
+    // A skeletal corpse falls inside its model: the outer group's rotX stays
+    // zero. Require both the completed clip and its actual root-bone tilt.
     await page.evaluate(() => (window as unknown as { __GAME__: { killSome: (n: number) => void } }).__GAME__.killSome(3));
     await page.waitForFunction(() => {
-      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs;
       const fallen = rigs.filter(r => [0, 1, 2].includes(r.id));
-      return fallen.length === 3 && fallen.every(r => Math.abs(r.rotX) > 1);
+      return fallen.length === 3 && fallen.every(r => r.animation?.name === 'death'
+        && r.animation.progress >= .99 && r.animation.rootBoneAngle > 1);
     });
-    // replay the same seed: every rig must be upright again
+    // Replay the same seed: no corpse clip or skeletal tilt may survive.
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
-    // Rig visuals populate lazily as the renderer draws frames — wait for the
-    // condition itself (enough rigs, all upright) rather than a fixed sleep.
     await page.waitForFunction(() => {
-      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
-      return rigs.length > 3 && rigs.every((r) => Math.abs(r.rotX) < 0.01);
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs;
+      return rigs.length > 3 && rigs.every(r => r.animation !== null
+        && r.animation.name !== 'death' && r.animation.rootBoneAngle < .01 && Math.abs(r.rotX) < .01);
     }, null, { timeout: 15000 });
-    const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs);
+    const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs);
     expect(rigs.length).toBeGreaterThan(3);
-    for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
+    for (const rig of rigs) {
+      expect(rig.animation).not.toBeNull();
+      expect(rig.animation!.name).not.toBe('death');
+      expect(rig.animation!.rootBoneAngle).toBeLessThan(.01);
+      expect(Math.abs(rig.rotX)).toBeLessThan(.01);
+    }
   });
 
   test('replaying a warmed fight and cycling guns leaves GPU allocations stable', async ({ page }) => {
-    test.setTimeout(60000);
-    await page.goto(BASE);
+    test.setTimeout(Math.max(test.info().timeout, 60000));
+    await gotoGame(page, BASE);
     const exercise = async () => page.evaluate(async () => {
       const G = (window as unknown as {
         __GAME__: {
@@ -437,7 +448,7 @@ test.describe('desktop', () => {
   });
 
   test('full map opens on Tab, shows fog of war and player marker, pauses combat', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-map'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.keyboard.press('Tab');
@@ -458,7 +469,7 @@ test.describe('desktop', () => {
   // only): campaign/maze has no scoreboard, so M must keep opening the same
   // full map Tab does, in both directions.
   test('full map also opens on M in campaign/maze, same as Tab', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-map-m'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     await page.keyboard.press('KeyM');
@@ -470,7 +481,7 @@ test.describe('desktop', () => {
   });
 
   test('MAP LOG records a quit and PLAY starts the same seed', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
     await page.locator('#seed-input').fill('maplog-e2e');
     await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
@@ -494,7 +505,7 @@ test.describe('desktop', () => {
   });
 
   test('Quit then MAP LOG hides HEALTH / minimap', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.maplog'));
     await page.locator('#seed-input').fill('hud-leak-e2e');
     await page.getByRole('button', { name: 'ENTER THE MAZE' }).click();
@@ -546,7 +557,7 @@ test.describe('desktop', () => {
   });
 
   test('E opens a door (door state changes, becomes passable)', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-door'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     const opened = await page.evaluate(() => {
@@ -573,7 +584,7 @@ test.describe('desktop', () => {
   });
 
   test('authored map via startMap: play, RETRY MAP, COPY LINK', async ({ page }) => {
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
     }, TINY_BP);
@@ -613,7 +624,7 @@ test.describe('desktop', () => {
   });
 
   test('opens an authored map from #m= share hash', async ({ page }) => {
-    await page.goto(`/?e2e=1#m=${TINY_CODE}`);
+    await gotoGame(page, `/?e2e=1#m=${TINY_CODE}`);
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string; kind?: string } } }).__GAME__?.state();
       return s?.phase === 'playing' && s.kind === 'map';
@@ -628,8 +639,8 @@ test.describe('desktop', () => {
     // The sim-time-gated lockout below can legitimately need many real ticks
     // on a slow/throttled renderer (verified under 6x CPU throttling), so
     // give the whole test more room than the default budget.
-    test.setTimeout(90000);
-    await page.goto(BASE);
+    test.setTimeout(Math.max(test.info().timeout, 90000));
+    await gotoGame(page, BASE);
     await page.evaluate((bp) => {
       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
     }, TINY_BP);
@@ -658,7 +669,7 @@ test.describe('desktop', () => {
 test.describe('mobile', () => {
   test('touch HUD is present with big FIRE/USE/MAP buttons', async ({ page }) => {
     test.skip(!test.info().project.name.startsWith('mobile'), 'mobile-only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
     const panel = page.locator('#title-screen .panel');
     const panelBox = await panel.boundingBox();
@@ -679,7 +690,7 @@ test.describe('mobile', () => {
 
   test('FIRE button fires and unlatches on release', async ({ page }) => {
     test.skip(!test.info().project.name.startsWith('mobile'), 'mobile-only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-touch'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
     const before = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { ammo: { bullets: number } } } }).__GAME__.state().ammo.bullets);

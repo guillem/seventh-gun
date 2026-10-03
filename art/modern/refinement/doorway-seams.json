@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-03",
+  "issue": "Coplanar authored hall end caps and generated side-corridor walls at six openings.",
+  "evidenceScreenshot": "/Users/guillem/Desktop/Screenshot 2026-10-03 at 10.49.10.png",
+  "before": {
+    "glbSha256": "d4913e90f7f0670c8aa00b29fb589f0da97ca99d087320e46bc4ad36e54d4fc0",
+    "coplanarTriangles": 48,
+    "materials": {
+      "foundry.concrete": 24,
+      "foundry.black": 24
+    }
+  },
+  "after": {
+    "coplanarTriangles": 0,
+    "floorCells": 370,
+    "meshFaces": 18800,
+    "seamCleanup": {
+      "clippedFaces": 42,
+      "removedArea": 44.21590769923918,
+      "corridorHeight": 6.0
+    },
+    "unchangedVertexNormalSetsAtSharedMaterialPositions": 21660,
+    "changedVertexNormalSetsAtSharedMaterialPositions": {
+      "foundry.concrete": 24,
+      "foundry.black": 24
+    }
+  },
+  "build": "/opt/homebrew/bin/blender --background --factory-startup --threads 4 --python tools/modern-art/build_foundry.py -- --size 2048 --samples 128",
+  "checks": {
+    "focusedTests": "15 passed across foundry.test.ts, foundryLighting.test.ts and campaignEnvironment.test.ts",
+    "clientTypecheck": "passed",
+    "runtimeCodeModified": false,
+    "simulationOrCollisionModified": false,
+    "browserVisualAcceptance": "pending; no browser used by environment agent"
+  },
+  "files": [
+    {
+      "path": "tools/modern-art/build_foundry.py",
+      "bytes": 24964,
+      "sha256": "0225c4b532ed1c56c3ebd6afe86a0fb7d0471e72e11a0638024449e9361128c6"
+    },
+    {
+      "path": "tests/unit/foundry.test.ts",
+      "bytes": 11221,
+      "sha256": "d8a889554e34bdc863856d9f0372cb54d776e4d84a3bbe3c9b225a8e1c23ac73"
+    },
+    {
+      "path": "art/modern/foundry-room/foundry.blend",
+      "bytes": 950493,
+      "sha256": "6918aa828a3ebe099c7b252cff353f707ab511a170b6122d17f6b13b36e1ba47"
+    },
+    {
+      "path": "art/modern/foundry-room/irradiance-source.png",
+      "bytes": 6079316,
+      "sha256": "b6e279159d462cf24ae52ba505d6a21694e0df2253f2328e9cd0bfb94855d470"
+    },
+    {
+      "path": "art/modern/foundry-room/manifest.json",
+      "bytes": 7888,
+      "sha256": "91eba8e2b723152f9d76dbd8457449b77fbbb36e401a9292bc192084e11f105b"
+    },
+    {
+      "path": "public/modern/foundry/environment.glb",
+      "bytes": 2961268,
+      "sha256": "662fe467eb867bf47f78b5e10c9511c3ba937bf04a7e511263edb6a8d69208ae"
+    },
+    {
+      "path": "public/modern/foundry/irradiance.webp",
+      "bytes": 233274,
+      "sha256": "58c259e9add340bec9b901832419c72c15a689c4795800a7bcce9da9e220ca11"
+    }
+  ],
+  "limitations": [
+    "Previous screenshots and contrast metrics predate this geometry rebake.",
+    "Geometry checks establish surface ownership and clearance, not a captured in-game appearance."
+  ]
+}

@@ -1,11 +1,13 @@
-// Enemy meshes: procedural organic/biomechanic demons with faces, walk /
-// attack / pain / death animation and blob contact shadows.
+// Saved skeletal enemy roster for the experimental art pack; the original
+// factories remain available before preload and for legacy headless fixtures.
 import * as THREE from 'three';
 import { disposeOwnedObject } from './dispose';
 import { getTextures } from './textures';
 import type { EnemyEnt } from '../sim/sim';
 import { ENEMIES } from '../sim/enemyTypes';
+import type { EnemyType } from '../sim/types';
 import { applyRadialFog, applyRadialFogDeep } from './radialFog';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
 
 export interface EnemyRig {
   group: THREE.Group;       // positioned at feet, faces +z when yaw applied
@@ -29,6 +31,13 @@ export interface EnemyRig {
   radius: number;
   height: number;
   shadow: THREE.Mesh;
+  authored?: {
+    model: THREE.Group;
+    mixer: THREE.AnimationMixer;
+    actions: Map<string, THREE.AnimationAction>;
+    active: string;
+    rootBindRotation: THREE.Quaternion;
+  };
 }
 
 function mat(skin: THREE.Texture, color = 0xffffff): THREE.MeshLambertMaterial {
@@ -874,6 +883,104 @@ function shadowMesh(r: number): THREE.Mesh {
 
 // ------------------------------------------------------------------ manager
 
+const EYE_COLORS: Record<EnemyType, number> = {
+  husk: 0x9dff3a, crawler: 0xff2b2b, slab: 0xffa039,
+  wisp: 0x45dfff, hierophant: 0xc44dff, fiend: 0xff7a2a,
+};
+
+function buildModernEnemy(type: EnemyType): EnemyRig | null {
+  const assets = getModernAssets();
+  const source = assets?.enemyModels?.[type];
+  const clips = assets?.enemyClips?.[type];
+  if (!source || !clips?.length) return null;
+  const group = new THREE.Group();
+  const yawGroup = new THREE.Group();
+  const body = new THREE.Group();
+  const model = cloneOwnedModel(source);
+  model.name = `authored-${type}`;
+  body.add(model);
+  yawGroup.add(body);
+  group.add(yawGroup);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: EYE_COLORS[type] });
+  const eyes: THREE.Mesh[] = [];
+  const replaced = new Set<THREE.Material>();
+  model.traverse(node => {
+    if (!(node instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    if (!materials.some(material => material.name.startsWith('eye.'))) return;
+    for (const material of materials) replaced.add(material);
+    node.material = eyeMat;
+    eyes.push(node);
+  });
+  const used = new Set<THREE.Material>();
+  model.traverse(node => {
+    if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) used.add(material);
+  });
+  replaced.forEach(material => { if (!used.has(material)) material.dispose(); });
+  const def = ENEMIES[type];
+  const shadow = shadowMesh(type === 'crawler' ? 0.72 : def.radius);
+  group.add(shadow);
+  const mixer = new THREE.AnimationMixer(model);
+  const actions = new Map(clips.map(clip => {
+    const action = mixer.clipAction(clip);
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    return [clip.name, action] as const;
+  }));
+  const rig: EnemyRig = {
+    group, yawGroup, body, head: model.getObjectByName('head'), eyes,
+    legs: [], arms: [], extras: [], eyeMat,
+    baseY: def.flying ? def.hoverY : 0, radius: def.radius, height: def.height, shadow,
+    authored: { model, mixer, actions, active: '',
+      rootBindRotation: model.getObjectByName('root')!.quaternion.clone().normalize() },
+  };
+  body.position.y = rig.baseY;
+  sampleAuthored(rig, 'idle', 0);
+  return rig;
+}
+
+/** Scrub exported keyframes using simulation phase/timers. Render FPS never
+ * changes an attack's cadence or advances a hidden/cull-restored character. */
+function sampleAuthored(rig: EnemyRig, name: string, fraction: number): void {
+  const authored = rig.authored!;
+  const action = authored.actions.get(name);
+  if (!action) return;
+  if (authored.active !== name) {
+    authored.mixer.stopAllAction();
+    action.reset().play();
+    action.paused = true;
+    authored.active = name;
+  }
+  action.time = THREE.MathUtils.clamp(fraction, 0, 1) * action.getClip().duration;
+  authored.mixer.update(0);
+}
+
+function animateAuthored(rig: EnemyRig, e: EnemyEnt): void {
+  const def = ENEMIES[e.type];
+  if (e.state === 'attack') {
+    // The initial windup uses windup; later shots use the unchanged burst gap.
+    const span = e.burstLeft < def.burst ? def.burstGap : def.windup;
+    sampleAuthored(rig, 'attack', 1 - e.timer / Math.max(0.01, span));
+  } else if (e.state === 'pain') {
+    sampleAuthored(rig, 'hit', 1 - e.timer / Math.max(0.01, def.painTime));
+  } else if (e.state === 'chase') {
+    sampleAuthored(rig, 'walk', (e.animPhase * (e.type === 'crawler' ? 1.7 : 1.1)) % 1);
+  } else {
+    sampleAuthored(rig, 'idle', (e.animPhase * 0.5) % 1);
+  }
+  // Hover is the same def.hoverBob contract used by enemyVolumeY. Grounded
+  // feet stay rooted; gait flexion is entirely in the authored skeleton.
+  rig.body.position.y = rig.baseY + (def.flying ? Math.sin(e.animPhase * 2.2) * def.hoverBob : 0);
+}
+
+function disposeRig(rig: EnemyRig): void {
+  if (rig.authored) {
+    rig.authored.mixer.stopAllAction();
+    rig.authored.mixer.uncacheRoot(rig.authored.model);
+  }
+  disposeOwnedObject(rig.group);
+}
+
 export class EnemyRenderer {
   rigs = new Map<number, EnemyRig>();
   private scene: THREE.Scene;
@@ -887,6 +994,8 @@ export class EnemyRenderer {
   private build(type: string): EnemyRig {
     const tex = getTextures();
     const rig = (() => {
+      const modern = buildModernEnemy(type as EnemyType);
+      if (modern) return modern;
       switch (type) {
         case 'crawler': return buildCrawler(tex);
         case 'slab': return buildSlab(tex);
@@ -906,7 +1015,7 @@ export class EnemyRenderer {
     const alive = new Set(enemies.map(e => e.id));
     for (const [id, rig] of this.rigs) {
       if (!alive.has(id)) {
-        disposeOwnedObject(rig.group);
+        disposeRig(rig);
         this.rigs.delete(id);
       }
     }
@@ -933,7 +1042,8 @@ export class EnemyRenderer {
         // fall over, then sink
         const dt2 = simTime - e.deathTime;
         const fall = Math.min(1, dt2 / 0.45);
-        rig.group.rotation.x = -fall * Math.PI / 2 * 0.92;
+        if (rig.authored) sampleAuthored(rig, 'death', Math.max(0, dt2) / 0.625);
+        else rig.group.rotation.x = -fall * Math.PI / 2 * 0.92;
         rig.body.position.y = rig.baseY * (1 - fall);
         if (dt2 > 1.6) {
           const sink = Math.min(1, (dt2 - 1.6) / 1.2);
@@ -953,7 +1063,9 @@ export class EnemyRenderer {
       const moving = e.state === 'chase';
       const speedNorm = moving ? e.speed / 5 : 0;
 
-      if (e.type === 'crawler') {
+      if (rig.authored) {
+        animateAuthored(rig, e);
+      } else if (e.type === 'crawler') {
         // skitter: legs ripple forward/back
         rig.legs.forEach((leg, i) => {
           const ph = e.animPhase * 14 + i * 1.7;
@@ -996,8 +1108,10 @@ export class EnemyRenderer {
       const base = rig.eyeBase;
       if (e.state === 'attack') {
         const t = Math.min(1, e.timer / Math.max(0.01, def.windup));
-        rig.body.rotation.x = -0.22 * t;
-        rig.arms.forEach(a => { a.rotation.x = -0.9 * t; });
+        if (!rig.authored) {
+          rig.body.rotation.x = -0.22 * t;
+          rig.arms.forEach(a => { a.rotation.x = -0.9 * t; });
+        }
         // Brighten toward hot/white as a function of windup t only, tinted
         // by this rig's own eye colour — never reads the mutated .color
         // (that used to compound frame over frame and hardcode orange).
@@ -1006,14 +1120,14 @@ export class EnemyRenderer {
           clampColor01(rig.eyeMat.color);
         }
       } else if (e.state === 'pain') {
-        rig.body.rotation.x = 0.3;
+        if (!rig.authored) rig.body.rotation.x = 0.3;
         // Distinct hot spike, still keyed off this rig's own eye colour.
         if (base) {
           rig.eyeMat.color.copy(base).lerp(EYE_FLARE_WHITE, 0.6).multiplyScalar(1.35);
           clampColor01(rig.eyeMat.color);
         }
       } else {
-        rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
+        if (!rig.authored) rig.body.rotation.x = e.type === 'slab' ? 0.06 : e.type === 'fiend' ? 0.08 : 0;
         // Idle: restore resting eye colour (attack/pain flares must not stick).
         if (base) rig.eyeMat.color.copy(base);
       }
@@ -1022,18 +1136,31 @@ export class EnemyRenderer {
   }
 
   dispose(): void {
-    for (const [, rig] of this.rigs) disposeOwnedObject(rig.group);
+    for (const [, rig] of this.rigs) disposeRig(rig);
     this.rigs.clear();
   }
 
-  rigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
-    const out: { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] = [];
+  rigInfo(): {
+    id: number; visible: boolean; x: number; z: number; scale: number; rotX: number;
+    animation: { name: string; progress: number; rootBoneAngle: number } | null;
+  }[] {
+    const out: ReturnType<EnemyRenderer['rigInfo']> = [];
     for (const [id, rig] of this.rigs) {
+      const authored = rig.authored;
+      const action = authored?.actions.get(authored.active);
+      const root = authored?.model.getObjectByName('root');
       out.push({
         id, visible: rig.group.visible,
         x: +rig.group.position.x.toFixed(1), z: +rig.group.position.z.toFixed(1),
         scale: rig.group.scale.x,
         rotX: +rig.group.rotation.x.toFixed(2),
+        // Debug reads the actual action and deformed root bone. Whole-group
+        // rotation alone no longer describes a saved skeletal corpse pose.
+        animation: authored && action && root ? {
+          name: authored.active,
+          progress: +THREE.MathUtils.clamp(action.time / Math.max(.0001, action.getClip().duration), 0, 1).toFixed(3),
+          rootBoneAngle: +root.quaternion.clone().normalize().angleTo(authored.rootBindRotation).toFixed(3),
+        } : null,
       });
     }
     return out;

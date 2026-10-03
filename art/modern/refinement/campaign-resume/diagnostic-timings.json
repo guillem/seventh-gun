@@ -1,0 +1,264 @@
+{
+  "sourceCommit": "8cffc14",
+  "changeUnderTest": "No source or test changes for this diagnostic; CLI timeout raised from 30000 to 60000 only.",
+  "tracePath": "/private/tmp/seventh-gun-campaign-resume-trace/campaign-campaign-desktop--53eb5-sumes-after-a-completed-map-desktop/trace.zip",
+  "traceSha256": "c12bbd1591d821f8e9efe0cad04279056584d28386f06ef7a878f877a7c8e8fd",
+  "testDurationMs": 34144,
+  "finalState": {
+    "phase": "playing",
+    "campaignMap": 2,
+    "evidence": "Original final waitForFunction at campaign.spec.ts:239 resolved successfully in 640 ms; its predicate requires both values simultaneously."
+  },
+  "steps": [
+    {
+      "callId": "call@8",
+      "method": "goto",
+      "startedMs": 5443.827,
+      "durationMs": 265.202,
+      "parameters": {
+        "url": "/?e2e=1",
+        "waitUntil": "load"
+      },
+      "error": null
+    },
+    {
+      "callId": "call@10",
+      "method": "waitForFunction",
+      "startedMs": 6867.824,
+      "durationMs": 143.976,
+      "parameters": {
+        "expression": "() => {\n    var _app$__GAME__;\n    const app = window;\n    return typeof ((_app$__GAME__ = app.__GAME__) === null || _app$__GAME__ === void 0 ? void 0 : _app$__GAME__.state) === 'function';\n  }",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "timeout": 25000
+      },
+      "error": null
+    },
+    {
+      "callId": "call@12",
+      "method": "expect",
+      "startedMs": 7042.606,
+      "durationMs": 81.165,
+      "parameters": {
+        "selector": "#art-loading",
+        "expression": "to.have.count",
+        "expectedNumber": 0,
+        "expectedValue": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "isNot": false,
+        "timeout": 5000
+      },
+      "error": null
+    },
+    {
+      "callId": "call@14",
+      "method": "evaluateExpression",
+      "startedMs": 7148.99,
+      "durationMs": 52.041,
+      "parameters": {
+        "expression": "() => localStorage.removeItem('seventh-gun.campaign')",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@16",
+      "method": "evaluateExpression",
+      "startedMs": 7227.482,
+      "durationMs": 204.764,
+      "parameters": {
+        "expression": "() => window.__GAME__.startCampaign(1)",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@18",
+      "method": "waitForFunction",
+      "startedMs": 12355,
+      "durationMs": 705.721,
+      "parameters": {
+        "expression": "() => {\n      var _GAME__13;\n      return ((_GAME__13 = window.__GAME__) === null || _GAME__13 === void 0 || (_GAME__13 = _GAME__13.state()) === null || _GAME__13 === void 0 ? void 0 : _GAME__13.phase) === 'playing';\n    }",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@20",
+      "method": "evaluateExpression",
+      "startedMs": 13297.573,
+      "durationMs": 481.71,
+      "parameters": {
+        "expression": "() => window.__GAME__.completeMap()",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@22",
+      "method": "click",
+      "startedMs": 17769.754,
+      "durationMs": 6400.562,
+      "parameters": {
+        "selector": "internal:role=button[name=\"CONTINUE\"i]",
+        "strict": true
+      },
+      "error": null
+    },
+    {
+      "callId": "call@24",
+      "method": "waitForFunction",
+      "startedMs": 24381.445,
+      "durationMs": 621.663,
+      "parameters": {
+        "expression": "() => {\n      var _GAME__14;\n      return ((_GAME__14 = window.__GAME__) === null || _GAME__14 === void 0 || (_GAME__14 = _GAME__14.state()) === null || _GAME__14 === void 0 || (_GAME__14 = _GAME__14.campaign) === null || _GAME__14 === void 0 ? void 0 : _GAME__14.map) === 2;\n    }",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@26",
+      "method": "evaluateExpression",
+      "startedMs": 25212.898,
+      "durationMs": 412.776,
+      "parameters": {
+        "expression": "() => window.__GAME__.pause()",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    },
+    {
+      "callId": "call@28",
+      "method": "click",
+      "startedMs": 25842.871,
+      "durationMs": 2127.1,
+      "parameters": {
+        "selector": "internal:role=button[name=\"QUIT TO TITLE\"i]",
+        "strict": true
+      },
+      "error": null
+    },
+    {
+      "callId": "call@30",
+      "method": "expect",
+      "startedMs": 28180.693,
+      "durationMs": 428.396,
+      "parameters": {
+        "selector": "internal:role=button[name=\"CAMPAIGN\"i]",
+        "expression": "to.be.visible",
+        "expectedValue": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "isNot": false,
+        "timeout": 5000
+      },
+      "error": null
+    },
+    {
+      "callId": "call@32",
+      "method": "click",
+      "startedMs": 28821.186,
+      "durationMs": 2744.804,
+      "parameters": {
+        "selector": "internal:role=button[name=\"CAMPAIGN\"i]",
+        "strict": true
+      },
+      "error": null
+    },
+    {
+      "callId": "call@34",
+      "method": "expect",
+      "startedMs": 31779.553,
+      "durationMs": 423.221,
+      "parameters": {
+        "selector": "internal:role=button[name=/CONTINUE/]",
+        "expression": "to.be.visible",
+        "expectedValue": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        },
+        "isNot": false,
+        "timeout": 5000
+      },
+      "error": null
+    },
+    {
+      "callId": "call@36",
+      "method": "click",
+      "startedMs": 32413.101,
+      "durationMs": 5509.459,
+      "parameters": {
+        "selector": "internal:role=button[name=/CONTINUE/]",
+        "strict": true
+      },
+      "error": null
+    },
+    {
+      "callId": "call@38",
+      "method": "waitForFunction",
+      "startedMs": 38136.846,
+      "durationMs": 639.65,
+      "parameters": {
+        "expression": "() => {\n      var _GAME__15, _s$campaign6;\n      const s = (_GAME__15 = window.__GAME__) === null || _GAME__15 === void 0 ? void 0 : _GAME__15.state();\n      return (s === null || s === void 0 ? void 0 : s.phase) === 'playing' && ((_s$campaign6 = s.campaign) === null || _s$campaign6 === void 0 ? void 0 : _s$campaign6.map) === 2;\n    }",
+        "isFunction": true,
+        "arg": {
+          "value": {
+            "v": "undefined"
+          },
+          "handles": []
+        }
+      },
+      "error": null
+    }
+  ]
+}

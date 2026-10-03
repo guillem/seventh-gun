@@ -19,7 +19,10 @@ concurrency:
 
 jobs:
   test:
-    name: typecheck + tests
+    # BRANCH-ONLY name. main's branch protection requires a check called
+    # "typecheck + tests", which there includes E2E. This copy has no E2E, so
+    # it must not satisfy that check: the draft PR stays unmergeable on purpose.
+    name: typecheck + unit tests (art branch, no E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -32,11 +35,6 @@ jobs:
 
       - run: npm ci
 
-      # Only chromium: the mobile project in playwright.config.ts is an
-      # emulated viewport, not a separate engine, so it needs no extra browser.
-      - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
-
       # Both tsconfigs — the server has its own and is not covered by the root.
       - name: Typecheck
         run: npm run typecheck
@@ -44,21 +42,10 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      # Builds the client and boots a preview server via playwright.config.ts's
-      # webServer block, so this also proves the production build works.
-      - name: E2E tests
-        run: npm run test:e2e
-
-      - name: Upload failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-          if-no-files-found: ignore
+      # BRANCH-ONLY (codex/experimental-modern-art, never merged): no E2E here.
+      # This copy only ever runs for the draft PR, and every push to the branch
+      # already runs the full suite, sharded on Mesa llvmpipe, in
+      # deploy-art.yml. One unsharded SwiftShader job cannot finish it.
 
   deploy:
     name: deploy worker

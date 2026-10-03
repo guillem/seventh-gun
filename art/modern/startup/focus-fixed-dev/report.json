@@ -1,0 +1,2413 @@
+{
+  "base": "http://127.0.0.1:5177/",
+  "engines": [
+    "chromium",
+    "webkit"
+  ],
+  "baseline": false,
+  "capturedAt": "2026-10-03T11:12:40.262Z",
+  "cases": [
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1984-click",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:40.434Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:40.434Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:41.012Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:41.987Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 566,
+      "startupWallMs": 665,
+      "state": {
+        "at": 885.5,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "audioTime": 0.5226666666666666,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 242.39999997615814,
+          "overlayAddedAt": 359.09999999403954,
+          "overlayRemovedAt": 884.2999999821186,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 242.59999999403954,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 360.39999997615814,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 365.19999998807907,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 410.7999999821186,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 879.1999999880791,
+              "ms": 468.40000000596046
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 882.0999999940395,
+              "ms": 516.9000000059605
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 882.1999999880791,
+              "ms": 521.8000000119209
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 884.1999999880791,
+              "ms": 641.5999999940395
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 643.1000000238419,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7626666666666667,
+        "peak": 0.027597082778811455,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1984-click.jpg",
+      "totalWallMs": 1553,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1984-enter",
+      "seed": "1984",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:42.290Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:42.290Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:42.801Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:43.775Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 497,
+      "startupWallMs": 657,
+      "state": {
+        "at": 882.7000000178814,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "audioTime": 0.5333333333333333,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 229.7000000178814,
+          "overlayAddedAt": 345.80000001192093,
+          "overlayRemovedAt": 881.4000000059605,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 229.90000000596046,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 347,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 352,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 397.40000000596046,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 876,
+              "ms": 478.59999999403954
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 879.0999999940395,
+              "ms": 527.0999999940395
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 879.2000000178814,
+              "ms": 532.2000000178814
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 881.0999999940395,
+              "ms": 651.1999999880791
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 653,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7786666666666666,
+        "peak": 0.04014274477958679,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1984-enter.jpg",
+      "totalWallMs": 1485,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1984-blur-click",
+      "seed": "1984",
+      "trigger": "blur-click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:44.078Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:44.078Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:44.579Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:45.598Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 489,
+      "startupWallMs": 704,
+      "state": {
+        "at": 929,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 11,
+        "audioState": "running",
+        "audioTime": 0.512,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 289.7999999821186,
+          "overlayAddedAt": 405.7999999821186,
+          "overlayRemovedAt": 920.6999999880791,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 289.90000000596046,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 407,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 411.19999998807907,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 459.09999999403954,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 915.4000000059605,
+              "ms": 456.30000001192093
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 918.5999999940395,
+              "ms": 507.40000000596046
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 918.5999999940395,
+              "ms": 511.59999999403954
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 920.5,
+              "ms": 630.5999999940395
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 639.2000000178814,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 25,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7573333333333333,
+        "peak": 0.04110722243785858,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1984-blur-click.jpg",
+      "totalWallMs": 1520,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1986-click",
+      "seed": "1986",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:45.894Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:45.894Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:46.390Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:47.346Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 484,
+      "startupWallMs": 651,
+      "state": {
+        "at": 879.4000000059605,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 9,
+        "audioState": "running",
+        "audioTime": 0.5066666666666667,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 258.69999998807907,
+          "overlayAddedAt": 369.59999999403954,
+          "overlayRemovedAt": 870.6999999880791,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 258.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 370.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 375.40000000596046,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 417.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 865.9000000059605,
+              "ms": 448.09999999403954
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 868.6999999880791,
+              "ms": 493.2999999821186
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 868.9000000059605,
+              "ms": 498.09999999403954
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 870.5999999940395,
+              "ms": 611.7999999821186
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 620.7000000178814,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 22,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.736,
+        "peak": 0.027597082778811455,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1986-click.jpg",
+      "totalWallMs": 1452,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1986-enter",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:47.642Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:47.643Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:48.140Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:49.100Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 485,
+      "startupWallMs": 641,
+      "state": {
+        "at": 861.9000000059605,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "audioTime": 0.5173333333333333,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 221.2999999821186,
+          "overlayAddedAt": 337.40000000596046,
+          "overlayRemovedAt": 859.6999999880791,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 221.40000000596046,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 338.69999998807907,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 343.19999998807907,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 386.19999998807907,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 854.5999999940395,
+              "ms": 468.40000000596046
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 857.4000000059605,
+              "ms": 514.2000000178814
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 857.5,
+              "ms": 518.8000000119209
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 859.5,
+              "ms": 638.0999999940395
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 640.6000000238419,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 19,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.768,
+        "peak": 0.04014274477958679,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1986-enter.jpg",
+      "totalWallMs": 1457,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1986-blur-click",
+      "seed": "1986",
+      "trigger": "blur-click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:49.399Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:49.399Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:49.900Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:50.902Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 490,
+      "startupWallMs": 683,
+      "state": {
+        "at": 910.0999999940395,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 10,
+        "audioState": "running",
+        "audioTime": 0.496,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 290.69999998807907,
+          "overlayAddedAt": 409.69999998807907,
+          "overlayRemovedAt": 908.3000000119209,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 290.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 411,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 415.30000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 458,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 903.6999999880791,
+              "ms": 445.69999998807907
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 906.4000000059605,
+              "ms": 491.09999999403954
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 906.5999999940395,
+              "ms": 495.59999999403954
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 908.1999999880791,
+              "ms": 617.3999999761581
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 619.4000000059605,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 24,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7413333333333333,
+        "peak": 0.03465094044804573,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1986-blur-click.jpg",
+      "totalWallMs": 1503,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "normal-1985-click",
+      "seed": "1985",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:51.198Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:51.198Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:51.686Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:52.646Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 477,
+      "startupWallMs": 647,
+      "state": {
+        "at": 866.5,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1985",
+        "mapHash": "476f8905",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "audioTime": 0.5066666666666667,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 242.30000001192093,
+          "overlayAddedAt": 356.5,
+          "overlayRemovedAt": 864.9000000059605,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 242.5,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 357.7000000178814,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 365.2000000178814,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 407.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 859.9000000059605,
+              "ms": 452.09999999403954
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 862.8000000119209,
+              "ms": 497.59999999403954
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 862.9000000059605,
+              "ms": 505.19999998807907
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 864.7000000178814,
+              "ms": 622.2000000178814
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 624.1999999880791,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7466666666666667,
+        "peak": 0.03465094044804573,
+        "decodedSamples": 40
+      },
+      "screenshot": "chromium-normal-1985-click.jpg",
+      "totalWallMs": 1448,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "resume-stalled-1984",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "resume",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:52.946Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio playback is still suspended; continuing without waiting for sound."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:52.946Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:53.475Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:12:58.847Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 514,
+      "startupWallMs": 5161,
+      "state": {
+        "at": 5397.4000000059605,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 9,
+        "audioState": "suspended",
+        "audioTime": 5.013333333333334,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 256.40000000596046,
+          "overlayAddedAt": 369.90000000596046,
+          "overlayRemovedAt": 5370.800000011921,
+          "firstFaultAt": 369.30000001192093,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 256.60000002384186,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 371.2000000178814,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 376.10000002384186,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 421.80000001192093,
+              "focusedElement": "start-btn"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 894.6000000238419,
+              "ms": 472.80000001192093
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 897.8000000119209,
+              "ms": 521.6999999880791
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 897.9000000059605,
+              "ms": 526.6999999880791
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 5370.5,
+              "ms": 5113.899999976158
+            }
+          ],
+          "warnings": [
+            {
+              "at": 5370.4000000059605,
+              "message": "Audio playback is still suspended; continuing without waiting for sound."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5141,
+      "faultSettledMs": 5001.199999988079,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 22,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 5901,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "chromium",
+      "id": "decode-stalled-1986",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "decode",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:12:59.157Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:12:59.157Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:12:59.665Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:05.013Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "bootMs": 496,
+      "startupWallMs": 5140,
+      "state": {
+        "at": 5368.5999999940395,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "audioTime": 5.018666666666666,
+        "decodedSamples": 39,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 228.2999999821186,
+          "overlayAddedAt": 347.09999999403954,
+          "overlayRemovedAt": 5349.299999982119,
+          "firstFaultAt": 346.5,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 228.5,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 348.5,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 353.19999998807907,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 396.40000000596046,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 867.0999999940395,
+              "ms": 470.69999998807907
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 869.7999999821186,
+              "ms": 516.5999999940395
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 869.9000000059605,
+              "ms": 521.4000000059605
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 5348.699999988079,
+              "ms": 5120.199999988079
+            }
+          ],
+          "warnings": [
+            {
+              "at": 5348.5999999940395,
+              "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5140.300000011921,
+      "faultSettledMs": 5002.199999988079,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 20,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 5856,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1984-click",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:05.321Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:05.321Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:06.038Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:06.861Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 704,
+      "startupWallMs": 552,
+      "state": {
+        "at": 897,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 10,
+        "audioState": "running",
+        "audioTime": 0.49333333333333335,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 384,
+          "overlayAddedAt": 403,
+          "overlayRemovedAt": 884,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 384,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 415,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 420,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 463,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 877,
+              "ms": 414
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 881,
+              "ms": 461
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 882,
+              "ms": 467
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 883,
+              "ms": 499
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 513,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 24,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7173333333333334,
+        "peak": 0.02760486863553524,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1984-click.jpg",
+      "totalWallMs": 1540,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1984-enter",
+      "seed": "1984",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:07.061Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:07.061Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:07.800Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:08.610Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 726,
+      "startupWallMs": 530,
+      "state": {
+        "at": 882,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "audioTime": 0.5093333333333333,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 353,
+          "overlayAddedAt": 374,
+          "overlayRemovedAt": 869,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 354,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 393,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 397,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 445,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 862,
+              "ms": 417
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 866,
+              "ms": 469
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 867,
+              "ms": 474
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 868,
+              "ms": 514
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 529,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 20,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7386666666666667,
+        "peak": 0.02760486863553524,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1984-enter.jpg",
+      "totalWallMs": 1549,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1984-blur-click",
+      "seed": "1984",
+      "trigger": "blur-click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:08.812Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:08.812Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:09.538Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:10.404Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 712,
+      "startupWallMs": 578,
+      "state": {
+        "at": 929,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 14,
+        "audioState": "running",
+        "audioTime": 0.49333333333333335,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 416,
+          "overlayAddedAt": 435,
+          "overlayRemovedAt": 913,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 416,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 444,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 449,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 491,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 906,
+              "ms": 415
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 910,
+              "ms": 461
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 910,
+              "ms": 466
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 913,
+              "ms": 497
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 513,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 28,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.728,
+        "peak": 0.02717367373406887,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1984-blur-click.jpg",
+      "totalWallMs": 1592,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1986-click",
+      "seed": "1986",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:10.603Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:10.603Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:11.331Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:12.147Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 715,
+      "startupWallMs": 534,
+      "state": {
+        "at": 885,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 10,
+        "audioState": "running",
+        "audioTime": 0.48,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 384,
+          "overlayAddedAt": 405,
+          "overlayRemovedAt": 877,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 385,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 413,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 417,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 458,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 871,
+              "ms": 413
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 875,
+              "ms": 458
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 875,
+              "ms": 462
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 877,
+              "ms": 492
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 501,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 23,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7066666666666667,
+        "peak": 0.028706802055239677,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1986-click.jpg",
+      "totalWallMs": 1544,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1986-enter",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:12.348Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:12.348Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:13.065Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:13.871Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 704,
+      "startupWallMs": 524,
+      "state": {
+        "at": 871,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "audioTime": 0.5013333333333333,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 350,
+          "overlayAddedAt": 371,
+          "overlayRemovedAt": 856,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 350,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 389,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 393,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 437,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 850,
+              "ms": 413
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 854,
+              "ms": 461
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 854,
+              "ms": 465
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 856,
+              "ms": 506
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 521,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 19,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.7306666666666667,
+        "peak": 0.02760486863553524,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1986-enter.jpg",
+      "totalWallMs": 1523,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1986-blur-click",
+      "seed": "1986",
+      "trigger": "blur-click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:14.070Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:14.070Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:14.788Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:15.654Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 705,
+      "startupWallMs": 574,
+      "state": {
+        "at": 924,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 14,
+        "audioState": "running",
+        "audioTime": 0.488,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 415,
+          "overlayAddedAt": 435,
+          "overlayRemovedAt": 912,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 416,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 444,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 448,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 489,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 906,
+              "ms": 417
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 909,
+              "ms": 461
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 910,
+              "ms": 466
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 911,
+              "ms": 495
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 509,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 28,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.728,
+        "peak": 0.02717367373406887,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1986-blur-click.jpg",
+      "totalWallMs": 1584,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "normal-1985-click",
+      "seed": "1985",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:15.856Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:15.856Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:16.570Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:17.374Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 701,
+      "startupWallMs": 537,
+      "state": {
+        "at": 886,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1985",
+        "mapHash": "476f8905",
+        "simTime": 0,
+        "renderFrames": 10,
+        "audioState": "running",
+        "audioTime": 0.4826666666666667,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 385,
+          "overlayAddedAt": 405,
+          "overlayRemovedAt": 874,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 385,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 412,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 420,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 460,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 867,
+              "ms": 407
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 871,
+              "ms": 451
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 871,
+              "ms": 459
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 873,
+              "ms": 488
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 501,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 23,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "audioOutput": {
+        "state": "running",
+        "currentTime": 0.696,
+        "peak": 0.020920949056744576,
+        "decodedSamples": 40
+      },
+      "screenshot": "webkit-normal-1985-click.jpg",
+      "totalWallMs": 1518,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "resume-stalled-1984",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "resume",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:17.573Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio playback is still suspended; continuing without waiting for sound."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:17.573Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:18.295Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:23.563Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 709,
+      "startupWallMs": 5060,
+      "state": {
+        "at": 5420,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 10,
+        "audioState": "suspended",
+        "audioTime": 5.018666666666666,
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 390,
+          "overlayAddedAt": 392,
+          "overlayRemovedAt": 5394,
+          "firstFaultAt": 392,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 391,
+              "focusedElement": ""
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 414,
+              "focusedElement": ""
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 419,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 461,
+              "focusedElement": ""
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 880,
+              "ms": 419
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 885,
+              "ms": 466
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 885,
+              "ms": 471
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 5393,
+              "ms": 5002
+            }
+          ],
+          "warnings": [
+            {
+              "at": 5393,
+              "message": "Audio playback is still suspended; continuing without waiting for sound."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5030,
+      "faultSettledMs": 5001,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 23,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 5990,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "http://127.0.0.1:5177/",
+      "engine": "webkit",
+      "id": "decode-stalled-1986",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "decode",
+      "baseline": false,
+      "capturedAt": "2026-10-03T11:13:23.768Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T11:13:23.768Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T11:13:24.488Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T11:13:29.738Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "bootMs": 706,
+      "startupWallMs": 5045,
+      "state": {
+        "at": 5405,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "audioTime": 5.034666666666666,
+        "decodedSamples": 39,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 352,
+          "overlayAddedAt": 372,
+          "overlayRemovedAt": 5375,
+          "firstFaultAt": 372,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 352,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 390,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 394,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 437,
+              "focusedElement": "seed-input"
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 849,
+              "ms": 412
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 853,
+              "ms": 459
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 853,
+              "ms": 463
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 5374,
+              "ms": 5022
+            }
+          ],
+          "warnings": [
+            {
+              "at": 5374,
+              "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5053,
+      "faultSettledMs": 5002,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 17,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 5970,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    }
+  ],
+  "limitations": [
+    "Normal rendering settings with browser-only bootstrap/prototype instrumentation; no game source changes.",
+    "Local browser/driver measurements, not a universal performance guarantee. The watchdog bounds each isolated case to 45 seconds."
+  ]
+}

@@ -1,7 +1,8 @@
-// Fully synthesized audio: per-gun SFX, enemy voices, pickups, doors,
-// stings, ambient drone. WebAudio, unlocked on first gesture. iOS: request
+// Generated recordings cover the complete experimental roster. The synth is a
+// codec-failure fallback. WebAudio unlocks on first gesture. iOS: request
 // playback audio session so the silent switch doesn't mute us.
 import type { SimEvent, EnemyType } from '../sim/types';
+import { decodeModernAudio, settleAudioPreparation, type ModernSampleId } from './samples';
 
 type Ctx = AudioContext;
 
@@ -10,6 +11,10 @@ export class AudioEngine {
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private ambientNodes: OscillatorNode[] = [];
+  private sampledAmbient: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private samples = new Map<ModernSampleId, AudioBuffer>();
+  private sampleDecode: Promise<void> | null = null;
+  private pistolVariation = 0;
   private chaingunLoop: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private voiceEnds: number[] = [];
   muted = false;
@@ -36,8 +41,38 @@ export class AudioEngine {
         if (nav.audioSession) nav.audioSession.type = 'playback';
       } catch { /* older browsers */ }
     }
-    if (this.ctx.state === 'suspended') {
-      try { await this.ctx.resume(); } catch { /* ignore */ }
+    // Invoke resume before the first await so it keeps the user gesture, but
+    // do not serialize decoding behind a browser permission/device promise.
+    // Safari also reports "interrupted", beyond the standard state union.
+    let resumed: Promise<void> = Promise.resolve();
+    if (this.ctx.state !== 'running') {
+      try {
+        resumed = this.ctx.resume().catch(() => {
+          console.warn('Audio playback could not resume; another play gesture can retry it.');
+        });
+      } catch {
+        console.warn('Audio playback could not resume; another play gesture can retry it.');
+      }
+    }
+    if (!this.sampleDecode) {
+      this.sampleDecode = decodeModernAudio(this.ctx).then((samples) => { this.samples = samples; });
+    }
+    await Promise.all([
+      this.sampleDecode,
+      settleAudioPreparation(resumed, () => {
+        console.warn('Audio playback is still suspended; continuing without waiting for sound.');
+      }),
+    ]);
+  }
+
+  /** A later gameplay gesture can recover Safari after an audio interruption. */
+  retryPlayback(): void {
+    if (!this.ctx || this.ctx.state === 'running' || this.ctx.state === 'closed') return;
+    try {
+      // No decoding, new context, timers or awaited work on an ordinary shot.
+      void this.ctx.resume().catch(() => {});
+    } catch {
+      // A subsequent gesture may succeed; playback never blocks gameplay.
     }
   }
 
@@ -78,6 +113,24 @@ export class AudioEngine {
     g.gain.value = this.eventGain;
     g.connect(dest);
     return g;
+  }
+
+  /** True means a recording handled the event, including a muted or rejected
+   * voice. Admission rejection must never allocate a synthesized substitute. */
+  private sample(id: ModernSampleId, gain = 1, rate = 1): boolean {
+    const buffer = this.samples.get(id);
+    if (!buffer || !this.ctx) return false;
+    if (!this.canPlay(buffer.duration / rate)) return true;
+    const src = this.ctx.createBufferSource();
+    const level = this.ctx.createGain();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    level.gain.value = gain * this.eventGain;
+    src.connect(level);
+    level.connect(this.compressor ?? this.ctx.destination);
+    src.onended = () => { src.disconnect(); level.disconnect(); };
+    src.start();
+    return true;
   }
 
   private noiseBuffer: AudioBuffer | null = null;
@@ -149,6 +202,13 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- guns
   gunSound(id: number): void {
+    if (id === 1 && this.sample(this.pistolVariation++ % 2 ? 'pistol-b' : 'pistol-a', 0.85)) return;
+    if (id === 2 && this.sample('shotgun', 1)) return;
+    const recordings: Partial<Record<number, ModernSampleId>> = {
+      3: 'chaingun', 4: 'spiker', 5: 'bile', 6: 'sunlance', 7: 'seventh',
+    };
+    const recording = recordings[id];
+    if (recording && this.sample(recording, id === 3 ? .64 : id === 7 ? .95 : .82)) return;
     switch (id) {
       case 1: // pistol: snappy crack
         this.noise(0.09, 0.5, 'bandpass', 2400, 0.8);
@@ -185,12 +245,14 @@ export class AudioEngine {
   }
 
   dryFire(): void {
+    if (this.sample('dryfire', .32)) return;
     this.tone('square', 320, 240, 0.03, 0.12);
     this.noise(0.03, 0.12, 'highpass', 3000, 1);
   }
 
   explosion(radius: number): void {
     const k = Math.min(1.4, radius / 6);
+    if (this.sample('explosion', Math.min(.95, .45 + k * .3), Math.max(.8, 1.15 - k * .2))) return;
     this.noise(0.6 * k, 0.9, 'lowpass', 900, 0.7, 90);
     this.tone('sine', 110, 28, 0.5 * k, 0.8, 1);
     this.noise(0.2, 0.3, 'highpass', 2500, 0.6);
@@ -198,6 +260,8 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- enemies
   private voice(type: EnemyType, kind: 'alert' | 'pain' | 'death'): void {
+    const recording: ModernSampleId = type === 'husk' ? `husk-${kind}` : `${type}-${kind === 'alert' ? 'voice' : kind}`;
+    if (this.sample(recording, kind === 'pain' ? .25 : kind === 'death' ? .38 : .36)) return;
     // each species has a distinct pitch band + waveform character
     const spec: Record<EnemyType, { f: number; type: OscillatorType; grit: number }> = {
       husk: { f: 210, type: 'sawtooth', grit: 0.3 },
@@ -222,6 +286,14 @@ export class AudioEngine {
   }
 
   enemyShoot(type: EnemyType): void {
+    // Enemy emitters reuse edited recordings at distinct pitches/levels; their
+    // anatomical calls above remain species-specific saved voice assets.
+    const recordings: Record<EnemyType, [ModernSampleId, number, number]> = {
+      husk: ['sunlance', .2, 1.35], crawler: ['bile', .23, 1.65],
+      slab: ['bile', .46, .8], wisp: ['sunlance', .18, 1.6],
+      hierophant: ['seventh', .27, 1.3], fiend: ['seventh', .42, .83],
+    };
+    if (this.sample(...recordings[type])) return;
     switch (type) {
       case 'husk': this.tone('triangle', 700, 220, 0.12, 0.2); break;
       case 'crawler': this.tone('square', 950, 500, 0.07, 0.14); break;
@@ -234,6 +306,10 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- events
   pickup(kind: 'gun' | 'ammo' | 'medikit' | 'key' | 'powerup'): void {
+    const recordings: Record<typeof kind, ModernSampleId> = {
+      gun: 'pickup', ammo: 'pickup', medikit: 'medical', key: 'key', powerup: 'powerup',
+    };
+    if (this.sample(recordings[kind], kind === 'ammo' ? .3 : .46, kind === 'ammo' ? 1.18 : 1)) return;
     if (kind === 'gun') {
       this.tone('square', 420, 420, 0.07, 0.25);
       setTimeout(() => this.tone('square', 630, 630, 0.07, 0.25), 70);
@@ -252,11 +328,14 @@ export class AudioEngine {
   }
 
   playerHurt(): void {
+    if (this.sample('hurt', .48)) return;
     this.tone('sawtooth', 300, 110, 0.16, 0.32, 1);
     this.noise(0.12, 0.28, 'bandpass', 500, 1.5);
   }
 
   door(open: boolean): void {
+    if (open && this.sample('door-open', 0.45)) return;
+    if (!open && this.sample('metal-impact', 0.32)) return;
     if (open) {
       this.noise(0.7, 0.3, 'lowpass', 900, 0.8, 300);
       this.tone('sine', 90, 140, 0.6, 0.18);
@@ -267,36 +346,54 @@ export class AudioEngine {
   }
 
   sealBreak(): void {
+    if (this.sample('seal', .7)) return;
     this.tone('sawtooth', 1800, 60, 0.9, 0.45, 2);
     this.noise(0.8, 0.6, 'bandpass', 2200, 0.7, 200);
     this.tone('sine', 55, 26, 1.1, 0.7, 1);
   }
 
   roar(): void {
+    if (this.sample('fiend-voice', .64, .85)) return;
     this.tone('sawtooth', 70, 180, 1.1, 0.5, 2);
     this.noise(0.9, 0.4, 'lowpass', 500, 0.8, 120);
   }
 
   winSting(): void {
+    if (this.sample('success', .55)) return;
     const notes = [262, 330, 392, 523, 659];
     notes.forEach((f, i) => setTimeout(() => this.tone('square', f, f, 0.24, 0.22, 1), i * 110));
     setTimeout(() => this.tone('sawtooth', 659, 659, 0.7, 0.2, 2), notes.length * 110);
   }
 
   loseSting(): void {
+    if (this.sample('failure', .55)) return;
     const notes = [330, 277, 220, 165];
     notes.forEach((f, i) => setTimeout(() => this.tone('sawtooth', f, f * 0.96, 0.34, 0.24, 1), i * 190));
     setTimeout(() => this.tone('sine', 82, 40, 1.4, 0.5, 1), 700);
   }
 
   heartbeat(): void {
+    if (this.sample('heartbeat', .4)) return;
     this.tone('sine', 58, 40, 0.14, 0.5);
     setTimeout(() => this.tone('sine', 52, 36, 0.12, 0.4), 180);
   }
 
   // ------------------------------------------------------------- loops
   startAmbient(): void {
-    if (!this.ctx || this.ambientNodes.length) return;
+    if (!this.ctx || this.ambientNodes.length || this.sampledAmbient) return;
+    const buffer = this.samples.get('industrial-ambient');
+    if (buffer) {
+      const src = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      src.buffer = buffer;
+      src.loop = true;
+      gain.gain.value = 0.1;
+      src.connect(gain);
+      gain.connect(this.compressor ?? this.ctx.destination);
+      this.sampledAmbient = { src, gain };
+      src.start();
+      return;
+    }
     const g = this.ctx.createGain();
     g.gain.value = 0.05;
     g.connect(this.out());
@@ -326,6 +423,12 @@ export class AudioEngine {
   }
 
   stopAmbient(): void {
+    if (this.sampledAmbient) {
+      try { this.sampledAmbient.src.stop(); } catch { /* already stopped */ }
+      this.sampledAmbient.src.disconnect();
+      this.sampledAmbient.gain.disconnect();
+      this.sampledAmbient = null;
+    }
     for (const o of this.ambientNodes) { try { o.stop(); } catch { /* already stopped */ } }
     this.ambientNodes = [];
   }
@@ -366,11 +469,24 @@ export class AudioEngine {
       case 'enemyShoot': this.enemyShoot(e.type); break;
       case 'pickup': this.pickup(e.kind); break;
       case 'playerHurt': this.playerHurt(); break;
-      case 'playerShielded': this.tone('sine', 880, 1400, 0.08, 0.18, 1); break;
-      case 'secretFound': this.tone('square', 360, 720, 0.2, 0.28); setTimeout(() => this.tone('square', 720, 1080, 0.22, 0.24), 90); break;
-      case 'powerupStart': this.tone('sine', 420, 980, 0.16, 0.22, 1); break;
-      case 'powerupWarn': this.tone('sine', 880, 440, 0.12, 0.2, 1); break;
-      case 'powerupEnd': this.tone('triangle', 520, 180, 0.18, 0.22, 1); break;
+      case 'playerShielded':
+        if (!this.sample('metal-impact', .28, 1.4)) this.tone('sine', 880, 1400, 0.08, 0.18, 1);
+        break;
+      case 'secretFound':
+        if (!this.sample('key', .5, .85)) {
+          this.tone('square', 360, 720, 0.2, 0.28);
+          setTimeout(() => this.tone('square', 720, 1080, 0.22, 0.24), 90);
+        }
+        break;
+      case 'powerupStart':
+        if (!this.sample('powerup', .4, 1.12)) this.tone('sine', 420, 980, 0.16, 0.22, 1);
+        break;
+      case 'powerupWarn':
+        if (!this.sample('key', .32, .72)) this.tone('sine', 880, 440, 0.12, 0.2, 1);
+        break;
+      case 'powerupEnd':
+        if (!this.sample('dryfire', .4, .7)) this.tone('triangle', 520, 180, 0.18, 0.22, 1);
+        break;
       case 'doorDenied': this.door(false); break;
       case 'doorOpen': this.door(true); break;
       case 'sealBreak': this.sealBreak(); break;

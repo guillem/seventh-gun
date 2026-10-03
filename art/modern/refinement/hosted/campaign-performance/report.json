@@ -1,0 +1,660 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "mode": "campaign-entry-views",
+  "browserChannel": "chrome",
+  "capturedAt": "2026-10-03T08:05:12.307Z",
+  "limitations": [
+    "Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.",
+    "Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.",
+    "Local startup timing does not represent an uncached public network download.",
+    "Campaign results sample the normal entry view only, not traversal, combat, or the most expensive room of each map.",
+    "Each scenario unlocks campaign selection in an isolated browser context; it does not modify a real player save.",
+    "Map identity is observed from the campaign menu and text drawn on the visible HUD; the debug API is absent."
+  ],
+  "scenarios": [
+    {
+      "name": "campaign-01-foundry-desktop",
+      "campaign": {
+        "index": 1,
+        "id": "01-foundry",
+        "title": "THE FOUNDRY",
+        "seed": "campaign:01-foundry",
+        "menuLabel": "1 THE FOUNDRY",
+        "hudSeed": "SEED campaign:01-foundry",
+        "hudTitle": "THE FOUNDRY",
+        "debugApiAbsent": true
+      },
+      "startupMs": 7937,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.69999999999891,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.80000000000109,
+      "drawsPerFrame": 796,
+      "trianglesPerFrame": 572907,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-01-foundry-portrait",
+      "campaign": {
+        "index": 1,
+        "id": "01-foundry",
+        "title": "THE FOUNDRY",
+        "seed": "campaign:01-foundry",
+        "menuLabel": "1 THE FOUNDRY",
+        "hudSeed": "SEED campaign:01-foundry",
+        "hudTitle": "THE FOUNDRY",
+        "debugApiAbsent": true
+      },
+      "startupMs": 2780,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 378,
+      "trianglesPerFrame": 282344,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-02-gullet-desktop",
+      "campaign": {
+        "index": 2,
+        "id": "02-gullet",
+        "title": "THE GULLET",
+        "seed": "campaign:02-gullet",
+        "menuLabel": "2 THE GULLET",
+        "hudSeed": "SEED campaign:02-gullet",
+        "hudTitle": "THE GULLET",
+        "debugApiAbsent": true
+      },
+      "startupMs": 3355,
+      "frames": 180,
+      "fps": 60.00400026668444,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 898,
+      "trianglesPerFrame": 1024157,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-02-gullet-portrait",
+      "campaign": {
+        "index": 2,
+        "id": "02-gullet",
+        "title": "THE GULLET",
+        "seed": "campaign:02-gullet",
+        "menuLabel": "2 THE GULLET",
+        "hudSeed": "SEED campaign:02-gullet",
+        "hudTitle": "THE GULLET",
+        "debugApiAbsent": true
+      },
+      "startupMs": 1897,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.800000000000182,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 294,
+      "trianglesPerFrame": 348972,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-03-catacombs-desktop",
+      "campaign": {
+        "index": 3,
+        "id": "03-catacombs",
+        "title": "THE CATACOMBS",
+        "seed": "campaign:03-catacombs",
+        "menuLabel": "3 THE CATACOMBS",
+        "hudSeed": "SEED campaign:03-catacombs",
+        "hudTitle": "THE CATACOMBS",
+        "debugApiAbsent": true
+      },
+      "startupMs": 4110,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.800000000000182,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1027,
+      "trianglesPerFrame": 784705,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-03-catacombs-portrait",
+      "campaign": {
+        "index": 3,
+        "id": "03-catacombs",
+        "title": "THE CATACOMBS",
+        "seed": "campaign:03-catacombs",
+        "menuLabel": "3 THE CATACOMBS",
+        "hudSeed": "SEED campaign:03-catacombs",
+        "hudTitle": "THE CATACOMBS",
+        "debugApiAbsent": true
+      },
+      "startupMs": 3470,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.800000000000182,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 453,
+      "trianglesPerFrame": 346294,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-04-pit-desktop",
+      "campaign": {
+        "index": 4,
+        "id": "04-pit",
+        "title": "THE PIT",
+        "seed": "campaign:04-pit",
+        "menuLabel": "4 THE PIT",
+        "hudSeed": "SEED campaign:04-pit",
+        "hudTitle": "THE PIT",
+        "debugApiAbsent": true
+      },
+      "startupMs": 1626,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 756,
+      "trianglesPerFrame": 468473,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-04-pit-portrait",
+      "campaign": {
+        "index": 4,
+        "id": "04-pit",
+        "title": "THE PIT",
+        "seed": "campaign:04-pit",
+        "menuLabel": "4 THE PIT",
+        "hudSeed": "SEED campaign:04-pit",
+        "hudTitle": "THE PIT",
+        "debugApiAbsent": true
+      },
+      "startupMs": 3507,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.800000000000182,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 291,
+      "trianglesPerFrame": 192826,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-05-spire-desktop",
+      "campaign": {
+        "index": 5,
+        "id": "05-spire",
+        "title": "THE SPIRE",
+        "seed": "campaign:05-spire",
+        "menuLabel": "5 THE SPIRE",
+        "hudSeed": "SEED campaign:05-spire",
+        "hudTitle": "THE SPIRE",
+        "debugApiAbsent": true
+      },
+      "startupMs": 3567,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 870,
+      "trianglesPerFrame": 538073,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-05-spire-portrait",
+      "campaign": {
+        "index": 5,
+        "id": "05-spire",
+        "title": "THE SPIRE",
+        "seed": "campaign:05-spire",
+        "menuLabel": "5 THE SPIRE",
+        "hudSeed": "SEED campaign:05-spire",
+        "hudTitle": "THE SPIRE",
+        "debugApiAbsent": true
+      },
+      "startupMs": 2619,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 374,
+      "trianglesPerFrame": 236152,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-06-ward-desktop",
+      "campaign": {
+        "index": 6,
+        "id": "06-ward",
+        "title": "THE WARD",
+        "seed": "campaign:06-ward",
+        "menuLabel": "6 THE WARD",
+        "hudSeed": "SEED campaign:06-ward",
+        "hudTitle": "THE WARD",
+        "debugApiAbsent": true
+      },
+      "startupMs": 5289,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1135,
+      "trianglesPerFrame": 428591,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-06-ward-portrait",
+      "campaign": {
+        "index": 6,
+        "id": "06-ward",
+        "title": "THE WARD",
+        "seed": "campaign:06-ward",
+        "menuLabel": "6 THE WARD",
+        "hudSeed": "SEED campaign:06-ward",
+        "hudTitle": "THE WARD",
+        "debugApiAbsent": true
+      },
+      "startupMs": 4097,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 497,
+      "trianglesPerFrame": 194534,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-07-sanctum-desktop",
+      "campaign": {
+        "index": 7,
+        "id": "07-sanctum",
+        "title": "THE SANCTUM",
+        "seed": "campaign:07-sanctum",
+        "menuLabel": "7 THE SANCTUM",
+        "hudSeed": "SEED campaign:07-sanctum",
+        "hudTitle": "THE SANCTUM",
+        "debugApiAbsent": true
+      },
+      "startupMs": 1340,
+      "frames": 180,
+      "fps": 60.002000066668884,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 1212,
+      "trianglesPerFrame": 983237,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "campaign-07-sanctum-portrait",
+      "campaign": {
+        "index": 7,
+        "id": "07-sanctum",
+        "title": "THE SANCTUM",
+        "seed": "campaign:07-sanctum",
+        "menuLabel": "7 THE SANCTUM",
+        "hudSeed": "SEED campaign:07-sanctum",
+        "hudTitle": "THE SANCTUM",
+        "debugApiAbsent": true
+      },
+      "startupMs": 2776,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 515,
+      "trianglesPerFrame": 445844,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    }
+  ]
+}

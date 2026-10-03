@@ -1,4 +1,4 @@
-// HUD: crosshair, bottom graphic panel (health / ammo / 7 slots), minimap,
+// HUD: crosshair, compact instrument panel (health / ammo / 7 slots), minimap,
 // damage overlays with direction hint, message toasts. Canvas 2D overlay.
 import type { WorldView } from '../sim/view';
 import { WEAPONS, weapon } from '../sim/weapons';
@@ -122,13 +122,13 @@ export class Hud {
     // ---- crosshair (guns must leave this clear)
     if (!opts.fullMapOpen && sim.phase === 'playing') {
       g.strokeStyle = 'rgba(255,255,255,0.85)';
-      g.lineWidth = 2;
+      g.lineWidth = 1.25;
       const cx = W / 2, cy = H / 2;
       g.beginPath();
-      g.moveTo(cx - 10, cy); g.lineTo(cx - 4, cy);
-      g.moveTo(cx + 4, cy); g.lineTo(cx + 10, cy);
-      g.moveTo(cx, cy - 10); g.lineTo(cx, cy - 4);
-      g.moveTo(cx, cy + 4); g.lineTo(cx, cy + 10);
+      g.moveTo(cx - 8, cy); g.lineTo(cx - 3, cy);
+      g.moveTo(cx + 3, cy); g.lineTo(cx + 8, cy);
+      g.moveTo(cx, cy - 8); g.lineTo(cx, cy - 3);
+      g.moveTo(cx, cy + 3); g.lineTo(cx, cy + 8);
       g.stroke();
 
       this.drawPowerupHud(sim, g, W, H, cx, cy);
@@ -171,11 +171,11 @@ export class Hud {
       g.fillStyle = `rgba(60,0,0,${Math.min(0.85, sim.phaseTimer / 1.6)})`;
       g.fillRect(0, 0, W, H);
       g.fillStyle = 'rgba(255,60,60,0.9)';
-      g.font = `bold ${Math.min(64, W / 12)}px monospace`;
+      g.font = `600 ${Math.min(64, W / 12)}px -apple-system, BlinkMacSystemFont, sans-serif`;
       g.textAlign = 'center';
       g.fillText('YOU DIED', W / 2, H * 0.42);
       if (this.epitaph) {
-        g.font = `italic ${Math.min(20, W / 40)}px monospace`;
+        g.font = `400 ${Math.min(20, W / 40)}px -apple-system, BlinkMacSystemFont, sans-serif`;
         g.fillStyle = 'rgba(255,150,150,0.8)';
         g.fillText(this.epitaph, W / 2, H * 0.42 + 40);
       }
@@ -184,22 +184,24 @@ export class Hud {
 
     // ---- seed + run info (top-left)
     g.textAlign = 'left';
-    g.font = '12px monospace';
-    g.fillStyle = 'rgba(180,180,190,0.75)';
+    g.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+    g.fillStyle = 'rgba(6,15,21,0.62)';
+    g.fillRect(6, 8, Math.min(250, g.measureText(`SEED ${sim.map.seed}`).width + 16), 36);
+    g.fillStyle = 'rgba(210,223,229,0.8)';
     g.fillText(`SEED ${sim.map.seed}`, 12, 22);
     g.fillText(`KILLS ${sim.killCount}`, 12, 38);
 
     // ---- arena counter
     if (sim.networkArena) {
       g.textAlign = 'center';
-      g.font = 'bold 22px monospace';
-      g.fillStyle = 'rgba(120,210,255,0.95)';
+      g.font = '600 17px -apple-system, BlinkMacSystemFont, sans-serif';
+      g.fillStyle = 'rgba(184,220,236,0.95)';
       g.fillText('ARENA // DEATHMATCH', W / 2, 34);
     } else if (sim.arenaEntered) {
       const left = sim.arenaEnemiesRemaining();
       g.textAlign = 'center';
-      g.font = 'bold 22px monospace';
-      g.fillStyle = left > 0 ? 'rgba(255,80,60,0.95)' : 'rgba(120,255,140,0.95)';
+      g.font = '600 17px -apple-system, BlinkMacSystemFont, sans-serif';
+      g.fillStyle = left > 0 ? 'rgba(230,168,141,0.95)' : 'rgba(173,218,183,0.95)';
       g.fillText(left > 0 ? `DEMONS REMAINING: ${left}` : 'THE AREA IS SILENT', W / 2, 34);
     }
 
@@ -207,64 +209,58 @@ export class Hud {
     if (this.msg && this.msg.time > 0) {
       const k = Math.min(1, this.msg.time / 0.5);
       g.textAlign = 'center';
-      g.font = `bold ${Math.min(22, W / 34)}px monospace`;
-      g.fillStyle = `rgba(255,220,150,${k})`;
+      g.font = `500 ${Math.min(18, W / 30)}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      const msgWidth = Math.min(W - 28, g.measureText(this.msg.text).width + 28);
+      g.fillStyle = `rgba(6,15,21,${k * 0.66})`;
+      roundRect(g, (W - msgWidth) / 2, H * 0.68 - 23, msgWidth, 34, 2);
+      g.fill();
+      g.fillStyle = `rgba(236,225,205,${k})`;
       g.fillText(this.msg.text, W / 2, H * 0.68);
     }
 
     // ---- bottom panel
-    const panelH = Math.max(64, Math.min(96, H * 0.11));
-    const panelY = H - panelH;
-    const panelW = Math.min(W - 16, 860);
+    const panelH = Math.max(64, Math.min(78, H * 0.095));
+    const panelY = H - panelH - 16;
+    const panelW = Math.min(W - 24, 820);
     const panelX = (W - panelW) / 2;
-    // metal slab
-    const pg = g.createLinearGradient(0, panelY, 0, H);
-    pg.addColorStop(0, '#3b3f37');
-    pg.addColorStop(0.08, '#2c302a');
-    pg.addColorStop(1, '#191c17');
+    // A translucent instrument strip keeps the view open around the weapon.
+    const pg = g.createLinearGradient(0, panelY, 0, panelY + panelH);
+    pg.addColorStop(0, 'rgba(12, 23, 30, 0.73)');
+    pg.addColorStop(1, 'rgba(5, 13, 18, 0.89)');
     g.fillStyle = pg;
-    roundRect(g, panelX, panelY, panelW, panelH, 8);
+    roundRect(g, panelX, panelY, panelW, panelH, 3);
     g.fill();
-    g.strokeStyle = '#565b50';
-    g.lineWidth = 2;
-    roundRect(g, panelX, panelY, panelW, panelH, 8);
+    g.strokeStyle = 'rgba(162, 189, 200, 0.3)';
+    g.lineWidth = 1;
+    roundRect(g, panelX, panelY, panelW, panelH, 3);
     g.stroke();
-    // rivets
-    g.fillStyle = '#6a7062';
-    for (const rx of [panelX + 10, panelX + panelW - 10]) {
-      for (const ry of [panelY + 10, panelY + panelH - 10]) {
-        g.beginPath(); g.arc(rx, ry, 3, 0, Math.PI * 2); g.fill();
-      }
-    }
-
     const w = weapon(p.gun);
 
     // health (left)
     const healthFrac = Math.max(0, p.hp / p.maxHp);
     const { barW, barX, slotX0, slotSize } = hudPanelLayout(panelW, panelX);
-    g.font = 'bold 13px monospace';
-    g.fillStyle = '#9aa08e';
+    const barY = panelY + panelH - (W < 540 ? 8 : 25);
+    g.font = '500 9px -apple-system, BlinkMacSystemFont, sans-serif';
+    g.fillStyle = '#a5b8c2';
     g.textAlign = 'left';
-    g.fillText('HEALTH', panelX + 22, panelY + 22);
-    g.font = `bold ${Math.round(panelH * 0.42)}px monospace`;
-    const hpf = p.hp > 50 ? '#e8e4c8' : p.hp > 25 ? '#ffb43a' : '#ff4a3a';
+    g.fillText('HEALTH', panelX + 18, panelY + 19);
+    g.font = `500 ${Math.round(panelH * 0.4)}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    const hpf = p.hp > 50 ? '#e4edef' : p.hp > 25 ? '#dfb87f' : '#ed8474';
     g.fillStyle = hpf;
-    g.fillText(String(Math.max(0, Math.ceil(p.hp))), panelX + 20, panelY + panelH - 16);
-    g.fillStyle = '#11130f';
-    g.fillRect(barX, panelY + panelH - 34, barW, 12);
+    g.fillText(String(Math.max(0, Math.ceil(p.hp))), panelX + 16, panelY + panelH - 15);
+    g.fillStyle = 'rgba(141,170,184,0.2)';
+    g.fillRect(barX, barY, barW, 3);
     g.fillStyle = hpf;
-    g.fillRect(barX, panelY + panelH - 34, barW * healthFrac, 12);
-    g.strokeStyle = '#565b50';
-    g.strokeRect(barX, panelY + panelH - 34, barW, 12);
+    g.fillRect(barX, barY, barW * healthFrac, 3);
 
     // ammo (right)
     g.textAlign = 'right';
-    g.font = 'bold 13px monospace';
-    g.fillStyle = '#9aa08e';
-    g.fillText(w.ammo.toUpperCase(), panelX + panelW - 22, panelY + 22);
-    g.font = `bold ${Math.round(panelH * 0.42)}px monospace`;
-    g.fillStyle = p.ammo[w.ammo] === 0 ? '#ff4a3a' : '#ffe9a0';
-    g.fillText(String(p.ammo[w.ammo]), panelX + panelW - 20, panelY + panelH - 16);
+    g.font = '500 9px -apple-system, BlinkMacSystemFont, sans-serif';
+    g.fillStyle = '#a5b8c2';
+    g.fillText(w.ammo.toUpperCase(), panelX + panelW - 18, panelY + 19);
+    g.font = `500 ${Math.round(panelH * 0.4)}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    g.fillStyle = p.ammo[w.ammo] === 0 ? '#ed8474' : '#e4cfb2';
+    g.fillText(String(p.ammo[w.ammo]), panelX + panelW - 16, panelY + panelH - 15);
 
     // 7 slots (center)
     for (let i = 1; i <= 7; i++) {
@@ -272,25 +268,25 @@ export class Hud {
       const sel = p.gun === i;
       const x = slotX0 + (i - 1) * (slotSize + 6);
       const y = panelY + panelH / 2 - slotSize / 2;
-      g.fillStyle = sel ? 'rgba(255,200,80,0.22)' : owned ? 'rgba(30,34,28,0.9)' : 'rgba(14,16,12,0.75)';
-      roundRect(g, x, y, slotSize, slotSize, 5);
+      g.fillStyle = sel ? 'rgba(206,171,129,0.15)' : owned ? 'rgba(101,131,145,0.1)' : 'rgba(12,23,30,0.12)';
+      roundRect(g, x, y, slotSize, slotSize, 2);
       g.fill();
-      g.strokeStyle = sel ? '#ffc850' : owned ? '#6a7062' : '#3a3e36';
-      g.lineWidth = sel ? 2.5 : 1.5;
-      roundRect(g, x, y, slotSize, slotSize, 5);
+      g.strokeStyle = sel ? '#cdb089' : owned ? '#69808b77' : '#647b872e';
+      g.lineWidth = 1;
+      roundRect(g, x, y, slotSize, slotSize, 2);
       g.stroke();
       if (owned && this.gunIcons[i - 1]) {
         g.drawImage(this.gunIcons[i - 1]!, x + 3, y + 3, slotSize - 6, slotSize - 6);
       } else if (!owned) {
-        g.fillStyle = 'rgba(120,124,110,0.5)';
-        g.font = `bold ${Math.round(slotSize * 0.5)}px monospace`;
+        g.fillStyle = 'rgba(154,179,192,0.45)';
+        g.font = `400 ${Math.round(slotSize * 0.4)}px -apple-system, BlinkMacSystemFont, sans-serif`;
         g.textAlign = 'center';
         g.fillText(String(i), x + slotSize / 2, y + slotSize * 0.66);
       }
       // ammo pips
       if (owned) {
         const has = p.ammo[WEAPONS[i - 1].ammo] > 0;
-        g.fillStyle = has ? '#8aff6a' : '#5a2a24';
+        g.fillStyle = has ? '#9dc8b5' : '#ad6d61';
         g.fillRect(x + slotSize / 2 - 3, y + slotSize - 3.5, 6, 2.5);
       }
     }
@@ -306,7 +302,7 @@ export class Hud {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const w = W / dpr, h = H / dpr;
     g.clearRect(0, 0, w, h);
-    g.fillStyle = full ? 'rgba(8,9,7,0.92)' : 'rgba(8,9,7,0.62)';
+    g.fillStyle = full ? 'rgba(6,15,21,0.94)' : 'rgba(6,15,21,0.7)';
     g.fillRect(0, 0, w, h);
     const map = sim.map;
     const span = full ? map.w : 22; // minimap shows a 22-cell window
@@ -326,7 +322,7 @@ export class Hud {
       for (let x = 0; x < map.w; x++) {
         if (!sim.explored[z * map.w + x]) continue;
         if (map.grid[z * map.w + x] === 1) {
-          g.fillStyle = 'rgba(120,190,120,0.55)';
+          g.fillStyle = 'rgba(125,170,186,0.48)';
           g.fillRect(ox + x * scale, oz + z * scale, Math.ceil(scale), Math.ceil(scale));
         }
       }
@@ -373,10 +369,10 @@ export class Hud {
     g.restore();
     if (full) {
       g.fillStyle = 'rgba(200,200,210,0.8)';
-      g.font = 'bold 16px monospace';
+      g.font = '500 14px -apple-system, BlinkMacSystemFont, sans-serif';
       g.textAlign = 'left';
       g.fillText(`SEED ${map.seed}   KILLS ${sim.killCount}   EXPLORED ${exploredPct(sim)}%`, 16, 28);
-      g.font = '13px monospace';
+      g.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
       g.fillStyle = 'rgba(160,160,170,0.7)';
       const sb = sim.map.sealBreak;
       const legend = sb.type === 'gun'
@@ -425,7 +421,7 @@ export class Hud {
     });
 
     g.textAlign = 'right';
-    g.font = 'bold 13px monospace';
+    g.font = '500 12px -apple-system, BlinkMacSystemFont, sans-serif';
     tracks.forEach((tr, i) => {
       const def = POWERUP_DEFS[tr.kind];
       const [r, gch, b] = hexRgb(def.hex);
@@ -449,16 +445,17 @@ export class Hud {
     const g = this.g;
     const sorted = sortArenaRoster(rows);
     const top = 46;
-    g.font = '12px "Courier New", monospace';
+    g.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
     g.textAlign = 'left';
-    g.fillStyle = 'rgba(8,9,7,0.55)';
+    g.fillStyle = 'rgba(6,15,21,0.68)';
     g.fillRect(12, top, 180, 18 + sorted.length * 16);
-    g.fillStyle = '#9aa08e';
+    g.fillStyle = '#a5b8c2';
     g.fillText(`${count}/${max}`, 20, top + 14);
     let y = top + 30;
     for (const r of sorted.slice(0, 10)) {
-      g.fillStyle = r.id === localId ? '#ffe9a0' : '#d8d4c8';
-      g.fillText(`${r.name.slice(0, 12).padEnd(12)} ${r.frags}`, 20, y);
+      g.fillStyle = r.id === localId ? '#e4cfb2' : '#dae5ea';
+      g.fillText(r.name.slice(0, 12), 20, y);
+      g.fillText(String(r.frags), 163, y);
       y += 16;
     }
   }
@@ -467,25 +464,28 @@ export class Hud {
     const g = this.g;
     const W = window.innerWidth, H = window.innerHeight;
     const sorted = sortArenaRoster(rows);
-    const pw = 420, ph = 80 + sorted.length * 22;
+    const pw = Math.min(420, W - 32), ph = 80 + sorted.length * 22;
     const x = (W - pw) / 2, y = (H - ph) / 2;
-    g.fillStyle = 'rgba(8,9,7,0.88)';
+    g.fillStyle = 'rgba(6,15,21,0.94)';
     g.fillRect(x, y, pw, ph);
-    g.strokeStyle = '#565b50';
+    g.strokeStyle = '#8aa9b44d';
     g.strokeRect(x, y, pw, ph);
-    g.fillStyle = '#e8e4c8';
-    g.font = '16px "Courier New", monospace';
+    g.fillStyle = '#dae5ea';
+    g.font = '600 15px -apple-system, BlinkMacSystemFont, sans-serif';
     g.textAlign = 'center';
     g.fillText('SCOREBOARD', x + pw / 2, y + 28);
     g.textAlign = 'left';
-    g.font = '13px "Courier New", monospace';
+    g.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
     let rowY = y + 54;
     for (const r of sorted) {
-      g.fillStyle = r.id === localId ? '#ffe9a0' : '#d8d4c8';
-      g.fillText(`${r.name.padEnd(16)}  ${String(r.frags).padStart(3)} / ${r.deaths}`, x + 24, rowY);
+      g.fillStyle = r.id === localId ? '#e4cfb2' : '#dae5ea';
+      g.textAlign = 'left';
+      g.fillText(r.name, x + 24, rowY);
+      g.textAlign = 'right';
+      g.fillText(`${r.frags} / ${r.deaths}`, x + pw - 24, rowY);
       rowY += 22;
     }
-    g.fillStyle = '#9aa08e';
+    g.fillStyle = '#a5b8c2';
     g.textAlign = 'right';
     g.fillText(`${Math.round(rtt)} ms`, x + pw - 16, y + 28);
   }

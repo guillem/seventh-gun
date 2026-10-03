@@ -1,0 +1,242 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "foundry-combat",
+      "pose": {
+        "player": {
+          "x": 41,
+          "z": 87,
+          "yaw": -1.57,
+          "pitch": 0.07
+        },
+        "placed": {
+          "id": 0,
+          "type": "husk",
+          "x": 45.7,
+          "z": 87,
+          "dist": 4.7
+        }
+      },
+      "phase": "playing",
+      "simPhase": "playing",
+      "hp": 100,
+      "gun": 1,
+      "owned": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ammo": {
+        "bullets": 140,
+        "shells": 0,
+        "nails": 0,
+        "grenades": 0,
+        "cores": 0,
+        "void": 0
+      },
+      "pos": {
+        "x": 41,
+        "z": 87
+      },
+      "yaw": -1.571,
+      "pitch": 0.07,
+      "camPitch": -0.07,
+      "camYaw": -1.571,
+      "seed": "campaign:01-foundry",
+      "kind": "campaign",
+      "difficulty": "normal",
+      "kills": 0,
+      "enemiesAlive": 33,
+      "arenaRemaining": 6,
+      "hasKey": false,
+      "sealIntact": true,
+      "exploredPct": 0,
+      "secretsFound": 0,
+      "secretsTotal": 2,
+      "powerups": {
+        "ward": 0,
+        "damage": null,
+        "damageT": 0
+      },
+      "mapHash": "ee306bc5",
+      "campaign": {
+        "map": 1,
+        "nextMap": 1,
+        "unlocked": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "artId": "foundry"
+      }
+    },
+    {
+      "name": "foundry-close",
+      "pose": {
+        "player": {
+          "x": 41,
+          "z": 87,
+          "yaw": -1.57,
+          "pitch": 0.07
+        },
+        "placed": {
+          "id": 0,
+          "type": "husk",
+          "x": 43.8,
+          "z": 87,
+          "dist": 2.8
+        }
+      },
+      "phase": "playing",
+      "simPhase": "playing",
+      "hp": 100,
+      "gun": 1,
+      "owned": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ammo": {
+        "bullets": 140,
+        "shells": 0,
+        "nails": 0,
+        "grenades": 0,
+        "cores": 0,
+        "void": 0
+      },
+      "pos": {
+        "x": 41,
+        "z": 87
+      },
+      "yaw": -1.571,
+      "pitch": 0.07,
+      "camPitch": -0.07,
+      "camYaw": -1.571,
+      "seed": "campaign:01-foundry",
+      "kind": "campaign",
+      "difficulty": "normal",
+      "kills": 0,
+      "enemiesAlive": 33,
+      "arenaRemaining": 6,
+      "hasKey": false,
+      "sealIntact": true,
+      "exploredPct": 0,
+      "secretsFound": 0,
+      "secretsTotal": 2,
+      "powerups": {
+        "ward": 0,
+        "damage": null,
+        "damageT": 0
+      },
+      "mapHash": "ee306bc5",
+      "campaign": {
+        "map": 1,
+        "nextMap": 1,
+        "unlocked": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "artId": "foundry"
+      }
+    },
+    {
+      "name": "sanctum-combat",
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0.07
+        },
+        "placed": {
+          "id": 0,
+          "type": "husk",
+          "x": 73.7,
+          "z": 117,
+          "dist": 4.7
+        }
+      },
+      "phase": "playing",
+      "simPhase": "playing",
+      "hp": 100,
+      "gun": 1,
+      "owned": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "ammo": {
+        "bullets": 150,
+        "shells": 12,
+        "nails": 50,
+        "grenades": 6,
+        "cores": 8,
+        "void": 0
+      },
+      "pos": {
+        "x": 69,
+        "z": 117
+      },
+      "yaw": -1.571,
+      "pitch": 0.07,
+      "camPitch": -0.07,
+      "camYaw": -1.571,
+      "seed": "campaign:07-sanctum",
+      "kind": "campaign",
+      "difficulty": "normal",
+      "kills": 0,
+      "enemiesAlive": 70,
+      "arenaRemaining": 14,
+      "hasKey": false,
+      "sealIntact": true,
+      "exploredPct": 0,
+      "secretsFound": 0,
+      "secretsTotal": 3,
+      "powerups": {
+        "ward": 0,
+        "damage": null,
+        "damageT": 0
+      },
+      "mapHash": "ddb9ca05",
+      "campaign": {
+        "map": 7,
+        "nextMap": 1,
+        "unlocked": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "artId": "sanctum"
+      }
+    }
+  ]
+}

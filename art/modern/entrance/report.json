@@ -1,0 +1,140 @@
+{
+  "base": "http://127.0.0.1:5175",
+  "capturedAt": "2026-10-03T02:10:31.141Z",
+  "views": [
+    {
+      "name": "desktop",
+      "errors": [],
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 210,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 33,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": 0,
+        "camPitch": 0,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 9,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      }
+    },
+    {
+      "name": "mobile",
+      "errors": [],
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 210,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 33,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": 0,
+        "camPitch": 0,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 9,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      }
+    }
+  ]
+}

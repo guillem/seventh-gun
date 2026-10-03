@@ -1,6 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "seventh-gun",
+  // BRANCH-ONLY (codex/experimental-modern-art, never merged): a separate
+  // Worker with its own Durable Object room, so nothing deployed from this
+  // branch can replace production `seventh-gun` or join its arena. Keep ONLY
+  // art.seventhgun.com below; wrangler takes over a domain from another Worker
+  // without asking when it runs non-interactively. workers_dev must stay true:
+  // listing a domain turns the workers.dev URL off by default.
+  "name": "seventh-gun-art",
+  "routes": [{ "pattern": "art.seventhgun.com", "custom_domain": true }],
+  "workers_dev": true,
   "main": "./server/index.ts",
   "compatibility_date": "2026-09-01",
   "assets": {

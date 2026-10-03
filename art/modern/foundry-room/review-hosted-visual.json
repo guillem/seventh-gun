@@ -1,0 +1,378 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app",
+  "capturedAt": "2026-10-03T01:49:01.627Z",
+  "devices": [
+    {
+      "name": "desktop",
+      "startupMs": 3982,
+      "seed": "gwxk7foi",
+      "errors": [],
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 210,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 41,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": 0,
+        "camPitch": 0,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 6,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 52,
+        "geometries": 353,
+        "textures": 36
+      },
+      "resources": [
+        {
+          "name": "/modern/models/husk.glb",
+          "bytes": 1292988,
+          "ms": 2084
+        },
+        {
+          "name": "/modern/models/pistol.glb",
+          "bytes": 1433332,
+          "ms": 2185
+        },
+        {
+          "name": "/modern/models/architecture.glb",
+          "bytes": 306548,
+          "ms": 1252
+        },
+        {
+          "name": "/modern/foundry/environment.glb",
+          "bytes": 2230776,
+          "ms": 2440
+        },
+        {
+          "name": "/modern/audio/pistol-b.mp3",
+          "bytes": 15037,
+          "ms": 195
+        },
+        {
+          "name": "/modern/audio/pistol-a.mp3",
+          "bytes": 15037,
+          "ms": 346
+        },
+        {
+          "name": "/modern/audio/shotgun.mp3",
+          "bytes": 28934,
+          "ms": 296
+        },
+        {
+          "name": "/modern/audio/door-open.mp3",
+          "bytes": 27106,
+          "ms": 303
+        },
+        {
+          "name": "/modern/audio/husk-pain.mp3",
+          "bytes": 15037,
+          "ms": 195
+        },
+        {
+          "name": "/modern/audio/metal-impact.mp3",
+          "bytes": 15037,
+          "ms": 197
+        },
+        {
+          "name": "/modern/audio/husk-alert.mp3",
+          "bytes": 27472,
+          "ms": 346
+        },
+        {
+          "name": "/modern/audio/industrial-ambient.mp3",
+          "bytes": 109392,
+          "ms": 654
+        },
+        {
+          "name": "/modern/textures/steel.webp",
+          "bytes": 218286,
+          "ms": 1034
+        },
+        {
+          "name": "/modern/textures/concrete.webp",
+          "bytes": 316810,
+          "ms": 1191
+        },
+        {
+          "name": "/modern/textures/titanium.webp",
+          "bytes": 344690,
+          "ms": 1334
+        },
+        {
+          "name": "/modern/textures/dermal.webp",
+          "bytes": 348418,
+          "ms": 1374
+        },
+        {
+          "name": "/modern/foundry/steel-roughness.webp",
+          "bytes": 44404,
+          "ms": 504
+        },
+        {
+          "name": "/modern/foundry/concrete-roughness.webp",
+          "bytes": 39386,
+          "ms": 505
+        },
+        {
+          "name": "/modern/foundry/steel-normal.webp",
+          "bytes": 284762,
+          "ms": 1191
+        },
+        {
+          "name": "/modern/foundry/irradiance.webp",
+          "bytes": 412858,
+          "ms": 1391
+        },
+        {
+          "name": "/modern/foundry/concrete-normal.webp",
+          "bytes": 471324,
+          "ms": 1451
+        },
+        {
+          "name": "/modern/textures/foundry-concept.webp",
+          "bytes": 228802,
+          "ms": 593
+        }
+      ]
+    },
+    {
+      "name": "mobile",
+      "startupMs": 4551,
+      "seed": "busys0uc",
+      "errors": [],
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 19,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": 0,
+        "camPitch": 0,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 6,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 20,
+        "geometries": 144,
+        "textures": 21
+      },
+      "resources": [
+        {
+          "name": "/modern/models/pistol.glb",
+          "bytes": 1433332,
+          "ms": 2109
+        },
+        {
+          "name": "/modern/models/architecture.glb",
+          "bytes": 306548,
+          "ms": 782
+        },
+        {
+          "name": "/modern/models/husk.glb",
+          "bytes": 1292988,
+          "ms": 2866
+        },
+        {
+          "name": "/modern/foundry/environment.glb",
+          "bytes": 2230776,
+          "ms": 3308
+        },
+        {
+          "name": "/modern/audio/pistol-a.mp3",
+          "bytes": 15037,
+          "ms": 457
+        },
+        {
+          "name": "/modern/audio/pistol-b.mp3",
+          "bytes": 15037,
+          "ms": 556
+        },
+        {
+          "name": "/modern/audio/door-open.mp3",
+          "bytes": 27106,
+          "ms": 230
+        },
+        {
+          "name": "/modern/audio/shotgun.mp3",
+          "bytes": 28934,
+          "ms": 557
+        },
+        {
+          "name": "/modern/audio/husk-alert.mp3",
+          "bytes": 27472,
+          "ms": 466
+        },
+        {
+          "name": "/modern/audio/metal-impact.mp3",
+          "bytes": 15037,
+          "ms": 572
+        },
+        {
+          "name": "/modern/audio/husk-pain.mp3",
+          "bytes": 15037,
+          "ms": 572
+        },
+        {
+          "name": "/modern/foundry/irradiance.webp",
+          "bytes": 412858,
+          "ms": 571
+        },
+        {
+          "name": "/modern/audio/industrial-ambient.mp3",
+          "bytes": 109392,
+          "ms": 1209
+        },
+        {
+          "name": "/modern/textures/steel.webp",
+          "bytes": 218286,
+          "ms": 1502
+        },
+        {
+          "name": "/modern/textures/concrete.webp",
+          "bytes": 316810,
+          "ms": 1734
+        },
+        {
+          "name": "/modern/textures/titanium.webp",
+          "bytes": 344690,
+          "ms": 1832
+        },
+        {
+          "name": "/modern/textures/dermal.webp",
+          "bytes": 348418,
+          "ms": 1930
+        },
+        {
+          "name": "/modern/foundry/concrete-normal.webp",
+          "bytes": 471324,
+          "ms": 1932
+        },
+        {
+          "name": "/modern/foundry/steel-roughness.webp",
+          "bytes": 44404,
+          "ms": 360
+        },
+        {
+          "name": "/modern/foundry/concrete-roughness.webp",
+          "bytes": 39386,
+          "ms": 1053
+        },
+        {
+          "name": "/modern/foundry/steel-normal.webp",
+          "bytes": 284762,
+          "ms": 1735
+        },
+        {
+          "name": "/modern/textures/foundry-concept.webp",
+          "bytes": 228802,
+          "ms": 662
+        }
+      ]
+    }
+  ]
+}

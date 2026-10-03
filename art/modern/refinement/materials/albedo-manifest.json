@@ -1,0 +1,54 @@
+{
+  "tool": "built-in imagegen",
+  "conversion": "cwebp -q 90 -resize 1024 1024",
+  "files": [
+    {
+      "kind": "skin",
+      "source": "art/modern/refinement/materials/skin.png",
+      "sourceSha256": "0383bfbc6f63ba86285bf22696ce3d8c421c1285e5ca1744b981ab032ac31702",
+      "runtime": "public/modern/refinement/materials/skin.webp",
+      "runtimeSha256": "ed133b39ccb35a683d1267383434c89fec9c7bca2403235e3133c028e5358d91",
+      "bytes": 301020,
+      "width": 1024,
+      "height": 1024,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254
+    },
+    {
+      "kind": "raw",
+      "source": "art/modern/refinement/materials/raw.png",
+      "sourceSha256": "ab022fb647688165c1620dc656d8e0d304de415e387daf6d3c2fef180f3007d4",
+      "runtime": "public/modern/refinement/materials/raw.webp",
+      "runtimeSha256": "64db22c8ec8f51078ec35a8d63c7a1005632b92f868f5201bc331854f3de8185",
+      "bytes": 308238,
+      "width": 1024,
+      "height": 1024,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254
+    },
+    {
+      "kind": "chitin",
+      "source": "art/modern/refinement/materials/chitin.png",
+      "sourceSha256": "e657b0cfdc893ef4cb3087ef80a382df504b52d73c09c02bd2bf63d37bbcc19a",
+      "runtime": "public/modern/refinement/materials/chitin.webp",
+      "runtimeSha256": "6c4c0a4d49a358a932b316906e0fdf18107a46d003c77b9b42410c35e5e5b91a",
+      "bytes": 406558,
+      "width": 1024,
+      "height": 1024,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254
+    },
+    {
+      "kind": "bone",
+      "source": "art/modern/refinement/materials/bone.png",
+      "sourceSha256": "b1baff8bedd7caf8cf61d3dac5ad5cca5e91f22835274e5896e0e91d19e15ad5",
+      "runtime": "public/modern/refinement/materials/bone.webp",
+      "runtimeSha256": "66e803f230ef5f9b614f70b8415c506acb8f38e7d36c33d1756cbf872d5210a1",
+      "bytes": 272456,
+      "width": 1024,
+      "height": 1024,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254
+    }
+  ]
+}

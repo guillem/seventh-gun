@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 import { tinyGunSealBlueprint } from '../helpers/authoredMaps';
 
 const EDIT = '/?e2e=1&edit=1';
@@ -6,7 +7,7 @@ const TINY_BP = tinyGunSealBlueprint();
 
 test.describe('editor', () => {
   test('?edit=1 shows editor chrome', async ({ page }) => {
-    await page.goto(EDIT);
+    await gotoGame(page, EDIT);
     await expect(page.locator('#editor-screen')).toBeVisible();
     await expect(page.locator('#editor-heading')).toHaveText('EDITOR');
     await expect(page.getByRole('button', { name: 'PLAYTEST' })).toBeVisible();
@@ -18,7 +19,7 @@ test.describe('editor', () => {
   });
 
   test('opens with a visible canvas and a START room', async ({ page }) => {
-    await page.goto(EDIT);
+    await gotoGame(page, EDIT);
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
       return s?.phase === 'editing';
@@ -56,7 +57,7 @@ test.describe('editor', () => {
   });
 
   test('title EDITOR button opens the editor', async ({ page }) => {
-    await page.goto('/?e2e=1');
+    await gotoGame(page, '/?e2e=1');
     await expect(page.getByRole('button', { name: 'MAP LOG' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'CAMPAIGN' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'EDITOR' })).toBeVisible();
@@ -66,7 +67,7 @@ test.describe('editor', () => {
   });
 
   test('loadBlueprint + PLAYTEST reaches playing', async ({ page }) => {
-    await page.goto(EDIT);
+    await gotoGame(page, EDIT);
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
       return s?.phase === 'editing';
@@ -97,7 +98,7 @@ test.describe('editor', () => {
   });
 
   test('COPY LINK works on a START-only map that fails VALIDATE', async ({ page }) => {
-    await page.goto(EDIT);
+    await gotoGame(page, EDIT);
     await page.waitForFunction(() => {
       const s = (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state();
       return s?.phase === 'editing';

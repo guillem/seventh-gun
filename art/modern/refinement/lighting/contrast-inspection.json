@@ -1,0 +1,49 @@
+{
+  "note": "Median display RGB luminance proxy at identical debug camera. Overall material/lighting comparison, not physically calibrated or isolated bake measurement. Fixed regions exclude HUD, actors and weapon.",
+  "regions": {
+    "ceiling": [
+      605,
+      15,
+      695,
+      100
+    ],
+    "floor_route": [
+      400,
+      620,
+      760,
+      745
+    ],
+    "wall_near_sconce": [
+      1250,
+      420,
+      1360,
+      515
+    ],
+    "wall_between_sconces": [
+      1150,
+      350,
+      1220,
+      440
+    ]
+  },
+  "views": {
+    "before": {
+      "image": "roster/review/campaign-1-foundry.jpg",
+      "ceiling": 0.3558,
+      "floor_route": 0.3264,
+      "wall_near_sconce": 0.6112,
+      "wall_between_sconces": 0.5916,
+      "near_sconce_to_adjacent_wall_ratio": 1.033,
+      "ceiling_to_floor_route_ratio": 1.09
+    },
+    "after": {
+      "image": "refinement/lighting/hall-desktop.png",
+      "ceiling": 0.0796,
+      "floor_route": 0.227,
+      "wall_near_sconce": 0.2357,
+      "wall_between_sconces": 0.1843,
+      "near_sconce_to_adjacent_wall_ratio": 1.279,
+      "ceiling_to_floor_route_ratio": 0.351
+    }
+  }
+}

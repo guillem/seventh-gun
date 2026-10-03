@@ -1,3 +1,5 @@
+// Modern mode loads the complete saved Blender roster and authored animation
+// clips near the end of this file. The builders below remain legacy fallbacks.
 // First-person viewmodels: seven distinct guns held low-right, barrels
 // receding toward the crosshair, hands visible. Rendered in a separate
 // cleared-depth pass so they never clip walls. The same builders, minus the
@@ -58,11 +60,15 @@
 // here calls applyRadialFog. pickups.ts fogs the world copy itself.
 import * as THREE from 'three';
 import { GUN_FLASH, gunPalette, type GunPalette } from './gunArt';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
+import { weapon } from '../sim/weapons';
 
 export interface ViewModel {
   group: THREE.Group;
   muzzle: THREE.Object3D;      // world-of-viewmodel muzzle tip
   update: (dt: number, s: VMState) => void;
+  reset?: () => void; // restart cosmetic equip state when a retained model is selected
+  dispose?: () => void; // release animation bindings before owned GPU resources
 }
 
 export interface VMState {
@@ -70,6 +76,7 @@ export interface VMState {
   firing: boolean;
   recoil: number;      // 0..1, decays
   time: number;
+  fireCooldown?: number; // exact simulation cooldown, sampled only for cosmetic clips
 }
 
 const HOLD_POS = new THREE.Vector3(0.25, -0.22, -0.6);
@@ -559,8 +566,85 @@ function buildSeventh(p: GunPalette, hands: boolean): GunParts {
 
 const builders: Builder[] = [buildPistol, buildShotgun, buildChaingun, buildSpiker, buildBile, buildSunlance, buildSeventh];
 
+/** Saved cosmetic tracks use separate transform nodes, so idle, equip and fire
+ * can be sampled together without blending against each other's base pose.
+ * A shot's phase comes from the existing cooldown; no render event affects aim,
+ * attack timing or simulation, including when frames are dropped. */
+export function animateAuthoredWeapon(gun: THREE.Group, clips: THREE.AnimationClip[], gunId: number) {
+  const mixer = new THREE.AnimationMixer(gun);
+  const actions = new Map<string, THREE.AnimationAction>();
+  for (const name of ['idle', 'fire', 'equip']) {
+    const clip = clips.find(candidate => candidate.name === name);
+    if (!clip) throw new Error(`Weapon ${gunId} is missing its ${name} animation`);
+    const action = mixer.clipAction(clip);
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    action.paused = true;
+    action.play();
+    actions.set(name, action);
+  }
+  let equippedTime = 0;
+  let fallbackFireTime = Infinity;
+  let previousRecoil = 0;
+  const interval = weapon(gunId).fireInterval;
+  const update = (dt: number, state: VMState) => {
+    equippedTime += Math.max(0, dt);
+    const idle = actions.get('idle')!;
+    const equip = actions.get('equip')!;
+    const fire = actions.get('fire')!;
+    idle.time = state.time % idle.getClip().duration;
+    equip.time = Math.min(equippedTime, equip.getClip().duration);
+    if (state.fireCooldown !== undefined) {
+      fire.time = state.fireCooldown > 0
+        ? Math.max(0, Math.min(interval - state.fireCooldown, fire.getClip().duration))
+        : fire.getClip().duration;
+    } else {
+      // Isolated render callers retain the older VMState contract.
+      if (state.recoil > previousRecoil + 0.025) fallbackFireTime = 0;
+      fallbackFireTime += Math.max(0, dt);
+      fire.time = Math.min(fallbackFireTime, fire.getClip().duration);
+    }
+    previousRecoil = state.recoil;
+    mixer.update(0);
+  };
+  const reset = () => {
+    equippedTime = 0;
+    fallbackFireTime = Infinity;
+    previousRecoil = 0;
+    for (const [name, action] of actions) action.time = name === 'fire' ? action.getClip().duration : 0;
+    mixer.update(0);
+  };
+  return { update, reset, dispose: () => {
+    mixer.stopAllAction();
+    mixer.uncacheRoot(gun);
+    actions.clear();
+  } };
+}
+
 export function buildViewModel(gunId: number): ViewModel {
   const { group, holder } = baseGroup();
+  const modern = getModernAssets();
+  if (modern?.weapons[gunId]) {
+    const gun = cloneOwnedModel(modern.weapons[gunId]);
+    const muzzle = gun.getObjectByName('muzzle');
+    if (!muzzle) throw new Error(`Weapon ${gunId} is missing its muzzle anchor`);
+    const animate = animateAuthoredWeapon(gun, modern.weaponClips[gunId], gunId);
+    holder.add(gun);
+    return { group, muzzle, update: (dt, state) => {
+      // Locomotion is restrained and cosmetic; saved clips handle the mechanical
+      // action and recoil. Avoid applying the legacy recoil a second time.
+      // Perspective narrows horizontally on portrait screens. Reduce only the
+      // first-person assembly so wide receivers do not cover the entire view.
+      const aspect = typeof window === 'undefined' ? 1 : window.innerWidth / window.innerHeight;
+      const portrait = THREE.MathUtils.clamp((0.9 - aspect) / 0.45, 0, 1);
+      gun.scale.setScalar(1 - portrait * 0.25);
+      const stride = state.moving * Math.sin(state.time * 9.2);
+      holder.position.set(HOLD_POS.x + stride * 0.006,
+        HOLD_POS.y + Math.abs(Math.cos(state.time * 9.2)) * state.moving * 0.008, HOLD_POS.z);
+      holder.rotation.set(HOLD_ROT.x, HOLD_ROT.y - stride * 0.004, HOLD_ROT.z);
+      animate.update(dt, state);
+    }, reset: animate.reset, dispose: animate.dispose };
+  }
   const parts = builders[gunId - 1](gunPalette(), true);
   holder.add(parts.gun);
   return { group, muzzle: parts.muzzle, update: stdUpdate(holder, parts.animate) };
@@ -570,9 +654,23 @@ export function buildViewModel(gunId: number): ViewModel {
  *  no holder offset), recentred on its own bounds so it sits on the pedestal
  *  and spins about its own middle. */
 export function buildWorldGun(gunId: number): THREE.Group {
-  const parts = builders[gunId - 1](gunPalette(), false);
-  const gun = parts.gun;
-  const bounds = new THREE.Box3().setFromObject(gun);
+  const modern = getModernAssets();
+  const gun = modern?.weapons[gunId]
+    ? cloneOwnedModel(modern.weapons[gunId])
+    : builders[gunId - 1](gunPalette(), false).gun;
+  const hands = gun.getObjectByName('hands');
+  if (hands) {
+    // Preserve ownership for disposal while excluding hands from bounds.
+    hands.visible = false;
+    hands.scale.setScalar(0);
+  }
+  gun.updateMatrixWorld(true);
+  const bounds = new THREE.Box3();
+  gun.traverseVisible(node => {
+    if (!(node instanceof THREE.Mesh)) return;
+    if (!node.geometry.boundingBox) node.geometry.computeBoundingBox();
+    bounds.union(node.geometry.boundingBox!.clone().applyMatrix4(node.matrixWorld));
+  });
   const centre = bounds.getCenter(new THREE.Vector3());
   gun.position.sub(centre);
   const g = new THREE.Group();
