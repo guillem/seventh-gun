@@ -20,6 +20,10 @@ import { applyRadialFogDeep, installRadialFog } from './radialFog';
 import { disposeOwnedObject } from './dispose';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { getModernAssets } from './modernAssets';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -50,6 +54,7 @@ export class GameRenderer {
   private practicalLights: THREE.PointLight[] = [];
   private lightTimer = 0;
   private lightDirection = new THREE.Vector3();
+  private composer: EffectComposer | null = null;
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
     installRadialFog();
@@ -114,6 +119,14 @@ export class GameRenderer {
     this.others = new PlayerRenderer(this.scene);
     this.pickups = new PickupRenderer(this.scene);
     this.fx = new FxRenderer(this.scene);
+    // Keep the full-resolution weapon/HUD sharp. The world alone gets a very
+    // restrained highlight bloom; touch devices use the cheaper direct path.
+    if (modern && !window.matchMedia('(pointer: coarse)').matches) {
+      this.composer = new EffectComposer(this.renderer);
+      this.composer.addPass(new RenderPass(this.scene, this.camera));
+      this.composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.18, 0.35, 1.1));
+      this.composer.addPass(new OutputPass());
+    }
   }
 
   get domElement(): HTMLCanvasElement {
@@ -123,6 +136,7 @@ export class GameRenderer {
   resize(): void {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h);
+    this.composer?.setSize(w, h);
     const aspect = w / h;
     this.camera.aspect = aspect;
     // portrait: hold horizontal FOV so it's not a slit; landscape keeps base
@@ -160,7 +174,7 @@ export class GameRenderer {
     this.world = buildWorld(sim.map, resolved);
     this.scene.add(this.world.group);
     this.scene.fog = getModernAssets()
-      ? new THREE.Fog(0x273942, 14, 72)
+      ? sim.map.seed === 'campaign:01-foundry' ? new THREE.Fog(0x15282f, 24, 110) : new THREE.Fog(0x273942, 14, 72)
       : resolved
       ? new THREE.Fog(CAMPAIGN_FOG[resolved], 8, 52)
       : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
@@ -346,12 +360,17 @@ export class GameRenderer {
 
   private updateModernLights(view: WorldView, dt: number): void {
     if (!this.modernKey) return;
+    const authored = view.map.seed === 'campaign:01-foundry' && view.player.x >= 12 && view.player.x < 104 && view.player.z >= 78 && view.player.z < 96;
+    this.torch.intensity = authored ? 1.2 : 5;
+    this.modernKey.intensity = authored ? 8 : 24;
+    if (authored) this.practicalLights.forEach(light => { light.visible = false; });
     this.camera.getWorldDirection(this.lightDirection);
     this.modernKey.position.copy(this.camera.position).add(new THREE.Vector3(-0.16, 0.16, 0));
     this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
     this.lightTimer -= dt;
     if (this.lightTimer > 0) return;
     this.lightTimer = 0.25;
+    if (authored) return;
     const { x, z } = view.player;
     const nearest = [...view.map.lights].sort((a, b) =>
       (a.x - x) ** 2 + (a.z - z) ** 2 - (b.x - x) ** 2 - (b.z - z) ** 2,
@@ -387,7 +406,8 @@ export class GameRenderer {
   render(): void {
     this.renderFrames++;
     this.renderer.clear();
-    this.renderer.render(this.scene, this.camera);
+    if (this.composer) this.composer.render();
+    else this.renderer.render(this.scene, this.camera);
     this.renderer.clearDepth();
     this.renderer.render(this.vmScene, this.vmCamera);
   }

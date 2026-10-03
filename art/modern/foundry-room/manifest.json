@@ -1,0 +1,325 @@
+{
+  "source": "foundry.blend",
+  "mapSeed": "campaign:01-foundry",
+  "cells": 370,
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bake": "Cycles CPU diffuse direct+indirect, color excluded; explicit sRGB OETF of linear irradiance / 8; Non-Color PNG storage",
+  "meshFaces": 13468,
+  "glbBytes": 2230776,
+  "lights": [
+    {
+      "position": [
+        19,
+        10.9,
+        81.6
+      ],
+      "color": [
+        0.65,
+        0.79,
+        1
+      ],
+      "power": 1600
+    },
+    {
+      "position": [
+        19,
+        10.9,
+        90.5
+      ],
+      "color": [
+        0.65,
+        0.79,
+        1
+      ],
+      "power": 1600
+    },
+    {
+      "position": [
+        28,
+        6.15,
+        87
+      ],
+      "color": [
+        0.63,
+        0.78,
+        1
+      ],
+      "power": 420
+    },
+    {
+      "position": [
+        32,
+        6.15,
+        87
+      ],
+      "color": [
+        0.63,
+        0.78,
+        1
+      ],
+      "power": 420
+    },
+    {
+      "position": [
+        41.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        51.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        61.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        71.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        81.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        91.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        100.0,
+        15.85,
+        80.8
+      ],
+      "color": [
+        0.68,
+        0.82,
+        1
+      ],
+      "power": 2600
+    },
+    {
+      "position": [
+        12.16,
+        2.8,
+        83
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 80
+    },
+    {
+      "position": [
+        12.16,
+        2.8,
+        91
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 80
+    },
+    {
+      "position": [
+        24,
+        2.8,
+        80.16
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        24,
+        2.8,
+        93.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        40,
+        2.8,
+        78.16
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        40,
+        2.8,
+        95.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        50,
+        2.8,
+        95.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        60,
+        2.8,
+        78.16
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        70,
+        2.8,
+        95.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        80,
+        2.8,
+        78.16
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        80,
+        2.8,
+        95.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        100,
+        2.8,
+        78.16
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    },
+    {
+      "position": [
+        100,
+        2.8,
+        95.84
+      ],
+      "color": [
+        1,
+        0.47,
+        0.16
+      ],
+      "power": 115
+    }
+  ],
+  "limits": "Only existing floor boundaries collide. Galleries, vessels and utility details are overhead scenery."
+}

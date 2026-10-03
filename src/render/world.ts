@@ -19,6 +19,7 @@ import {
 import { applyRadialFog } from './radialFog';
 import { getModernAssets, modernSurface } from './modernAssets';
 import { addModernArchitecture } from './modernWorld';
+import { addFoundryEnvironment, foundryCell } from './foundry';
 
 interface QuadMesh {
   pos: number[];
@@ -135,6 +136,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   for (let cz = 0; cz < map.h; cz++) {
     for (let cx = 0; cx < map.w; cx++) {
       if (map.grid[cz * map.w + cx] !== 1) continue;
+      if (modern && foundryCell(map, cx, cz)) continue;
       const { theme, outdoor } = roomThemeAt(map, cx, cz);
       const x0 = cx * CELL, x1 = x0 + CELL;
       const z0 = cz * CELL, z1 = z0 + CELL;
@@ -400,6 +402,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
 
   if (modern) {
     addModernArchitecture(group, map, modern.architecture);
+    if (map.seed === 'campaign:01-foundry') addFoundryEnvironment(group, modern.foundry);
   } else if (camp && resolved) {
     applyCampaignDecor(group, map, resolved, camp, disposables);
   }

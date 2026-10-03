@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { CELL } from '../sim/types';
 import type { GameMap } from '../sim/types';
 import { applyRadialFog } from './radialFog';
+import { foundryCell } from './foundry';
 
 type Placement = { x: number; y: number; z: number; yaw: number };
 export const MODERN_ARCHITECTURE_CHUNK_SIZE = CELL * 8;
@@ -61,6 +62,7 @@ export function addModernArchitecture(parent: THREE.Group, map: GameMap, source:
   const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
   for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
     if (!walkable(x, z)) continue;
+    if (foundryCell(map, x, z)) continue;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       if (walkable(x + dx, z + dz)) continue;
       // Parts face +Z into the room; their backs lie on the collision wall.

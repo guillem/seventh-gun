@@ -1,5 +1,25 @@
 # STATUS
 
+## Foundry architecture and lighting milestone — 2026-10-03
+
+Implemented on `codex/experimental-modern-art` / draft PR #32. The entrance,
+airlock and casting hall use a saved Blender scene with taller architecture,
+overhead machinery, galleries, a 2048² lightmap and baked normal/roughness maps.
+Desktop world rendering has restrained bloom; touch uses the direct path.
+The unchanged 370-cell floor footprint, doors and low-clearance geometry are
+checked against the exported GLB. No simulation files changed.
+
+348 unit tests, three TypeScript projects and the production build pass.
+The complete desktop/mobile Playwright suite passes: **101 passed, 13 intentional
+project skips**, no failures or retries (8.1 minutes). Installed Chrome on Apple
+M5 Pro holds about 60 fps in all four recorded normal-mode scenarios (desktop,
+retina, mobile emulation, first combat hall), with real entry/pause/quit checks.
+The bundled test browser uses SwiftShader: functional tests pass, but normal
+software-rendered performance is poor. Both reports are saved; real phones remain
+untested. The updated Netlify deployment still needs hosted verification. Sources and actual gameplay evidence are
+in `art/modern/foundry-room/`. Six new resources add 3.48 MB; the full experimental
+art payload is 8.23 MB / 22 files. No merge, release or production deployment.
+
 ## Experimental modern art branch — 2026-10-03
 
 Active branch: `codex/experimental-modern-art`. **Do not merge or release.**

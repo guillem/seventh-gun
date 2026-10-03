@@ -1,0 +1,37 @@
+{
+  "created": "2026-10-03",
+  "tool": "Blender 5.2.2 LTS, local CPU, four threads",
+  "authoring": "Original scene and material specimens authored with Blender Python. No external models, services or purchases. Existing AI-generated base colors are reused unchanged.",
+  "runtime": [
+    {
+      "path": "public/modern/foundry/concrete-normal.webp",
+      "bytes": 471324,
+      "sha256": "30078654201937ea4f5e59f2aaa2c1b2354fc0121e8d443cb492cfce2be625fa"
+    },
+    {
+      "path": "public/modern/foundry/concrete-roughness.webp",
+      "bytes": 39386,
+      "sha256": "38001c3134168386f1a693f2fde01e34ea16af58d8883d86ab92b71820e33a20"
+    },
+    {
+      "path": "public/modern/foundry/environment.glb",
+      "bytes": 2230776,
+      "sha256": "0cb323ca837f1c8aa1e85e84b925ddce69c933bea2241047de0a10d26d74997f"
+    },
+    {
+      "path": "public/modern/foundry/irradiance.webp",
+      "bytes": 412858,
+      "sha256": "35abf330198f710747a6e57630db103f4ebacc0246aae0d33a7f8d9b10472d83"
+    },
+    {
+      "path": "public/modern/foundry/steel-normal.webp",
+      "bytes": 284762,
+      "sha256": "9de9ebf2075567d94e2448a6ddb0651206f72cbf245262756cb70ee1d96f269b"
+    },
+    {
+      "path": "public/modern/foundry/steel-roughness.webp",
+      "bytes": 44404,
+      "sha256": "3cd017fce4a88cf6976dd0cb62a3c8574c10b42ceb9d2aaaf765e3478efebe4b"
+    }
+  ]
+}

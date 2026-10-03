@@ -45,6 +45,9 @@ test.describe('modern art bootstrap', () => {
     expect([...loaded]).toEqual(expect.arrayContaining([
       '/modern/models/pistol.glb', '/modern/models/husk.glb', '/modern/models/architecture.glb',
       '/modern/textures/concrete.webp', '/modern/textures/steel.webp',
+      '/modern/foundry/environment.glb', '/modern/foundry/irradiance.webp',
+      '/modern/foundry/concrete-normal.webp', '/modern/foundry/concrete-roughness.webp',
+      '/modern/foundry/steel-normal.webp', '/modern/foundry/steel-roughness.webp',
       '/modern/audio/pistol-a.mp3', '/modern/audio/pistol-b.mp3', '/modern/audio/shotgun.mp3',
       '/modern/audio/door-open.mp3', '/modern/audio/metal-impact.mp3',
       '/modern/audio/husk-alert.mp3', '/modern/audio/husk-pain.mp3', '/modern/audio/industrial-ambient.mp3',
@@ -134,7 +137,7 @@ test.describe('modern art bootstrap', () => {
     expect(await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.decoded)).toBe(8);
   });
 
-  for (const path of ['models/pistol.glb', 'audio/pistol-a.mp3']) {
+  for (const path of ['models/pistol.glb', 'audio/pistol-a.mp3', 'foundry/irradiance.webp']) {
     test(`a failed ${path} exposes retry before gameplay and recovers`, async ({ page }) => {
       const pattern = `**/modern/${path}`;
       await page.route(pattern, route => route.fulfill({ status: 503, body: 'Temporarily unavailable' }));

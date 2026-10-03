@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 
-export const MODERN_ASSET_VERSION = 'foundry-01';
+export const MODERN_ASSET_VERSION = 'foundry-02';
 export const MODERN_ASSET_URLS = {
   concrete: '/modern/textures/concrete.webp',
   steel: '/modern/textures/steel.webp',
@@ -14,6 +14,12 @@ export const MODERN_ASSET_URLS = {
   pistol: '/modern/models/pistol.glb',
   husk: '/modern/models/husk.glb',
   architecture: '/modern/models/architecture.glb',
+  foundry: '/modern/foundry/environment.glb',
+  irradiance: '/modern/foundry/irradiance.webp',
+  concreteNormal: '/modern/foundry/concrete-normal.webp',
+  concreteRoughness: '/modern/foundry/concrete-roughness.webp',
+  steelNormal: '/modern/foundry/steel-normal.webp',
+  steelRoughness: '/modern/foundry/steel-roughness.webp',
 } as const;
 
 export interface ModernAssets {
@@ -24,6 +30,12 @@ export interface ModernAssets {
   pistol: THREE.Group;
   husk: THREE.Group;
   architecture: THREE.Group;
+  foundry: THREE.Group;
+  irradiance: THREE.Texture;
+  concreteNormal: THREE.Texture;
+  concreteRoughness: THREE.Texture;
+  steelNormal: THREE.Texture;
+  steelRoughness: THREE.Texture;
 }
 
 let assets: ModernAssets | null = null;
@@ -62,6 +74,9 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       loadTexture(MODERN_ASSET_URLS.skin), loadTexture(MODERN_ASSET_URLS.titanium),
       loadModel(MODERN_ASSET_URLS.pistol), loadModel(MODERN_ASSET_URLS.husk),
       loadModel(MODERN_ASSET_URLS.architecture),
+      loadModel(MODERN_ASSET_URLS.foundry), loadTexture(MODERN_ASSET_URLS.irradiance),
+      loadTexture(MODERN_ASSET_URLS.concreteNormal), loadTexture(MODERN_ASSET_URLS.concreteRoughness),
+      loadTexture(MODERN_ASSET_URLS.steelNormal), loadTexture(MODERN_ASSET_URLS.steelRoughness),
     ]);
     const failure = results.find(result => result.status === 'rejected');
     if (failure) {
@@ -78,7 +93,52 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       skin: values[2] as THREE.Texture, titanium: values[3] as THREE.Texture,
       pistol: values[4] as THREE.Group, husk: values[5] as THREE.Group,
       architecture: values[6] as THREE.Group,
+      foundry: values[7] as THREE.Group, irradiance: values[8] as THREE.Texture,
+      concreteNormal: values[9] as THREE.Texture, concreteRoughness: values[10] as THREE.Texture,
+      steelNormal: values[11] as THREE.Texture, steelRoughness: values[12] as THREE.Texture,
     };
+    for (const texture of [assets.concreteNormal, assets.concreteRoughness, assets.steelNormal, assets.steelRoughness]) {
+      texture.colorSpace = THREE.NoColorSpace;
+      texture.flipY = false;
+    }
+    assets.irradiance.flipY = false;
+    assets.irradiance.channel = 1;
+    assets.irradiance.wrapS = assets.irradiance.wrapT = THREE.ClampToEdgeWrapping;
+    const foundryMaterials = new Set<THREE.Material>();
+    assets.foundry.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+        if (!(material instanceof THREE.MeshStandardMaterial) || foundryMaterials.has(material)) continue;
+        foundryMaterials.add(material);
+        material.lightMap = assets!.irradiance;
+        material.lightMapIntensity = 8 * Math.PI;
+        material.envMapIntensity = 0.35;
+        if (material.name === 'foundry.concrete') {
+          material.map = assets!.concrete;
+          material.color.set(0xc6c8c2);
+          material.normalMap = assets!.concreteNormal;
+          material.normalScale.setScalar(0.3);
+          material.roughnessMap = assets!.concreteRoughness;
+          material.roughness = 1;
+        } else if (material.name === 'foundry.floor') {
+          material.map = assets!.steel;
+          material.color.set(0x87989e);
+          material.metalness = 0.25;
+          material.normalMap = assets!.steelNormal;
+          material.normalScale.setScalar(0.12);
+          material.roughnessMap = assets!.steelRoughness;
+          material.roughness = 1;
+        } else if (/steel|edge|ochre/.test(material.name)) {
+          material.map = assets!.titanium;
+          material.metalness = 0.45;
+          material.envMapIntensity = 1;
+          material.color.multiplyScalar(1.7);
+          material.normalMap = assets!.steelNormal;
+          material.normalScale.setScalar(0.12);
+          material.roughnessMap = assets!.steelRoughness;
+        }
+      }
+    });
     // Bind saved material scans to named, UV-mapped Blender materials once.
     // Texture data is shared by all instances; the authored GLBs stay compact.
     const configured = new Set<THREE.Material>();

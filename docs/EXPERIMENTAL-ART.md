@@ -109,9 +109,44 @@ bundle remains; this first slice has no new runtime package dependencies.
 
 Review the playable slice before expanding the six remaining weapon models,
 five remaining enemy families, arena player models, pickups and effects.
-Character skinning, bespoke animation clips, normal/roughness maps, more natural
-hands and authored environment composition are unfinished. Existing collision
-geometry remains visibly rectilinear. Current details and generated base-color
+Character skinning, bespoke animation clips, character material maps and more
+natural hands are unfinished. Environment composition outside the new Foundry
+room pass remains unfinished, and collision geometry remains rectilinear. Current details and generated base-color
 textures improve the presentation but do not constitute a finished photorealistic
 overhaul. Campaign art distinctions also need a later pass: the first material
 kit currently applies throughout the game.
+
+## Second milestone: authored Foundry environment
+
+The entrance, airlock and casting hall now load one original Blender environment
+with 11m / 6.4m / 16m roof heights, galleries, skylights, trusses, utility piping
+and suspended process vessels. The floor retains all 370 original cells and
+side passages. Gallery decks and machinery are overhead scenery, not new cover
+or routes; simulation geometry is unchanged.
+
+A saved 2048² Cycles lightmap supplies static shadows and indirect light. Concrete
+and steel have saved tangent normals and roughness maps baked from original
+Blender material specimens; the existing generated base-color images are reused.
+This is offline asset authoring, not an image-generation service reconstructing
+physically correct maps from a photograph. Four soft skylight haze planes,
+rebalanced local lighting and restrained desktop bloom complete the room pass.
+Touch devices skip bloom. The weapon/HUD stays outside world postprocessing.
+
+Source scenes, bake settings, rebuild commands, runtime checksums and actual
+gameplay screenshots are under `art/modern/foundry-room/`. Six new runtime files
+add 3,483,510 bytes; all 22 experimental assets total 8,226,436 bytes before
+transport compression. No new package dependency, subscription or engine switch.
+
+The milestone adds geometry/UV/unchanged-layout regression checks and browser
+coverage for loading and recovering a failed lightmap. It does not rebake moving
+doors or implement dynamic global illumination. The rest of the campaign still
+uses the first milestone's environment kit. Character animation, the remaining
+weapon/enemy roster, and broad real-device profiling remain future work.
+
+Validation: 348 unit tests; all TypeScript projects and production build;
+101 desktop/mobile Playwright passes and 13 intentional skips, zero retries.
+Normal hardware-accelerated Chrome on Apple M5 Pro measured about 60 fps in
+all four recorded views, p95 16.7–16.8 ms. The bundled Chromium functional runner
+uses SwiftShader and is too slow for the normal-mode 30-second frame sample;
+its failed profile is retained alongside the hardware results. See the room's
+README and reports for exact counters and reproduction. Phones remain untested.

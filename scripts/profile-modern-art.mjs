@@ -13,6 +13,7 @@ await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
 const report = {
   base: base.href,
+  browserChannel: process.env.PLAYWRIGHT_CHANNEL || 'bundled-chromium',
   capturedAt: new Date().toISOString(),
   limitations: [
     'Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.',
@@ -24,6 +25,8 @@ const report = {
 
 async function sampleFrames(page) {
   return page.evaluate(async () => {
+    const deadline = new Promise((_, reject) => setTimeout(() => reject(new Error('Frame sample exceeded 30 seconds')), 30_000));
+    return Promise.race([deadline, (async () => {
     await new Promise(resolveWarm => {
       let frames = 0;
       function warm() { if (++frames >= 30) resolveWarm(); else requestAnimationFrame(warm); }
@@ -57,6 +60,7 @@ async function sampleFrames(page) {
       gpu: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : 'unavailable',
       renderSize: [gl.drawingBufferWidth, gl.drawingBufferHeight],
     };
+    })()]);
   });
 }
 
