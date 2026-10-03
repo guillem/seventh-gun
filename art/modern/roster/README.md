@@ -58,8 +58,11 @@ Safari are not verified by desktop Chrome emulation.
   all seven campaign views and six positively identified enemy species.
 - `performance/report.json`: normal-mode desktop, retina, touch emulation and
   first combat-room controls and frame measurements on Apple M5 Pro.
+- `campaign-performance/report.json`: fourteen normal-mode campaign entry views,
+  selected through real menus with observed HUD identity and no debug API.
 - `../../../docs/STATUS.md`: final aggregate validation and preview status.
 
-The initial hardware measurements hold approximately 60 fps across all four
-normal-mode scenarios, p95 16.7–16.8 ms. These measure frame cadence at selected
+Local hardware measurements hold approximately 60 fps across all four general
+scenarios and fourteen campaign entry views, p95 16.7–16.8 ms, with no game errors.
+These measure frame cadence at selected
 views; they are not a guarantee of every scene, GPU headroom or phone performance.

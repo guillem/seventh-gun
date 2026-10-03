@@ -1,6 +1,6 @@
 # STATUS
 
-## Full roster and campaign art pass — validation in progress 2026-10-03
+## Full roster and campaign art pass — local validation complete 2026-10-03
 
 Implemented on `codex/experimental-modern-art`, draft PR #32: seven animated
 weapons/fitted hands, six skinned enemy species, saved pickups/arena marine,
@@ -10,15 +10,19 @@ in [art/modern/roster](../art/modern/roster/README.md). Complete runtime payload
 84 files / 26,803,216 bytes before transport compression. Three.js remains the
 engine; desktop adds restrained contact shading alongside the Foundry light bake.
 
-383 unit tests pass under Node 24.21.0, including the 300-seed sweep, golden combat,
+384 unit tests pass under Node 24.21.0, including the 300-seed sweep, golden combat,
 real GLB/animation/clearance/ownership checks and full sampled-audio dispatch.
 All three TypeScript projects and the production build pass. Actual-game review
 covers all seven weapons on desktop/portrait, all seven maps and six verified
 species, with no game errors or missing assets. Hardware Chrome / Apple M5 Pro
-holds about 60 fps in the initial four normal-mode scenarios (p95 16.7–16.8 ms).
-Physical phones and Safari remain untested. The full browser suite and expanded
-campaign performance checks are in progress; final results will replace this
-paragraph before delivery. Source simulation/network/server files are unchanged.
+holds about 60 fps in four normal-mode scenarios and all fourteen campaign entry
+views (seven maps, desktop and portrait), with p95 16.7–16.8 ms and no game errors.
+These are selected views on a desktop GPU, not traversal/phone/headroom guarantees.
+Physical phones and Safari remain untested. The full browser suite passed 105
+checks with 13 intentional skips; two obsolete rigid-body corpse assertions were
+updated to inspect actual skeletal death/reset poses and both fresh reruns pass.
+This verifies 107 browser checks across the full run and focused rerun. Netlify
+verification is pending. Source simulation/network/server files are unchanged.
 
 Keep the branch experimental and PR #32 draft. No merge, tag or production deploy.
 The milestone entries below preserve earlier stages of the same experiment.
