@@ -72,3 +72,11 @@ hall each measured about 60 fps, p95 16.7–16.8 ms. Draw calls: 401 / 401 / 357
 passed with no game errors. `review-performance.json` contains the measurements
 and limitations. Hardware acceleration is required for useful performance; the
 bundled functional-test Chromium uses SwiftShader, as recorded in milestone two.
+
+
+Hosted verification of implementation commit `0dbfd77` passes at the existing
+PR #32 Netlify URL: desktop/mobile entrance and open-door views, all nine Foundry
+asset SHA-256 checksums, unchanged map hash, and all four normal hardware/control
+scenarios. `review-hosted-visual.json` and `review-hosted-performance.json` record
+the results. Blocked Netlify preview-toolbar telemetry is separated from game
+errors. Production main remains `8bf93b3`; the experimental PR remains draft.

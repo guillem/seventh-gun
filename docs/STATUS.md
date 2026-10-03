@@ -14,8 +14,13 @@ build pass. Full desktop/mobile Playwright: **103 passed, 13 intentional skips**
 zero failures/retries (8.0 minutes), including blocking/opening/traversing the new
 door. Normal-mode installed Chrome / Apple M5 Pro holds about 60 fps in all four
 views (desktop, retina, mobile emulation, first combat hall), p95 16.7–16.8 ms;
-real controls pass without game errors. Physical phones remain untested. Hosted
-preview verification is next.
+real controls pass without game errors. Physical phones remain untested. Netlify
+implementation commit `0dbfd77` is verified: desktop/mobile entrance and open-door
+captures pass, nine Foundry asset checksums match, and map hash stays `ee306bc5`.
+Hosted normal controls and all four hardware profile scenarios pass without game
+errors. Blocked preview-toolbar telemetry is recorded separately in the reports.
+PR #32 remains draft and remote main remains `8bf93b3`. GitHub CI runs separately.
+Next art milestone: improve the pistol/hands and husk after reviewing this pass.
 The current art payload is 25 files / 10,075,650 bytes before compression.
 Keep the branch experimental and PR #32 draft; no merge, tag or production deploy.
 
