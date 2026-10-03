@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 import { PROTOCOL_V } from '../../src/net/protocol';
 
 test.describe('arena server', () => {
@@ -6,7 +7,7 @@ test.describe('arena server', () => {
     test.skip(testInfo.project.name !== 'desktop', 'desktop only');
     const health = await page.request.get('/health');
     expect(await health.text()).toBe('ok');
-    await page.goto('/?e2e=1');
+    await gotoGame(page, '/?e2e=1');
     const got = await page.evaluate(async (version) => {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${proto}://${location.host}/arena`);

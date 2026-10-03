@@ -1,5 +1,29 @@
 # STATUS
 
+## Experimental modern art branch — 2026-10-03
+
+Active branch: `codex/experimental-modern-art`. **Do not merge or release.**
+The user authorized the first playable modern-art milestone and local Blender
+authoring. See [EXPERIMENTAL-ART.md](EXPERIMENTAL-ART.md) for scope, invariants,
+asset pipeline and review gates. Netlify draft-PR preview is the intended
+delivery. The first Foundry slice is implemented: saved generated textures and
+audio, editable Blender sources/GLBs, asset loading, modern lighting, title/HUD
+and touch integration. Runtime art is 4.74 MB across sixteen files. The other
+weapon/enemy families and bespoke character animation remain later art passes.
+
+Local verification: 346 unit tests pass under Node 24.21.0, all three TypeScript
+projects and the production build pass. Normal-mode desktop/retina and mobile
+emulation held about 60 fps on this Mac's Apple M5 Pro; this is not real-phone
+performance evidence. Visual review fixed portrait weapon cropping and touch
+controls intercepting pause-menu actions. Browser regression and Netlify preview
+verification are in progress.
+
+Node 26.10.0 on this machine has a pre-existing cosmetic secret snapshot mismatch:
+it also fails on the unchanged main baseline. Use Node 24, as CI does; no snapshot
+or simulation files were changed to accommodate the host runtime.
+
+The production history below is retained as the experiment's baseline.
+
 Updated 2026-09-05. The September repair implementation is complete; the
 first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for

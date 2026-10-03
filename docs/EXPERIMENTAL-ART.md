@@ -1,0 +1,111 @@
+# Modern art experiment
+
+Started 2026-10-03 on `codex/experimental-modern-art`.
+
+This is a long-lived experimental branch. Keep its PR in draft, do not merge,
+do not tag, and do not deploy the Cloudflare production Worker. Netlify Deploy
+Previews are the review destination. This explicitly overrides the ordinary
+AGENTS.md instruction to merge after preview verification for this experiment.
+
+## Direction and first milestone
+
+Grounded industrial / biomechanical science-fiction horror: cast concrete,
+machined steel, restrained amber and cool white practical lights, plausible
+surface wear, detailed weapon construction and readable enemy silhouettes.
+
+The first playable milestone uses the existing Foundry campaign layout and
+mechanics. It introduces generated surface textures, modern lighting, a Blender
+pistol and hands, a Blender husk, architectural details, sampled audio and a
+modern title/HUD. It is not the finished overhaul of all seven weapons and six
+enemy species. Existing art remains for content outside the initial asset set.
+
+## Invariants
+
+- No simulation, balance, map-generation, campaign topology or network changes.
+- Keep GEN_VERSION, hitboxes, aim, firing cadence, attack windups, progression
+  and secrets intact. Cosmetic recoil never changes the aim camera.
+- Art is produced offline. The game loads saved textures, GLBs and samples.
+- Preserve editable Blender sources and asset-generation provenance.
+- Use included Runway credits only; no trial, card, upgrade or purchase.
+- Shared textures live in a cache; transient model clones own their geometry
+  and material copies so existing disposal remains safe.
+
+## Milestones
+
+1. Establish branch, baseline and generated asset manifest.
+2. Build and integrate the Foundry presentation slice with explicit loading.
+3. Check gameplay, asset failures, repeated-session resource stability,
+   desktop/mobile layout and normal-mode visual performance.
+4. Open a draft PR and verify its real Netlify Deploy Preview.
+5. Review the slice before expanding the rest of the roster and environments.
+
+## Review protocol
+
+Use fixed Foundry camera positions and the `?e2e=1` debug API for repeatable
+screenshots. Run the original unit and E2E suites and add checks for the asset
+contract and startup failures. Review normal mode as well: debug mode disables
+antialiasing and forces DPR 1, so its performance is not a device benchmark.
+Report download size, startup readiness and frame timings as measurements of
+the tested environment, not universal performance guarantees.
+
+Netlify is sufficient for solo visual/audio review. Arena regression tests use
+the local Worker preview; do not connect this experiment to production arena
+just to make the preview's multiplayer button work.
+
+## First slice implementation
+
+- Four saved base-color textures: concrete, steel, synthetic dermal surface and
+  titanium. The menu uses a fifth generated concept image, labelled as concept
+  art in its provenance rather than represented as a gameplay screenshot.
+- Three Blender exports: pistol with hands, articulated husk and architectural
+  kit. The game instances wall ribs, conduits and fixtures against the existing
+  map walls. The kit also contains a service panel and floor grille for later
+  dressing. Authoring sources and loader inspection live under `art/modern/`.
+- Eight generated Runway MP3 recordings with unmodified source downloads,
+  prompts and processing checksums. Playback is local WebAudio; players never
+  contact a generation service. Other audio still has the original synth.
+- ACES tone mapping, an environment map, a shadowed player light and four nearby
+  practical lights; modern menu/HUD/touch presentation and portrait gun framing.
+- Explicit resource boot gate, retry screen, gesture-time audio decoding and
+  isolated per-instance GPU ownership. Architecture is grouped into 16m batches
+  with frustum culling and shared geometry/material storage.
+
+The sixteen runtime files total **4,742,926 bytes** before transport compression:
+models 3,032,868; textures/concept 1,457,006; audio 253,052. The editable source
+images, Blender files and inspection renders are checked into Git but are not
+part of the browser download. The architecture GLB is 5,032 triangles, reduced
+from the first 32,824-triangle export without changing module bounds.
+
+## Local visual and performance evidence
+
+`scripts/inspect-modern-art.mjs [baseURL] [outputDirectory]` captures deterministic
+desktop/mobile screenshots using `?e2e=1`, plus asset sizes, boot timing and
+render allocation counts. Its fixed-camera harness bypasses pointer lock;
+normal-mode interaction checks separately exercise the real entry/exit flow.
+The inspected Foundry topology hash is unchanged: `ee306bc5`.
+
+Normal-mode Chromium on the local Apple M5 Pro, after a 30-frame warmup and over
+180 sampled frames at the initial Foundry spawn:
+
+| View | Render buffer | Mean fps | Frame p95 | Draws/frame | Triangles/frame |
+| --- | --- | --- | --- | --- | --- |
+| Desktop | 1280 × 800 | 60.06 | 16.8 ms | 421 | 477,384 |
+| Desktop retina | 2560 × 1600 | 60.06 | 16.8 ms | 421 | 477,384 |
+| Mobile emulation | 780 × 1688 | 60.04 | 16.7 ms | 385 | 460,138 |
+
+These are measurements on a desktop GPU at one camera position, not real-phone
+or full-combat performance guarantees. Normal mode enables antialiasing and
+caps DPR at two. Actual phone testing and wider level/combat profiling remain
+review work. The standard production-build warning about the large JavaScript
+bundle remains; this first slice has no new runtime package dependencies.
+
+## Remaining art passes
+
+Review the playable slice before expanding the six remaining weapon models,
+five remaining enemy families, arena player models, pickups and effects.
+Character skinning, bespoke animation clips, normal/roughness maps, more natural
+hands and authored environment composition are unfinished. Existing collision
+geometry remains visibly rectilinear. Current details and generated base-color
+textures improve the presentation but do not constitute a finished photorealistic
+overhaul. Campaign art distinctions also need a later pass: the first material
+kit currently applies throughout the game.

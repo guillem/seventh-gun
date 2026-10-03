@@ -11,6 +11,7 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
+  const instances = new Set<THREE.InstancedMesh>();
 
   root.traverse((node) => {
     const renderable = node as THREE.Object3D & {
@@ -20,6 +21,9 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
     // Three.Sprite assigns every sprite its internal shared quad geometry.
     // It is not owned by a muzzle, label, particle, or projectile instance.
     if (renderable.geometry && !(node as THREE.Sprite).isSprite) geometries.add(renderable.geometry);
+    // Instance buffers belong to the object, not its geometry. Three removes
+    // them only when InstancedMesh emits its own disposal event.
+    if ((node as THREE.InstancedMesh).isInstancedMesh) instances.add(node as THREE.InstancedMesh);
     const material = renderable.material;
     if (Array.isArray(material)) material.forEach(m => materials.add(m));
     else if (material) materials.add(material);
@@ -31,6 +35,7 @@ export function disposeOwnedObject(root: THREE.Object3D): void {
   });
 
   root.removeFromParent();
+  instances.forEach(instance => instance.dispose());
   geometries.forEach(geometry => geometry.dispose());
   materials.forEach(material => material.dispose());
   textures.forEach(texture => texture.dispose());

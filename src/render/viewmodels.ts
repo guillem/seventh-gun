@@ -58,6 +58,7 @@
 // here calls applyRadialFog. pickups.ts fogs the world copy itself.
 import * as THREE from 'three';
 import { GUN_FLASH, gunPalette, type GunPalette } from './gunArt';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
 
 export interface ViewModel {
   group: THREE.Group;
@@ -561,6 +562,18 @@ const builders: Builder[] = [buildPistol, buildShotgun, buildChaingun, buildSpik
 
 export function buildViewModel(gunId: number): ViewModel {
   const { group, holder } = baseGroup();
+  const modern = getModernAssets();
+  if (modern && gunId === 1) {
+    const gun = cloneOwnedModel(modern.pistol);
+    const muzzle = gun.getObjectByName('muzzle');
+    if (!muzzle) throw new Error('Pistol asset is missing its muzzle anchor');
+    const slide = gun.getObjectByName('slide');
+    const slideZ = slide?.position.z ?? 0;
+    holder.add(gun);
+    return { group, muzzle, update: stdUpdate(holder, (_dt, state) => {
+      if (slide) slide.position.z = slideZ + state.recoil * 0.045;
+    }) };
+  }
   const parts = builders[gunId - 1](gunPalette(), true);
   holder.add(parts.gun);
   return { group, muzzle: parts.muzzle, update: stdUpdate(holder, parts.animate) };
@@ -570,8 +583,16 @@ export function buildViewModel(gunId: number): ViewModel {
  *  no holder offset), recentred on its own bounds so it sits on the pedestal
  *  and spins about its own middle. */
 export function buildWorldGun(gunId: number): THREE.Group {
-  const parts = builders[gunId - 1](gunPalette(), false);
-  const gun = parts.gun;
+  const modern = getModernAssets();
+  const gun = modern && gunId === 1
+    ? cloneOwnedModel(modern.pistol)
+    : builders[gunId - 1](gunPalette(), false).gun;
+  const hands = gun.getObjectByName('hands');
+  if (hands) {
+    // Preserve ownership for disposal while excluding hands from bounds.
+    hands.visible = false;
+    hands.scale.setScalar(0);
+  }
   const bounds = new THREE.Box3().setFromObject(gun);
   const centre = bounds.getCenter(new THREE.Vector3());
   gun.position.sub(centre);

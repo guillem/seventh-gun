@@ -75,7 +75,13 @@ export class InputManager {
 
   requestLock(): void {
     if (this.isTouch) return;
-    this.canvas.requestPointerLock?.();
+    // A browser may deny capture, or the document can lose focus while the
+    // asynchronous request is pending. A later canvas click can retry it.
+    try {
+      void this.canvas.requestPointerLock?.()?.catch(() => {});
+    } catch {
+      // Older implementations may throw synchronously instead of rejecting.
+    }
   }
 
   releaseLock(): void {

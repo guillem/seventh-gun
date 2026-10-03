@@ -1,7 +1,8 @@
-// Fully synthesized audio: per-gun SFX, enemy voices, pickups, doors,
-// stings, ambient drone. WebAudio, unlocked on first gesture. iOS: request
+// Generated samples for the experimental slice, with synthesized fallback for
+// unfinished assets. WebAudio, unlocked on first gesture. iOS: request
 // playback audio session so the silent switch doesn't mute us.
 import type { SimEvent, EnemyType } from '../sim/types';
+import { decodeModernAudio, type ModernSampleId } from './samples';
 
 type Ctx = AudioContext;
 
@@ -10,6 +11,10 @@ export class AudioEngine {
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private ambientNodes: OscillatorNode[] = [];
+  private sampledAmbient: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private samples = new Map<ModernSampleId, AudioBuffer>();
+  private sampleDecode: Promise<void> | null = null;
+  private pistolVariation = 0;
   private chaingunLoop: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private voiceEnds: number[] = [];
   muted = false;
@@ -39,6 +44,10 @@ export class AudioEngine {
     if (this.ctx.state === 'suspended') {
       try { await this.ctx.resume(); } catch { /* ignore */ }
     }
+    if (!this.sampleDecode) {
+      this.sampleDecode = decodeModernAudio(this.ctx).then((samples) => { this.samples = samples; });
+    }
+    await this.sampleDecode;
   }
 
   setVolume(v: number): void {
@@ -78,6 +87,24 @@ export class AudioEngine {
     g.gain.value = this.eventGain;
     g.connect(dest);
     return g;
+  }
+
+  /** True means a recording handled the event, including a muted or rejected
+   * voice. Admission rejection must never allocate a synthesized substitute. */
+  private sample(id: ModernSampleId, gain = 1, rate = 1): boolean {
+    const buffer = this.samples.get(id);
+    if (!buffer || !this.ctx) return false;
+    if (!this.canPlay(buffer.duration / rate)) return true;
+    const src = this.ctx.createBufferSource();
+    const level = this.ctx.createGain();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    level.gain.value = gain * this.eventGain;
+    src.connect(level);
+    level.connect(this.compressor ?? this.ctx.destination);
+    src.onended = () => { src.disconnect(); level.disconnect(); };
+    src.start();
+    return true;
   }
 
   private noiseBuffer: AudioBuffer | null = null;
@@ -149,6 +176,8 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- guns
   gunSound(id: number): void {
+    if (id === 1 && this.sample(this.pistolVariation++ % 2 ? 'pistol-b' : 'pistol-a', 0.85)) return;
+    if (id === 2 && this.sample('shotgun', 1)) return;
     switch (id) {
       case 1: // pistol: snappy crack
         this.noise(0.09, 0.5, 'bandpass', 2400, 0.8);
@@ -198,6 +227,7 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- enemies
   private voice(type: EnemyType, kind: 'alert' | 'pain' | 'death'): void {
+    if (type === 'husk' && kind !== 'death' && this.sample(`husk-${kind}`, kind === 'pain' ? 0.25 : 0.36)) return;
     // each species has a distinct pitch band + waveform character
     const spec: Record<EnemyType, { f: number; type: OscillatorType; grit: number }> = {
       husk: { f: 210, type: 'sawtooth', grit: 0.3 },
@@ -257,6 +287,8 @@ export class AudioEngine {
   }
 
   door(open: boolean): void {
+    if (open && this.sample('door-open', 0.45)) return;
+    if (!open && this.sample('metal-impact', 0.32)) return;
     if (open) {
       this.noise(0.7, 0.3, 'lowpass', 900, 0.8, 300);
       this.tone('sine', 90, 140, 0.6, 0.18);
@@ -296,7 +328,20 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- loops
   startAmbient(): void {
-    if (!this.ctx || this.ambientNodes.length) return;
+    if (!this.ctx || this.ambientNodes.length || this.sampledAmbient) return;
+    const buffer = this.samples.get('industrial-ambient');
+    if (buffer) {
+      const src = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      src.buffer = buffer;
+      src.loop = true;
+      gain.gain.value = 0.1;
+      src.connect(gain);
+      gain.connect(this.compressor ?? this.ctx.destination);
+      this.sampledAmbient = { src, gain };
+      src.start();
+      return;
+    }
     const g = this.ctx.createGain();
     g.gain.value = 0.05;
     g.connect(this.out());
@@ -326,6 +371,12 @@ export class AudioEngine {
   }
 
   stopAmbient(): void {
+    if (this.sampledAmbient) {
+      try { this.sampledAmbient.src.stop(); } catch { /* already stopped */ }
+      this.sampledAmbient.src.disconnect();
+      this.sampledAmbient.gain.disconnect();
+      this.sampledAmbient = null;
+    }
     for (const o of this.ambientNodes) { try { o.stop(); } catch { /* already stopped */ } }
     this.ambientNodes = [];
   }

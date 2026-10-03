@@ -526,7 +526,11 @@ export class Game {
     this.deathHandled = false;
     this.winHandled = false;
     this.hud.showMessage(message);
-    this.audio.unlock().then(() => this.audio.startAmbient());
+    const startedSim = this.sim;
+    void this.audio.unlock().then(() => {
+      if (this.sim === startedSim && startedSim.phase === 'playing' &&
+        (this.phase === 'playing' || this.phase === 'paused' || this.phase === 'map')) this.audio.startAmbient();
+    });
     this.input.paused = false;
     if (!this.input.isTouch) this.input.requestLock();
     this.pushLookToCamera(this.sim.player.yaw, this.sim.player.pitch);

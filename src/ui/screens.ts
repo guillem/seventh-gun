@@ -1,5 +1,6 @@
 // DOM screens: title, pause, death-after-lockout (title mode), victory,
-// full map overlay, touch controls. All styled in index.html <style>.
+// full map overlay, touch controls. Base styles live in index.html;
+// the experimental art branch layers modern.css over those shared contracts.
 import { GEN_VERSION, type Difficulty } from '../sim/types';
 import { DIFFICULTIES, DIFFICULTY_ORDER } from '../sim/difficulty';
 import { formatRelativeTime, type MapLogEntry } from '../app/mapLog';
@@ -102,12 +103,15 @@ export class Screens {
     this.title = this.el(`
       <div class="screen" id="title-screen">
         <div class="title-art">
+          <div class="lab-marker"><span class="lab-status-dot" aria-hidden="true"></span>EXPERIMENTAL ART LAB</div>
           <h1>SEVENTH<span class="accent">GUN</span></h1>
-          <div class="subtitle">a nightmare maze of flesh and steel</div>
+          <div class="subtitle">Concrete. Steel. Something still breathing.</div>
         </div>
-        <div class="panel">
-          <div class="row">
-            <label>SEED</label>
+        <div class="panel title-menu">
+          <button id="foundry-btn" class="big foundry-play"><span>PLAY THE FOUNDRY</span><span class="play-arrow" aria-hidden="true">↗</span></button>
+          <div class="menu-divider"><span>OR ENTER A SEEDED MAZE</span></div>
+          <div class="row seed-row">
+            <label for="seed-input">SEED</label>
             <input id="seed-input" maxlength="24" autocomplete="off" spellcheck="false"/>
             <button id="seed-random" class="small" title="random seed">RND</button>
           </div>
@@ -116,12 +120,12 @@ export class Screens {
             <div class="diff-row" id="diff-row"></div>
           </div>
           <button id="start-btn" class="big">ENTER THE MAZE</button>
-          <div class="row">
+          <div class="row title-nav">
             <button id="maplog-btn" class="big">MAP LOG</button>
             <button id="campaign-btn" class="big">CAMPAIGN</button>
             <button id="editor-btn" class="big">EDITOR</button>
           </div>
-          <div class="row">
+          <div class="row arena-nav">
             <button id="arena-btn" class="big">MULTIPLAYER ARENA</button>
           </div>
           <div class="row hidden" id="death-row">
@@ -131,14 +135,15 @@ export class Screens {
             <button id="death-save" class="hidden">SAVE TO LIBRARY</button>
             <button id="death-editor" class="hidden">BACK TO EDITOR</button>
           </div>
-          <div class="hints">
-            WASD move · mouse look · click fire · E use · 1-7 / wheel guns · TAB map · ESC pause<br/>
-            Find all seven guns. The Seventh unseals the arena. Clear it to win.
+          <div class="hints title-hints">
+            WASD move · mouse look · click fire · E use<br/>
+            1–7 / wheel guns · TAB map · ESC pause
           </div>
         </div>
+        <div class="scene-caption" aria-hidden="true"><span class="scene-index">01</span><span>THE FOUNDRY<small>DESCENT INTO THE MACHINE</small></span></div>
         <div class="volume-row">
           <button id="mute-btn" class="small">SOUND: ON</button>
-          <input id="volume-slider" type="range" min="0" max="100" value="80"/>
+          <input id="volume-slider" type="range" min="0" max="100" value="80" aria-label="Volume"/>
         </div>
       </div>
     `);
@@ -691,6 +696,7 @@ export class Screens {
     back: () => void;
     playMap: (n: number) => void;
   }): void {
+    this.title.querySelector('#foundry-btn')!.addEventListener('click', handlers.begin);
     this.campaign.querySelector('#campaign-begin')!.addEventListener('click', handlers.begin);
     this.campaignContinueBtn.addEventListener('click', handlers.continue);
     this.campaign.querySelector('#campaign-back')!.addEventListener('click', handlers.back);

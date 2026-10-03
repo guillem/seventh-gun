@@ -6,6 +6,7 @@ import { getTextures } from './textures';
 import type { EnemyEnt } from '../sim/sim';
 import { ENEMIES } from '../sim/enemyTypes';
 import { applyRadialFog, applyRadialFogDeep } from './radialFog';
+import { getModernAssets, cloneOwnedModel } from './modernAssets';
 
 export interface EnemyRig {
   group: THREE.Group;       // positioned at feet, faces +z when yaw applied
@@ -874,6 +875,46 @@ function shadowMesh(r: number): THREE.Mesh {
 
 // ------------------------------------------------------------------ manager
 
+function buildModernHusk(): EnemyRig | null {
+  const assets = getModernAssets();
+  if (!assets) return null;
+  const group = new THREE.Group();
+  const yawGroup = new THREE.Group();
+  const body = new THREE.Group();
+  const model = cloneOwnedModel(assets.husk);
+  body.add(model);
+  yawGroup.add(body);
+  group.add(yawGroup);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x9dff3a });
+  const eyes: THREE.Mesh[] = [];
+  const replaced = new Set<THREE.Material>();
+  model.traverse(node => {
+    if (!(node instanceof THREE.Mesh) || !/eye|optic/i.test(node.name)) return;
+    for (const material of Array.isArray(node.material) ? node.material : [node.material]) replaced.add(material);
+    node.material = eyeMat;
+    eyes.push(node);
+  });
+  // GLB materials may be shared with non-eye meshes. Only retire unused ones.
+  const used = new Set<THREE.Material>();
+  model.traverse(node => {
+    if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) used.add(material);
+  });
+  replaced.forEach(material => { if (!used.has(material)) material.dispose(); });
+  if (!eyes.length) {
+    // Own the flare material even if an asset revision omits eye geometry.
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), eyeMat);
+    eye.position.set(0, 1.72, 0.2);
+    body.add(eye);
+    eyes.push(eye);
+  }
+  const shadow = shadowMesh(0.55);
+  group.add(shadow);
+  const nodes = (names: string[]) => names.map(name => model.getObjectByName(name)).filter((node): node is THREE.Object3D => !!node);
+  return { group, yawGroup, body, head: model.getObjectByName('head'), eyes,
+    legs: nodes(['leg_l', 'leg_r']), arms: nodes(['arm_l', 'arm_r']), extras: [],
+    eyeMat, baseY: 0, radius: ENEMIES.husk.radius, height: ENEMIES.husk.height, shadow };
+}
+
 export class EnemyRenderer {
   rigs = new Map<number, EnemyRig>();
   private scene: THREE.Scene;
@@ -887,6 +928,10 @@ export class EnemyRenderer {
   private build(type: string): EnemyRig {
     const tex = getTextures();
     const rig = (() => {
+      if (type === 'husk') {
+        const modern = buildModernHusk();
+        if (modern) return modern;
+      }
       switch (type) {
         case 'crawler': return buildCrawler(tex);
         case 'slab': return buildSlab(tex);

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';
 
@@ -10,7 +11,7 @@ type GameApi = {
 };
 
 async function joinArena(page: import('@playwright/test').Page, name: string): Promise<void> {
-  await page.goto(BASE);
+  await gotoGame(page, BASE);
   await page.evaluate((n) => (window as unknown as { __GAME__: GameApi }).__GAME__.joinArena(n), name);
   await page.waitForFunction(() => {
     const g = (window as unknown as { __GAME__?: GameApi }).__GAME__;
@@ -59,7 +60,7 @@ test.describe('arena', () => {
   // real keystrokes.
   test('typing in the arena NAME field is not eaten by the global key handler', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'desktop only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await page.getByRole('button', { name: 'MULTIPLAYER ARENA' }).click();
     await expect(page.locator('#arena-join-screen')).toBeVisible();
     const input = page.locator('#arena-name');
@@ -125,7 +126,7 @@ test.describe('arena', () => {
   });
   test('title shows MULTIPLAYER ARENA and maze still starts', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop' && testInfo.project.name !== 'mobile', 'projects only');
-    await page.goto(BASE);
+    await gotoGame(page, BASE);
     await expect(page.getByRole('button', { name: 'MULTIPLAYER ARENA' })).toBeVisible();
     if (testInfo.project.name === 'mobile') {
       const panel = page.locator('#title-screen .panel');
@@ -152,8 +153,8 @@ test.describe('arena', () => {
     const ctx2 = await browser.newContext();
     const a = await ctx1.newPage();
     const b = await ctx2.newPage();
-    await a.goto(BASE);
-    await b.goto(BASE);
+    await gotoGame(a, BASE);
+    await gotoGame(b, BASE);
     const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
     await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('TEST'));
     const wsA = await wsAPromise;
@@ -201,7 +202,7 @@ test.describe('arena', () => {
     // Occupy a room, note its seed, then vacate it.
     const ctx1 = await browser.newContext();
     const a = await ctx1.newPage();
-    await a.goto(BASE);
+    await gotoGame(a, BASE);
     const wsAPromise = a.waitForEvent('websocket', (ws) => ws.url().includes('/arena'));
     await a.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('FIRST'));
     const wsA = await wsAPromise;
@@ -215,7 +216,7 @@ test.describe('arena', () => {
     // to join the next room; no retry masks that lifecycle guarantee.
     const cctx = await browser.newContext();
     const c = await cctx.newPage();
-    await c.goto(BASE);
+    await gotoGame(c, BASE);
     await c.evaluate(() => (window as unknown as { __GAME__: { joinArena: (n: string) => Promise<void> } }).__GAME__.joinArena('SECOND'));
     await c.waitForFunction(
       () => (window as unknown as { __GAME__?: { arena: () => { connected: boolean } | null } }).__GAME__?.arena()?.connected === true,

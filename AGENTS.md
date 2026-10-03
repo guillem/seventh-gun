@@ -1,5 +1,13 @@
 # SEVENTH GUN — agent instructions
 
+## Active experimental branch
+
+`codex/experimental-modern-art` is a user-requested art experiment. Keep all
+development on that branch, leave its PR in draft, and use Netlify Deploy
+Previews for review. **Do not merge, tag, publish, or deploy production.**
+This overrides the normal merge-after-preview workflow below for this branch.
+See `docs/EXPERIMENTAL-ART.md` and `docs/STATUS.md` for scope and progress.
+
 A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
 with an optional Cloudflare Workers or portable Node arena server. Everything
 procedural (canvas textures, mesh factories, WebAudio synth). No paid assets,

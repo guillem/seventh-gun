@@ -17,6 +17,8 @@ import {
   applyCampaignDecor, CAMPAIGN_AMBIENT, CAMPAIGN_DOOR_EMISSIVE,
 } from './campaignDecor';
 import { applyRadialFog } from './radialFog';
+import { getModernAssets, modernSurface } from './modernAssets';
+import { addModernArchitecture } from './modernWorld';
 
 interface QuadMesh {
   pos: number[];
@@ -99,6 +101,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   dispose: () => void;
 } {
   const tex = getTextures();
+  const modern = getModernAssets();
   const resolved = artId;
   const camp: CampaignTextureLib | null = resolved ? getCampaignTextures(resolved) : null;
   const group = new THREE.Group();
@@ -203,7 +206,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
         : type === 'ceil' ? tex.ceilings[theme]
           : tex.walls[theme];
     const wallRepeat = type === 'wall' ? 1 : 1;
-    const mat = new THREE.MeshBasicMaterial({
+    const mat = modernSurface(type as 'floor' | 'ceil' | 'wall') ?? new THREE.MeshBasicMaterial({
       map: texture, vertexColors: true, fog: true,
       // floors/ceilings are single-sided quads seen from one side; DoubleSide
       // removes any chance of a culled surface showing the sky through it
@@ -212,6 +215,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     applyRadialFog(mat);
     void wallRepeat;
     const mesh = new THREE.Mesh(geo, mat);
+    mesh.receiveShadow = !!modern;
     mesh.frustumCulled = true;
     group.add(mesh);
   }
@@ -220,6 +224,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   const decalGeo = new THREE.PlaneGeometry(CELL * 0.82, CELL * 0.82);
   disposables.push(decalGeo);
   for (const d of map.decors) {
+    if (modern) continue; // Saved architectural fixtures replace the canvas decal layer.
     const size = d.kind === 'tendrils' ? CELL : CELL * 0.8;
     const geo = d.kind === 'tendrils' ? new THREE.PlaneGeometry(size, size) : decalGeo;
     if (d.kind === 'tendrils') disposables.push(geo);
@@ -251,12 +256,13 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       d.axis === 'x' ? CELL * 3 : 0.5,
     );
     disposables.push(geo);
-    const mat = new THREE.MeshLambertMaterial({
+    const mat = modernSurface('door') ?? new THREE.MeshLambertMaterial({
       map: camp?.door ?? tex.door,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
     });
     applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = mesh.receiveShadow = !!modern;
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
     doorMeshes.set(d.id, mesh);
@@ -274,7 +280,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     );
     disposables.push(geo);
     const wallTex = camp?.walls ?? tex.walls[theme];
-    const mat = new THREE.MeshLambertMaterial({ map: wallTex });
+    const mat = modernSurface('wall') ?? new THREE.MeshLambertMaterial({ map: wallTex });
     applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(s.x, (WALL_H * 0.72) / 2, s.z);
@@ -383,7 +389,8 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     skyMap.wrapS = THREE.ClampToEdgeWrapping;
     skyMap.wrapT = THREE.ClampToEdgeWrapping;
     const mat = new THREE.MeshBasicMaterial({
-      map: skyMap, side: THREE.BackSide, fog: false, depthWrite: false,
+      map: modern ? null : skyMap, color: modern ? 0x718a95 : 0xffffff,
+      side: THREE.BackSide, fog: false, depthWrite: false,
     });
     sky = new THREE.Mesh(geo, mat);
     sky.frustumCulled = false;
@@ -391,7 +398,9 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     group.add(sky);
   }
 
-  if (camp && resolved) {
+  if (modern) {
+    addModernArchitecture(group, map, modern.architecture);
+  } else if (camp && resolved) {
     applyCampaignDecor(group, map, resolved, camp, disposables);
   }
 

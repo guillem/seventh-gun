@@ -18,6 +18,8 @@ import { CAMPAIGN_FOG } from './campaignDecor';
 import { hasVisualLineOfSight } from '../sim/physics';
 import { applyRadialFogDeep, installRadialFog } from './radialFog';
 import { disposeOwnedObject } from './dispose';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { getModernAssets } from './modernAssets';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -44,6 +46,10 @@ export class GameRenderer {
   private muzzleLife = 0;
   private baseFov = 75;
   private renderFrames = 0;
+  private modernKey: THREE.SpotLight | null = null;
+  private practicalLights: THREE.PointLight[] = [];
+  private lightTimer = 0;
+  private lightDirection = new THREE.Vector3();
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
     installRadialFog();
@@ -51,6 +57,22 @@ export class GameRenderer {
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
+    const modern = !!getModernAssets();
+    if (modern) {
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 0.94;
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      const environment = new RoomEnvironment();
+      const environmentMap = pmrem.fromScene(environment, 0.04);
+      this.scene.environment = environmentMap.texture;
+      this.vmScene.environment = environmentMap.texture;
+      this.scene.environmentIntensity = 0.3;
+      this.vmScene.environmentIntensity = 0.65;
+      environment.dispose();
+      pmrem.dispose();
+    }
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
     this.camera.rotation.order = 'YXZ';
@@ -59,15 +81,31 @@ export class GameRenderer {
     this.scene.fog = new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
 
     // lighting for dynamic meshes (enemies/pickups/doors)
-    this.scene.add(new THREE.AmbientLight(0x77706d, 1.35));
-    const hemi = new THREE.HemisphereLight(0x5a4850, 0x2a2226, 0.7);
+    this.scene.add(new THREE.AmbientLight(modern ? 0xa4b7c2 : 0x77706d, modern ? 0.2 : 1.35));
+    const hemi = new THREE.HemisphereLight(modern ? 0xc2d9e1 : 0x5a4850, modern ? 0x333028 : 0x2a2226, modern ? 0.55 : 0.7);
     this.scene.add(hemi);
     this.torch = new THREE.PointLight(0xffd9a0, 26, 14, 1.8);
     this.scene.add(this.torch);
+    if (modern) {
+      this.torch.color.set(0xdbe7ee);
+      this.torch.intensity = 5;
+      this.modernKey = new THREE.SpotLight(0xe3edf2, 24, 32, 0.82, 0.75, 1.5);
+      this.modernKey.castShadow = true;
+      this.modernKey.shadow.mapSize.setScalar(window.innerWidth < 650 ? 512 : 1024);
+      this.modernKey.shadow.bias = -0.0004;
+      this.modernKey.shadow.normalBias = 0.035;
+      this.modernKey.shadow.camera.near = 0.3;
+      this.scene.add(this.modernKey, this.modernKey.target);
+      for (let i = 0; i < 4; i++) {
+        const light = new THREE.PointLight(0xffd3a1, 0, 20, 1.6);
+        this.practicalLights.push(light);
+        this.scene.add(light);
+      }
+    }
 
     // viewmodel pass lights
-    this.vmScene.add(new THREE.AmbientLight(0x777168, 1.1));
-    const vmKey = new THREE.DirectionalLight(0xfff1d8, 1.3);
+    this.vmScene.add(new THREE.AmbientLight(modern ? 0xb6c9d5 : 0x777168, modern ? 0.7 : 1.1));
+    const vmKey = new THREE.DirectionalLight(0xfff1d8, modern ? 2.0 : 1.3);
     vmKey.position.set(-0.6, 1, 0.4);
     this.vmScene.add(vmKey);
     this.vmScene.add(this.vmHolder);
@@ -100,6 +138,9 @@ export class GameRenderer {
     this.camera.updateProjectionMatrix();
     this.vmCamera.aspect = aspect;
     this.vmCamera.updateProjectionMatrix();
+    // Keep the authored pistol and hands in frame as the portrait viewport
+    // narrows. This translates only the weapon pass, never the aim camera.
+    this.vmHolder.position.x = getModernAssets() ? -0.38 * Math.max(0, 1 - aspect) : 0;
   }
 
   setRun(sim: WorldView, artId?: CampaignArtId): void {
@@ -118,11 +159,15 @@ export class GameRenderer {
     const resolved = artId;
     this.world = buildWorld(sim.map, resolved);
     this.scene.add(this.world.group);
-    this.scene.fog = resolved
+    this.scene.fog = getModernAssets()
+      ? new THREE.Fog(0x273942, 14, 72)
+      : resolved
       ? new THREE.Fog(CAMPAIGN_FOG[resolved], 8, 52)
       : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
     applyRadialFogDeep(this.scene);
     this.setGun(1);
+    this.lightTimer = 0;
+    this.updateModernLights(sim, 0);
     this.prefetchDynamicMeshes();
   }
 
@@ -213,6 +258,7 @@ export class GameRenderer {
     }
     if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
     this.torch.position.copy(this.camera.position);
+    this.updateModernLights(sim, dt);
 
     // gun switch visual
     this.setGun(p.gun);
@@ -298,6 +344,29 @@ export class GameRenderer {
     this.others.update(dt, remotes, this.camera, view);
   }
 
+  private updateModernLights(view: WorldView, dt: number): void {
+    if (!this.modernKey) return;
+    this.camera.getWorldDirection(this.lightDirection);
+    this.modernKey.position.copy(this.camera.position).add(new THREE.Vector3(-0.16, 0.16, 0));
+    this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
+    this.lightTimer -= dt;
+    if (this.lightTimer > 0) return;
+    this.lightTimer = 0.25;
+    const { x, z } = view.player;
+    const nearest = [...view.map.lights].sort((a, b) =>
+      (a.x - x) ** 2 + (a.z - z) ** 2 - (b.x - x) ** 2 - (b.z - z) ** 2,
+    ).slice(0, this.practicalLights.length);
+    this.practicalLights.forEach((light, i) => {
+      const source = nearest[i];
+      light.visible = !!source;
+      if (!source) return;
+      light.position.set(source.x, Math.min(source.y, 3.8), source.z);
+      light.color.setRGB(...source.color).lerp(new THREE.Color(0xf0d6b4), 0.65);
+      light.intensity = 24 * source.intensity;
+      light.distance = Math.min(24, source.radius * 1.2);
+    });
+  }
+
   get enemyRigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
     return this.enemies.rigInfo();
   }
@@ -328,5 +397,10 @@ export class GameRenderer {
     this.camera.position.set(x, y, z);
     this.camera.rotation.set(pitch, yaw, 0);
     if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
+    if (this.modernKey) {
+      this.camera.getWorldDirection(this.lightDirection);
+      this.modernKey.position.copy(this.camera.position);
+      this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
+    }
   }
 }
