@@ -1,5 +1,39 @@
 # STATUS
 
+## CI E2E on software GL — fixed 2026-10-03
+
+E2E had never completed on this branch's CI. Cause, measured on GitHub runners:
+Playwright's bundled headless shell renders WebGL with SwiftShader (Subzero JIT
+on x64 Linux), which needs 29 s to start the Foundry and 1.8 s per frame with
+this renderer. Mesa llvmpipe does the same full-quality frames in 7.0 s and
+0.39 s. No game or render code was changed; tests exercise what ships.
+Details and the measurement table are in [TESTING.md](TESTING.md) "E2E in CI".
+
+- `E2E_GL=llvmpipe` (CI only, `tests/helpers/softwareGl.ts`) with a global
+  setup that aborts on a silent SwiftShader fallback; CI-only limits in
+  `playwright.config.ts`; `deploy-art.yml` runs six E2E shards and the deploy
+  needs all of them. The draft PR's `deploy.yml` copy has no E2E and a renamed
+  test job, so it cannot satisfy `main`'s required check.
+- The two-client arena test could not pass on a GPU-less runner: the second
+  client's join took 28-37 s while the first rendered, and the server drops a
+  socket silent for 15 s (`server/room.ts` `SOCKET_IDLE_S`). It now starts both
+  joins together in 320x200 windows (1.4-2.3 s). Server and net code untouched.
+  The same limit could affect a player running two game tabs without a GPU;
+  changing it is a server change and is left to the user.
+- Two pre-existing weak assertions fixed in tests: "does not start a run"
+  checks read the phase before a wrongly triggered start could land, and the
+  entrance-door check was vacuous at software frame rates.
+
+Validation run 37143503675 (same jobs on a throwaway branch, deploy skipped):
+113 passed, 13 skipped, 0 failed, 0 retried; 576 s of tests in total, slowest
+shard 2.6 min, slowest test 19.6 s against the 120 s CI limit; whole workflow
+3.5 min. Unit: 456 passed on Node 24.
+
+Not done, deliberately: no lower render scale or lighter render profile for
+tests (not needed once the rasterizer was fixed, and it would stop E2E drawing
+what players get). Known product-side cost, unchanged: a Foundry frame is 797
+draws, 573k triangles and 24 lights with only frustum culling.
+
 ## Art Worker for multiplayer review — 2026-10-03
 
 The user bought `seventhgun.com` and moved its DNS to Cloudflare (free plan,
@@ -20,14 +54,8 @@ It serves the branch build (`index-BB85Hx6o.js`, real `modern/` GLBs). Productio
 <https://seventhgun.com> still serves `main` (`index-DgFETa6F.js`) and passed the
 same smoke check; `www.seventhgun.com` 301-redirects to it via a Cloudflare Redirect
 Rule. `.github/workflows/deploy-art.yml` redeploys the art Worker on every push,
-gated on the full suite (user's choice). **It has not deployed yet:** E2E on this
-branch has never completed in CI. All 22 branch CI runs through 179563a were
-cancelled, and the art workflow's first run (37125347622) hit the 20-minute job
-limit mid-E2E with nearly every test failing at the 30 s test timeout, with retries.
-The same tests pass locally (Apple M5 Pro, also with forced SwiftShader), so the
-likely cause is modern-art startup under software GL on slower runner CPUs.
-That is unconfirmed: the cancelled run printed no Playwright error summary.
-Until E2E fits in CI, deploy by hand (below / EXPERIMENTAL-ART.md).
+gated on the full suite (user's choice). Its first runs could not finish E2E on
+the default software renderer; see the section above for the cause and fix.
 `main` was not affected: PR #33 (docs) merged, its deploy passed and
 seventhgun.com, www and workers.dev smoke-checked green afterwards.
 

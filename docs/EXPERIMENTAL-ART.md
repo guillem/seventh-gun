@@ -13,13 +13,16 @@ address). It has its own Durable Object, so it never shares a room with
 production. The branch's `wrangler.jsonc` carries that name and domain.
 
 Every push to this branch deploys it automatically through
-`.github/workflows/deploy-art.yml`, which exists only on this branch. It runs the
-same typecheck, unit and E2E gate as production on Node 24, then
+`.github/workflows/deploy-art.yml`, which exists only on this branch. It runs
+typecheck, unit tests and the full E2E suite on Node 24 (E2E as six shards on
+Mesa llvmpipe; see "E2E in CI" in [TESTING.md](TESTING.md)), then
 `scripts/check-art-deploy-target.mjs` refuses to deploy unless the built config
 names `seventh-gun-art` with only `art.seventhgun.com` and `workers_dev` on (the
 shared `CLOUDFLARE_API_TOKEN` can deploy production too, and non-interactive
 wrangler takes a domain over from another Worker without asking). It then
 smoke-checks both art URLs. Production's `deploy.yml` still deploys only `main`.
+This branch's copy of `deploy.yml` runs for the draft PR only, without E2E, and
+its test job is renamed so it cannot satisfy `main`'s required check.
 
 Manual fallback, from a clean checkout of this branch in an interactive
 terminal (wrangler then asks before taking over a domain or DNS record):

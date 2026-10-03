@@ -110,6 +110,62 @@ Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production
 builds don't advertise it).
 
+### E2E in CI (software rendering)
+
+GitHub runners have no GPU, so WebGL is software-rendered. Playwright's
+bundled headless shell uses SwiftShader, whose x64 Linux build JIT-compiles
+shaders with Subzero. With this branch's renderer that is too slow to finish:
+on `main` the suite takes 4 minutes, here no run ever completed. Measured on
+ubuntu-latest (4 vCPU), same build, full quality, 1280x800:
+
+| WebGL renderer | Foundry start | Foundry frame | maze start / frame | arena join / frame |
+|---|---|---|---|---|
+| SwiftShader (Subzero), the default | 29 s | 1.8 s | 15 s / 0.83 s | 15 s / 1.4 s |
+| Mesa llvmpipe, new-headless Chromium (CI uses this) | 7.0 s | 0.39 s | 3.9 s / 0.13 s | 1.5 s / 0.25 s |
+| Mesa lavapipe (Vulkan), headed under Xvfb | 2.9 s | 0.54 s | 2.1 s / 0.14 s | 1.6 s / 0.26 s |
+
+The time is spent in the rasterizer, not in JavaScript: a CPU profile of a
+1.9 s Foundry frame shows 13 ms of script. A Foundry frame is 797 draws,
+573k triangles, 24 unrolled lights and 17 post-processing passes.
+
+So CI sets `E2E_GL=llvmpipe` (`tests/helpers/softwareGl.ts`): full Chromium in
+new-headless mode with `--use-gl=angle --use-angle=gl-egl
+--ignore-gpu-blocklist`, on Mesa's EGL (`libegl1 libegl-mesa0
+libgl1-mesa-dri`). `tests/helpers/globalSetup.ts` prints the WebGL renderer at
+the start of every run and aborts if `E2E_GL` was set but the browser did not
+report llvmpipe; a silent fallback to SwiftShader would otherwise surface as a
+job full of timeouts. Unset (any local run) nothing changes: the bundled
+default, or a hardware browser with `PLAYWRIGHT_CHANNEL=chrome`. No game or
+render code differs between CI and players.
+
+CI-only limits in `playwright.config.ts` (`CI` set): 120 s per test, 20 s per
+expect, `forbidOnly`, stop after 10 failures, and a 17-minute global timeout so
+a slow run ends with its report inside the workflow's 20-minute step limit.
+Explicit `test.setTimeout` calls are floors: `Math.max(test.info().timeout, n)`.
+
+`.github/workflows/deploy-art.yml` runs the suite as six shards. Playwright
+shards by spec file and project, which gives desktop and mobile
+{arena\*, campaign}, {editor, game} and {modern-art} one runner each. Each
+shard builds and serves its own Worker preview, so arena specs never share a
+room across shards. Whole suite on llvmpipe: about 9-12 minutes of tests in
+total, the slowest shard about three.
+
+Things that only show up at software frame rates (0.1-0.4 s per frame):
+
+- The sim advances at most five 1/60 s steps per rendered frame, so game time
+  runs slower than wall time. Wait on state, never on `waitForTimeout`.
+- A page builds its world synchronously and cannot talk to the arena server
+  meanwhile. The server drops a socket silent for 15 s (`server/room.ts`
+  `SOCKET_IDLE_S`). With a second WebGL page rendering on the same runner a
+  join took 28-37 s and was dropped every time, so the two-client arena test
+  starts both joins together in 320x200 windows (1.4-2.3 s). A player with two
+  game tabs on a machine without a GPU could hit the same limit.
+- Extra browser processes make it worse, not better (25 s and 50 s joins):
+  each brings its own rasterizer thread pool to the same four cores.
+
+To reproduce the CI configuration on Linux: install the three Mesa packages,
+then `CI=1 E2E_GL=llvmpipe npx playwright test`.
+
 ## Visual review
 
 Earlier development used posed browser scenes and pixel metrics to check

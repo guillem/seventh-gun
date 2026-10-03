@@ -11,6 +11,8 @@ On this branch `wrangler.jsonc` names a separate Worker, `seventh-gun-art`, serv
 at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy it via
 `.github/workflows/deploy-art.yml` (branch-only) after tests and
 `scripts/check-art-deploy-target.mjs`; see `docs/EXPERIMENTAL-ART.md`.
+CI runs E2E on Mesa llvmpipe (`E2E_GL=llvmpipe`) in six shards, because the
+default SwiftShader cannot render this branch in time; see `docs/TESTING.md`.
 
 A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
 with an optional Cloudflare Workers or portable Node arena server. Everything
