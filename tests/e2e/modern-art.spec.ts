@@ -11,6 +11,45 @@ type GameApi = {
 type AudioProbe = { decoded: number; sampledStarts: number; activeLoops: number };
 
 test.describe('modern art bootstrap', () => {
+  test('prepares GPU programs behind a painted loading screen before the first shot or room reveal', async ({ page }) => {
+    test.setTimeout(60000);
+    await page.addInitScript(() => {
+      const probe = { programs: 0, loadingPrograms: 0, loadingFrames: 0 };
+      (window as unknown as { __gpuPreparation: typeof probe }).__gpuPreparation = probe;
+      const createProgram = WebGL2RenderingContext.prototype.createProgram;
+      WebGL2RenderingContext.prototype.createProgram = function () {
+        probe.programs++;
+        if (document.getElementById('world-loading')) probe.loadingPrograms++;
+        return createProgram.call(this);
+      };
+      const frame = () => {
+        if (document.getElementById('world-loading')) probe.loadingFrames++;
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    });
+    await gotoGame(page);
+    await page.getByRole('button', { name: 'PLAY THE FOUNDRY' }).click();
+    await expect(page.locator('#title-screen')).toBeHidden();
+    await expect(page.locator('#world-loading')).toHaveCount(0);
+    const result = await page.evaluate(() => {
+      const probe = (window as unknown as { __gpuPreparation: { programs: number; loadingPrograms: number; loadingFrames: number } }).__gpuPreparation;
+      const G = (window as unknown as { __GAME__: {
+        shoot: () => { spent: boolean }; tickNow: () => void;
+        teleport: (x: number, z: number) => void; pose: (opts: { yaw: number }) => void;
+      } }).__GAME__;
+      const before = probe.programs;
+      const shot = G.shoot(); G.tickNow();
+      G.pose({ yaw: 20 });
+      for (const z of [95.7, 96.3, 109, 95.7]) { G.teleport(60, z); G.tickNow(); }
+      return { ...probe, newPrograms: probe.programs - before, shotSpent: shot.spent };
+    });
+    expect(result.loadingFrames).toBeGreaterThan(0);
+    expect(result.loadingPrograms).toBeGreaterThan(0);
+    expect(result.shotSpent).toBe(true);
+    expect(result.newPrograms).toBe(0);
+  });
+
   test('normal touch menus can pause, resume and quit without gameplay controls intercepting taps', async ({ page }) => {
     test.skip(!test.info().project.name.startsWith('mobile'), 'touch-only regression');
     const errors: string[] = [];

@@ -113,3 +113,34 @@ above remain unchanged so their recorded measurements stay reproducible.
 The source/material audit on 2026-10-03 confirmed that the saved bake, concrete
 floor binding and geometry corrections above remain present. No new browser
 capture or performance measurement was made during that read-only audit.
+
+## Side-passage seam correction — 2026-10-03
+
+The later doorway screenshot exposed a separate overlap at the boundary between
+the saved hall and generated side corridors. A thick authored wall's end cap
+extended half a metre beyond the hall, precisely sharing the generated corridor
+wall plane. The curb return had the same problem. The actual pre-fix GLB
+contained 48 overlapping triangles across the twelve jambs of six passages.
+
+The Blender source now subtracts only face areas owned by a generated corridor
+wall or ceiling before generating the surface/atlas UVs and rebaking. It also
+replaces the stale 4.2m external portal header height with the current 6m modern
+corridor ceiling height. Header undersides stop at the handoff boundary, so they
+do not create a new coplanar strip against the shared ceiling. This is a saved
+geometry correction; no depth bias, collision or runtime-rendering workaround
+is involved.
+
+The new 2048px/128-sample bake clips 42 source faces (44.216 square metres of
+duplicate area, including the aligned header undersides). The GLB still has
+18,800 mesh faces and the exact original 370-cell walkable floor. The regression
+loads the actual GLB and intersects its triangles with the generated corridor
+wall/ceiling rectangles: overlap falls from 48 triangles to zero. Fifteen
+Foundry, actor-light and campaign-environment checks pass; client typechecking
+also passes. A vertex-normal comparison found unchanged normals at 21,660 shared
+material/position keys; the only changed normal sets are 24 concrete and 24
+curb positions on the corrected surfaces.
+
+`doorway-seams.json` records source/output hashes and these geometry checks.
+Earlier screenshots and lighting metrics above predate this rebake and remain
+historical evidence. A new in-game view is still required for visual acceptance
+of the doorway fix; this pass did not run a browser.

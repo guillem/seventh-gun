@@ -1,0 +1,31 @@
+{
+  "unit": {
+    "node": "24.21.0",
+    "passed": 438,
+    "failed": 0,
+    "success": true
+  },
+  "typecheck": "passed (client, Worker, portable Node)",
+  "build": "passed",
+  "browser": {
+    "channel": "chrome",
+    "passed": 109,
+    "skipped": 13,
+    "retries": 0,
+    "fullSuite": true,
+    "command": "PLAYWRIGHT_CHANNEL=chrome npm exec --offline --cache /private/tmp/seventh-gun-npm-cache --package=node@24 -- node node_modules/playwright/cli.js test --retries=0 --reporter=line"
+  },
+  "softwareBrowserPartial": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+    "passed": 19,
+    "skipped": 1,
+    "interrupted": 1,
+    "notRun": 81,
+    "reason": "Stopped explicitly to run the full identical assertions on the installed hardware browser."
+  },
+  "runtimeAssets": {
+    "files": 96,
+    "bytes": 31636814
+  },
+  "preview": "pending"
+}

@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { FOUNDRY_PENDANTS, FOUNDRY_SLOTS, insideAuthoredFoundry, placeFoundryActorLights } from '../../src/render/foundryLighting';
+import { FOUNDRY_PENDANTS, FOUNDRY_SLOTS, placeFoundryActorLights } from '../../src/render/foundryLighting';
 
 describe('baked Foundry actor lighting', () => {
-  it('restricts the dimmed lighting to the authored opening, preserving other rooms and maps', () => {
-    expect(insideAuthoredFoundry('campaign:01-foundry', 41, 87)).toBe(true);
-    for (const [seed, x, z] of [['campaign:02-gullet', 41, 87], ['campaign:01-foundry', 105, 87], ['maze', 41, 87]] as const) {
-      expect(insideAuthoredFoundry(seed, x, z)).toBe(false);
-    }
-  });
-
   it('includes every fixed fixture so player movement cannot switch light pools', () => {
     const lights = Array.from({ length: 7 }, () => new THREE.SpotLight());
     placeFoundryActorLights(lights);

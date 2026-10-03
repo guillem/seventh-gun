@@ -39,30 +39,114 @@ interface Particle {
   size: number;
 }
 
+const PROJECTILE_POOL_KINDS = ['nail', 'grenade', 'voidorb', 'plasma', 'spit', 'fireball', 'bolt', 'orb'] as const;
+const FX_LIGHT_COUNT = 3;
+
 export class FxRenderer {
   private scene: THREE.Scene;
   private effects: TimedEffect[] = [];
   private particles: Particle[] = [];
   private projectileMeshes = new Map<number, THREE.Object3D>();
   private tex = getTextures();
+  private pools = new Map<string, THREE.Object3D[]>();
+  private owned = new Set<THREE.Object3D>();
+  private lightGroup = new THREE.Group();
+  private lights: THREE.PointLight[] = [];
+  private lightPosition = new THREE.Vector3();
   time = 0;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
+    this.lightGroup.name = 'fx-light-pool';
+    for (let i = 0; i < FX_LIGHT_COUNT; i++) {
+      const light = new THREE.PointLight(0xffffff, 0, 1, 1.8);
+      this.lights.push(light);
+      this.lightGroup.add(light);
+    }
+    // Light count is a shader define in Three. Keep the budget attached and
+    // visible even when idle, changing only uniforms as effects come and go.
+    this.scene.add(this.lightGroup);
+  }
+
+  private acquire<T extends THREE.Object3D>(key: string, create: () => T): T {
+    const obj = (this.pools.get(key)?.pop() ?? create()) as T;
+    obj.userData.fxPoolKey = key;
+    this.owned.add(obj);
+    obj.position.set(0, 0, 0);
+    obj.rotation.set(0, 0, 0);
+    obj.scale.set(1, 1, 1);
+    return obj;
+  }
+
+  private release(obj: THREE.Object3D): void {
+    obj.removeFromParent();
+    const key = obj.userData.fxPoolKey as string;
+    const pool = this.pools.get(key) ?? [];
+    pool.push(obj);
+    this.pools.set(key, pool);
+  }
+
+  /** Supply real, retained FX objects to the renderer's hidden preparation
+   * draw. compile() alone does not upload vertex buffers or textures. */
+  prepareForWarmup(): { group: THREE.Group; release: () => void } {
+    const group = new THREE.Group();
+    group.name = 'fx-preparation';
+    const add = (count: number, get: () => THREE.Object3D) => {
+      for (let i = 0; i < count; i++) {
+        const obj = get();
+        obj.position.set((i % 8 - 3.5) * .04, Math.floor(i / 8) * .025, 0);
+        group.add(obj);
+      }
+    };
+    add(24, () => this.bulletTracer());
+    add(4, () => this.railTracer());
+    add(4, () => this.explosionMesh());
+    add(96, () => this.makeParticle(0xffffff, .1));
+    add(48, () => this.makeParticle(0xffffff, .1, false));
+    for (const kind of PROJECTILE_POOL_KINDS) add(kind === 'nail' ? 24 : 8, () => this.projectileMesh(kind));
+    // These holders are invisible CPU bookkeeping, so need no draw.
+    const muzzleHolders = Array.from({ length: 8 }, () => this.acquire('muzzle', () => new THREE.Object3D()));
+    muzzleHolders.forEach(obj => this.release(obj));
+    let released = false;
+    return { group, release: () => {
+      if (released) return;
+      released = true;
+      for (const obj of [...group.children]) this.release(obj);
+      group.removeFromParent();
+    } };
   }
 
   private addEffect(obj: THREE.Object3D, maxLife: number, tick?: (t: number, k: number) => void, light?: THREE.PointLight): void {
     this.scene.add(obj);
-    if (light) { obj.add(light); }
     this.effects.push({ obj, life: 0, maxLife, tick, light });
   }
 
   // ------------------------------------------------------------- weapons
   muzzleFlashWorld(x: number, y: number, z: number, size: number, color = 0xffc23a): void {
     const light = new THREE.PointLight(color, 40 * size, 16 * size, 1.8);
-    const holder = new THREE.Object3D();
+    const holder = this.acquire('muzzle', () => new THREE.Object3D());
     holder.position.set(x, y, z);
     this.addEffect(holder, 0.07, undefined, light);
+  }
+
+  private bulletTracer(): THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> {
+    return this.acquire('bullet-tracer', () => new THREE.Mesh(
+      new THREE.BoxGeometry(0.03, 0.03, 1),
+      new THREE.MeshBasicMaterial({ color: 0xffe2a0, blending: THREE.AdditiveBlending, transparent: true, fog: false }),
+    ));
+  }
+
+  private railTracer(): THREE.Group {
+    return this.acquire('rail-tracer', () => {
+      const group = new THREE.Group();
+      for (const [radius, color, opacity] of [[.035, 0xffffff, 1], [.11, 0x37e6ff, .7]]) {
+        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 6),
+          new THREE.MeshBasicMaterial({ color, opacity, blending: THREE.AdditiveBlending, transparent: true, fog: false }));
+        mesh.rotation.x = Math.PI / 2;
+        group.add(mesh);
+      }
+      return group;
+    });
   }
 
   tracer(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, kind: 'bullets' | 'rail'): void {
@@ -70,25 +154,18 @@ export class FxRenderer {
       // bright movie-laser beam: hot core + additive jacket
       const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
       const len = Math.hypot(dx, dy, dz);
-      const group = new THREE.Group();
+      const group = this.railTracer();
       group.position.set(x0, y0, z0);
       group.lookAt(x1, y1, z1);
-      const core = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.035, 0.035, len, 6),
-        new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, fog: false }),
-      );
-      core.rotation.x = Math.PI / 2;
+      const [core, jacket] = group.children as THREE.Mesh<THREE.CylinderGeometry, THREE.MeshBasicMaterial>[];
+      core.scale.y = len;
+      core.material.opacity = 1;
       // Object3D.lookAt points local +Z at the target, so centre the
       // cylinder ahead of the muzzle rather than drawing it behind it.
       core.position.z = len / 2;
-      group.add(core);
-      const jacket = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.11, 0.11, len, 6),
-        new THREE.MeshBasicMaterial({ color: 0x37e6ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.7, fog: false }),
-      );
-      jacket.rotation.x = Math.PI / 2;
+      jacket.scale.y = len;
+      jacket.material.opacity = .7;
       jacket.position.z = len / 2;
-      group.add(jacket);
       const light = new THREE.PointLight(0x37e6ff, 80, 26, 1.8);
       this.addEffect(group, 0.16, (_t, k) => {
         (core.material as THREE.MeshBasicMaterial).opacity = k;
@@ -106,31 +183,50 @@ export class FxRenderer {
     const start = Math.max(0, len * 0.3);
     const segLen = Math.min(len - start, 6);
     const dirX = dx / len, dirY = dy / len, dirZ = dz / len;
-    const geo = new THREE.BoxGeometry(0.03, 0.03, segLen);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xffe2a0, blending: THREE.AdditiveBlending, transparent: true, fog: false });
-    const m = new THREE.Mesh(geo, mat);
+    const m = this.bulletTracer();
+    const mat = m.material;
+    mat.opacity = 1;
+    m.scale.z = segLen;
     m.position.set(x0 + dirX * (start + segLen / 2), y0 + dirY * (start + segLen / 2), z0 + dirZ * (start + segLen / 2));
     m.lookAt(x1, y1, z1);
     this.addEffect(m, 0.05, (_t, k) => { mat.opacity = k; });
   }
 
-  explosion(x: number, y: number, z: number, radius: number): void {
+  private explosionMesh(): THREE.Group {
     const modern = getModernAssets();
-    if (modern) {
+    return this.acquire(modern ? 'explosion-modern' : 'explosion-legacy', () => {
       const group = new THREE.Group();
-      group.position.set(x, y, z);
+      if (!modern) {
+        group.add(new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 10),
+          new THREE.MeshBasicMaterial({ color: 0xffd28a, blending: THREE.AdditiveBlending, transparent: true, fog: false })));
+        group.add(new THREE.Mesh(new THREE.SphereGeometry(.7, 12, 10),
+          new THREE.MeshBasicMaterial({ color: 0xff7a1a, blending: THREE.AdditiveBlending, transparent: true, opacity: .6, fog: false, wireframe: true })));
+        return group;
+      }
       const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: modern.flash, color: 0xffdcc0,
         blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false }));
-      flash.scale.setScalar(radius * 1.7);
       group.add(flash);
-      const clouds: THREE.Sprite[] = [];
       for (let i = 0; i < 3; i++) {
         const cloud = new THREE.Sprite(new THREE.SpriteMaterial({ map: modern.smoke, color: 0x766e62,
           transparent: true, opacity: .55, depthWrite: false, rotation: i * 2.1 }));
+        group.add(cloud);
+      }
+      return group;
+    });
+  }
+
+  explosion(x: number, y: number, z: number, radius: number): void {
+    const group = this.explosionMesh();
+    group.position.set(x, y, z);
+    if (getModernAssets()) {
+      const [flash, ...clouds] = group.children as THREE.Sprite[];
+      flash.material.opacity = 1;
+      flash.scale.setScalar(radius * 1.7);
+      clouds.forEach((cloud, i) => {
+        cloud.material.opacity = .55;
         cloud.position.set(Math.sin(i * 2.1) * radius * .15, .1 + i * .12, Math.cos(i * 2.1) * radius * .15);
         cloud.scale.setScalar(radius * (.75 + i * .12));
-        group.add(cloud); clouds.push(cloud);
-      }
+      });
       const light = new THREE.PointLight(0xffb171, 65, radius * 5, 1.8);
       this.addEffect(group, .85, (t, k) => {
         flash.material.opacity = Math.max(0, 1 - t / .19);
@@ -145,18 +241,12 @@ export class FxRenderer {
       this.spawnParticles(x, y, z, Math.round(8 + radius * 2), 0xffa875, 6, .35, .13);
       return;
     }
-    const group = new THREE.Group();
-    group.position.set(x, y, z);
-    const ball = new THREE.Mesh(
-      new THREE.SphereGeometry(radius * 0.45, 12, 10),
-      new THREE.MeshBasicMaterial({ color: 0xffd28a, blending: THREE.AdditiveBlending, transparent: true, fog: false }),
-    );
-    group.add(ball);
-    const shock = new THREE.Mesh(
-      new THREE.SphereGeometry(radius * 0.7, 12, 10),
-      new THREE.MeshBasicMaterial({ color: 0xff7a1a, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6, fog: false, wireframe: true }),
-    );
-    group.add(shock);
+    const [ball, shock] = group.children as THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>[];
+    group.scale.setScalar(radius);
+    ball.scale.setScalar(1);
+    shock.scale.setScalar(1);
+    ball.material.opacity = 1;
+    shock.material.opacity = .6;
     const light = new THREE.PointLight(0xff9a3a, 90, radius * 6, 1.8);
     this.addEffect(group, 0.5, (t, k) => {
       ball.scale.setScalar(0.6 + t * 1.6);
@@ -196,16 +286,19 @@ export class FxRenderer {
 
   private makeParticle(color: number, size: number, luminous = true): THREE.Sprite {
     const modern = getModernAssets();
-    const mat = new THREE.SpriteMaterial({ map: modern ? luminous ? modern.flash : modern.smoke : this.tex.particle,
-      color, blending: modern && !luminous ? THREE.NormalBlending : THREE.AdditiveBlending, transparent: true, depthWrite: false });
-    const s = new THREE.Sprite(mat);
+    const s = this.acquire(`particle-${modern ? 'modern' : 'legacy'}-${luminous}`, () => new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: modern ? luminous ? modern.flash : modern.smoke : this.tex.particle,
+        blending: modern && !luminous ? THREE.NormalBlending : THREE.AdditiveBlending, transparent: true, depthWrite: false }),
+    ));
+    s.material.color.set(color);
+    s.material.opacity = 1;
     s.scale.setScalar(size);
     return s;
   }
 
   spawnParticles(x: number, y: number, z: number, count: number, color: number, speed: number, life: number, size: number, luminous = true): void {
     for (let i = 0; i < count; i++) {
-      if (this.particles.length > 240) return;
+      if (this.particles.length >= 240) return;
       const s = this.makeParticle(color, size * (0.6 + Math.random() * 0.8), luminous);
       s.position.set(x, y, z);
       this.scene.add(s);
@@ -289,18 +382,32 @@ export class FxRenderer {
     return g;
   }
 
+  private projectileMesh(kind: string): THREE.Object3D {
+    return this.acquire(`projectile-${kind}`, () => {
+      const obj = this.buildProjectileMesh(kind);
+      const light = obj.children.find(child => child instanceof THREE.PointLight) as THREE.PointLight | undefined;
+      if (light) {
+        // A virtual source contributes to the fixed light pool; attaching it
+        // would create a different world shader on each new projectile count.
+        light.removeFromParent();
+        obj.userData.fxLight = light;
+      }
+      return obj;
+    });
+  }
+
   syncProjectiles(projectiles: ProjectileEnt[]): void {
     const ids = new Set(projectiles.map(p => p.id));
     for (const [id, mesh] of this.projectileMeshes) {
       if (!ids.has(id)) {
-        disposeOwnedObject(mesh);
+        this.release(mesh);
         this.projectileMeshes.delete(id);
       }
     }
     for (const p of projectiles) {
       let mesh = this.projectileMeshes.get(p.id);
       if (!mesh) {
-        mesh = this.buildProjectileMesh(p.kind);
+        mesh = this.projectileMesh(p.kind);
         this.projectileMeshes.set(p.id, mesh);
         this.scene.add(mesh);
       }
@@ -323,7 +430,7 @@ export class FxRenderer {
       e.life += dt;
       const k = 1 - e.life / e.maxLife;
       if (e.life >= e.maxLife) {
-        disposeOwnedObject(e.obj);
+        this.release(e.obj);
         this.effects.splice(i, 1);
         continue;
       }
@@ -333,7 +440,7 @@ export class FxRenderer {
       const p = this.particles[i];
       p.life += dt;
       if (p.life >= p.maxLife) {
-        disposeOwnedObject(p.sprite);
+        this.release(p.sprite);
         this.particles.splice(i, 1);
         continue;
       }
@@ -346,14 +453,48 @@ export class FxRenderer {
       (p.sprite.material as THREE.SpriteMaterial).opacity = k;
       p.sprite.scale.setScalar(p.size * (0.4 + 0.6 * k));
     }
+    this.updateLights();
+  }
+
+  private updateLights(): void {
+    const sources: { light: THREE.PointLight; object: THREE.Object3D }[] = [];
+    for (const effect of this.effects) if (effect.light) sources.push({ light: effect.light, object: effect.obj });
+    for (const object of this.projectileMeshes.values()) {
+      const light = object.userData.fxLight as THREE.PointLight | undefined;
+      if (light) sources.push({ light, object });
+    }
+    // Bound light work without altering the simulation or hiding projectiles.
+    sources.sort((a, b) => b.light.intensity - a.light.intensity);
+    this.lights.forEach((light, i) => {
+      const source = sources[i];
+      light.intensity = source?.light.intensity ?? 0;
+      if (!source) return;
+      source.object.getWorldPosition(this.lightPosition);
+      light.position.copy(this.lightPosition);
+      light.color.copy(source.light.color);
+      light.distance = source.light.distance;
+      light.decay = source.light.decay;
+    });
   }
 
   clearTransient(): void {
-    for (const e of this.effects) disposeOwnedObject(e.obj);
+    for (const e of this.effects) this.release(e.obj);
     this.effects.length = 0;
-    for (const p of this.particles) disposeOwnedObject(p.sprite);
+    for (const p of this.particles) this.release(p.sprite);
     this.particles.length = 0;
-    for (const [, m] of this.projectileMeshes) disposeOwnedObject(m);
+    for (const [, m] of this.projectileMeshes) this.release(m);
     this.projectileMeshes.clear();
+    this.lights.forEach(light => { light.intensity = 0; });
+  }
+
+  /** Final renderer teardown only. Map resets retain prepared GPU resources. */
+  dispose(): void {
+    this.clearTransient();
+    const owned = new THREE.Group();
+    for (const obj of this.owned) owned.add(obj);
+    disposeOwnedObject(owned);
+    this.owned.clear();
+    this.pools.clear();
+    this.lightGroup.removeFromParent();
   }
 }

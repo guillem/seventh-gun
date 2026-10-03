@@ -529,5 +529,10 @@
       "size": 0.45
     }
   ],
+  "seamCleanup": {
+    "clippedFaces": 42,
+    "removedArea": 44.21590769923918,
+    "corridorHeight": 6.0
+  },
   "limits": "Only existing floor boundaries collide. Galleries, vessels and utility details are overhead scenery."
 }

@@ -1,5 +1,42 @@
 # STATUS
 
+## Rendering continuity — 2026-10-03, preview verification pending
+
+Fixes the user's first-shot/first-room stalls, global lighting changes at room
+boundaries, and checker-like doorway jambs. Still on
+`codex/experimental-modern-art`, draft PR #32. Details and measurements are in
+`docs/RENDER-CONTINUITY.md` and `art/modern/continuity/`.
+
+Lights are now stationary and configured once per map. The Foundry hall and
+every side room remain lit from outside with constant ambient/weapon lighting.
+Three permanent FX light slots avoid shot-dependent shader layouts. Effects,
+all seven weapons and the muzzle sprite retain their prepared GPU resources.
+The actual composer/contact-shading and weapon paths upload/render resources
+before play; UI starts show a painted loading screen and await audio readiness.
+Blender removes overlap at all six passage boundaries and corrects portal heads
+to the six-metre corridor ceiling, with a replacement baked irradiance atlas.
+
+438 unit tests pass under Node 24; all three TypeScript projects and the build
+pass. Actual GLB tests find zero shared-plane doorway overlaps (48 triangles
+before), preserving the 370-cell floor. Runtime assets: 96 files / 31,636,814
+bytes. Simulation, map, balance, collision and network source files are unchanged.
+
+Fresh normal Chrome / Apple M5 Pro captures cover first/repeated fire, hall/room
+crossings, room interiors and all seven weapon effects at desktop and portrait
+DPR 2. After preparation, these actions create zero new GPU programs, image
+uploads or vertex buffers and stay near 16.7 ms/frame. Baseline first-shot and
+first-boundary checks created 18 and 23 programs. Initial preparation measured
+about three seconds with a cold driver compile, under one second on later
+contexts; that work is shown explicitly before play. These are selected views
+on a desktop GPU; physical phones/Safari remain untested.
+
+All 109 applicable desktop/mobile browser checks pass without retries, with
+13 intentional skips. Final Netlify verification is pending.
+The bundled Chromium backend was identified locally as SwiftShader;
+its partial run is retained separately. `PLAYWRIGHT_CHANNEL=chrome` selects the
+hardware browser for the same assertions; default CI settings remain unchanged.
+No merge, tag, release or production deployment.
+
 ## Review refinement — delivered 2026-10-03
 
 The user reported camera-dependent black patches on Foundry column bases,

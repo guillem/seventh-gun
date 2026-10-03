@@ -13,6 +13,7 @@ import sys
 import subprocess
 
 import bpy
+import bmesh
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -90,6 +91,87 @@ def walk(x,z):
 def height(x):
     return 11 if x < 13 else 6.4 if x < 18 else 16
 
+# Shared modern corridors use WALL_H (6m), not the legacy 4.2m CEIL_H.
+# Their wall/ceiling quads own the reveal beyond the authored footprint.
+CORRIDOR_HEIGHT = 6.0
+shared_surfaces = {}
+def shared_surface(axis, plane, direction, axes, bounds):
+    shared_surfaces.setdefault((axis, plane, direction), []).append((axes, bounds))
+for z in range(layout['h']):
+    for x in range(width):
+        if not walk(x,z) or (x,z) in cells: continue
+        shared_surface(1,CORRIDOR_HEIGHT,-1,(0,2),(2*x,2*x+2,2*z,2*z+2))
+        for dx,dz in [(1,0),(-1,0),(0,1),(0,-1)]:
+            if walk(x+dx,z+dz): continue
+            if dx: shared_surface(0,2*x+(2 if dx>0 else 0),-dx,(2,1),(2*z,2*z+2,0,CORRIDOR_HEIGHT))
+            else: shared_surface(2,2*z+(2 if dz>0 else 0),-dz,(0,1),(2*x,2*x+2,0,CORRIDOR_HEIGHT))
+
+def half_plane(points, axis, bound, direction):
+    result=[]
+    for p,q in zip(points,points[1:]+points[:1]):
+        a=(p[axis]-bound)*direction; b=(q[axis]-bound)*direction
+        if a>=0: result.append(p)
+        if (a>=0)!=(b>=0):
+            t=a/(a-b)
+            result.append(tuple(p[i]+t*(q[i]-p[i]) for i in range(3)))
+    return result
+
+def polygon_area(points):
+    if len(points)<3: return 0
+    origin=Vector(points[0])
+    return sum((Vector(points[i])-origin).cross(Vector(points[i+1])-origin).length/2 for i in range(1,len(points)-1))
+
+def subtract_rectangle(points, axes, bounds):
+    inside=points; outside=[]
+    for axis,bound,direction in [(axes[0],bounds[0],1),(axes[0],bounds[1],-1),(axes[1],bounds[2],1),(axes[1],bounds[3],-1)]:
+        part=half_plane(inside,axis,bound,-direction)
+        if polygon_area(part)>1e-8: outside.append(part)
+        inside=half_plane(inside,axis,bound,direction)
+    if polygon_area(inside)<1e-8: return [points],0
+    return outside,polygon_area(inside)
+
+seam_cleanup={'clippedFaces':0,'removedArea':0.0,'corridorHeight':CORRIDOR_HEIGHT}
+def remove_shared_seam_faces(ob):
+    """Trim saved end caps only where an actual runtime surface owns the area.
+
+    Changing depth bias would leave two differently textured/shaded surfaces in
+    one place. Cut the duplicate area before UV authoring and the final bake;
+    retained upper reveals keep their outward normals and continuous UVs.
+    """
+    mesh=bmesh.new(); mesh.from_mesh(ob.data)
+    inverse=ob.matrix_world.inverted()
+    for face in list(mesh.faces):
+        normal=ob.matrix_world.to_3x3() @ face.normal
+        normal=(normal.x,normal.z,-normal.y)
+        axis=next((i for i,n in enumerate(normal) if abs(n)>.99999),None)
+        if axis is None: continue
+        points=[]
+        for vert in face.verts:
+            p=ob.matrix_world @ vert.co
+            points.append((p.x,p.z,-p.y))
+        plane=round(points[0][axis],5)
+        if any(abs(p[axis]-plane)>1e-5 for p in points): continue
+        candidates=shared_surfaces.get((axis,plane,1 if normal[axis]>0 else -1),[])
+        pieces=[points]; removed=0
+        for axes,bounds in candidates:
+            remaining=[]
+            for piece in pieces:
+                parts,area=subtract_rectangle(piece,axes,bounds)
+                remaining.extend(parts); removed+=area
+            pieces=remaining
+        if removed<1e-8: continue
+        material=face.material_index; smooth=face.smooth
+        mesh.faces.remove(face)
+        for piece in pieces:
+            verts=[mesh.verts.new(inverse @ a.gv(p)) for p in piece]
+            replacement=mesh.faces.new(verts)
+            replacement.material_index=material; replacement.smooth=smooth
+            replacement.normal_update()
+        seam_cleanup['clippedFaces']+=1
+        seam_cleanup['removedArea']+=removed
+    mesh.to_mesh(ob.data); mesh.free()
+    ob.data.update()
+
 # Exact floor footprint: join tiles into one low-poly mesh, then use a separate
 # atlas UV set for light baking. No raised objects obstruct the walkable floor.
 verts=[]; faces=[]
@@ -109,7 +191,7 @@ for x,z in sorted(cells):
     h=height(x)
     for dx,dz in [(1,0),(-1,0),(0,1),(0,-1)]:
         if walk(x+dx,z+dz):
-            next_h=height(x+dx) if (x+dx,z+dz) in cells else 4.2
+            next_h=height(x+dx) if (x+dx,z+dz) in cells else CORRIDOR_HEIGHT
             if h > next_h:
                 box('Portal upper closure',((x+.5)*2+dx,h-(h-next_h)/2,(z+.5)*2+dz),
                     (.35,h-next_h,2) if dx else (2,h-next_h,.35),arrival_concrete if x<18 else concrete,0)
@@ -328,6 +410,9 @@ for ob in meshes:
     ob.select_set(True)
     bpy.context.view_layer.objects.active=ob
     for mod in list(ob.modifiers): bpy.ops.object.modifier_apply(modifier=mod.name)
+    # A thick wall's end cap and a generated side-passage wall used to share
+    # the same plane. Curbs had the same problem at all twelve opening jambs.
+    remove_shared_seam_faces(ob)
 bpy.context.view_layer.objects.active=meshes[0]
 bpy.ops.object.join()
 hero=bpy.context.object
@@ -408,6 +493,7 @@ bpy.ops.export_scene.gltf(filepath=str(DEST/'environment.glb'),export_format='GL
 manifest={'source':'foundry.blend','mapSeed':layout['seed'],'cells':len(cells),'bakeSize':opt.size,
     'bakeSamples':opt.samples,'bake':'Cycles CPU diffuse direct+indirect, color excluded; explicit sRGB OETF of linear irradiance / 8; Non-Color PNG storage',
     'meshFaces':len(hero.data.polygons),'glbBytes':(DEST/'environment.glb').stat().st_size,'lights':lights,
+    'seamCleanup':seam_cleanup,
     'limits':'Only existing floor boundaries collide. Galleries, vessels and utility details are overhead scenery.'}
 (SOURCE/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print('FOUNDRY: export complete',json.dumps({k:v for k,v in manifest.items() if k!='lights'}),flush=True)

@@ -67,6 +67,7 @@ export interface ViewModel {
   group: THREE.Group;
   muzzle: THREE.Object3D;      // world-of-viewmodel muzzle tip
   update: (dt: number, s: VMState) => void;
+  reset?: () => void; // restart cosmetic equip state when a retained model is selected
   dispose?: () => void; // release animation bindings before owned GPU resources
 }
 
@@ -606,7 +607,14 @@ export function animateAuthoredWeapon(gun: THREE.Group, clips: THREE.AnimationCl
     previousRecoil = state.recoil;
     mixer.update(0);
   };
-  return { update, dispose: () => {
+  const reset = () => {
+    equippedTime = 0;
+    fallbackFireTime = Infinity;
+    previousRecoil = 0;
+    for (const [name, action] of actions) action.time = name === 'fire' ? action.getClip().duration : 0;
+    mixer.update(0);
+  };
+  return { update, reset, dispose: () => {
     mixer.stopAllAction();
     mixer.uncacheRoot(gun);
     actions.clear();
@@ -635,7 +643,7 @@ export function buildViewModel(gunId: number): ViewModel {
         HOLD_POS.y + Math.abs(Math.cos(state.time * 9.2)) * state.moving * 0.008, HOLD_POS.z);
       holder.rotation.set(HOLD_ROT.x, HOLD_ROT.y - stride * 0.004, HOLD_ROT.z);
       animate.update(dt, state);
-    }, dispose: animate.dispose };
+    }, reset: animate.reset, dispose: animate.dispose };
   }
   const parts = builders[gunId - 1](gunPalette(), true);
   holder.add(parts.gun);

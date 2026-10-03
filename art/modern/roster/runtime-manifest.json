@@ -1,6 +1,6 @@
 {
   "fileCount": 96,
-  "bytes": 31631152,
+  "bytes": 31636814,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -231,12 +231,12 @@
     {
       "path": "modern/foundry/environment.glb",
       "bytes": 2961268,
-      "sha256": "d4913e90f7f0670c8aa00b29fb589f0da97ca99d087320e46bc4ad36e54d4fc0"
+      "sha256": "662fe467eb867bf47f78b5e10c9511c3ba937bf04a7e511263edb6a8d69208ae"
     },
     {
       "path": "modern/foundry/irradiance.webp",
-      "bytes": 227612,
-      "sha256": "94f956858dd0766d32b96e3f80f900258978138fd584a53b3854ef1c396f4899"
+      "bytes": 233274,
+      "sha256": "58c259e9add340bec9b901832419c72c15a689c4795800a7bcce9da9e220ca11"
     },
     {
       "path": "modern/foundry/steel-normal.webp",

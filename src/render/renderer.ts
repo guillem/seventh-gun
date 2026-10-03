@@ -26,7 +26,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ContactOcclusionPass } from './contactOcclusion';
-import { insideAuthoredFoundry, placeFoundryActorLights } from './foundryLighting';
+import { placeFoundryActorLights } from './foundryLighting';
+import { MODERN_PRACTICAL_LIGHT_LIMIT, selectModernPracticalLights } from './modernLighting';
+import { prepareGpuResources } from './prepareGpu';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -45,6 +47,7 @@ export class GameRenderer {
   private pickups: PickupRenderer;
   fx: FxRenderer;
   private viewModel: ViewModel | null = null;
+  private viewmodels = new Map<number, ViewModel>();
   private vmHolder = new THREE.Group();
   private currentGun = 0;
   private viewBob = 0;
@@ -57,15 +60,12 @@ export class GameRenderer {
   private muzzleLife = 0;
   private baseFov = 75;
   private renderFrames = 0;
-  private modernKey: THREE.SpotLight | null = null;
   private practicalLights: THREE.PointLight[] = [];
   private foundryActorLights: THREE.SpotLight[] = [];
-  private foundryLightBlend = 0;
   private vmAmbient: THREE.AmbientLight;
   private vmKey: THREE.DirectionalLight;
-  private lightTimer = 0;
-  private lightDirection = new THREE.Vector3();
   private composer: EffectComposer | null = null;
+  private environmentMap: THREE.WebGLRenderTarget | null = null;
 
   constructor(canvas: HTMLCanvasElement, e2e = false) {
     installRadialFog();
@@ -82,6 +82,7 @@ export class GameRenderer {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       const environment = new RoomEnvironment();
       const environmentMap = pmrem.fromScene(environment, 0.04);
+      this.environmentMap = environmentMap;
       this.scene.environment = environmentMap.texture;
       this.vmScene.environment = environmentMap.texture;
       this.scene.environmentIntensity = 0.3;
@@ -107,14 +108,7 @@ export class GameRenderer {
     if (modern) {
       this.torch.color.set(0xdbe7ee);
       this.torch.intensity = 5;
-      this.modernKey = new THREE.SpotLight(0xe3edf2, 24, 32, 0.82, 0.75, 1.5);
-      this.modernKey.castShadow = true;
-      this.modernKey.shadow.mapSize.setScalar(window.innerWidth < 650 ? 512 : 1024);
-      this.modernKey.shadow.bias = -0.0004;
-      this.modernKey.shadow.normalBias = 0.035;
-      this.modernKey.shadow.camera.near = 0.3;
-      this.scene.add(this.modernKey, this.modernKey.target);
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < MODERN_PRACTICAL_LIGHT_LIMIT; i++) {
         const light = new THREE.PointLight(0xffd3a1, 0, 20, 1.6);
         this.practicalLights.push(light);
         this.scene.add(light);
@@ -207,56 +201,126 @@ export class GameRenderer {
       : new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
     applyRadialFogDeep(this.scene);
     this.setGun(1);
-    this.lightTimer = 0;
-    this.updateModernLights(sim, 0);
+    this.viewModel?.reset?.();
+    this.muzzleLife = 0;
+    if (this.muzzleSprite) this.muzzleSprite.material.opacity = 0;
+    this.configureModernLights(sim);
+    this.poseCamera(sim.player.x, 1.7, sim.player.z, sim.player.yaw, -sim.player.pitch);
     this.prefetchDynamicMeshes();
+    // Replace the preparation image before the menu is removed, with normal
+    // visibility and only the equipped weapon attached.
+    this.update(0, sim, false);
+    this.render();
   }
 
-  /** Warm GPU programs so the first door reveal does not hitch / pop. */
+  /** Submit the actual retained resources through both gameplay render paths
+   * while the menu still covers the canvas. No deferred first-shot/reveal work. */
   private prefetchDynamicMeshes(): void {
-    this.enemies.setAllVisible(true);
-    this.pickups.setAllVisible(true);
+    const effects = this.fx.prepareForWarmup();
+    effects.group.position.copy(this.camera.position).add(new THREE.Vector3(0, 0, -2));
+    this.scene.add(effects.group);
+    let weapons: { release: () => void } | undefined;
     try {
-      this.renderer.compile(this.scene, this.camera);
-      this.renderer.compile(this.vmScene, this.vmCamera);
-    } catch {
-      /* compile is best-effort — first frame still draws */
+      weapons = this.prepareViewmodelsForWarmup();
+      prepareGpuResources(this.renderer, [this.scene, this.vmScene], () => this.render());
+    } finally {
+      effects.release();
+      weapons?.release();
     }
   }
 
   setGun(id: number): void {
     if (id === this.currentGun && this.viewModel) return;
     this.currentGun = id;
-    if (this.viewModel) {
-      // A flash belongs to its current gun. Disposing the whole old model
-      // also disposes that sprite, so clear the live reference before a later
-      // frame can try to retire the same material again.
-      this.muzzleSprite = null;
-      this.muzzleLife = 0;
-      this.viewModel.dispose?.();
-      disposeOwnedObject(this.viewModel.group);
+    this.viewModel?.group.removeFromParent();
+    let model = this.viewmodels.get(id);
+    if (!model) {
+      model = buildViewModel(id);
+      this.viewmodels.set(id, model);
     }
-    this.viewModel = buildViewModel(id);
+    this.viewModel = model;
+    model.reset?.();
     this.vmHolder.add(this.viewModel.group);
+    this.viewModel.muzzle.add(this.ensureMuzzleSprite());
+    this.muzzleSprite!.material.opacity = 0;
+    this.muzzleLife = 0;
     // switch dip animation
     this.vmHolder.position.y = getModernAssets() ? 0 : -0.35;
   }
 
+  private ensureMuzzleSprite(): THREE.Sprite {
+    if (!this.muzzleSprite) {
+      this.muzzleSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: getModernAssets()?.flash ?? getTextures().flash,
+        blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, depthTest: false,
+        opacity: 0,
+      }));
+    }
+    return this.muzzleSprite;
+  }
+
+  /** Retain every warmed model/material owner across weapon and map changes. */
+  prepareViewmodelsForWarmup(): { release: () => void } {
+    const parents = new Map<THREE.Group, THREE.Object3D | null>();
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      for (const [group, parent] of parents) {
+        group.removeFromParent();
+        parent?.add(group);
+      }
+    };
+    try {
+      for (let id = 1; id <= 7; id++) {
+        let model = this.viewmodels.get(id);
+        if (!model) {
+          model = buildViewModel(id);
+          this.viewmodels.set(id, model);
+        }
+        parents.set(model.group, model.group.parent);
+        this.vmHolder.add(model.group);
+      }
+      const sprite = this.ensureMuzzleSprite();
+      (this.viewModel ?? this.viewmodels.get(1)!).muzzle.add(sprite);
+      return { release };
+    } catch (error) {
+      release();
+      throw error;
+    }
+  }
+
+  disposeViewmodels(): void {
+    if (this.muzzleSprite) disposeOwnedObject(this.muzzleSprite);
+    this.muzzleSprite = null;
+    this.muzzleLife = 0;
+    for (const model of this.viewmodels.values()) {
+      model.dispose?.();
+      disposeOwnedObject(model.group);
+    }
+    this.viewmodels.clear();
+    this.viewModel = null;
+    this.currentGun = 0;
+  }
+
   private updateMuzzleSprite(color: number, size: number): void {
     if (!this.viewModel) return;
-    if (this.muzzleSprite) {
-      disposeOwnedObject(this.muzzleSprite);
-      this.muzzleSprite = null;
-    }
-    const mat = new THREE.SpriteMaterial({
-      map: getModernAssets()?.flash ?? getTextures().flash, color, blending: THREE.AdditiveBlending,
-      transparent: true, depthWrite: false, depthTest: false,
-    });
-    const s = new THREE.Sprite(mat);
+    const s = this.ensureMuzzleSprite();
+    s.material.color.set(color);
+    s.material.opacity = 1;
+    s.material.rotation = 0;
     s.scale.setScalar(getModernAssets() ? size * 0.52 : size);
     this.viewModel.muzzle.add(s);
-    this.muzzleSprite = s;
     this.muzzleLife = getModernAssets() ? 0.06 : 0.085;
+  }
+
+  private updateMuzzleLifetime(dt: number): void {
+    if (this.muzzleLife <= 0) return;
+    this.muzzleLife = Math.max(0, this.muzzleLife - dt);
+    if (this.muzzleSprite) {
+      this.muzzleSprite.material.opacity = this.muzzleLife / 0.085;
+      this.muzzleSprite.material.rotation += dt * 30;
+    }
   }
 
   get muzzleState(): { alive: boolean; attached: boolean; opacity: number; gunVisible: boolean } {
@@ -300,7 +364,6 @@ export class GameRenderer {
     }
     if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
     this.torch.position.copy(this.camera.position);
-    this.updateModernLights(sim, dt);
 
     // gun switch visual
     this.setGun(p.gun);
@@ -318,18 +381,7 @@ export class GameRenderer {
         time: getModernAssets() ? this.presentationTime : this.viewBob,
       });
     }
-    // muzzle sprite lifetime
-    if (this.muzzleLife > 0) {
-      this.muzzleLife -= dt;
-      if (this.muzzleSprite) {
-        (this.muzzleSprite.material as THREE.SpriteMaterial).opacity = Math.max(0, this.muzzleLife / 0.085);
-        this.muzzleSprite.material.rotation = (this.muzzleSprite.material.rotation ?? 0) + dt * 30;
-      }
-      if (this.muzzleLife <= 0 && this.muzzleSprite) {
-        disposeOwnedObject(this.muzzleSprite);
-        this.muzzleSprite = null;
-      }
-    }
+    this.updateMuzzleLifetime(dt);
 
     // world layers
     if (this.world) {
@@ -388,51 +440,34 @@ export class GameRenderer {
     this.others.update(dt, remotes, this.camera, view);
   }
 
-  private updateModernLights(view: WorldView, dt: number): void {
-    if (!this.modernKey) return;
-    const authored = insideAuthoredFoundry(view.map.seed, view.player.x, view.player.z);
-    // New runs initialize directly; crossing a room boundary fades lighting so
-    // the weapon and nearby actors cannot flash as the region flag changes.
-    this.foundryLightBlend = dt > 0
-      ? THREE.MathUtils.damp(this.foundryLightBlend, authored ? 1 : 0, 7, dt)
-      : authored ? 1 : 0;
-    const blend = this.foundryLightBlend;
-    this.ambient.intensity = THREE.MathUtils.lerp(.2, .08, blend);
-    this.hemisphere.intensity = THREE.MathUtils.lerp(.55, .22, blend);
-    this.scene.environmentIntensity = THREE.MathUtils.lerp(.3, .08, blend);
-    this.vmAmbient.intensity = THREE.MathUtils.lerp(.7, .4, blend);
-    this.vmKey.intensity = THREE.MathUtils.lerp(2, 1.3, blend);
-    this.vmScene.environmentIntensity = THREE.MathUtils.lerp(.65, .4, blend);
-    this.torch.intensity = THREE.MathUtils.lerp(5, .35, blend);
-    this.modernKey.visible = blend < .9999;
-    this.modernKey.intensity = 24 * (1 - blend);
+  /** Lighting belongs to fixtures in the map, never to the player's room.
+   * Configure once so crossing a doorway changes neither exposure nor shader
+   * light counts. A tiny neutral camera fill only keeps nearby actors legible. */
+  private configureModernLights(view: WorldView): void {
+    if (!getModernAssets()) return;
+    const foundry = view.map.seed === 'campaign:01-foundry';
+    this.ambient.intensity = foundry ? .08 : .2;
+    this.hemisphere.intensity = foundry ? .22 : .55;
+    this.scene.environmentIntensity = foundry ? .08 : .3;
+    this.vmAmbient.intensity = foundry ? .4 : .7;
+    this.vmKey.intensity = foundry ? 1.3 : 2;
+    this.vmScene.environmentIntensity = foundry ? .4 : .65;
+    this.torch.intensity = .35;
     this.foundryActorLights.forEach(light => {
-      light.visible = blend > .0001;
-      light.intensity = light.userData.baseIntensity * blend;
+      light.visible = foundry;
+      light.intensity = foundry ? light.userData.baseIntensity : 0;
     });
-    this.practicalLights.forEach(light => {
-      light.visible = !!light.userData.baseIntensity && blend < .9999;
-      light.intensity = (light.userData.baseIntensity ?? 0) * (1 - blend);
-    });
-    this.camera.getWorldDirection(this.lightDirection);
-    this.modernKey.position.copy(this.camera.position).add(new THREE.Vector3(-0.16, 0.16, 0));
-    this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
-    this.lightTimer -= dt;
-    if (this.lightTimer > 0) return;
-    this.lightTimer = 0.25;
-    const { x, z } = view.player;
-    const nearest = [...view.map.lights].sort((a, b) =>
-      (a.x - x) ** 2 + (a.z - z) ** 2 - (b.x - x) ** 2 - (b.z - z) ** 2,
-    ).slice(0, this.practicalLights.length);
+    const sources = selectModernPracticalLights(view.map, this.artId);
     this.practicalLights.forEach((light, i) => {
-      const source = nearest[i];
-      light.userData.baseIntensity = source ? 24 * source.intensity : 0;
-      light.visible = !!source && blend < .9999;
+      const source = sources[i];
+      // Intensity zero still participates in Three's fixed shader layout.
+      light.visible = true;
+      light.intensity = source?.intensity ?? 0;
       if (!source) return;
-      light.position.set(source.x, Math.min(source.y, 3.8), source.z);
-      light.color.setRGB(...source.color).lerp(new THREE.Color(this.artId ? CAMPAIGN_ENVIRONMENT_PALETTES[this.artId].fixture : 0xf0d6b4), 0.7);
-      light.intensity = light.userData.baseIntensity * (1 - blend);
-      light.distance = Math.min(24, source.radius * 1.2);
+      light.position.set(source.x, source.y, source.z);
+      light.color.setRGB(...source.color);
+      light.distance = source.distance;
+      light.decay = source.decay;
     });
   }
 
@@ -467,10 +502,22 @@ export class GameRenderer {
     this.camera.position.set(x, y, z);
     this.camera.rotation.set(pitch, yaw, 0);
     if (this.world?.sky) this.world.sky.position.copy(this.camera.position);
-    if (this.modernKey) {
-      this.camera.getWorldDirection(this.lightDirection);
-      this.modernKey.position.copy(this.camera.position);
-      this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
-    }
+
+  }
+
+  dispose(): void {
+    this.world?.dispose();
+    this.world = null;
+    this.enemies.dispose();
+    this.others.dispose();
+    this.pickups.dispose();
+    this.fx.dispose();
+    this.disposeViewmodels();
+    this.composer?.passes.forEach(pass => pass.dispose());
+    this.composer?.dispose();
+    this.composer = null;
+    this.environmentMap?.dispose();
+    this.environmentMap = null;
+    this.renderer.dispose();
   }
 }

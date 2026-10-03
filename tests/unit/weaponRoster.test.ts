@@ -137,6 +137,24 @@ describe('complete saved weapon roster', () => {
     animation.dispose();
   });
 
+  it('re-equipping a retained weapon restarts the saved equip clip and clears the previous shot', async () => {
+    const model = await load(1);
+    const copy = cloneOwnedModel(model.scene);
+    const animation = animateAuthoredWeapon(copy, model.animations, 1);
+    const rest = { moving: 0, firing: false, recoil: 0, time: 0, fireCooldown: 0 };
+    animation.reset();
+    const initialEquip = copy.getObjectByName('equip_motion')!.position.clone();
+    animation.update(2, { ...rest, firing: true, recoil: 1, fireCooldown: .265 });
+    expect(copy.getObjectByName('recoil_motion')!.position.z).toBeGreaterThan(.02);
+    animation.reset();
+    expect(copy.getObjectByName('equip_motion')!.position.distanceTo(initialEquip)).toBeLessThan(1e-6);
+    expect(copy.getObjectByName('mechanism')!.position.length()).toBeLessThan(1e-6);
+    expect(copy.getObjectByName('recoil_motion')!.position.length()).toBeLessThan(1e-6);
+    animation.update(.45, rest);
+    expect(copy.getObjectByName('equip_motion')!.position.length()).toBeLessThan(1e-6);
+    animation.dispose();
+  });
+
   it('world pickups use every authored model and exclude hidden arms from their recentering bounds', async () => {
     for (const def of WEAPONS) {
       const model = await load(def.id);

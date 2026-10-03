@@ -8,6 +8,8 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',
+    // Optional local hardware browser; CI keeps the bundled Chromium default.
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
   },
   projects: [
     {

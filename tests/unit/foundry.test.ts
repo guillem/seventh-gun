@@ -4,8 +4,79 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CAMPAIGN } from '../../src/campaign';
 import { addFoundryDoorHardware, foundryCell } from '../../src/render/foundry';
+import { CELL } from '../../src/sim/types';
+import { MODERN_CAMPAIGN_CEILING } from '../../src/render/campaignEnvironment';
+
+type Point2 = [number, number];
+function clippedArea(points: Point2[], bounds: number[]): number {
+  for (const [axis, bound, direction] of [[0, bounds[0], 1], [0, bounds[1], -1], [1, bounds[2], 1], [1, bounds[3], -1]]) {
+    const result: Point2[] = [];
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i], q = points[(i + 1) % points.length];
+      const a = (p[axis] - bound) * direction, b = (q[axis] - bound) * direction;
+      if (a >= 0) result.push(p);
+      if ((a >= 0) !== (b >= 0)) {
+        const t = a / (a - b);
+        result.push([p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])]);
+      }
+    }
+    points = result;
+  }
+  return Math.abs(points.reduce((sum, p, i) => {
+    const q = points[(i + 1) % points.length];
+    return sum + p[0] * q[1] - q[0] * p[1];
+  }, 0)) / 2;
+}
 
 describe('authored Foundry environment', () => {
+  it('has no coplanar area shared with generated corridor wall reveals or ceilings', async () => {
+    const map = CAMPAIGN[0].map;
+    const surfaces = new Map<string, { axes: [number, number]; bounds: number[] }[]>();
+    const add = (axis: number, plane: number, direction: number, axes: [number, number], bounds: number[]) => {
+      const key = `${axis}/${plane}/${direction}`;
+      surfaces.set(key, [...surfaces.get(key) ?? [], { axes, bounds }]);
+    };
+    const walk = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
+    let openings = 0;
+    for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
+      if (!walk(x, z) || foundryCell(map, x, z)) continue;
+      const x0 = x * CELL, z0 = z * CELL;
+      add(1, MODERN_CAMPAIGN_CEILING, -1, [0, 2], [x0, x0 + CELL, z0, z0 + CELL]);
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        if (foundryCell(map, x + dx, z + dz)) openings++;
+        if (walk(x + dx, z + dz)) continue;
+        if (dx) add(0, x0 + (dx > 0 ? CELL : 0), -dx, [2, 1], [z0, z0 + CELL, 0, MODERN_CAMPAIGN_CEILING]);
+        else add(2, z0 + (dz > 0 ? CELL : 0), -dz, [0, 1], [x0, x0 + CELL, 0, MODERN_CAMPAIGN_CEILING]);
+      }
+    }
+    expect(openings).toBe(18); // Six unchanged three-cell passages.
+    const bytes = readFileSync(new URL('../../public/modern/foundry/environment.glb', import.meta.url));
+    const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
+    model.updateMatrixWorld(true);
+    const overlapping: { material: string; normal: number[]; point: number[]; area: number }[] = [];
+    const vertices = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    const normal = new THREE.Vector3(), edge = new THREE.Vector3();
+    model.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const positions = node.geometry.getAttribute('position'), indices = node.geometry.index!;
+      for (let i = 0; i < indices.count; i += 3) {
+        vertices.forEach((v, j) => v.fromBufferAttribute(positions, indices.getX(i + j)).applyMatrix4(node.matrixWorld));
+        normal.subVectors(vertices[1], vertices[0]).cross(edge.subVectors(vertices[2], vertices[0])).normalize();
+        const n = normal.toArray();
+        const axis = n.findIndex(value => Math.abs(value) > .99999);
+        if (axis < 0) continue;
+        const p = vertices.map(v => v.toArray());
+        const plane = Math.round(p[0][axis] * 1e5) / 1e5;
+        if (p.some(v => Math.abs(v[axis] - plane) > 1e-5)) continue;
+        for (const surface of surfaces.get(`${axis}/${plane}/${Math.sign(n[axis])}`) ?? []) {
+          const area = clippedArea(p.map(v => [v[surface.axes[0]], v[surface.axes[1]]]), surface.bounds);
+          if (area > 1e-6) overlapping.push({ material: (node.material as THREE.Material).name, normal: n, point: p[0], area });
+        }
+      }
+    });
+    expect(overlapping, JSON.stringify(overlapping.slice(0, 8))).toEqual([]);
+  });
+
   it('separates the pier cladding and lower vessel flange from their former coplanar backing faces', async () => {
     const bytes = readFileSync(new URL('../../public/modern/foundry/environment.glb', import.meta.url));
     const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;

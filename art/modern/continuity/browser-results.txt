@@ -1,0 +1,136 @@
+npm warn exec The following package was not found and will be installed: node@24.21.0
+
+Running 122 tests using 1 worker
+
+(node:72047) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/122] [desktop] › tests/e2e/arena-pause.spec.ts:33:3 › arena pause menu › RESUME is clickable and closes the menu
+[2/122] [desktop] › tests/e2e/arena-pause.spec.ts:48:3 › arena pause menu › scoreboard open first does not block RESUME
+[3/122] [desktop] › tests/e2e/arena-pause.spec.ts:72:3 › arena pause menu › audio context exists after joining (silent-arena bug)
+[4/122] [desktop] › tests/e2e/arena-server.spec.ts:6:3 › arena server › health and websocket welcome
+[5/122] [desktop] › tests/e2e/arena.spec.ts:40:3 › arena › an arena tick performs one renderer frame after all scene updates
+[6/122] [desktop] › tests/e2e/arena.spec.ts:61:3 › arena › typing in the arena NAME field is not eaten by the global key handler
+[7/122] [desktop] › tests/e2e/arena.spec.ts:84:3 › arena › arena: m opens the full map, Tab opens the scoreboard
+[8/122] [desktop] › tests/e2e/arena.spec.ts:127:3 › arena › title shows MULTIPLAYER ARENA and maze still starts
+[9/122] [desktop] › tests/e2e/arena.spec.ts:145:3 › arena › joinArena connects and two contexts share a room
+[10/122] [desktop] › tests/e2e/arena.spec.ts:198:3 › arena › an emptied room is recycled: a later client gets a fresh seed
+[11/122] [desktop] › tests/e2e/campaign.spec.ts:22:3 › campaign desktop › CAMPAIGN begins map 1
+[12/122] [desktop] › tests/e2e/campaign.spec.ts:41:3 › campaign desktop › campaign SKILL after a maze run does not start a maze
+[13/122] [desktop] › tests/e2e/campaign.spec.ts:61:3 › campaign desktop › Foundry start does not grow the map log with campaign: seeds
+[14/122] [desktop] › tests/e2e/campaign.spec.ts:83:3 › campaign desktop › title Easy after quitting campaign does not start a campaign-art maze
+[15/122] [desktop] › tests/e2e/campaign.spec.ts:104:3 › campaign desktop › completing map 7 shows THE SEVENTH IS SILENT
+[16/122] [desktop] › tests/e2e/campaign.spec.ts:117:3 › campaign desktop › campaign screen lists seven named maps; map 2 unlocks after winning map 1
+[17/122] [desktop] › tests/e2e/campaign.spec.ts:152:3 › campaign desktop › startCampaign(n) plays the chosen map
+[18/122] [desktop] › tests/e2e/campaign.spec.ts:166:3 › campaign desktop › death retry restores the map and entry loadout
+[19/122] [desktop] › tests/e2e/campaign.spec.ts:200:3 › campaign desktop › completeMap then CONTINUE starts the next map
+[20/122] [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map
+[21/122] [desktop] › tests/e2e/campaign.spec.ts:251:3 › campaign mobile › title panel still fits with CAMPAIGN and FIRE is ≥44px
+[22/122] [desktop] › tests/e2e/editor.spec.ts:9:3 › editor › ?edit=1 shows editor chrome
+[23/122] [desktop] › tests/e2e/editor.spec.ts:21:3 › editor › opens with a visible canvas and a START room
+[24/122] [desktop] › tests/e2e/editor.spec.ts:59:3 › editor › title EDITOR button opens the editor
+[25/122] [desktop] › tests/e2e/editor.spec.ts:69:3 › editor › loadBlueprint + PLAYTEST reaches playing
+[26/122] [desktop] › tests/e2e/editor.spec.ts:100:3 › editor › COPY LINK works on a START-only map that fails VALIDATE
+[27/122] [desktop] › tests/e2e/game.spec.ts:30:3 › desktop › maze and campaign ticks each perform one renderer frame after scene updates
+[28/122] [desktop] › tests/e2e/game.spec.ts:52:3 › desktop › boots to title and starts a run
+[29/122] [desktop] › tests/e2e/game.spec.ts:67:3 › desktop › WASD walks the way you look (W forward, A/D strafe)
+[30/122] [desktop] › tests/e2e/game.spec.ts:99:3 › desktop › shooting spends ammo, dry-fire does not spam
+[31/122] [desktop] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp
+[32/122] [desktop] › tests/e2e/game.spec.ts:191:3 › desktop › playtest pose: level camera, crawler in lower FOV, InputManager click hits
+[33/122] [desktop] › tests/e2e/game.spec.ts:220:3 › desktop › gun pickup grants the gun and a usable ammo stack
+[34/122] [desktop] › tests/e2e/game.spec.ts:232:3 › desktop › medikit heals only when hurt
+[35/122] [desktop] › tests/e2e/game.spec.ts:253:3 › desktop › death: 2s lockout with no clickable controls, then title offers retry/new maze
+[36/122] [desktop] › tests/e2e/game.spec.ts:287:3 › desktop › win: arena clear shows GAME OVER / You won
+[37/122] [desktop] › tests/e2e/game.spec.ts:314:3 › desktop › difficulty changes the economy for the same seed
+[38/122] [desktop] › tests/e2e/game.spec.ts:332:3 › desktop › same seed => identical map hash across runs
+[39/122] [desktop] › tests/e2e/game.spec.ts:354:3 › desktop › killed enemies stand upright when the same seed is replayed
+[40/122] [desktop] › tests/e2e/game.spec.ts:389:3 › desktop › replaying a warmed fight and cycling guns leaves GPU allocations stable
+[41/122] [desktop] › tests/e2e/game.spec.ts:450:3 › desktop › full map opens on Tab, shows fog of war and player marker, pauses combat
+[42/122] [desktop] › tests/e2e/game.spec.ts:471:3 › desktop › full map also opens on M in campaign/maze, same as Tab
+[43/122] [desktop] › tests/e2e/game.spec.ts:483:3 › desktop › MAP LOG records a quit and PLAY starts the same seed
+[44/122] [desktop] › tests/e2e/game.spec.ts:507:3 › desktop › Quit then MAP LOG hides HEALTH / minimap
+[45/122] [desktop] › tests/e2e/game.spec.ts:559:3 › desktop › E opens a door (door state changes, becomes passable)
+[46/122] [desktop] › tests/e2e/game.spec.ts:586:3 › desktop › authored map via startMap: play, RETRY MAP, COPY LINK
+[47/122] [desktop] › tests/e2e/game.spec.ts:626:3 › desktop › opens an authored map from #m= share hash
+[48/122] [desktop] › tests/e2e/game.spec.ts:638:3 › desktop › authored-map death offers RETRY MAP / TITLE, not a new maze
+[49/122] [desktop] › tests/e2e/game.spec.ts:670:3 › mobile › touch HUD is present with big FIRE/USE/MAP buttons
+[50/122] [desktop] › tests/e2e/game.spec.ts:691:3 › mobile › FIRE button fires and unlatches on release
+[51/122] [desktop] › tests/e2e/modern-art.spec.ts:14:3 › modern art bootstrap › prepares GPU programs behind a painted loading screen before the first shot or room reveal
+[52/122] [desktop] › tests/e2e/modern-art.spec.ts:53:3 › modern art bootstrap › normal touch menus can pause, resume and quit without gameplay controls intercepting taps
+[53/122] [desktop] › tests/e2e/modern-art.spec.ts:75:3 › modern art bootstrap › loads saved models, textures and audio before the Foundry entry becomes usable
+[54/122] [desktop] › tests/e2e/modern-art.spec.ts:114:3 › modern art bootstrap › the authored entrance door still blocks, opens and lets the player reach the hall
+[55/122] [desktop] › tests/e2e/modern-art.spec.ts:135:3 › modern art bootstrap › keeps gameplay behind the loading screen while a sound file is pending
+[56/122] [desktop] › tests/e2e/modern-art.spec.ts:155:3 › modern art bootstrap › decodes recordings on gesture, plays sampled shots and cleans up ambience between runs
+[57/122] [desktop] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed models/pistol.glb exposes retry before gameplay and recovers
+[58/122] [desktop] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed audio/pistol-a.mp3 exposes retry before gameplay and recovers
+[59/122] [desktop] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed foundry/irradiance.webp exposes retry before gameplay and recovers
+[60/122] [desktop] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed roster/enemies/husk.glb exposes retry before gameplay and recovers
+[61/122] [desktop] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed roster/effects/flash.webp exposes retry before gameplay and recovers
+(node:72333) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[62/122] [mobile] › tests/e2e/arena-pause.spec.ts:33:3 › arena pause menu › RESUME is clickable and closes the menu
+[63/122] [mobile] › tests/e2e/arena-pause.spec.ts:48:3 › arena pause menu › scoreboard open first does not block RESUME
+[64/122] [mobile] › tests/e2e/arena-pause.spec.ts:72:3 › arena pause menu › audio context exists after joining (silent-arena bug)
+[65/122] [mobile] › tests/e2e/arena-server.spec.ts:6:3 › arena server › health and websocket welcome
+[66/122] [mobile] › tests/e2e/arena.spec.ts:40:3 › arena › an arena tick performs one renderer frame after all scene updates
+[67/122] [mobile] › tests/e2e/arena.spec.ts:61:3 › arena › typing in the arena NAME field is not eaten by the global key handler
+[68/122] [mobile] › tests/e2e/arena.spec.ts:84:3 › arena › arena: m opens the full map, Tab opens the scoreboard
+[69/122] [mobile] › tests/e2e/arena.spec.ts:127:3 › arena › title shows MULTIPLAYER ARENA and maze still starts
+[70/122] [mobile] › tests/e2e/arena.spec.ts:145:3 › arena › joinArena connects and two contexts share a room
+[71/122] [mobile] › tests/e2e/arena.spec.ts:198:3 › arena › an emptied room is recycled: a later client gets a fresh seed
+[72/122] [mobile] › tests/e2e/campaign.spec.ts:22:3 › campaign desktop › CAMPAIGN begins map 1
+[73/122] [mobile] › tests/e2e/campaign.spec.ts:41:3 › campaign desktop › campaign SKILL after a maze run does not start a maze
+[74/122] [mobile] › tests/e2e/campaign.spec.ts:61:3 › campaign desktop › Foundry start does not grow the map log with campaign: seeds
+[75/122] [mobile] › tests/e2e/campaign.spec.ts:83:3 › campaign desktop › title Easy after quitting campaign does not start a campaign-art maze
+[76/122] [mobile] › tests/e2e/campaign.spec.ts:104:3 › campaign desktop › completing map 7 shows THE SEVENTH IS SILENT
+[77/122] [mobile] › tests/e2e/campaign.spec.ts:117:3 › campaign desktop › campaign screen lists seven named maps; map 2 unlocks after winning map 1
+[78/122] [mobile] › tests/e2e/campaign.spec.ts:152:3 › campaign desktop › startCampaign(n) plays the chosen map
+[79/122] [mobile] › tests/e2e/campaign.spec.ts:166:3 › campaign desktop › death retry restores the map and entry loadout
+[80/122] [mobile] › tests/e2e/campaign.spec.ts:200:3 › campaign desktop › completeMap then CONTINUE starts the next map
+[81/122] [mobile] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map
+[82/122] [mobile] › tests/e2e/campaign.spec.ts:251:3 › campaign mobile › title panel still fits with CAMPAIGN and FIRE is ≥44px
+[83/122] [mobile] › tests/e2e/editor.spec.ts:9:3 › editor › ?edit=1 shows editor chrome
+[84/122] [mobile] › tests/e2e/editor.spec.ts:21:3 › editor › opens with a visible canvas and a START room
+[85/122] [mobile] › tests/e2e/editor.spec.ts:59:3 › editor › title EDITOR button opens the editor
+[86/122] [mobile] › tests/e2e/editor.spec.ts:69:3 › editor › loadBlueprint + PLAYTEST reaches playing
+[87/122] [mobile] › tests/e2e/editor.spec.ts:100:3 › editor › COPY LINK works on a START-only map that fails VALIDATE
+[88/122] [mobile] › tests/e2e/game.spec.ts:30:3 › desktop › maze and campaign ticks each perform one renderer frame after scene updates
+[89/122] [mobile] › tests/e2e/game.spec.ts:52:3 › desktop › boots to title and starts a run
+[90/122] [mobile] › tests/e2e/game.spec.ts:67:3 › desktop › WASD walks the way you look (W forward, A/D strafe)
+[91/122] [mobile] › tests/e2e/game.spec.ts:99:3 › desktop › shooting spends ammo, dry-fire does not spam
+[92/122] [mobile] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp
+[93/122] [mobile] › tests/e2e/game.spec.ts:191:3 › desktop › playtest pose: level camera, crawler in lower FOV, InputManager click hits
+[94/122] [mobile] › tests/e2e/game.spec.ts:220:3 › desktop › gun pickup grants the gun and a usable ammo stack
+[95/122] [mobile] › tests/e2e/game.spec.ts:232:3 › desktop › medikit heals only when hurt
+[96/122] [mobile] › tests/e2e/game.spec.ts:253:3 › desktop › death: 2s lockout with no clickable controls, then title offers retry/new maze
+[97/122] [mobile] › tests/e2e/game.spec.ts:287:3 › desktop › win: arena clear shows GAME OVER / You won
+[98/122] [mobile] › tests/e2e/game.spec.ts:314:3 › desktop › difficulty changes the economy for the same seed
+[99/122] [mobile] › tests/e2e/game.spec.ts:332:3 › desktop › same seed => identical map hash across runs
+[100/122] [mobile] › tests/e2e/game.spec.ts:354:3 › desktop › killed enemies stand upright when the same seed is replayed
+[101/122] [mobile] › tests/e2e/game.spec.ts:389:3 › desktop › replaying a warmed fight and cycling guns leaves GPU allocations stable
+[102/122] [mobile] › tests/e2e/game.spec.ts:450:3 › desktop › full map opens on Tab, shows fog of war and player marker, pauses combat
+[103/122] [mobile] › tests/e2e/game.spec.ts:471:3 › desktop › full map also opens on M in campaign/maze, same as Tab
+[104/122] [mobile] › tests/e2e/game.spec.ts:483:3 › desktop › MAP LOG records a quit and PLAY starts the same seed
+[105/122] [mobile] › tests/e2e/game.spec.ts:507:3 › desktop › Quit then MAP LOG hides HEALTH / minimap
+[106/122] [mobile] › tests/e2e/game.spec.ts:559:3 › desktop › E opens a door (door state changes, becomes passable)
+[107/122] [mobile] › tests/e2e/game.spec.ts:586:3 › desktop › authored map via startMap: play, RETRY MAP, COPY LINK
+[108/122] [mobile] › tests/e2e/game.spec.ts:626:3 › desktop › opens an authored map from #m= share hash
+[109/122] [mobile] › tests/e2e/game.spec.ts:638:3 › desktop › authored-map death offers RETRY MAP / TITLE, not a new maze
+[110/122] [mobile] › tests/e2e/game.spec.ts:670:3 › mobile › touch HUD is present with big FIRE/USE/MAP buttons
+[111/122] [mobile] › tests/e2e/game.spec.ts:691:3 › mobile › FIRE button fires and unlatches on release
+[112/122] [mobile] › tests/e2e/modern-art.spec.ts:14:3 › modern art bootstrap › prepares GPU programs behind a painted loading screen before the first shot or room reveal
+[113/122] [mobile] › tests/e2e/modern-art.spec.ts:53:3 › modern art bootstrap › normal touch menus can pause, resume and quit without gameplay controls intercepting taps
+[114/122] [mobile] › tests/e2e/modern-art.spec.ts:75:3 › modern art bootstrap › loads saved models, textures and audio before the Foundry entry becomes usable
+[115/122] [mobile] › tests/e2e/modern-art.spec.ts:114:3 › modern art bootstrap › the authored entrance door still blocks, opens and lets the player reach the hall
+[116/122] [mobile] › tests/e2e/modern-art.spec.ts:135:3 › modern art bootstrap › keeps gameplay behind the loading screen while a sound file is pending
+[117/122] [mobile] › tests/e2e/modern-art.spec.ts:155:3 › modern art bootstrap › decodes recordings on gesture, plays sampled shots and cleans up ambience between runs
+[118/122] [mobile] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed models/pistol.glb exposes retry before gameplay and recovers
+[119/122] [mobile] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed audio/pistol-a.mp3 exposes retry before gameplay and recovers
+[120/122] [mobile] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed foundry/irradiance.webp exposes retry before gameplay and recovers
+[121/122] [mobile] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed roster/enemies/husk.glb exposes retry before gameplay and recovers
+[122/122] [mobile] › tests/e2e/modern-art.spec.ts:205:5 › modern art bootstrap › a failed roster/effects/flash.webp exposes retry before gameplay and recovers
+  13 skipped
+  109 passed (2.2m)

@@ -48,7 +48,7 @@ describe('arena render presentation', () => {
     const fx = new FxRenderer(scene);
     fx.tracer(1, 2, 3, 9, 7, -5, 'rail');
     scene.updateMatrixWorld(true);
-    const rail = scene.children[0] as THREE.Group;
+    const rail = scene.children.find(obj => obj.userData.fxPoolKey === 'rail-tracer') as THREE.Group;
     const core = rail.children[0] as THREE.Mesh;
     const midpoint = core.getWorldPosition(new THREE.Vector3());
     expect(midpoint.distanceTo(new THREE.Vector3(5, 4.5, -1))).toBeLessThan(1e-5);

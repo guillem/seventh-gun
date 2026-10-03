@@ -1,0 +1,52 @@
+npm warn exec The following package was not found and will be installed: node@24.21.0
+
+Running 102 tests using 1 worker
+
+(node:71617) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/102] [desktop] › tests/e2e/campaign.spec.ts:22:3 › campaign desktop › CAMPAIGN begins map 1
+[2/102] [desktop] › tests/e2e/campaign.spec.ts:41:3 › campaign desktop › campaign SKILL after a maze run does not start a maze
+[3/102] [desktop] › tests/e2e/campaign.spec.ts:61:3 › campaign desktop › Foundry start does not grow the map log with campaign: seeds
+[4/102] [desktop] › tests/e2e/campaign.spec.ts:83:3 › campaign desktop › title Easy after quitting campaign does not start a campaign-art maze
+[5/102] [desktop] › tests/e2e/campaign.spec.ts:104:3 › campaign desktop › completing map 7 shows THE SEVENTH IS SILENT
+[6/102] [desktop] › tests/e2e/campaign.spec.ts:117:3 › campaign desktop › campaign screen lists seven named maps; map 2 unlocks after winning map 1
+[7/102] [desktop] › tests/e2e/campaign.spec.ts:152:3 › campaign desktop › startCampaign(n) plays the chosen map
+[8/102] [desktop] › tests/e2e/campaign.spec.ts:166:3 › campaign desktop › death retry restores the map and entry loadout
+[9/102] [desktop] › tests/e2e/campaign.spec.ts:200:3 › campaign desktop › completeMap then CONTINUE starts the next map
+[10/102] [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map
+[11/102] [desktop] › tests/e2e/campaign.spec.ts:251:3 › campaign mobile › title panel still fits with CAMPAIGN and FIRE is ≥44px
+[12/102] [desktop] › tests/e2e/editor.spec.ts:9:3 › editor › ?edit=1 shows editor chrome
+[13/102] [desktop] › tests/e2e/editor.spec.ts:21:3 › editor › opens with a visible canvas and a START room
+[14/102] [desktop] › tests/e2e/editor.spec.ts:59:3 › editor › title EDITOR button opens the editor
+[15/102] [desktop] › tests/e2e/editor.spec.ts:69:3 › editor › loadBlueprint + PLAYTEST reaches playing
+[16/102] [desktop] › tests/e2e/editor.spec.ts:100:3 › editor › COPY LINK works on a START-only map that fails VALIDATE
+[17/102] [desktop] › tests/e2e/game.spec.ts:30:3 › desktop › maze and campaign ticks each perform one renderer frame after scene updates
+[18/102] [desktop] › tests/e2e/game.spec.ts:52:3 › desktop › boots to title and starts a run
+[19/102] [desktop] › tests/e2e/game.spec.ts:67:3 › desktop › WASD walks the way you look (W forward, A/D strafe)
+[20/102] [desktop] › tests/e2e/game.spec.ts:99:3 › desktop › shooting spends ammo, dry-fire does not spam
+[21/102] [desktop] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp
+  1) [desktop] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp 
+
+    Test was interrupted.
+
+    Error: page.waitForFunction: Test ended.
+
+      133 |       (window as unknown as { __GAME__: { startMap: (m: unknown) => void } }).__GAME__.startMap(bp);
+      134 |     }, CRAWLER_BP);
+    > 135 |     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
+          |                ^
+      136 |
+      137 |     const posed = await page.evaluate(() => {
+      138 |       const G = (window as unknown as {
+        at /Users/guillem/Development/seventh-gun/tests/e2e/game.spec.ts:135:16
+
+    Error Context: test-results/game-desktop-playtest-pose-ef039--mousedown-drops-crawler-hp-desktop/error-context.md
+
+
+  1 interrupted
+    [desktop] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp 
+  1 skipped
+  81 did not run
+  19 passed (5.0m)
