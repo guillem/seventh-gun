@@ -36,6 +36,7 @@ export interface EnemyRig {
     mixer: THREE.AnimationMixer;
     actions: Map<string, THREE.AnimationAction>;
     active: string;
+    rootBindRotation: THREE.Quaternion;
   };
 }
 
@@ -930,7 +931,8 @@ function buildModernEnemy(type: EnemyType): EnemyRig | null {
     group, yawGroup, body, head: model.getObjectByName('head'), eyes,
     legs: [], arms: [], extras: [], eyeMat,
     baseY: def.flying ? def.hoverY : 0, radius: def.radius, height: def.height, shadow,
-    authored: { model, mixer, actions, active: '' },
+    authored: { model, mixer, actions, active: '',
+      rootBindRotation: model.getObjectByName('root')!.quaternion.clone().normalize() },
   };
   body.position.y = rig.baseY;
   sampleAuthored(rig, 'idle', 0);
@@ -1138,14 +1140,27 @@ export class EnemyRenderer {
     this.rigs.clear();
   }
 
-  rigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
-    const out: { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] = [];
+  rigInfo(): {
+    id: number; visible: boolean; x: number; z: number; scale: number; rotX: number;
+    animation: { name: string; progress: number; rootBoneAngle: number } | null;
+  }[] {
+    const out: ReturnType<EnemyRenderer['rigInfo']> = [];
     for (const [id, rig] of this.rigs) {
+      const authored = rig.authored;
+      const action = authored?.actions.get(authored.active);
+      const root = authored?.model.getObjectByName('root');
       out.push({
         id, visible: rig.group.visible,
         x: +rig.group.position.x.toFixed(1), z: +rig.group.position.z.toFixed(1),
         scale: rig.group.scale.x,
         rotX: +rig.group.rotation.x.toFixed(2),
+        // Debug reads the actual action and deformed root bone. Whole-group
+        // rotation alone no longer describes a saved skeletal corpse pose.
+        animation: authored && action && root ? {
+          name: authored.active,
+          progress: +THREE.MathUtils.clamp(action.time / Math.max(.0001, action.getClip().duration), 0, 1).toFixed(3),
+          rootBoneAngle: +root.quaternion.clone().normalize().angleTo(authored.rootBindRotation).toFixed(3),
+        } : null,
       });
     }
     return out;

@@ -141,6 +141,30 @@ describe('six saved skeletal enemy assets', () => {
     mixer.uncacheRoot(model);
   });
 
+  it('reports the actual skeletal death pose and a neutral skeleton after replay', () => {
+    const renderer = new EnemyRenderer(new THREE.Scene());
+    const camera = new THREE.PerspectiveCamera();
+    const enemies = types.map((type, id) => entity(type, id));
+    renderer.syncStart(enemies);
+    const dead = enemies.map(e => ({ ...e, dead: true, deathTime: 5 }));
+    renderer.update(1 / 60, dead, camera, 5.7);
+    for (const snapshot of renderer.rigInfo()) {
+      expect(snapshot.rotX).toBe(0); // the outer transform alone is insufficient
+      expect(snapshot.animation?.name).toBe('death');
+      expect(snapshot.animation?.progress).toBe(1);
+      expect(snapshot.animation!.rootBoneAngle).toBeGreaterThan(1);
+    }
+    renderer.dispose();
+    renderer.syncStart(enemies); // same ids must acquire fresh skeletons
+    renderer.update(1 / 60, enemies, camera, 0);
+    for (const snapshot of renderer.rigInfo()) {
+      expect(snapshot.animation?.name).toBe('idle');
+      expect(snapshot.animation!.rootBoneAngle).toBeLessThan(.01);
+      expect(snapshot.rotX).toBe(0);
+    }
+    renderer.dispose();
+  });
+
   it('scrubs state clips independently of render FPS and preserves clone isolation', () => {
     const renderer = new EnemyRenderer(new THREE.Scene());
     const camera = new THREE.PerspectiveCamera();

@@ -398,7 +398,7 @@ export class GameRenderer {
     });
   }
 
-  get enemyRigInfo(): { id: number; visible: boolean; x: number; z: number; scale: number; rotX: number }[] {
+  get enemyRigInfo(): ReturnType<EnemyRenderer['rigInfo']> {
     return this.enemies.rigInfo();
   }
 

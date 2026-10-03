@@ -352,28 +352,38 @@ test.describe('desktop', () => {
   // so a new run must not reuse the previous run's rigs — enemies killed last
   // run used to come back sideways (death-pose rotation never reset).
   test('killed enemies stand upright when the same seed is replayed', async ({ page }) => {
+    type RigSnapshot = {
+      id: number; rotX: number;
+      animation: { name: string; progress: number; rootBoneAngle: number } | null;
+    };
     await gotoGame(page, BASE);
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
-    // kill enemies 0-2 and wait for the death fall to tilt their rigs
+    // A skeletal corpse falls inside its model: the outer group's rotX stays
+    // zero. Require both the completed clip and its actual root-bone tilt.
     await page.evaluate(() => (window as unknown as { __GAME__: { killSome: (n: number) => void } }).__GAME__.killSome(3));
     await page.waitForFunction(() => {
-      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs;
       const fallen = rigs.filter(r => [0, 1, 2].includes(r.id));
-      return fallen.length === 3 && fallen.every(r => Math.abs(r.rotX) > 1);
+      return fallen.length === 3 && fallen.every(r => r.animation?.name === 'death'
+        && r.animation.progress >= .99 && r.animation.rootBoneAngle > 1);
     });
-    // replay the same seed: every rig must be upright again
+    // Replay the same seed: no corpse clip or skeletal tilt may survive.
     await page.evaluate(() => (window as unknown as { __GAME__: { startRun: (s: string) => void } }).__GAME__.startRun('e2e-rig-reuse'));
     await page.waitForFunction(() => (window as unknown as { __GAME__?: { state: () => { phase: string } } }).__GAME__?.state()?.phase === 'playing');
-    // Rig visuals populate lazily as the renderer draws frames — wait for the
-    // condition itself (enough rigs, all upright) rather than a fixed sleep.
     await page.waitForFunction(() => {
-      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs;
-      return rigs.length > 3 && rigs.every((r) => Math.abs(r.rotX) < 0.01);
+      const rigs = (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs;
+      return rigs.length > 3 && rigs.every(r => r.animation !== null
+        && r.animation.name !== 'death' && r.animation.rootBoneAngle < .01 && Math.abs(r.rotX) < .01);
     }, null, { timeout: 15000 });
-    const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: { id: number; rotX: number }[] } } }).__GAME__.debugInfo().rigs);
+    const rigs = await page.evaluate(() => (window as unknown as { __GAME__: { debugInfo: () => { rigs: RigSnapshot[] } } }).__GAME__.debugInfo().rigs);
     expect(rigs.length).toBeGreaterThan(3);
-    for (const r of rigs) expect(Math.abs(r.rotX)).toBeLessThan(0.01);
+    for (const rig of rigs) {
+      expect(rig.animation).not.toBeNull();
+      expect(rig.animation!.name).not.toBe('death');
+      expect(rig.animation!.rootBoneAngle).toBeLessThan(.01);
+      expect(Math.abs(rig.rotX)).toBeLessThan(.01);
+    }
   });
 
   test('replaying a warmed fight and cycling guns leaves GPU allocations stable', async ({ page }) => {
