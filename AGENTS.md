@@ -81,6 +81,10 @@ debug API. Arena: `joinArena`, `leaveArena`, `arena()`.
 
 Three targets, one client build.
 
+> **On this branch** `wrangler.jsonc` names `seventh-gun-art` (art.seventhgun.com),
+> not production. Production is `seventh-gun`, deployed only from `main` by
+> `deploy.yml`; this branch deploys only the art Worker via `deploy-art.yml`.
+
 - **Cloudflare Workers is production** (`wrangler.jsonc`, Worker name `seventh-gun`).
   Never add a Cloudflare payment method. `run_worker_first` is only `/arena` and `/health`.
 - **Netlify** stays a static mirror: `publish = dist/client`. Arena is offline there
