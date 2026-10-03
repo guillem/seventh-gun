@@ -219,6 +219,10 @@ test.describe('campaign desktop', () => {
   });
 
   test('title CONTINUE resumes after a completed map', async ({ page }) => {
+    // This roundtrip builds three campaign scenes; bundled Chromium
+    // completed it in 34s even though the final resume check took
+    // under a second. Keep the full UI flow within a scoped 60s budget.
+    test.setTimeout(60000);
     await gotoGame(page, BASE);
     await page.evaluate(() => localStorage.removeItem('seventh-gun.campaign'));
     await page.evaluate(() => (window as unknown as { __GAME__: GameApi }).__GAME__.startCampaign(1));

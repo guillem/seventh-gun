@@ -102,6 +102,14 @@ The floor, route to the far doorway, pickup label and crosshair remain legible
 in both desktop and portrait views. Pier bases and the chamber's lower cap are
 clean in these stills; separate camera-motion stability captures cover flicker.
 These observations concern the environment only, not final enemy-art approval.
+
+The final integrated implementation is captured in
+`review/campaign-1-foundry.jpg`, alongside all six final creature species and
+desktop/portrait weapons. That review was captured from the deployed Netlify
+preview; its report records 96 loaded assets on each layout, no game errors and
+unchanged hashes for all seven maps. Netlify's own preview toolbar is visible
+at the bottom of those hosted screenshots. The earlier local contrast samples
+above remain unchanged so their recorded measurements stay reproducible.
 The source/material audit on 2026-10-03 confirmed that the saved bake, concrete
 floor binding and geometry corrections above remain present. No new browser
 capture or performance measurement was made during that read-only audit.

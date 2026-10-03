@@ -1,6 +1,6 @@
 # STATUS
 
-## Review refinement — in progress 2026-10-03
+## Review refinement — delivered 2026-10-03
 
 The user reported camera-dependent black patches on Foundry column bases,
 whole-gun disappearance, simple creature anatomy/materials and overly bright
@@ -16,8 +16,45 @@ All six creature species now have more developed anatomy,
 facial/joint detail and four new generated albedos plus eight Blender-baked
 normal/roughness maps. All 393 unit tests, all three TypeScript projects and the
 production build pass under Node 24.21.0. Runtime art is 96 files / 31,631,152
-bytes before compression. Full browser, final visual and hosted checks are running.
-No simulation, map, balance or network changes. No merge or production deployment.
+bytes before compression.
+
+107 applicable browser checks are verified. The full desktop/mobile run passed
+106 with 13 intentional skips; one desktop campaign-resume test exceeded its
+30-second cumulative budget. A trace of the unchanged assertion passed in
+34.144 seconds, with its final state check taking 640ms. A scoped 60-second test
+budget now passes ordinary-config desktop and mobile reruns without retries.
+No campaign runtime change was required. Original failure evidence and the
+successful traces/timings are in `art/modern/refinement/campaign-resume/`.
+
+Netlify implementation `8cffc14` is verified at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: all 96 runtime files match
+local byte counts and SHA-256 checksums. Twenty-seven hosted actual-game views
+cover every weapon on desktop/portrait, all six positively identified species
+and all seven maps. Both layouts load all 96 files without game errors; every
+campaign map hash matches the previous milestone. The interactive before/after
+comparison is `art/modern/refinement/compare.html` (14 images, seven working
+sliders). Generated originals and exact prompts remain in its `materials/` folder.
+
+Hosted normal-mode Chrome / Apple M5 Pro holds approximately 60 fps across four
+general/control scenarios and fourteen campaign entry views, p95 16.7–16.8ms,
+with no game errors. Touch is emulated on the same desktop GPU, not a physical
+phone; these are selected views, not GPU-headroom or full-map guarantees.
+Netlify preview-toolbar telemetry is recorded separately. Aggregate evidence:
+`art/modern/refinement/validation.json`. Later commits record evidence and the
+scoped test budget without changing the verified runtime assets.
+
+The scene remains a stylized art experiment. Fixed practical lights are
+unshadowed and also affect baked surfaces; some light bleeding remains possible.
+Physical phones and Safari remain untested. GitHub-hosted CI is separate:
+implementation run `37107581322`, like the previous run, exceeded the explicit
+20-minute job limit. Typecheck/unit steps passed; E2E was cancelled and its
+failure-artifact step skipped. `art/modern/refinement/hosted/ci.json` records
+the annotation and timing. This establishes the CI limit, not the underlying
+graphics backend or a game defect; the PR is not represented as having green CI.
+
+No simulation, map, balance or network changes. Remote main remains `8bf93b3`;
+PR #32 remains draft. No merge, tag, release or production deployment.
+Next: user review of the refined preview.
 
 ## Full roster and campaign art pass — delivered 2026-10-03
 

@@ -57,9 +57,13 @@ menu illustration. The fixed practical lights are unshadowed and also add direct
 light to baked surfaces, so some light bleeding remains possible. Surface maps
 are original illustrations and authored relief, not registered material scans.
 Portrait browser emulation does not establish physical-phone performance.
-Final aggregate regression and hosted checks are tracked in `docs/STATUS.md`.
+Aggregate regression and hosted checks are recorded in `docs/STATUS.md` and
+`art/modern/refinement/validation.json`: 393 unit tests, 107 applicable browser
+checks, all 96 hosted asset hashes, 27 actual-game views and 18 normal-mode
+hardware scenarios. The separate GitHub browser job has a known timing limit;
+its status is distinguished from the completed local and hosted verification.
 
 New generated originals and exact prompts are under
 `art/modern/refinement/materials/`. They are illustrative albedo surfaces, not
 measured scans. Any added normal/roughness maps are authored offline in Blender.
-Final evidence and limitations will be recorded in `docs/STATUS.md`.
+Evidence and limitations are recorded in `docs/STATUS.md`.

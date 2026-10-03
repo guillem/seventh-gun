@@ -1,0 +1,108 @@
+{
+  "implementationCommit": "8cffc14b24551d705af38c537b843f01613a8689",
+  "branch": "codex/experimental-modern-art",
+  "draftPr": 32,
+  "productionDeployed": false,
+  "unit": {
+    "passed": 393,
+    "files": 48,
+    "node": "24.21.0"
+  },
+  "typecheck": "all three projects passed",
+  "productionBuild": "passed",
+  "browser": {
+    "fullRun": {
+      "passed": 106,
+      "skipped": 13,
+      "failed": 1,
+      "minutes": 12.7
+    },
+    "resolvedFailure": "Desktop campaign resume exceeded 30-second cumulative test budget. Unchanged assertion passed in 34.144 seconds with diagnostic 60-second limit. Scoped 60-second timeout added; ordinary-config desktop and mobile reruns passed without retries.",
+    "verifiedApplicableChecks": 107,
+    "detail": "campaign-resume/README.md"
+  },
+  "weaponVisibility": {
+    "beforeBlank": 10,
+    "beforeFrames": 1207,
+    "afterBlank": 0,
+    "afterFrames": 2679,
+    "desktopFrames": 1389,
+    "portraitFrames": 1290,
+    "detail": "../roster/stability-after/README.md"
+  },
+  "hosted": {
+    "assetsMatched": 96,
+    "bytes": 31631152,
+    "errors": 0,
+    "visualCaptures": 27,
+    "assetsPerDevice": [
+      96,
+      96
+    ],
+    "gameErrors": [
+      [],
+      []
+    ],
+    "speciesConfirmed": 6,
+    "campaignHashes": {
+      "foundry": {
+        "before": "ee306bc5",
+        "after": "ee306bc5"
+      },
+      "gullet": {
+        "before": "a31305c5",
+        "after": "a31305c5"
+      },
+      "catacombs": {
+        "before": "cd52d505",
+        "after": "cd52d505"
+      },
+      "pit": {
+        "before": "ad63b245",
+        "after": "ad63b245"
+      },
+      "spire": {
+        "before": "6b5d8de5",
+        "after": "6b5d8de5"
+      },
+      "ward": {
+        "before": "a5572565",
+        "after": "a5572565"
+      },
+      "sanctum": {
+        "before": "ddb9ca05",
+        "after": "ddb9ca05"
+      }
+    }
+  },
+  "performance": {
+    "scenarios": 18,
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "fpsRange": [
+      60,
+      60.00400026668444
+    ],
+    "p95msRange": [
+      16.700000000000728,
+      16.800000000000182
+    ],
+    "errors": 0,
+    "limits": "Normal-mode selected views on the desktop GPU; touch emulation is not a physical phone, and frame cadence does not measure GPU headroom. Netlify toolbar telemetry is recorded separately."
+  },
+  "limitations": [
+    "Physical phones and Safari untested.",
+    "Unshadowed practical lights also illuminate baked surfaces and can bleed.",
+    "Only the original Foundry opening has baked indirect lighting.",
+    "GitHub-hosted CI reached its 20-minute job limit during E2E. Local/browser and hosted checks are reported separately; PR CI is not green."
+  ],
+  "ci": {
+    "run": 37107581322,
+    "implementationCommit": "8cffc14",
+    "typecheck": "passed",
+    "unit": "passed",
+    "e2e": "cancelled",
+    "reason": "GitHub annotation: The job has exceeded the maximum execution time of 20m0s",
+    "failureArtifacts": 0,
+    "detail": "hosted/ci.json"
+  }
+}

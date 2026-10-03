@@ -1,0 +1,3377 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app",
+  "capturedAt": "2026-10-03T08:02:16.765Z",
+  "browserChannel": "chrome",
+  "limitations": [
+    "Screenshots are actual gameplay with only camera/weapon/enemy placement and AI freeze via the existing debug API.",
+    "The debug API uses DPR1 and disables antialiasing; these captures are not performance measurements.",
+    "Portrait touch emulation runs on the desktop GPU and is not a physical-phone test.",
+    "Enemy identity is verified from the returned placed.type; fallback species cause failure instead of mislabeled evidence."
+  ],
+  "devices": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        }
+      ],
+      "assetMisses": [],
+      "captures": [
+        {
+          "file": "weapon-1-viper-desktop.jpg",
+          "gun": 1,
+          "weapon": "viper",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 1,
+            "owned": [
+              true,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 210,
+              "shells": 0,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 246,
+            "geometries": 165,
+            "textures": 89
+          }
+        },
+        {
+          "file": "weapon-2-ripjaw-desktop.jpg",
+          "gun": 2,
+          "weapon": "ripjaw",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 2,
+            "owned": [
+              true,
+              true,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 210,
+              "shells": 16,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 289,
+            "geometries": 170,
+            "textures": 90
+          }
+        },
+        {
+          "file": "weapon-3-hornet-desktop.jpg",
+          "gun": 3,
+          "weapon": "hornet",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 3,
+            "owned": [
+              true,
+              true,
+              true,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 333,
+            "geometries": 171,
+            "textures": 90
+          }
+        },
+        {
+          "file": "weapon-4-spiker-desktop.jpg",
+          "gun": 4,
+          "weapon": "spiker",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 4,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 376,
+            "geometries": 169,
+            "textures": 90
+          }
+        },
+        {
+          "file": "weapon-5-bile-desktop.jpg",
+          "gun": 5,
+          "weapon": "bile",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 5,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 420,
+            "geometries": 170,
+            "textures": 90
+          }
+        },
+        {
+          "file": "weapon-6-sunlance-desktop.jpg",
+          "gun": 6,
+          "weapon": "sunlance",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 6,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 10,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 463,
+            "geometries": 168,
+            "textures": 90
+          }
+        },
+        {
+          "file": "weapon-7-seventh-desktop.jpg",
+          "gun": 7,
+          "weapon": "seventh",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 7,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 10,
+              "void": 5
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 507,
+            "geometries": 169,
+            "textures": 90
+          }
+        }
+      ],
+      "startupMs": 7792,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "resources": [
+        {
+          "url": "/modern/roster/environment/kit.glb",
+          "bytes": 674204,
+          "durationMs": 4852
+        },
+        {
+          "url": "/modern/roster/support/support.glb",
+          "bytes": 1889644,
+          "durationMs": 5877
+        },
+        {
+          "url": "/modern/roster/weapons/2.glb",
+          "bytes": 858112,
+          "durationMs": 4875
+        },
+        {
+          "url": "/modern/roster/weapons/1.glb",
+          "bytes": 905412,
+          "durationMs": 5282
+        },
+        {
+          "url": "/modern/roster/weapons/3.glb",
+          "bytes": 744200,
+          "durationMs": 4429
+        },
+        {
+          "url": "/modern/roster/weapons/5.glb",
+          "bytes": 650792,
+          "durationMs": 4486
+        },
+        {
+          "url": "/modern/roster/weapons/4.glb",
+          "bytes": 974152,
+          "durationMs": 5103
+        },
+        {
+          "url": "/modern/roster/weapons/6.glb",
+          "bytes": 826804,
+          "durationMs": 5103
+        },
+        {
+          "url": "/modern/roster/weapons/7.glb",
+          "bytes": 719800,
+          "durationMs": 4903
+        },
+        {
+          "url": "/modern/roster/enemies/husk.glb",
+          "bytes": 1344872,
+          "durationMs": 5751
+        },
+        {
+          "url": "/modern/roster/enemies/slab.glb",
+          "bytes": 1201596,
+          "durationMs": 5641
+        },
+        {
+          "url": "/modern/roster/enemies/crawler.glb",
+          "bytes": 1397076,
+          "durationMs": 5779
+        },
+        {
+          "url": "/modern/roster/enemies/wisp.glb",
+          "bytes": 956140,
+          "durationMs": 5341
+        },
+        {
+          "url": "/modern/roster/enemies/hierophant.glb",
+          "bytes": 1203676,
+          "durationMs": 5695
+        },
+        {
+          "url": "/modern/models/pistol.glb",
+          "bytes": 1433332,
+          "durationMs": 5685
+        },
+        {
+          "url": "/modern/roster/enemies/fiend.glb",
+          "bytes": 1345488,
+          "durationMs": 5750
+        },
+        {
+          "url": "/modern/models/husk.glb",
+          "bytes": 1292988,
+          "durationMs": 5710
+        },
+        {
+          "url": "/modern/models/architecture.glb",
+          "bytes": 306548,
+          "durationMs": 3530
+        },
+        {
+          "url": "/modern/foundry/environment.glb",
+          "bytes": 2961268,
+          "durationMs": 6051
+        },
+        {
+          "url": "/modern/foundry/door-hardware.glb",
+          "bytes": 159284,
+          "durationMs": 2064
+        },
+        {
+          "url": "/modern/audio/pistol-a.mp3",
+          "bytes": 15037,
+          "durationMs": 1793
+        },
+        {
+          "url": "/modern/audio/pistol-b.mp3",
+          "bytes": 15037,
+          "durationMs": 755
+        },
+        {
+          "url": "/modern/audio/door-open.mp3",
+          "bytes": 27106,
+          "durationMs": 1669
+        },
+        {
+          "url": "/modern/audio/metal-impact.mp3",
+          "bytes": 15037,
+          "durationMs": 1670
+        },
+        {
+          "url": "/modern/audio/husk-alert.mp3",
+          "bytes": 27472,
+          "durationMs": 1670
+        },
+        {
+          "url": "/modern/audio/shotgun.mp3",
+          "bytes": 28934,
+          "durationMs": 1793
+        },
+        {
+          "url": "/modern/audio/husk-pain.mp3",
+          "bytes": 15037,
+          "durationMs": 1670
+        },
+        {
+          "url": "/modern/audio/industrial-ambient.mp3",
+          "bytes": 109392,
+          "durationMs": 2189
+        },
+        {
+          "url": "/modern/audio/chaingun.mp3",
+          "bytes": 4432,
+          "durationMs": 1367
+        },
+        {
+          "url": "/modern/audio/spiker.mp3",
+          "bytes": 6992,
+          "durationMs": 1367
+        },
+        {
+          "url": "/modern/audio/bile.mp3",
+          "bytes": 20157,
+          "durationMs": 1671
+        },
+        {
+          "url": "/modern/audio/seventh.mp3",
+          "bytes": 28934,
+          "durationMs": 1503
+        },
+        {
+          "url": "/modern/audio/sunlance.mp3",
+          "bytes": 18694,
+          "durationMs": 1671
+        },
+        {
+          "url": "/modern/audio/crawler-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 920
+        },
+        {
+          "url": "/modern/audio/crawler-voice.mp3",
+          "bytes": 21620,
+          "durationMs": 1234
+        },
+        {
+          "url": "/modern/audio/crawler-death.mp3",
+          "bytes": 27472,
+          "durationMs": 1234
+        },
+        {
+          "url": "/modern/audio/slab-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 1079
+        },
+        {
+          "url": "/modern/audio/slab-death.mp3",
+          "bytes": 32226,
+          "durationMs": 1251
+        },
+        {
+          "url": "/modern/audio/slab-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 1671
+        },
+        {
+          "url": "/modern/audio/wisp-voice.mp3",
+          "bytes": 21620,
+          "durationMs": 1251
+        },
+        {
+          "url": "/modern/audio/wisp-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 1369
+        },
+        {
+          "url": "/modern/audio/hierophant-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 688
+        },
+        {
+          "url": "/modern/audio/wisp-death.mp3",
+          "bytes": 27472,
+          "durationMs": 1100
+        },
+        {
+          "url": "/modern/audio/hierophant-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 1251
+        },
+        {
+          "url": "/modern/audio/hierophant-death.mp3",
+          "bytes": 32226,
+          "durationMs": 1251
+        },
+        {
+          "url": "/modern/audio/fiend-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 1100
+        },
+        {
+          "url": "/modern/audio/fiend-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 1100
+        },
+        {
+          "url": "/modern/audio/fiend-death.mp3",
+          "bytes": 32226,
+          "durationMs": 1369
+        },
+        {
+          "url": "/modern/audio/husk-death.mp3",
+          "bytes": 19792,
+          "durationMs": 1166
+        },
+        {
+          "url": "/modern/audio/explosion.mp3",
+          "bytes": 28934,
+          "durationMs": 1502
+        },
+        {
+          "url": "/modern/audio/pickup.mp3",
+          "bytes": 8454,
+          "durationMs": 627
+        },
+        {
+          "url": "/modern/audio/dryfire.mp3",
+          "bytes": 4066,
+          "durationMs": 789
+        },
+        {
+          "url": "/modern/audio/medical.mp3",
+          "bytes": 10649,
+          "durationMs": 1019
+        },
+        {
+          "url": "/modern/audio/hurt.mp3",
+          "bytes": 6260,
+          "durationMs": 631
+        },
+        {
+          "url": "/modern/audio/seal.mp3",
+          "bytes": 28934,
+          "durationMs": 733
+        },
+        {
+          "url": "/modern/audio/powerup.mp3",
+          "bytes": 17597,
+          "durationMs": 1019
+        },
+        {
+          "url": "/modern/audio/key.mp3",
+          "bytes": 12112,
+          "durationMs": 1166
+        },
+        {
+          "url": "/modern/audio/heartbeat.mp3",
+          "bytes": 12112,
+          "durationMs": 1369
+        },
+        {
+          "url": "/modern/audio/failure.mp3",
+          "bytes": 28934,
+          "durationMs": 788
+        },
+        {
+          "url": "/modern/audio/success.mp3",
+          "bytes": 28934,
+          "durationMs": 806
+        },
+        {
+          "url": "/modern/refinement/materials/skin-roughness.webp",
+          "bytes": 72596,
+          "durationMs": 1672
+        },
+        {
+          "url": "/modern/refinement/materials/skin-normal.webp",
+          "bytes": 193762,
+          "durationMs": 2075
+        },
+        {
+          "url": "/modern/refinement/materials/raw.webp",
+          "bytes": 308238,
+          "durationMs": 3459
+        },
+        {
+          "url": "/modern/refinement/materials/skin.webp",
+          "bytes": 301020,
+          "durationMs": 3528
+        },
+        {
+          "url": "/modern/refinement/materials/raw-roughness.webp",
+          "bytes": 56650,
+          "durationMs": 1043
+        },
+        {
+          "url": "/modern/refinement/materials/bone-roughness.webp",
+          "bytes": 67578,
+          "durationMs": 1103
+        },
+        {
+          "url": "/modern/refinement/materials/chitin-roughness.webp",
+          "bytes": 88314,
+          "durationMs": 1959
+        },
+        {
+          "url": "/modern/refinement/materials/bone-normal.webp",
+          "bytes": 150844,
+          "durationMs": 2451
+        },
+        {
+          "url": "/modern/refinement/materials/raw-normal.webp",
+          "bytes": 193680,
+          "durationMs": 2859
+        },
+        {
+          "url": "/modern/refinement/materials/chitin-normal.webp",
+          "bytes": 194400,
+          "durationMs": 2859
+        },
+        {
+          "url": "/modern/refinement/materials/bone.webp",
+          "bytes": 272456,
+          "durationMs": 3375
+        },
+        {
+          "url": "/modern/refinement/materials/chitin.webp",
+          "bytes": 406558,
+          "durationMs": 3989
+        },
+        {
+          "url": "/modern/roster/materials/weapon-metal.webp",
+          "bytes": 264154,
+          "durationMs": 3196
+        },
+        {
+          "url": "/modern/roster/materials/organic.webp",
+          "bytes": 285524,
+          "durationMs": 3537
+        },
+        {
+          "url": "/modern/roster/materials/glove.webp",
+          "bytes": 395674,
+          "durationMs": 3873
+        },
+        {
+          "url": "/modern/roster/materials/fabric.webp",
+          "bytes": 378142,
+          "durationMs": 3989
+        },
+        {
+          "url": "/modern/roster/materials/carapace.webp",
+          "bytes": 375370,
+          "durationMs": 3989
+        },
+        {
+          "url": "/modern/roster/materials/basalt.webp",
+          "bytes": 390774,
+          "durationMs": 3989
+        },
+        {
+          "url": "/modern/roster/effects/smoke.webp",
+          "bytes": 78846,
+          "durationMs": 1968
+        },
+        {
+          "url": "/modern/roster/effects/flash.webp",
+          "bytes": 75388,
+          "durationMs": 2206
+        },
+        {
+          "url": "/modern/roster/materials/ceramic.webp",
+          "bytes": 82474,
+          "durationMs": 2345
+        },
+        {
+          "url": "/modern/roster/materials/sky.webp",
+          "bytes": 90586,
+          "durationMs": 2345
+        },
+        {
+          "url": "/modern/roster/materials/limestone.webp",
+          "bytes": 343680,
+          "durationMs": 3767
+        },
+        {
+          "url": "/modern/roster/materials/alloy.webp",
+          "bytes": 349714,
+          "durationMs": 3874
+        },
+        {
+          "url": "/modern/textures/steel.webp",
+          "bytes": 218286,
+          "durationMs": 3217
+        },
+        {
+          "url": "/modern/foundry/irradiance.webp",
+          "bytes": 227612,
+          "durationMs": 3219
+        },
+        {
+          "url": "/modern/textures/concrete.webp",
+          "bytes": 316810,
+          "durationMs": 3690
+        },
+        {
+          "url": "/modern/textures/dermal.webp",
+          "bytes": 348418,
+          "durationMs": 3823
+        },
+        {
+          "url": "/modern/textures/titanium.webp",
+          "bytes": 344690,
+          "durationMs": 3823
+        },
+        {
+          "url": "/modern/foundry/entrance-door.webp",
+          "bytes": 427900,
+          "durationMs": 4066
+        },
+        {
+          "url": "/modern/foundry/entrance-floor.webp",
+          "bytes": 559460,
+          "durationMs": 4425
+        },
+        {
+          "url": "/modern/foundry/concrete-roughness.webp",
+          "bytes": 39386,
+          "durationMs": 1728
+        },
+        {
+          "url": "/modern/foundry/steel-roughness.webp",
+          "bytes": 44404,
+          "durationMs": 1857
+        },
+        {
+          "url": "/modern/foundry/steel-normal.webp",
+          "bytes": 284762,
+          "durationMs": 3559
+        },
+        {
+          "url": "/modern/foundry/concrete-normal.webp",
+          "bytes": 471324,
+          "durationMs": 4237
+        },
+        {
+          "url": "/modern/textures/foundry-concept.webp",
+          "bytes": 228802,
+          "durationMs": 726
+        }
+      ]
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        },
+        {
+          "type": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+          "location": "https://sessions.bugsnag.com/"
+        }
+      ],
+      "assetMisses": [],
+      "captures": [
+        {
+          "file": "weapon-1-viper-portrait.jpg",
+          "gun": 1,
+          "weapon": "viper",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 1,
+            "owned": [
+              true,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 210,
+              "shells": 0,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 246,
+            "geometries": 164,
+            "textures": 71
+          }
+        },
+        {
+          "file": "weapon-2-ripjaw-portrait.jpg",
+          "gun": 2,
+          "weapon": "ripjaw",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 2,
+            "owned": [
+              true,
+              true,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 210,
+              "shells": 16,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 289,
+            "geometries": 169,
+            "textures": 72
+          }
+        },
+        {
+          "file": "weapon-3-hornet-portrait.jpg",
+          "gun": 3,
+          "weapon": "hornet",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 3,
+            "owned": [
+              true,
+              true,
+              true,
+              false,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 0,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 332,
+            "geometries": 170,
+            "textures": 72
+          }
+        },
+        {
+          "file": "weapon-4-spiker-portrait.jpg",
+          "gun": 4,
+          "weapon": "spiker",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 4,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 0,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 375,
+            "geometries": 168,
+            "textures": 72
+          }
+        },
+        {
+          "file": "weapon-5-bile-portrait.jpg",
+          "gun": 5,
+          "weapon": "bile",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 5,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 0,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 418,
+            "geometries": 169,
+            "textures": 72
+          }
+        },
+        {
+          "file": "weapon-6-sunlance-portrait.jpg",
+          "gun": 6,
+          "weapon": "sunlance",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 6,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              false
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 10,
+              "void": 0
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 461,
+            "geometries": 167,
+            "textures": 72
+          }
+        },
+        {
+          "file": "weapon-7-seventh-portrait.jpg",
+          "gun": 7,
+          "weapon": "seventh",
+          "pose": {
+            "player": {
+              "x": 41,
+              "z": 87,
+              "yaw": -1.57,
+              "pitch": 0
+            },
+            "placed": null
+          },
+          "state": {
+            "phase": "playing",
+            "simPhase": "playing",
+            "hp": 100,
+            "gun": 7,
+            "owned": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "ammo": {
+              "bullets": 300,
+              "shells": 16,
+              "nails": 70,
+              "grenades": 8,
+              "cores": 10,
+              "void": 5
+            },
+            "pos": {
+              "x": 41,
+              "z": 87
+            },
+            "yaw": -1.571,
+            "pitch": 0,
+            "camPitch": 0,
+            "camYaw": -1.571,
+            "seed": "campaign:01-foundry",
+            "kind": "campaign",
+            "difficulty": "normal",
+            "kills": 0,
+            "enemiesAlive": 33,
+            "arenaRemaining": 6,
+            "hasKey": false,
+            "sealIntact": true,
+            "exploredPct": 0,
+            "secretsFound": 0,
+            "secretsTotal": 2,
+            "powerups": {
+              "ward": 0,
+              "damage": null,
+              "damageT": 0
+            },
+            "mapHash": "ee306bc5",
+            "campaign": {
+              "map": 1,
+              "nextMap": 1,
+              "unlocked": 1,
+              "owned": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+              ],
+              "artId": "foundry"
+            }
+          },
+          "render": {
+            "frames": 504,
+            "geometries": 168,
+            "textures": 72
+          }
+        }
+      ],
+      "startupMs": 2352,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "resources": [
+        {
+          "url": "/modern/roster/environment/kit.glb",
+          "bytes": 674204,
+          "durationMs": 498
+        },
+        {
+          "url": "/modern/roster/weapons/1.glb",
+          "bytes": 905412,
+          "durationMs": 592
+        },
+        {
+          "url": "/modern/roster/support/support.glb",
+          "bytes": 1889644,
+          "durationMs": 689
+        },
+        {
+          "url": "/modern/roster/weapons/3.glb",
+          "bytes": 744200,
+          "durationMs": 755
+        },
+        {
+          "url": "/modern/roster/weapons/2.glb",
+          "bytes": 858112,
+          "durationMs": 797
+        },
+        {
+          "url": "/modern/roster/weapons/5.glb",
+          "bytes": 650792,
+          "durationMs": 740
+        },
+        {
+          "url": "/modern/roster/weapons/4.glb",
+          "bytes": 974152,
+          "durationMs": 800
+        },
+        {
+          "url": "/modern/roster/weapons/7.glb",
+          "bytes": 719800,
+          "durationMs": 798
+        },
+        {
+          "url": "/modern/roster/weapons/6.glb",
+          "bytes": 826804,
+          "durationMs": 801
+        },
+        {
+          "url": "/modern/roster/enemies/husk.glb",
+          "bytes": 1344872,
+          "durationMs": 941
+        },
+        {
+          "url": "/modern/roster/enemies/crawler.glb",
+          "bytes": 1397076,
+          "durationMs": 969
+        },
+        {
+          "url": "/modern/roster/enemies/hierophant.glb",
+          "bytes": 1203676,
+          "durationMs": 684
+        },
+        {
+          "url": "/modern/roster/enemies/slab.glb",
+          "bytes": 1201596,
+          "durationMs": 685
+        },
+        {
+          "url": "/modern/roster/enemies/wisp.glb",
+          "bytes": 956140,
+          "durationMs": 801
+        },
+        {
+          "url": "/modern/roster/enemies/fiend.glb",
+          "bytes": 1345488,
+          "durationMs": 912
+        },
+        {
+          "url": "/modern/models/pistol.glb",
+          "bytes": 1433332,
+          "durationMs": 687
+        },
+        {
+          "url": "/modern/models/architecture.glb",
+          "bytes": 306548,
+          "durationMs": 479
+        },
+        {
+          "url": "/modern/models/husk.glb",
+          "bytes": 1292988,
+          "durationMs": 687
+        },
+        {
+          "url": "/modern/foundry/environment.glb",
+          "bytes": 2961268,
+          "durationMs": 1050
+        },
+        {
+          "url": "/modern/foundry/door-hardware.glb",
+          "bytes": 159284,
+          "durationMs": 417
+        },
+        {
+          "url": "/modern/audio/pistol-b.mp3",
+          "bytes": 15037,
+          "durationMs": 296
+        },
+        {
+          "url": "/modern/audio/pistol-a.mp3",
+          "bytes": 15037,
+          "durationMs": 301
+        },
+        {
+          "url": "/modern/audio/shotgun.mp3",
+          "bytes": 28934,
+          "durationMs": 343
+        },
+        {
+          "url": "/modern/audio/metal-impact.mp3",
+          "bytes": 15037,
+          "durationMs": 296
+        },
+        {
+          "url": "/modern/audio/door-open.mp3",
+          "bytes": 27106,
+          "durationMs": 301
+        },
+        {
+          "url": "/modern/audio/husk-alert.mp3",
+          "bytes": 27472,
+          "durationMs": 302
+        },
+        {
+          "url": "/modern/audio/husk-pain.mp3",
+          "bytes": 15037,
+          "durationMs": 302
+        },
+        {
+          "url": "/modern/audio/spiker.mp3",
+          "bytes": 6992,
+          "durationMs": 298
+        },
+        {
+          "url": "/modern/audio/bile.mp3",
+          "bytes": 20157,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/industrial-ambient.mp3",
+          "bytes": 109392,
+          "durationMs": 371
+        },
+        {
+          "url": "/modern/audio/chaingun.mp3",
+          "bytes": 4432,
+          "durationMs": 425
+        },
+        {
+          "url": "/modern/audio/sunlance.mp3",
+          "bytes": 18694,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/seventh.mp3",
+          "bytes": 28934,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/crawler-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 299
+        },
+        {
+          "url": "/modern/audio/crawler-voice.mp3",
+          "bytes": 21620,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/slab-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 299
+        },
+        {
+          "url": "/modern/audio/crawler-death.mp3",
+          "bytes": 27472,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/slab-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 354
+        },
+        {
+          "url": "/modern/audio/slab-death.mp3",
+          "bytes": 32226,
+          "durationMs": 390
+        },
+        {
+          "url": "/modern/audio/hierophant-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 354
+        },
+        {
+          "url": "/modern/audio/wisp-death.mp3",
+          "bytes": 27472,
+          "durationMs": 361
+        },
+        {
+          "url": "/modern/audio/wisp-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 425
+        },
+        {
+          "url": "/modern/audio/wisp-voice.mp3",
+          "bytes": 21620,
+          "durationMs": 432
+        },
+        {
+          "url": "/modern/audio/hierophant-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 299
+        },
+        {
+          "url": "/modern/audio/fiend-voice.mp3",
+          "bytes": 28934,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/husk-death.mp3",
+          "bytes": 19792,
+          "durationMs": 371
+        },
+        {
+          "url": "/modern/audio/fiend-pain.mp3",
+          "bytes": 7357,
+          "durationMs": 427
+        },
+        {
+          "url": "/modern/audio/fiend-death.mp3",
+          "bytes": 32226,
+          "durationMs": 432
+        },
+        {
+          "url": "/modern/audio/hierophant-death.mp3",
+          "bytes": 32226,
+          "durationMs": 438
+        },
+        {
+          "url": "/modern/audio/explosion.mp3",
+          "bytes": 28934,
+          "durationMs": 354
+        },
+        {
+          "url": "/modern/audio/dryfire.mp3",
+          "bytes": 4066,
+          "durationMs": 421
+        },
+        {
+          "url": "/modern/audio/pickup.mp3",
+          "bytes": 8454,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/medical.mp3",
+          "bytes": 10649,
+          "durationMs": 360
+        },
+        {
+          "url": "/modern/audio/key.mp3",
+          "bytes": 12112,
+          "durationMs": 371
+        },
+        {
+          "url": "/modern/audio/powerup.mp3",
+          "bytes": 17597,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/hurt.mp3",
+          "bytes": 6260,
+          "durationMs": 426
+        },
+        {
+          "url": "/modern/audio/seal.mp3",
+          "bytes": 28934,
+          "durationMs": 360
+        },
+        {
+          "url": "/modern/audio/heartbeat.mp3",
+          "bytes": 12112,
+          "durationMs": 426
+        },
+        {
+          "url": "/modern/audio/failure.mp3",
+          "bytes": 28934,
+          "durationMs": 303
+        },
+        {
+          "url": "/modern/audio/success.mp3",
+          "bytes": 28934,
+          "durationMs": 432
+        },
+        {
+          "url": "/modern/refinement/materials/skin.webp",
+          "bytes": 301020,
+          "durationMs": 691
+        },
+        {
+          "url": "/modern/refinement/materials/skin-roughness.webp",
+          "bytes": 72596,
+          "durationMs": 513
+        },
+        {
+          "url": "/modern/refinement/materials/skin-normal.webp",
+          "bytes": 193762,
+          "durationMs": 692
+        },
+        {
+          "url": "/modern/refinement/materials/raw-normal.webp",
+          "bytes": 193680,
+          "durationMs": 692
+        },
+        {
+          "url": "/modern/refinement/materials/raw.webp",
+          "bytes": 308238,
+          "durationMs": 692
+        },
+        {
+          "url": "/modern/refinement/materials/bone-roughness.webp",
+          "bytes": 67578,
+          "durationMs": 360
+        },
+        {
+          "url": "/modern/refinement/materials/bone-normal.webp",
+          "bytes": 150844,
+          "durationMs": 427
+        },
+        {
+          "url": "/modern/roster/materials/weapon-metal.webp",
+          "bytes": 264154,
+          "durationMs": 486
+        },
+        {
+          "url": "/modern/refinement/materials/raw-roughness.webp",
+          "bytes": 56650,
+          "durationMs": 513
+        },
+        {
+          "url": "/modern/roster/materials/glove.webp",
+          "bytes": 395674,
+          "durationMs": 517
+        },
+        {
+          "url": "/modern/refinement/materials/chitin-roughness.webp",
+          "bytes": 88314,
+          "durationMs": 597
+        },
+        {
+          "url": "/modern/refinement/materials/chitin-normal.webp",
+          "bytes": 194400,
+          "durationMs": 692
+        },
+        {
+          "url": "/modern/refinement/materials/bone.webp",
+          "bytes": 272456,
+          "durationMs": 783
+        },
+        {
+          "url": "/modern/refinement/materials/chitin.webp",
+          "bytes": 406558,
+          "durationMs": 785
+        },
+        {
+          "url": "/modern/roster/materials/fabric.webp",
+          "bytes": 378142,
+          "durationMs": 556
+        },
+        {
+          "url": "/modern/roster/materials/carapace.webp",
+          "bytes": 375370,
+          "durationMs": 556
+        },
+        {
+          "url": "/modern/roster/effects/smoke.webp",
+          "bytes": 78846,
+          "durationMs": 360
+        },
+        {
+          "url": "/modern/roster/materials/ceramic.webp",
+          "bytes": 82474,
+          "durationMs": 367
+        },
+        {
+          "url": "/modern/roster/materials/sky.webp",
+          "bytes": 90586,
+          "durationMs": 370
+        },
+        {
+          "url": "/modern/roster/effects/flash.webp",
+          "bytes": 75388,
+          "durationMs": 453
+        },
+        {
+          "url": "/modern/roster/materials/alloy.webp",
+          "bytes": 349714,
+          "durationMs": 514
+        },
+        {
+          "url": "/modern/roster/materials/organic.webp",
+          "bytes": 285524,
+          "durationMs": 525
+        },
+        {
+          "url": "/modern/roster/materials/limestone.webp",
+          "bytes": 343680,
+          "durationMs": 553
+        },
+        {
+          "url": "/modern/roster/materials/basalt.webp",
+          "bytes": 390774,
+          "durationMs": 561
+        },
+        {
+          "url": "/modern/foundry/steel-roughness.webp",
+          "bytes": 44404,
+          "durationMs": 354
+        },
+        {
+          "url": "/modern/foundry/concrete-roughness.webp",
+          "bytes": 39386,
+          "durationMs": 434
+        },
+        {
+          "url": "/modern/textures/steel.webp",
+          "bytes": 218286,
+          "durationMs": 459
+        },
+        {
+          "url": "/modern/foundry/irradiance.webp",
+          "bytes": 227612,
+          "durationMs": 481
+        },
+        {
+          "url": "/modern/textures/concrete.webp",
+          "bytes": 316810,
+          "durationMs": 504
+        },
+        {
+          "url": "/modern/textures/dermal.webp",
+          "bytes": 348418,
+          "durationMs": 509
+        },
+        {
+          "url": "/modern/foundry/steel-normal.webp",
+          "bytes": 284762,
+          "durationMs": 524
+        },
+        {
+          "url": "/modern/textures/titanium.webp",
+          "bytes": 344690,
+          "durationMs": 555
+        },
+        {
+          "url": "/modern/foundry/concrete-normal.webp",
+          "bytes": 471324,
+          "durationMs": 556
+        },
+        {
+          "url": "/modern/foundry/entrance-door.webp",
+          "bytes": 427900,
+          "durationMs": 573
+        },
+        {
+          "url": "/modern/foundry/entrance-floor.webp",
+          "bytes": 559460,
+          "durationMs": 582
+        },
+        {
+          "url": "/modern/textures/foundry-concept.webp",
+          "bytes": 228802,
+          "durationMs": 191
+        }
+      ]
+    }
+  ],
+  "campaigns": [
+    {
+      "file": "campaign-1-foundry.jpg",
+      "map": 1,
+      "id": "foundry",
+      "room": "casting hall",
+      "x": 41,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -8,
+      "pose": {
+        "player": {
+          "x": 41,
+          "z": 87,
+          "yaw": -1.57,
+          "pitch": -0.14
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 41,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.14,
+        "camPitch": 0.14,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 750,
+        "geometries": 165,
+        "textures": 90
+      }
+    },
+    {
+      "file": "campaign-2-gullet.jpg",
+      "map": 2,
+      "id": "gullet",
+      "room": "maw",
+      "x": 39,
+      "z": 20,
+      "yaw": -65,
+      "pitch": -5,
+      "pose": {
+        "player": {
+          "x": 39,
+          "z": 20,
+          "yaw": -1.13,
+          "pitch": -0.087
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 120,
+          "shells": 14,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 39,
+          "z": 20
+        },
+        "yaw": -1.134,
+        "pitch": -0.087,
+        "camPitch": 0.087,
+        "camYaw": -1.134,
+        "seed": "campaign:02-gullet",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 46,
+        "arenaRemaining": 7,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "a31305c5",
+        "campaign": {
+          "map": 2,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "gullet"
+        }
+      },
+      "render": {
+        "frames": 990,
+        "geometries": 67,
+        "textures": 70
+      }
+    },
+    {
+      "file": "campaign-3-catacombs.jpg",
+      "map": 3,
+      "id": "catacombs",
+      "room": "first nave",
+      "x": 31,
+      "z": 88,
+      "yaw": -85,
+      "pitch": -6,
+      "pose": {
+        "player": {
+          "x": 31,
+          "z": 88,
+          "yaw": -1.48,
+          "pitch": -0.105
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 31,
+          "z": 88
+        },
+        "yaw": -1.484,
+        "pitch": -0.105,
+        "camPitch": 0.105,
+        "camYaw": -1.484,
+        "seed": "campaign:03-catacombs",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 51,
+        "arenaRemaining": 9,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "cd52d505",
+        "campaign": {
+          "map": 3,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "catacombs"
+        }
+      },
+      "render": {
+        "frames": 1233,
+        "geometries": 133,
+        "textures": 79
+      }
+    },
+    {
+      "file": "campaign-4-pit.jpg",
+      "map": 4,
+      "id": "pit",
+      "room": "outdoor pit",
+      "x": 61,
+      "z": 91,
+      "yaw": -83,
+      "pitch": -3,
+      "pose": {
+        "player": {
+          "x": 61,
+          "z": 91,
+          "yaw": -1.45,
+          "pitch": -0.052
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 10,
+          "nails": 70,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 61,
+          "z": 91
+        },
+        "yaw": -1.449,
+        "pitch": -0.052,
+        "camPitch": 0.052,
+        "camYaw": -1.449,
+        "seed": "campaign:04-pit",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 60,
+        "arenaRemaining": 9,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ad63b245",
+        "campaign": {
+          "map": 4,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "artId": "pit"
+        }
+      },
+      "render": {
+        "frames": 1476,
+        "geometries": 81,
+        "textures": 81
+      }
+    },
+    {
+      "file": "campaign-5-spire.jpg",
+      "map": 5,
+      "id": "spire",
+      "room": "first gallery",
+      "x": 63,
+      "z": 133,
+      "yaw": -80,
+      "pitch": -7,
+      "pose": {
+        "player": {
+          "x": 63,
+          "z": 133,
+          "yaw": -1.4,
+          "pitch": -0.122
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 130,
+          "shells": 10,
+          "nails": 50,
+          "grenades": 8,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 63,
+          "z": 133
+        },
+        "yaw": -1.396,
+        "pitch": -0.122,
+        "camPitch": 0.122,
+        "camYaw": -1.396,
+        "seed": "campaign:05-spire",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 54,
+        "arenaRemaining": 11,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "6b5d8de5",
+        "campaign": {
+          "map": 5,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false
+          ],
+          "artId": "spire"
+        }
+      },
+      "render": {
+        "frames": 1719,
+        "geometries": 118,
+        "textures": 101
+      }
+    },
+    {
+      "file": "campaign-6-ward.jpg",
+      "map": 6,
+      "id": "ward",
+      "room": "first ward",
+      "x": 39,
+      "z": 86,
+      "yaw": -67,
+      "pitch": -4,
+      "pose": {
+        "player": {
+          "x": 39,
+          "z": 86,
+          "yaw": -1.17,
+          "pitch": -0.07
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 10,
+          "void": 0
+        },
+        "pos": {
+          "x": 39,
+          "z": 86
+        },
+        "yaw": -1.169,
+        "pitch": -0.07,
+        "camPitch": 0.07,
+        "camYaw": -1.169,
+        "seed": "campaign:06-ward",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 59,
+        "arenaRemaining": 15,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "a5572565",
+        "campaign": {
+          "map": 6,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "ward"
+        }
+      },
+      "render": {
+        "frames": 1961,
+        "geometries": 149,
+        "textures": 97
+      }
+    },
+    {
+      "file": "campaign-7-sanctum.jpg",
+      "map": 7,
+      "id": "sanctum",
+      "room": "crossing",
+      "x": 69,
+      "z": 117,
+      "yaw": -80,
+      "pitch": -5,
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.4,
+          "pitch": -0.087
+        },
+        "placed": null
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.396,
+        "pitch": -0.087,
+        "camPitch": 0.087,
+        "camYaw": -1.396,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 2203,
+        "geometries": 143,
+        "textures": 88
+      }
+    }
+  ],
+  "species": [
+    {
+      "file": "enemy-husk.jpg",
+      "requested": "husk",
+      "actual": "husk",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": 4
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0.07
+        },
+        "placed": {
+          "id": 0,
+          "type": "husk",
+          "x": 73.7,
+          "z": 117,
+          "dist": 4.7
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": 0.07,
+        "camPitch": -0.07,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 2445,
+        "geometries": 155,
+        "textures": 100
+      }
+    },
+    {
+      "file": "enemy-crawler.jpg",
+      "requested": "crawler",
+      "actual": "crawler",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": 16
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0.279
+        },
+        "placed": {
+          "id": 4,
+          "type": "crawler",
+          "x": 72.4,
+          "z": 117,
+          "dist": 3.4
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": 0.279,
+        "camPitch": -0.279,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 2688,
+        "geometries": 155,
+        "textures": 100
+      }
+    },
+    {
+      "file": "enemy-slab.jpg",
+      "requested": "slab",
+      "actual": "slab",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": 2
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0.035
+        },
+        "placed": {
+          "id": 13,
+          "type": "slab",
+          "x": 74.4,
+          "z": 117,
+          "dist": 5.4
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": 0.035,
+        "camPitch": -0.035,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 2930,
+        "geometries": 148,
+        "textures": 94
+      }
+    },
+    {
+      "file": "enemy-wisp.jpg",
+      "requested": "wisp",
+      "actual": "wisp",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": 1
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0.017
+        },
+        "placed": {
+          "id": 9,
+          "type": "wisp",
+          "x": 73.5,
+          "z": 117,
+          "dist": 4.5
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": 0.017,
+        "camPitch": -0.017,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 3172,
+        "geometries": 155,
+        "textures": 100
+      }
+    },
+    {
+      "file": "enemy-hierophant.jpg",
+      "requested": "hierophant",
+      "actual": "hierophant",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": 0
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": 0
+        },
+        "placed": {
+          "id": 38,
+          "type": "hierophant",
+          "x": 74.6,
+          "z": 117,
+          "dist": 5.6
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": 0,
+        "camPitch": 0,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 3414,
+        "geometries": 155,
+        "textures": 100
+      }
+    },
+    {
+      "file": "enemy-fiend.jpg",
+      "requested": "fiend",
+      "actual": "fiend",
+      "scene": {
+        "map": 7,
+        "x": 69,
+        "z": 117,
+        "yaw": -90,
+        "pitch": -1
+      },
+      "pose": {
+        "player": {
+          "x": 69,
+          "z": 117,
+          "yaw": -1.57,
+          "pitch": -0.017
+        },
+        "placed": {
+          "id": 58,
+          "type": "fiend",
+          "x": 74.4,
+          "z": 117,
+          "dist": 5.4
+        }
+      },
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "ammo": {
+          "bullets": 150,
+          "shells": 12,
+          "nails": 50,
+          "grenades": 6,
+          "cores": 8,
+          "void": 0
+        },
+        "pos": {
+          "x": 69,
+          "z": 117
+        },
+        "yaw": -1.571,
+        "pitch": -0.017,
+        "camPitch": 0.017,
+        "camYaw": -1.571,
+        "seed": "campaign:07-sanctum",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 70,
+        "arenaRemaining": 14,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 3,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ddb9ca05",
+        "campaign": {
+          "map": 7,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "artId": "sanctum"
+        }
+      },
+      "render": {
+        "frames": 3656,
+        "geometries": 155,
+        "textures": 100
+      }
+    }
+  ],
+  "failure": null
+}

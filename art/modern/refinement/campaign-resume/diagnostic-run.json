@@ -1,0 +1,157 @@
+{
+  "config": {
+    "argv": [
+      "/private/tmp/seventh-gun-npm-cache/_npx/387698761821791d/node_modules/node/bin/node",
+      "/Users/guillem/Development/seventh-gun/node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/e2e/campaign.spec.ts",
+      "-g",
+      "title CONTINUE resumes after a completed map",
+      "--project=desktop",
+      "--timeout=60000",
+      "--trace=on",
+      "--retries=0",
+      "--output=/private/tmp/seventh-gun-campaign-resume-trace",
+      "--reporter=json"
+    ],
+    "configFile": "/Users/guillem/Development/seventh-gun/playwright.config.ts",
+    "rootDir": "/Users/guillem/Development/seventh-gun/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/private/tmp/seventh-gun-campaign-resume-trace",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/guillem/Development/seventh-gun/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/private/tmp/seventh-gun-campaign-resume-trace",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/guillem/Development/seventh-gun/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run build && npm run preview",
+      "url": "http://localhost:4173",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "campaign.spec.ts",
+      "file": "campaign.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "campaign desktop",
+          "file": "campaign.spec.ts",
+          "line": 21,
+          "column": 6,
+          "specs": [
+            {
+              "title": "title CONTINUE resumes after a completed map",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 34144,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-03T07:58:49.086Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/private/tmp/seventh-gun-campaign-resume-trace/campaign-campaign-desktop--53eb5-sumes-after-a-completed-map-desktop/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba824951ebd2097fff00-cab8d83cba17b66f7d58",
+              "file": "campaign.spec.ts",
+              "line": 221,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T07:58:43.909Z",
+    "duration": 39943.937,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

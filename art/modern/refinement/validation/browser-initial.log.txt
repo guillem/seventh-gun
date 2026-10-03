@@ -1,0 +1,182 @@
+npm warn exec The following package was not found and will be installed: node@24.21.0
+[WebServer] (node:64245) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer]
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:64306) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 120 tests using 1 worker
+
+(node:64341) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    1 [desktop] › tests/e2e/arena-pause.spec.ts:33:3 › arena pause menu › RESUME is clickable and closes the menu (10.0s)
+  ✓    2 [desktop] › tests/e2e/arena-pause.spec.ts:48:3 › arena pause menu › scoreboard open first does not block RESUME (7.6s)
+  ✓    3 [desktop] › tests/e2e/arena-pause.spec.ts:72:3 › arena pause menu › audio context exists after joining (silent-arena bug) (5.9s)
+  ✓    4 [desktop] › tests/e2e/arena-server.spec.ts:6:3 › arena server › health and websocket welcome (2.1s)
+  ✓    5 [desktop] › tests/e2e/arena.spec.ts:40:3 › arena › an arena tick performs one renderer frame after all scene updates (5.5s)
+  ✓    6 [desktop] › tests/e2e/arena.spec.ts:61:3 › arena › typing in the arena NAME field is not eaten by the global key handler (3.7s)
+  ✓    7 [desktop] › tests/e2e/arena.spec.ts:84:3 › arena › arena: m opens the full map, Tab opens the scoreboard (8.5s)
+  ✓    8 [desktop] › tests/e2e/arena.spec.ts:127:3 › arena › title shows MULTIPLAYER ARENA and maze still starts (4.7s)
+  ✓    9 [desktop] › tests/e2e/arena.spec.ts:145:3 › arena › joinArena connects and two contexts share a room (18.0s)
+  ✓   10 [desktop] › tests/e2e/arena.spec.ts:198:3 › arena › an emptied room is recycled: a later client gets a fresh seed (12.1s)
+  ✓   11 [desktop] › tests/e2e/campaign.spec.ts:22:3 › campaign desktop › CAMPAIGN begins map 1 (9.1s)
+  ✓   12 [desktop] › tests/e2e/campaign.spec.ts:41:3 › campaign desktop › campaign SKILL after a maze run does not start a maze (7.4s)
+  ✓   13 [desktop] › tests/e2e/campaign.spec.ts:61:3 › campaign desktop › Foundry start does not grow the map log with campaign: seeds (10.8s)
+  ✓   14 [desktop] › tests/e2e/campaign.spec.ts:83:3 › campaign desktop › title Easy after quitting campaign does not start a campaign-art maze (14.0s)
+  ✓   15 [desktop] › tests/e2e/campaign.spec.ts:104:3 › campaign desktop › completing map 7 shows THE SEVENTH IS SILENT (11.7s)
+  ✓   16 [desktop] › tests/e2e/campaign.spec.ts:117:3 › campaign desktop › campaign screen lists seven named maps; map 2 unlocks after winning map 1 (20.8s)
+  ✓   17 [desktop] › tests/e2e/campaign.spec.ts:152:3 › campaign desktop › startCampaign(n) plays the chosen map (6.3s)
+  ✓   18 [desktop] › tests/e2e/campaign.spec.ts:166:3 › campaign desktop › death retry restores the map and entry loadout (23.2s)
+  ✓   19 [desktop] › tests/e2e/campaign.spec.ts:200:3 › campaign desktop › completeMap then CONTINUE starts the next map (19.5s)
+  ✘   20 [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map (30.2s)
+(node:65235) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   21 [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map (retry #1) (31.3s)
+(node:65253) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   22 [desktop] › tests/e2e/campaign.spec.ts:247:3 › campaign mobile › title panel still fits with CAMPAIGN and FIRE is ≥44px
+  ✓   23 [desktop] › tests/e2e/editor.spec.ts:9:3 › editor › ?edit=1 shows editor chrome (1.8s)
+  ✓   24 [desktop] › tests/e2e/editor.spec.ts:21:3 › editor › opens with a visible canvas and a START room (2.3s)
+  ✓   25 [desktop] › tests/e2e/editor.spec.ts:59:3 › editor › title EDITOR button opens the editor (2.4s)
+  ✓   26 [desktop] › tests/e2e/editor.spec.ts:69:3 › editor › loadBlueprint + PLAYTEST reaches playing (7.4s)
+  ✓   27 [desktop] › tests/e2e/editor.spec.ts:100:3 › editor › COPY LINK works on a START-only map that fails VALIDATE (3.0s)
+  ✓   28 [desktop] › tests/e2e/game.spec.ts:30:3 › desktop › maze and campaign ticks each perform one renderer frame after scene updates (3.0s)
+  ✓   29 [desktop] › tests/e2e/game.spec.ts:52:3 › desktop › boots to title and starts a run (9.7s)
+  ✓   30 [desktop] › tests/e2e/game.spec.ts:67:3 › desktop › WASD walks the way you look (W forward, A/D strafe) (9.5s)
+  ✓   31 [desktop] › tests/e2e/game.spec.ts:99:3 › desktop › shooting spends ammo, dry-fire does not spam (7.1s)
+  ✓   32 [desktop] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp (5.3s)
+  ✓   33 [desktop] › tests/e2e/game.spec.ts:191:3 › desktop › playtest pose: level camera, crawler in lower FOV, InputManager click hits (4.5s)
+  ✓   34 [desktop] › tests/e2e/game.spec.ts:220:3 › desktop › gun pickup grants the gun and a usable ammo stack (7.6s)
+  ✓   35 [desktop] › tests/e2e/game.spec.ts:232:3 › desktop › medikit heals only when hurt (5.0s)
+  ✓   36 [desktop] › tests/e2e/game.spec.ts:253:3 › desktop › death: 2s lockout with no clickable controls, then title offers retry/new maze (8.6s)
+  ✓   37 [desktop] › tests/e2e/game.spec.ts:287:3 › desktop › win: arena clear shows GAME OVER / You won (5.9s)
+  ✓   38 [desktop] › tests/e2e/game.spec.ts:314:3 › desktop › difficulty changes the economy for the same seed (5.6s)
+  ✓   39 [desktop] › tests/e2e/game.spec.ts:332:3 › desktop › same seed => identical map hash across runs (7.2s)
+  ✓   40 [desktop] › tests/e2e/game.spec.ts:354:3 › desktop › killed enemies stand upright when the same seed is replayed (6.5s)
+  ✓   41 [desktop] › tests/e2e/game.spec.ts:389:3 › desktop › replaying a warmed fight and cycling guns leaves GPU allocations stable (29.6s)
+  ✓   42 [desktop] › tests/e2e/game.spec.ts:450:3 › desktop › full map opens on Tab, shows fog of war and player marker, pauses combat (4.5s)
+  ✓   43 [desktop] › tests/e2e/game.spec.ts:471:3 › desktop › full map also opens on M in campaign/maze, same as Tab (4.3s)
+  ✓   44 [desktop] › tests/e2e/game.spec.ts:483:3 › desktop › MAP LOG records a quit and PLAY starts the same seed (9.0s)
+  ✓   45 [desktop] › tests/e2e/game.spec.ts:507:3 › desktop › Quit then MAP LOG hides HEALTH / minimap (6.7s)
+  ✓   46 [desktop] › tests/e2e/game.spec.ts:559:3 › desktop › E opens a door (door state changes, becomes passable) (4.0s)
+  ✓   47 [desktop] › tests/e2e/game.spec.ts:586:3 › desktop › authored map via startMap: play, RETRY MAP, COPY LINK (8.7s)
+  ✓   48 [desktop] › tests/e2e/game.spec.ts:626:3 › desktop › opens an authored map from #m= share hash (4.2s)
+  ✓   49 [desktop] › tests/e2e/game.spec.ts:638:3 › desktop › authored-map death offers RETRY MAP / TITLE, not a new maze (6.3s)
+  -   50 [desktop] › tests/e2e/game.spec.ts:670:3 › mobile › touch HUD is present with big FIRE/USE/MAP buttons
+  -   51 [desktop] › tests/e2e/game.spec.ts:691:3 › mobile › FIRE button fires and unlatches on release
+  -   52 [desktop] › tests/e2e/modern-art.spec.ts:14:3 › modern art bootstrap › normal touch menus can pause, resume and quit without gameplay controls intercepting taps
+  ✓   53 [desktop] › tests/e2e/modern-art.spec.ts:36:3 › modern art bootstrap › loads saved models, textures and audio before the Foundry entry becomes usable (7.5s)
+  ✓   54 [desktop] › tests/e2e/modern-art.spec.ts:75:3 › modern art bootstrap › the authored entrance door still blocks, opens and lets the player reach the hall (12.0s)
+  ✓   55 [desktop] › tests/e2e/modern-art.spec.ts:96:3 › modern art bootstrap › keeps gameplay behind the loading screen while a sound file is pending (1.5s)
+  ✓   56 [desktop] › tests/e2e/modern-art.spec.ts:116:3 › modern art bootstrap › decodes recordings on gesture, plays sampled shots and cleans up ambience between runs (18.7s)
+  ✓   57 [desktop] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed models/pistol.glb exposes retry before gameplay and recovers (1.8s)
+  ✓   58 [desktop] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed audio/pistol-a.mp3 exposes retry before gameplay and recovers (1.8s)
+  ✓   59 [desktop] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed foundry/irradiance.webp exposes retry before gameplay and recovers (1.7s)
+  ✓   60 [desktop] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed roster/enemies/husk.glb exposes retry before gameplay and recovers (1.7s)
+  ✓   61 [desktop] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed roster/effects/flash.webp exposes retry before gameplay and recovers (1.7s)
+(node:65462) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   62 [mobile] › tests/e2e/arena-pause.spec.ts:33:3 › arena pause menu › RESUME is clickable and closes the menu
+  -   63 [mobile] › tests/e2e/arena-pause.spec.ts:48:3 › arena pause menu › scoreboard open first does not block RESUME
+  -   64 [mobile] › tests/e2e/arena-pause.spec.ts:72:3 › arena pause menu › audio context exists after joining (silent-arena bug)
+  -   65 [mobile] › tests/e2e/arena-server.spec.ts:6:3 › arena server › health and websocket welcome
+  -   66 [mobile] › tests/e2e/arena.spec.ts:40:3 › arena › an arena tick performs one renderer frame after all scene updates
+  -   67 [mobile] › tests/e2e/arena.spec.ts:61:3 › arena › typing in the arena NAME field is not eaten by the global key handler
+  -   68 [mobile] › tests/e2e/arena.spec.ts:84:3 › arena › arena: m opens the full map, Tab opens the scoreboard
+  ✓   69 [mobile] › tests/e2e/arena.spec.ts:127:3 › arena › title shows MULTIPLAYER ARENA and maze still starts (752ms)
+  -   70 [mobile] › tests/e2e/arena.spec.ts:145:3 › arena › joinArena connects and two contexts share a room
+  -   71 [mobile] › tests/e2e/arena.spec.ts:198:3 › arena › an emptied room is recycled: a later client gets a fresh seed
+  ✓   72 [mobile] › tests/e2e/campaign.spec.ts:22:3 › campaign desktop › CAMPAIGN begins map 1 (5.2s)
+  ✓   73 [mobile] › tests/e2e/campaign.spec.ts:41:3 › campaign desktop › campaign SKILL after a maze run does not start a maze (3.3s)
+  ✓   74 [mobile] › tests/e2e/campaign.spec.ts:61:3 › campaign desktop › Foundry start does not grow the map log with campaign: seeds (6.5s)
+  ✓   75 [mobile] › tests/e2e/campaign.spec.ts:83:3 › campaign desktop › title Easy after quitting campaign does not start a campaign-art maze (6.8s)
+  ✓   76 [mobile] › tests/e2e/campaign.spec.ts:104:3 › campaign desktop › completing map 7 shows THE SEVENTH IS SILENT (7.0s)
+  ✓   77 [mobile] › tests/e2e/campaign.spec.ts:117:3 › campaign desktop › campaign screen lists seven named maps; map 2 unlocks after winning map 1 (12.0s)
+  ✓   78 [mobile] › tests/e2e/campaign.spec.ts:152:3 › campaign desktop › startCampaign(n) plays the chosen map (3.5s)
+  ✓   79 [mobile] › tests/e2e/campaign.spec.ts:166:3 › campaign desktop › death retry restores the map and entry loadout (11.8s)
+  ✓   80 [mobile] › tests/e2e/campaign.spec.ts:200:3 › campaign desktop › completeMap then CONTINUE starts the next map (12.3s)
+  ✓   81 [mobile] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map (15.4s)
+  ✓   82 [mobile] › tests/e2e/campaign.spec.ts:247:3 › campaign mobile › title panel still fits with CAMPAIGN and FIRE is ≥44px (5.5s)
+  ✓   83 [mobile] › tests/e2e/editor.spec.ts:9:3 › editor › ?edit=1 shows editor chrome (704ms)
+  ✓   84 [mobile] › tests/e2e/editor.spec.ts:21:3 › editor › opens with a visible canvas and a START room (695ms)
+  ✓   85 [mobile] › tests/e2e/editor.spec.ts:59:3 › editor › title EDITOR button opens the editor (724ms)
+  ✓   86 [mobile] › tests/e2e/editor.spec.ts:69:3 › editor › loadBlueprint + PLAYTEST reaches playing (2.9s)
+  ✓   87 [mobile] › tests/e2e/editor.spec.ts:100:3 › editor › COPY LINK works on a START-only map that fails VALIDATE (763ms)
+  ✓   88 [mobile] › tests/e2e/game.spec.ts:30:3 › desktop › maze and campaign ticks each perform one renderer frame after scene updates (1.5s)
+  ✓   89 [mobile] › tests/e2e/game.spec.ts:52:3 › desktop › boots to title and starts a run (6.9s)
+  ✓   90 [mobile] › tests/e2e/game.spec.ts:67:3 › desktop › WASD walks the way you look (W forward, A/D strafe) (5.9s)
+  ✓   91 [mobile] › tests/e2e/game.spec.ts:99:3 › desktop › shooting spends ammo, dry-fire does not spam (5.1s)
+  ✓   92 [mobile] › tests/e2e/game.spec.ts:128:3 › desktop › playtest pose: look(0, 22) then InputManager mousedown drops crawler hp (3.6s)
+  ✓   93 [mobile] › tests/e2e/game.spec.ts:191:3 › desktop › playtest pose: level camera, crawler in lower FOV, InputManager click hits (2.9s)
+  ✓   94 [mobile] › tests/e2e/game.spec.ts:220:3 › desktop › gun pickup grants the gun and a usable ammo stack (6.8s)
+  ✓   95 [mobile] › tests/e2e/game.spec.ts:232:3 › desktop › medikit heals only when hurt (2.7s)
+  ✓   96 [mobile] › tests/e2e/game.spec.ts:253:3 › desktop › death: 2s lockout with no clickable controls, then title offers retry/new maze (6.3s)
+  ✓   97 [mobile] › tests/e2e/game.spec.ts:287:3 › desktop › win: arena clear shows GAME OVER / You won (4.1s)
+  ✓   98 [mobile] › tests/e2e/game.spec.ts:314:3 › desktop › difficulty changes the economy for the same seed (4.1s)
+  ✓   99 [mobile] › tests/e2e/game.spec.ts:332:3 › desktop › same seed => identical map hash across runs (5.5s)
+  ✓  100 [mobile] › tests/e2e/game.spec.ts:354:3 › desktop › killed enemies stand upright when the same seed is replayed (4.7s)
+  ✓  101 [mobile] › tests/e2e/game.spec.ts:389:3 › desktop › replaying a warmed fight and cycling guns leaves GPU allocations stable (22.7s)
+  ✓  102 [mobile] › tests/e2e/game.spec.ts:450:3 › desktop › full map opens on Tab, shows fog of war and player marker, pauses combat (2.7s)
+  ✓  103 [mobile] › tests/e2e/game.spec.ts:471:3 › desktop › full map also opens on M in campaign/maze, same as Tab (2.7s)
+  ✓  104 [mobile] › tests/e2e/game.spec.ts:483:3 › desktop › MAP LOG records a quit and PLAY starts the same seed (4.7s)
+  ✓  105 [mobile] › tests/e2e/game.spec.ts:507:3 › desktop › Quit then MAP LOG hides HEALTH / minimap (3.1s)
+  ✓  106 [mobile] › tests/e2e/game.spec.ts:559:3 › desktop › E opens a door (door state changes, becomes passable) (2.6s)
+  ✓  107 [mobile] › tests/e2e/game.spec.ts:586:3 › desktop › authored map via startMap: play, RETRY MAP, COPY LINK (5.8s)
+  ✓  108 [mobile] › tests/e2e/game.spec.ts:626:3 › desktop › opens an authored map from #m= share hash (2.6s)
+  ✓  109 [mobile] › tests/e2e/game.spec.ts:638:3 › desktop › authored-map death offers RETRY MAP / TITLE, not a new maze (4.6s)
+  ✓  110 [mobile] › tests/e2e/game.spec.ts:670:3 › mobile › touch HUD is present with big FIRE/USE/MAP buttons (2.8s)
+  ✓  111 [mobile] › tests/e2e/game.spec.ts:691:3 › mobile › FIRE button fires and unlatches on release (4.5s)
+  ✓  112 [mobile] › tests/e2e/modern-art.spec.ts:14:3 › modern art bootstrap › normal touch menus can pause, resume and quit without gameplay controls intercepting taps (18.4s)
+  ✓  113 [mobile] › tests/e2e/modern-art.spec.ts:36:3 › modern art bootstrap › loads saved models, textures and audio before the Foundry entry becomes usable (5.1s)
+  ✓  114 [mobile] › tests/e2e/modern-art.spec.ts:75:3 › modern art bootstrap › the authored entrance door still blocks, opens and lets the player reach the hall (7.8s)
+  ✓  115 [mobile] › tests/e2e/modern-art.spec.ts:96:3 › modern art bootstrap › keeps gameplay behind the loading screen while a sound file is pending (735ms)
+  ✓  116 [mobile] › tests/e2e/modern-art.spec.ts:116:3 › modern art bootstrap › decodes recordings on gesture, plays sampled shots and cleans up ambience between runs (10.6s)
+  ✓  117 [mobile] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed models/pistol.glb exposes retry before gameplay and recovers (874ms)
+  ✓  118 [mobile] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed audio/pistol-a.mp3 exposes retry before gameplay and recovers (863ms)
+  ✓  119 [mobile] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed foundry/irradiance.webp exposes retry before gameplay and recovers (837ms)
+  ✓  120 [mobile] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed roster/enemies/husk.glb exposes retry before gameplay and recovers (839ms)
+  ✓  121 [mobile] › tests/e2e/modern-art.spec.ts:166:5 › modern art bootstrap › a failed roster/effects/flash.webp exposes retry before gameplay and recovers (839ms)
+
+
+  1) [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 30000ms exceeded.
+
+      237 |     await expect(page.getByRole('button', { name: /CONTINUE/ })).toBeVisible();
+      238 |     await page.getByRole('button', { name: /CONTINUE/ }).click();
+    > 239 |     await page.waitForFunction(() => {
+          |                ^
+      240 |       const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      241 |       return s?.phase === 'playing' && s.campaign?.map === 2;
+      242 |     });
+        at /Users/guillem/Development/seventh-gun/tests/e2e/campaign.spec.ts:239:16
+
+    Error Context: test-results/campaign-campaign-desktop--53eb5-sumes-after-a-completed-map-desktop/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForFunction: Target page, context or browser has been closed
+
+      237 |     await expect(page.getByRole('button', { name: /CONTINUE/ })).toBeVisible();
+      238 |     await page.getByRole('button', { name: /CONTINUE/ }).click();
+    > 239 |     await page.waitForFunction(() => {
+          |                ^
+      240 |       const s = (window as unknown as { __GAME__?: GameApi }).__GAME__?.state();
+      241 |       return s?.phase === 'playing' && s.campaign?.map === 2;
+      242 |     });
+        at /Users/guillem/Development/seventh-gun/tests/e2e/campaign.spec.ts:239:16
+
+    Error Context: test-results/campaign-campaign-desktop--53eb5-sumes-after-a-completed-map-desktop-retry1/error-context.md
+
+  1 failed
+    [desktop] › tests/e2e/campaign.spec.ts:221:3 › campaign desktop › title CONTINUE resumes after a completed map
+  13 skipped
+  106 passed (12.7m)

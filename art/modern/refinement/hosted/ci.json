@@ -1,0 +1,72 @@
+{
+  "runId": 37107581322,
+  "url": "https://github.com/guillem/seventh-gun/actions/runs/37107581322",
+  "headSha": "8cffc14b24551d705af38c537b843f01613a8689",
+  "event": "pull_request",
+  "status": "completed",
+  "conclusion": "cancelled",
+  "createdAt": "2026-10-03T07:48:41Z",
+  "updatedAt": "2026-10-03T08:09:01Z",
+  "testJob": {
+    "id": 111159029257,
+    "name": "typecheck + tests",
+    "startedAt": "2026-10-03T07:48:44Z",
+    "completedAt": "2026-10-03T08:09:00Z",
+    "elapsedSecondsIncludingCleanup": 1216,
+    "configuredTimeoutMinutes": 20,
+    "terminationAnnotation": "The job has exceeded the maximum execution time of 20m0s",
+    "sameTerminationReasonAsPriorRun": 37104055565,
+    "steps": [
+      {
+        "name": "Typecheck",
+        "conclusion": "success",
+        "startedAt": "2026-10-03T07:49:42Z",
+        "completedAt": "2026-10-03T07:49:47Z"
+      },
+      {
+        "name": "Unit tests",
+        "conclusion": "success",
+        "startedAt": "2026-10-03T07:49:47Z",
+        "completedAt": "2026-10-03T07:50:02Z"
+      },
+      {
+        "name": "E2E tests",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-03T07:50:02Z",
+        "completedAt": "2026-10-03T08:08:57Z",
+        "elapsedSeconds": 1135
+      },
+      {
+        "name": "Upload failure artifacts",
+        "conclusion": "skipped"
+      }
+    ]
+  },
+  "artifactCount": 0,
+  "dependentJobs": [
+    {
+      "name": "container distribution",
+      "conclusion": "skipped"
+    },
+    {
+      "name": "deploy worker",
+      "conclusion": "skipped"
+    },
+    {
+      "name": "packed distribution",
+      "conclusion": "skipped"
+    }
+  ],
+  "assessment": "The GitHub-hosted E2E suite did not complete within the existing 20-minute job budget. Typecheck and unit tests passed. This is not a passing full CI run.",
+  "limitations": [
+    "The timeout annotation establishes why the job ended, not why the E2E work ran slowly or whether individual assertions failed.",
+    "No E2E failure artifacts were uploaded. These metadata and annotations do not identify the WebGL backend and do not prove a software-GPU cause or a game bug.",
+    "The successful Netlify preview and hosted asset checksum verification are separate evidence and do not replace the incomplete CI suite."
+  ],
+  "sources": [
+    "gh run view 37107581322 --json databaseId,headSha,event,status,conclusion,createdAt,updatedAt,jobs,url",
+    "GET repos/guillem/seventh-gun/check-runs/111159029257/annotations",
+    "GET repos/guillem/seventh-gun/actions/runs/37107581322/artifacts",
+    ".github/workflows/deploy.yml"
+  ]
+}
