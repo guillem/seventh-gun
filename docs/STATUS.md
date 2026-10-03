@@ -16,7 +16,11 @@ The retained-focus regression fails on the previous build as expected. See
 `art/modern/startup/FOCUS-FIX.md`. Native Safari confirmation remains pending;
 its test driver is disabled. All 113 desktop/mobile browser checks pass with
 13 intentional skips and no retries, including both focus regressions on both
-device profiles. Netlify preview verification is pending this push.
+device profiles. Implementation `4411637` is verified live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: JavaScript/CSS match the
+tested build, and all fourteen hosted Chrome/WebKit start-path checks pass with
+running audio, all forty recordings decoded, and measured game sound output.
+Healthy starts took 500–686 ms here. Native Safari still needs the user's retest.
 Keep the experimental branch and draft PR #32; no production deployment.
 
 ## Safari maze startup — 2026-10-03

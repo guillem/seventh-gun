@@ -46,3 +46,13 @@ both reported seeds: 113 pass, with 13 intentional skips and no retries.
 All 453 unit tests, three TypeScript projects and the production build pass.
 Logs are retained beside this document. All work remains on `codex/experimental-modern-art`,
 draft PR #32, using Netlify preview only.
+
+Hosted verification is complete for implementation `4411637`.
+`focus-hosted-build.json` records exact JavaScript/CSS checksum matches against
+the tested build. `focus-hosted/report.json` records fourteen passing Chrome/
+WebKit checks covering all healthy input paths above. All forty recordings
+decode, audio time advances, and measured game output is nonzero in every case.
+Starts took 500–686 ms on this Mac; no five-second fallback was used. The hosted
+probe excludes Netlify's review toolbar, with the excluded URL recorded.
+The installed Safari still requires the user's confirmation of the exact
+previously failing sequence: type the seed, then click Start directly.
