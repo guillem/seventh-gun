@@ -15,11 +15,14 @@ deploys it. Deploy by hand from a clean checkout of this branch:
 
     npx wrangler login
     npm run build
-    npx wrangler deploy --dry-run   # must say seventh-gun-art, art.seventhgun.com only
+    node -p 'const c=require("./dist/seventh_gun_art/wrangler.json"); c.name+" "+JSON.stringify(c.routes)'
     npx wrangler deploy
     node scripts/smoke-deployment.mjs https://art.seventhgun.com
 
-If `main` is merged into this branch, keep this branch's name and domain in
+The check must print `seventh-gun-art` and only `art.seventhgun.com`. A
+`--dry-run` deploy does not show routes. Run the deploy in an interactive
+terminal: wrangler then asks before taking over an existing domain or DNS
+record, but not when its output is not a terminal. If `main` is merged into this branch, keep this branch's name and domain in
 `wrangler.jsonc`. Remove the Worker with
 `npx wrangler delete --name seventh-gun-art` when the experiment ends.
 
