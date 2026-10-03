@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WEAPONS } from '../../src/sim/weapons';
-import { animateAuthoredWeapon, buildWorldGun } from '../../src/render/viewmodels';
+import { animateAuthoredWeapon, buildViewModel, buildWorldGun } from '../../src/render/viewmodels';
 import { cloneOwnedModel } from '../../src/render/modernAssets';
+import { coplanarOverlaps } from '../../tools/modern-art/inspect_weapon_overlaps.mjs';
 
-const cache = vi.hoisted(() => ({ current: null as null | { weapons: Record<number, THREE.Group> } }));
+const cache = vi.hoisted(() => ({ current: null as null | { weapons: Record<number, THREE.Group>; weaponClips?: Record<number, THREE.AnimationClip[]> } }));
 vi.mock('../../src/render/modernAssets', async importOriginal => ({
   ...await importOriginal<typeof import('../../src/render/modernAssets')>(),
   getModernAssets: () => cache.current,
@@ -29,6 +30,53 @@ function visibleBounds(group: THREE.Object3D) {
 }
 
 describe('complete saved weapon roster', () => {
+  it('retains visible weapon geometry throughout equip on desktop and portrait, including firing recoil', async () => {
+    for (const def of WEAPONS) {
+      const model = await load(def.id);
+      cache.current = { weapons: { [def.id]: model.scene }, weaponClips: { [def.id]: model.animations } };
+      try {
+        for (const [width, height] of [[1440, 900], [390, 844]]) {
+          vi.stubGlobal('window', { innerWidth: width, innerHeight: height });
+          const vm = buildViewModel(def.id);
+          const scene = new THREE.Scene();
+          const aspect = width / height;
+          scene.position.x = -.38 * Math.max(0, 1 - aspect);
+          scene.add(vm.group);
+          const camera = new THREE.PerspectiveCamera(55, aspect, .02, 10);
+          camera.updateMatrixWorld();
+          for (let frame = 0; frame <= 27; frame++) {
+            const phase = frame / 60;
+            vm.update(frame ? 1 / 60 : 0, { moving: 1, firing: true, recoil: 0,
+              time: phase, fireCooldown: Math.max(0, def.fireInterval - phase) });
+            scene.updateMatrixWorld(true);
+            let visibleVertices = 0;
+            vm.group.traverse(node => {
+              if (!(node instanceof THREE.Mesh)) return;
+              for (let parent: THREE.Object3D | null = node; parent; parent = parent.parent) if (parent.name === 'hands') return;
+              const positions = node.geometry.getAttribute('position');
+              for (let vertex = 0; vertex < positions.count; vertex++) {
+                const point = new THREE.Vector3().fromBufferAttribute(positions, vertex).applyMatrix4(node.matrixWorld).project(camera);
+                // A margin avoids counting a tiny sliver at the viewport edge.
+                if (Math.abs(point.x) < .95 && Math.abs(point.y) < .95 && Math.abs(point.z) < 1) visibleVertices++;
+              }
+            });
+            expect(visibleVertices, `${def.name}, ${width}×${height}, equip ${phase.toFixed(3)}s`).toBeGreaterThan(30);
+          }
+          vm.dispose?.();
+        }
+      } finally { cache.current = null; vi.unstubAllGlobals(); }
+    }
+  });
+
+  it('separates positive-area faces on different weapon parts instead of relying on depth order', async () => {
+    for (const def of WEAPONS) {
+      const model = await load(def.id);
+      const conflicts = coplanarOverlaps(model.scene).filter(overlap =>
+        overlap.a.name !== overlap.b.name && overlap.area > 1e-7);
+      expect(conflicts, `${def.name}: coincident faces flicker as animation changes their depth`).toEqual([]);
+    }
+  });
+
   it.each(WEAPONS)('$name has a neutral forward muzzle, removable hands and all three authored actions', async def => {
     const model = await load(def.id);
     model.scene.updateMatrixWorld(true);

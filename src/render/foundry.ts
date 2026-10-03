@@ -11,8 +11,8 @@ export function foundryCell(map: Pick<GameMap, 'seed' | 'grid' | 'w'>, x: number
 export function addFoundryEnvironment(parent: THREE.Group, source: THREE.Group): void {
   const model = cloneOwnedModel(source);
   model.name = 'authored-foundry';
-  // Static self-shadowing is in the lightmap. Dynamic actors still cast onto
-  // these surfaces through the player's shadowed light.
+  // Static self-shadowing is in the lightmap. Moving actors and doors receive
+  // the renderer's stationary practical lighting independently of this bake.
   model.traverse(node => {
     if (node instanceof THREE.Mesh) { node.castShadow = false; node.receiveShadow = true; }
   });
@@ -20,7 +20,7 @@ export function addFoundryEnvironment(parent: THREE.Group, source: THREE.Group):
   parent.add(model);
   // The saved bake cannot light moving doors/actors. This small practical
   // sits below the airlock ceiling fixture and keeps the slab readable.
-  const doorLight = new THREE.PointLight(0xc6dbe2, 38, 10, 2);
+  const doorLight = new THREE.PointLight(0xe6c498, 22, 8, 2);
   doorLight.name = 'foundry-door-practical';
   doorLight.position.set(33.2, 3.8, 87);
   parent.add(doorLight);
@@ -36,12 +36,12 @@ export function addFoundryEnvironment(parent: THREE.Group, source: THREE.Group):
     fragmentShader: `uniform vec3 tint; varying vec2 beamUv; varying float distanceToCamera;
       void main() { float sides = smoothstep(0.0, 0.22, beamUv.x) * smoothstep(0.0, 0.22, 1.0-beamUv.x);
         float ends = sin(beamUv.y * 3.14159); float fade = 1.0-smoothstep(30.0, 85.0, distanceToCamera);
-        gl_FragColor = vec4(tint, sides * ends * fade * 0.075);
+        gl_FragColor = vec4(tint, sides * ends * fade * 0.04);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
   });
-  for (const [x, top, z, endX, endZ] of [[19, 10.8, 81.6, 20, 87], [41, 15.8, 80.8, 43, 88], [61, 15.8, 80.8, 63, 88], [81, 15.8, 80.8, 83, 88]]) {
+  for (const [x, top, z, endX, endZ] of [[19, 10.8, 81.6, 20, 87], [41, 15.8, 80.8, 43, 88], [71, 15.8, 80.8, 73, 88], [100, 15.8, 80.8, 102, 88]]) {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute([
       x - 0.6, top, z, x + 0.6, top, z, endX + 2.1, 0.15, endZ,

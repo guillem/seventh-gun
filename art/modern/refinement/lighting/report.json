@@ -1,0 +1,510 @@
+{
+  "base": "http://127.0.0.1:5176",
+  "capturedAt": "2026-10-03T07:14:10.717Z",
+  "captures": [
+    {
+      "device": "desktop",
+      "name": "entrance",
+      "x": 19,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -6,
+      "file": "entrance-desktop.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 19,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.105,
+        "camPitch": 0.105,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 227,
+        "geometries": 145,
+        "textures": 42
+      }
+    },
+    {
+      "device": "desktop",
+      "name": "hall",
+      "x": 41,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -8,
+      "file": "hall-desktop.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 41,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.14,
+        "camPitch": 0.14,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 441,
+        "geometries": 165,
+        "textures": 79
+      }
+    },
+    {
+      "device": "desktop",
+      "name": "warm-pool",
+      "x": 55,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -4,
+      "file": "warm-pool-desktop.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 55,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.07,
+        "camPitch": 0.07,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 661,
+        "geometries": 150,
+        "textures": 67
+      }
+    },
+    {
+      "device": "desktop",
+      "name": "side-gallery",
+      "x": 71,
+      "z": 89,
+      "yaw": -40,
+      "pitch": -15,
+      "file": "side-gallery-desktop.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 71,
+          "z": 89
+        },
+        "yaw": -0.698,
+        "pitch": -0.262,
+        "camPitch": 0.262,
+        "camYaw": -0.698,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 880,
+        "geometries": 131,
+        "textures": 65
+      }
+    },
+    {
+      "device": "portrait",
+      "name": "entrance",
+      "x": 19,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -6,
+      "file": "entrance-portrait.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 19,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.105,
+        "camPitch": 0.105,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 222,
+        "geometries": 130,
+        "textures": 23
+      }
+    },
+    {
+      "device": "portrait",
+      "name": "hall",
+      "x": 41,
+      "z": 87,
+      "yaw": -90,
+      "pitch": -8,
+      "file": "hall-portrait.png",
+      "state": {
+        "phase": "playing",
+        "simPhase": "playing",
+        "hp": 100,
+        "gun": 1,
+        "owned": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "ammo": {
+          "bullets": 140,
+          "shells": 0,
+          "nails": 0,
+          "grenades": 0,
+          "cores": 0,
+          "void": 0
+        },
+        "pos": {
+          "x": 41,
+          "z": 87
+        },
+        "yaw": -1.571,
+        "pitch": -0.14,
+        "camPitch": 0.14,
+        "camYaw": -1.571,
+        "seed": "campaign:01-foundry",
+        "kind": "campaign",
+        "difficulty": "normal",
+        "kills": 0,
+        "enemiesAlive": 33,
+        "arenaRemaining": 6,
+        "hasKey": false,
+        "sealIntact": true,
+        "exploredPct": 0,
+        "secretsFound": 0,
+        "secretsTotal": 2,
+        "powerups": {
+          "ward": 0,
+          "damage": null,
+          "damageT": 0
+        },
+        "mapHash": "ee306bc5",
+        "campaign": {
+          "map": 1,
+          "nextMap": 1,
+          "unlocked": 1,
+          "owned": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "artId": "foundry"
+        }
+      },
+      "render": {
+        "frames": 434,
+        "geometries": 164,
+        "textures": 61
+      }
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Actual client at fixed debug camera positions with frozen AI.",
+    "Debug DPR1/antialiasing-off capture, not a frame-rate measurement.",
+    "Portrait is touch emulation on a desktop GPU, not a physical phone.",
+    "Historical capture: predates the final fixed-seven actor lights, boundary fade, weapon lighting and subsequent creature refinements."
+  ],
+  "sourceReview": {
+    "date": "2026-10-03",
+    "method": "Read-only current source/material and bake-manifest audit; no new browser capture.",
+    "captureScope": "Preserved 07:14 UTC lighting/material comparison; predates final fixed-seven actor lights, boundary fade, weapon lighting and subsequent creature refinements.",
+    "currentSourceSha256": {
+      "src/render/foundry.ts": "85e18b4035cef32ae3fbea4c41fed0c1366608aab4402d2cfc718bbee4a03880",
+      "src/render/foundryLighting.ts": "9c5509006a6cdd2003d951ea0769113eab6ea60ad9d64716ef9eeb9f95c1d9a6",
+      "src/render/renderer.ts": "5ba48a9e82f154080cb30870766800dfcc4ceb0fdf8bee17a323d0f47f66110c",
+      "src/render/modernAssets.ts": "e49f9fa41c9a470595a8483c4326e49b784a56a980d0984f61846e5daa5470cc",
+      "tools/modern-art/build_foundry.py": "82cdb98a765024a432694831e66efcaf2935bc20d35780fdf23218897496f13f",
+      "art/modern/foundry-room/manifest.json": "78cd0a127e6e2c7ae80d1af30b289ddff11706628d4e0dc46382ffbc501f7c93"
+    },
+    "currentAuthoredRegionLighting": {
+      "pendantIntensities": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "roofIntensities": [
+        70,
+        52.5,
+        42.5
+      ],
+      "ambient": 0.08,
+      "hemisphere": 0.22,
+      "environment": 0.08,
+      "cameraFill": 0.35,
+      "cameraSpotlight": 0,
+      "boundaryDamping": 7,
+      "weaponAmbient": 0.4,
+      "weaponKey": 1.3,
+      "weaponEnvironment": 0.4
+    }
+  }
+}

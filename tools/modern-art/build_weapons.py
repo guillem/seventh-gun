@@ -250,7 +250,8 @@ def spiker(p,gun,mechanism):
     h.side_profile('Nail magazine',[(-.063,-.135),(-.072,-.059),(-.227,-.025),(-.237,-.096)],.050,p['metal'],gun,.007)
     for s in [-1,1]:
         for i in range(5): h.box('Magazine witness channel',(s*.026,-.090-i*.024,-.091+i*.005),(.002,.007,.039),p['dark'],gun,.001)
-    h.box('Reciprocating bolt',(0,.112,-.083),(.033,.016,.11),p['metal'],mechanism,.004)
+    # Keep the bolt's forward cap clear of the rail saddle at z=-.138.
+    h.box('Reciprocating bolt',(0,.112,-.080),(.033,.016,.11),p['metal'],mechanism,.004)
     h.cylinder('Charging lever',(.040,.080,.010),(.086,.080,.010),.006,p['edge'],mechanism,segments=12)
     rail(.112,-.154,.114,p,gun)
     for i in range(3): h.box('Charge status bar',(.045,.077,-.23-i*.035),(.003,.009,.020),p['accent'],gun,.001)
@@ -284,7 +285,8 @@ def sunlance(p,gun,mechanism):
         ring('Three exposed accelerator coils',(0,.064,z),.043,.007,p['accent'],gun)
         ring('Coil armored retainer',(0,.064,z-.014),.047,.006,p['metal'],gun)
         for s in [-1,1]: h.box('Coil support spar',(s*.042,.046,z+.037),(.008,.020,.085),p['dark'],gun,.002)
-    h.box('Ceramic discharge jaws',(0,.065,-.570),(.066,.063,.046),p['ceramic'],gun,.009)
+    # The bore cap starts at -.593; leave 2 mm between its face and the jaws.
+    h.box('Ceramic discharge jaws',(0,.065,-.568),(.066,.063,.046),p['ceramic'],gun,.009)
     barrel(-.599,-.563,.064,.017,p,gun)
     h.box('Capacitor module',(0,-.052,-.047),(.080,.065,.167),p['dark'],gun,.007)
     for i in range(5): h.box('Capacitor cooling plate',(0,-.050,-.097+i*.025),(.093,.063,.009),p['metal'],gun,.003)
@@ -335,7 +337,9 @@ def authored_action(node,name,keys,seconds):
 
 def animate(gun_id,motion,equip,recoil,mechanism,left_hand):
     authored_action(motion,'idle',[(0,(0,0,0),(0,0,0)),(1.2,(.001,.0015,0),(.003,0,.002)),(2.4,(0,0,0),(0,0,0)),(3.6,(-.001,-.0015,0),(-.003,0,-.002)),(4.8,(0,0,0),(0,0,0))],4.8)
-    authored_action(equip,'equip',[(0,(.035,-.23,.19),(-.55,.09,-.15)),(.18,(.008,-.048,.023),(-.10,.015,-.04)),(.30,(0,.004,-.006),(.013,0,.008)),(.45,(0,0,0),(0,0,0))],.45)
+    # Keep a visible silhouette throughout equip. The previous 23 cm drop and
+    # 19 cm camera approach put whole models outside the weapon-camera frustum.
+    authored_action(equip,'equip',[(0,(.016,-.065,.035),(-.10,.04,-.05)),(.18,(.004,-.025,.012),(-.045,.009,-.018)),(.30,(0,.003,-.004),(.009,0,.006)),(.45,(0,0,0),(0,0,0))],.45)
     dur=INTERVALS[gun_id-1]; peak=min(.035,dur*.20)
     amplitude=[.031,.062,.020,.034,.045,.039,.047][gun_id-1]
     authored_action(recoil,'fire',[(0,(0,0,0),(0,0,0)),(peak,(0,.008,amplitude),(.045,0,-.007)),(dur*.38,(0,.002,amplitude*.22),(.013,0,.002)),(dur,(0,0,0),(0,0,0))],dur)

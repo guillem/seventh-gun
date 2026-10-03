@@ -5,52 +5,59 @@
   "bakeSize": 2048,
   "bakeSamples": 128,
   "bake": "Cycles CPU diffuse direct+indirect, color excluded; explicit sRGB OETF of linear irradiance / 8; Non-Color PNG storage",
-  "meshFaces": 18666,
-  "glbBytes": 2937404,
+  "meshFaces": 18800,
+  "glbBytes": 2961268,
   "lights": [
     {
+      "name": "Arrival daylight",
       "position": [
         19,
         10.9,
         81.6
       ],
+      "target": [
+        20,
+        0,
+        87
+      ],
       "color": [
-        0.65,
-        0.79,
+        0.77,
+        0.85,
         1
       ],
-      "power": 780
+      "power": 520,
+      "size": 1.1
     },
     {
+      "name": "Arrival daylight",
       "position": [
         19,
         10.9,
         90.5
       ],
+      "target": [
+        20,
+        0,
+        87
+      ],
       "color": [
-        0.65,
-        0.79,
+        0.77,
+        0.85,
         1
       ],
-      "power": 180
+      "power": 90,
+      "size": 1.1
     },
     {
+      "name": "Airlock downlight",
       "position": [
         28,
         6.15,
         87
       ],
-      "color": [
-        0.68,
-        0.8,
-        1
-      ],
-      "power": 135
-    },
-    {
-      "position": [
-        32,
-        6.15,
+      "target": [
+        28,
+        0,
         87
       ],
       "color": [
@@ -58,12 +65,39 @@
         0.8,
         1
       ],
-      "power": 135
+      "power": 135,
+      "size": 0.8
     },
     {
+      "name": "Airlock downlight",
+      "position": [
+        32,
+        6.15,
+        87
+      ],
+      "target": [
+        32,
+        0,
+        87
+      ],
+      "color": [
+        0.68,
+        0.8,
+        1
+      ],
+      "power": 135,
+      "size": 0.8
+    },
+    {
+      "name": "Portal warm pool",
       "position": [
         25.68,
         3.6,
+        83.1
+      ],
+      "target": [
+        23,
+        1.2,
         83.1
       ],
       "color": [
@@ -71,12 +105,19 @@
         0.46,
         0.17
       ],
-      "power": 145
+      "power": 145,
+      "size": 0.42
     },
     {
+      "name": "Portal warm pool",
       "position": [
         25.68,
         3.6,
+        90.9
+      ],
+      "target": [
+        23,
+        1.2,
         90.9
       ],
       "color": [
@@ -84,103 +125,159 @@
         0.46,
         0.17
       ],
-      "power": 145
+      "power": 145,
+      "size": 0.42
     },
     {
+      "name": "Selective hall daylight",
       "position": [
         41.0,
         15.85,
         80.8
       ],
-      "color": [
-        0.68,
-        0.82,
-        1
-      ],
-      "power": 2600
-    },
-    {
-      "position": [
-        51.0,
-        15.85,
-        80.8
+      "target": [
+        43.0,
+        0,
+        88
       ],
       "color": [
-        0.68,
-        0.82,
+        0.81,
+        0.88,
         1
       ],
-      "power": 2600
+      "power": 1400,
+      "size": 0.85
     },
     {
-      "position": [
-        61.0,
-        15.85,
-        80.8
-      ],
-      "color": [
-        0.68,
-        0.82,
-        1
-      ],
-      "power": 2600
-    },
-    {
+      "name": "Selective hall daylight",
       "position": [
         71.0,
         15.85,
         80.8
       ],
-      "color": [
-        0.68,
-        0.82,
-        1
-      ],
-      "power": 2600
-    },
-    {
-      "position": [
-        81.0,
-        15.85,
-        80.8
+      "target": [
+        73.0,
+        0,
+        88
       ],
       "color": [
-        0.68,
-        0.82,
+        0.81,
+        0.88,
         1
       ],
-      "power": 2600
+      "power": 1050,
+      "size": 0.85
     },
     {
-      "position": [
-        91.0,
-        15.85,
-        80.8
-      ],
-      "color": [
-        0.68,
-        0.82,
-        1
-      ],
-      "power": 2600
-    },
-    {
+      "name": "Selective hall daylight",
       "position": [
         100.0,
         15.85,
         80.8
       ],
+      "target": [
+        102.0,
+        0,
+        88
+      ],
       "color": [
-        0.68,
-        0.82,
+        0.81,
+        0.88,
         1
       ],
-      "power": 2600
+      "power": 850,
+      "size": 0.85
     },
     {
+      "name": "Warm high-bay pool",
+      "position": [
+        46,
+        8.5,
+        85.5
+      ],
+      "target": [
+        46.8,
+        0,
+        85.85
+      ],
+      "color": [
+        1,
+        0.66,
+        0.38
+      ],
+      "power": 430,
+      "size": 0.38
+    },
+    {
+      "name": "Warm high-bay pool",
+      "position": [
+        61,
+        8.5,
+        89
+      ],
+      "target": [
+        61.8,
+        0,
+        89.35
+      ],
+      "color": [
+        1,
+        0.66,
+        0.38
+      ],
+      "power": 430,
+      "size": 0.38
+    },
+    {
+      "name": "Warm high-bay pool",
+      "position": [
+        76,
+        8.5,
+        85.5
+      ],
+      "target": [
+        76.8,
+        0,
+        85.85
+      ],
+      "color": [
+        1,
+        0.66,
+        0.38
+      ],
+      "power": 430,
+      "size": 0.38
+    },
+    {
+      "name": "Warm high-bay pool",
+      "position": [
+        91,
+        8.5,
+        89
+      ],
+      "target": [
+        91.8,
+        0,
+        89.35
+      ],
+      "color": [
+        1,
+        0.66,
+        0.38
+      ],
+      "power": 430,
+      "size": 0.38
+    },
+    {
+      "name": "Arrival wall light",
       "position": [
         12.16,
         2.8,
+        83
+      ],
+      "target": [
+        15,
+        1,
         83
       ],
       "color": [
@@ -188,12 +285,19 @@
         0.47,
         0.16
       ],
-      "power": 80
+      "power": 80,
+      "size": 1
     },
     {
+      "name": "Arrival wall light",
       "position": [
         12.16,
         2.8,
+        91
+      ],
+      "target": [
+        15,
+        1,
         91
       ],
       "color": [
@@ -201,150 +305,228 @@
         0.47,
         0.16
       ],
-      "power": 80
+      "power": 80,
+      "size": 1
     },
     {
+      "name": "Casting wall light",
       "position": [
         24,
         2.8,
         80.16
       ],
+      "target": [
+        24,
+        1,
+        83
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         24,
         2.8,
         93.84
       ],
+      "target": [
+        24,
+        1,
+        91
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         40,
         2.8,
         78.16
       ],
+      "target": [
+        40,
+        1,
+        81
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         40,
         2.8,
         95.84
       ],
+      "target": [
+        40,
+        1,
+        93
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         50,
         2.8,
         95.84
       ],
+      "target": [
+        50,
+        1,
+        93
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         60,
         2.8,
         78.16
       ],
+      "target": [
+        60,
+        1,
+        81
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         70,
         2.8,
         95.84
       ],
+      "target": [
+        70,
+        1,
+        93
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         80,
         2.8,
         78.16
       ],
+      "target": [
+        80,
+        1,
+        81
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         80,
         2.8,
         95.84
       ],
+      "target": [
+        80,
+        1,
+        93
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         100,
         2.8,
         78.16
       ],
+      "target": [
+        100,
+        1,
+        81
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     },
     {
+      "name": "Casting wall light",
       "position": [
         100,
         2.8,
         95.84
       ],
+      "target": [
+        100,
+        1,
+        93
+      ],
       "color": [
         1,
-        0.47,
-        0.16
+        0.59,
+        0.29
       ],
-      "power": 115
+      "power": 180,
+      "size": 0.45
     }
   ],
   "limits": "Only existing floor boundaries collide. Galleries, vessels and utility details are overhead scenery."

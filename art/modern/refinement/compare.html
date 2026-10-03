@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seventh Gun — refinement comparison</title>
+<style>
+  :root{color-scheme:dark;font:16px system-ui;background:#111719;color:#e5e8e6}
+  body{margin:0;padding:30px}main{max-width:1440px;margin:auto}
+  h1{font-size:30px;margin-bottom:10px}p{max-width:850px;line-height:1.6;color:#aebbb9}
+  a{color:#accdbd}section{margin:34px 0}h2{font-size:19px;font-weight:550}
+  .pair{position:relative;aspect-ratio:8/5;overflow:hidden;background:#080a0b;border:1px solid #3a4547}
+  .pair img{display:block;width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+  .pair .after{clip-path:inset(0 0 0 var(--split,50%))}
+  .line{position:absolute;top:0;bottom:0;left:var(--split,50%);width:2px;background:#e6ede4;pointer-events:none}
+  .label{position:absolute;top:12px;padding:5px 9px;background:#101618d9;border-radius:3px;font-size:13px}
+  .before-label{left:12px}.after-label{right:12px}
+  input{width:100%;accent-color:#adcdbc;margin-top:12px}label{font-size:14px;color:#b9c6c1}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+</style>
+<main>
+  <h1>Refinement · before and after</h1>
+  <p>Actual game screenshots at the same fixed camera positions. Drag each slider
+  to compare the previous full-art pass with the rendering, lighting and creature
+  refinement. These use the debug camera and frozen AI; they are visual evidence,
+  not performance measurements. <a href="review/report.json">Capture report</a>.</p>
+  <div id="comparisons"></div>
+</main>
+<script>
+  const subjects=[
+    ['The Foundry','campaign-1-foundry'],
+    ['Husk','enemy-husk'],['Crawler','enemy-crawler'],['Slab','enemy-slab'],
+    ['Wisp','enemy-wisp'],['Hierophant','enemy-hierophant'],['Fiend','enemy-fiend'],
+  ];
+  for(const [name,file] of subjects){
+    const section=document.createElement('section');
+    const id=`compare-${file}`;
+    section.innerHTML=`<h2>${name}</h2><div class="pair"><img src="../roster/review/${file}.jpg" alt="${name} before refinement" loading="lazy"><img class="after" src="review/${file}.jpg" alt="${name} after refinement" loading="lazy"><span class="line"></span><span class="label before-label">Before</span><span class="label after-label">After</span></div><label for="${id}">Compare ${name}</label><input id="${id}" type="range" min="0" max="100" value="50" aria-label="Before and after ${name}">`;
+    section.querySelector('input').addEventListener('input',event=>section.querySelector('.pair').style.setProperty('--split',`${event.target.value}%`));
+    document.querySelector('#comparisons').append(section);
+  }
+</script>
+</html>

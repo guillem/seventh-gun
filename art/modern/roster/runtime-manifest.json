@@ -1,6 +1,6 @@
 {
-  "fileCount": 84,
-  "bytes": 26803216,
+  "fileCount": 96,
+  "bytes": 31631152,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -230,13 +230,13 @@
     },
     {
       "path": "modern/foundry/environment.glb",
-      "bytes": 2937404,
-      "sha256": "1daa92ad3875c1bbc8c04526a215574865f015aaca4150f844cdfebdad49d9dd"
+      "bytes": 2961268,
+      "sha256": "d4913e90f7f0670c8aa00b29fb589f0da97ca99d087320e46bc4ad36e54d4fc0"
     },
     {
       "path": "modern/foundry/irradiance.webp",
-      "bytes": 408800,
-      "sha256": "8afd7b97a938d34abe444a5f29f85108e69e86f4bcf3fdd09090c04662fd2c99"
+      "bytes": 227612,
+      "sha256": "94f956858dd0766d32b96e3f80f900258978138fd584a53b3854ef1c396f4899"
     },
     {
       "path": "modern/foundry/steel-normal.webp",
@@ -264,6 +264,66 @@
       "sha256": "125b28879fa202cf51f8aa816687687829d0af0a2ed0e2caf21521d98939fd2f"
     },
     {
+      "path": "modern/refinement/materials/bone-normal.webp",
+      "bytes": 150844,
+      "sha256": "fec69b252eb799b228245bb6dd11f6134599686ede480ffd25ef79add70972a8"
+    },
+    {
+      "path": "modern/refinement/materials/bone-roughness.webp",
+      "bytes": 67578,
+      "sha256": "eba9c9e31f16ae4cfc86cede37386b9511311e952d0735aaceb8fadbed2e6987"
+    },
+    {
+      "path": "modern/refinement/materials/bone.webp",
+      "bytes": 272456,
+      "sha256": "66e803f230ef5f9b614f70b8415c506acb8f38e7d36c33d1756cbf872d5210a1"
+    },
+    {
+      "path": "modern/refinement/materials/chitin-normal.webp",
+      "bytes": 194400,
+      "sha256": "221353ec22bebb564ab6ce72686d0699436d8a1038cdb456c83ba603b3e4d864"
+    },
+    {
+      "path": "modern/refinement/materials/chitin-roughness.webp",
+      "bytes": 88314,
+      "sha256": "6c5d97c37d8cc8becfe15ce8d454242128b84098fad89c77afc92cf280caf385"
+    },
+    {
+      "path": "modern/refinement/materials/chitin.webp",
+      "bytes": 406558,
+      "sha256": "6c4c0a4d49a358a932b316906e0fdf18107a46d003c77b9b42410c35e5e5b91a"
+    },
+    {
+      "path": "modern/refinement/materials/raw-normal.webp",
+      "bytes": 193680,
+      "sha256": "b3c78c05780c9ab999be70b893b6eb72ead319d7fadb0e6a11d8b936f82905e3"
+    },
+    {
+      "path": "modern/refinement/materials/raw-roughness.webp",
+      "bytes": 56650,
+      "sha256": "022c84e1326ce8862d99ecb9ef8dec446e514aefdb765a33cedb4066c4c36dea"
+    },
+    {
+      "path": "modern/refinement/materials/raw.webp",
+      "bytes": 308238,
+      "sha256": "64db22c8ec8f51078ec35a8d63c7a1005632b92f868f5201bc331854f3de8185"
+    },
+    {
+      "path": "modern/refinement/materials/skin-normal.webp",
+      "bytes": 193762,
+      "sha256": "e0543a7e33024f8c93496298bc7b3227efbef2568dc88b38556cc41e897af202"
+    },
+    {
+      "path": "modern/refinement/materials/skin-roughness.webp",
+      "bytes": 72596,
+      "sha256": "bdd0fdbadf8f0d7c34e34b72a4baed9865a6c95ee3e8afecdf399ef289f15b67"
+    },
+    {
+      "path": "modern/refinement/materials/skin.webp",
+      "bytes": 301020,
+      "sha256": "ed133b39ccb35a683d1267383434c89fec9c7bca2403235e3133c028e5358d91"
+    },
+    {
       "path": "modern/roster/effects/flash.webp",
       "bytes": 75388,
       "sha256": "b74b8b8def82722e3009db7413618891c014a61ff90d6bec3779be49730555ca"
@@ -275,33 +335,33 @@
     },
     {
       "path": "modern/roster/enemies/crawler.glb",
-      "bytes": 773132,
-      "sha256": "c89f6c3a7f66092eeee6c98b98c58f4c0d0da790d29409b69ec3148a663c1fc9"
+      "bytes": 1397076,
+      "sha256": "3126ed3201d81b7d257f2fbaed07aab25da88c20c0a8d825251a71b026f67ded"
     },
     {
       "path": "modern/roster/enemies/fiend.glb",
-      "bytes": 796032,
-      "sha256": "65772c82fd0d421ad1a2ca5f39724fd960ae473e583be311641887d5ce0f4da1"
+      "bytes": 1345488,
+      "sha256": "db5fd767a13330f54f05c2bbce78b576ad69c937d57b261beb57b3ecc2c09e1c"
     },
     {
       "path": "modern/roster/enemies/hierophant.glb",
-      "bytes": 949448,
-      "sha256": "d221d4bb1f2ddc4662f70cc6c90dede551f8e68b93c73b0e8f13197e298f654e"
+      "bytes": 1203676,
+      "sha256": "859c3a402f15c1c1d5903a9295969b0996ba781b21028f9a2c69b6d21b2415df"
     },
     {
       "path": "modern/roster/enemies/husk.glb",
-      "bytes": 804892,
-      "sha256": "ed0a5c02e2c160fc30c67afe59a1931b51bb25479aff95f32ebbfa9800bd1f3d"
+      "bytes": 1344872,
+      "sha256": "a07dd8bd67ce6af0628514b0e8a244a38fde71cdc34d62afb82343b45032098f"
     },
     {
       "path": "modern/roster/enemies/slab.glb",
-      "bytes": 825192,
-      "sha256": "fa8f4f132d7b486a7fef1738204c3fe0cfbc8159a2552bc5aa5ebc4e9176345d"
+      "bytes": 1201596,
+      "sha256": "0cdc2f8461a5dcb8b7b923471c9655cc90d9fc3ee02f6172504b61c1e243a0c1"
     },
     {
       "path": "modern/roster/enemies/wisp.glb",
-      "bytes": 621020,
-      "sha256": "89428bfddcb8dbd2327d92f2b8fc0bce6c0aee9c60f17323d1bebe2c914cdd6f"
+      "bytes": 956140,
+      "sha256": "ac73920e8b7973dc1fdc666f87795242125f21a4018927336b93b6cf4bf9fb3a"
     },
     {
       "path": "modern/roster/environment/kit.glb",
@@ -366,37 +426,37 @@
     {
       "path": "modern/roster/weapons/1.glb",
       "bytes": 905412,
-      "sha256": "50e528881a212ec8f3e5d9a0ee5dec1bd195b555a956ccde0ad8357c9749237f"
+      "sha256": "bfa3bae8ec84d12e552f3bf86aa2e945cd0e0ad24ff48e4abe979873116e27a3"
     },
     {
       "path": "modern/roster/weapons/2.glb",
-      "bytes": 858080,
-      "sha256": "1c0293d46ad3646492dbb7925296d7715d269de22e81884461e8b57bcb6d1132"
+      "bytes": 858112,
+      "sha256": "db24d0fe6d7d4d693a52331c9ed4c5a80c25b332c29210198ca8b2413d60fe51"
     },
     {
       "path": "modern/roster/weapons/3.glb",
       "bytes": 744200,
-      "sha256": "1e9b9bf78baa9f877730dbdeab4cf057e1a77dcdcb5290183fe22b7002295fdd"
+      "sha256": "6f6731879551a9c260bf235676cf574c84df08f65fda85e05e9bfb2ac29deec6"
     },
     {
       "path": "modern/roster/weapons/4.glb",
       "bytes": 974152,
-      "sha256": "4d74db38c4dea6634c8249bced2bd76c767407128d2a7f406273ecb32211ee49"
+      "sha256": "93b00d506e62916a50598b0d7b94c7265d119eb661857b3539c9564987971e82"
     },
     {
       "path": "modern/roster/weapons/5.glb",
       "bytes": 650792,
-      "sha256": "d197bb554f8e8c80c8ddafdffff524e8d0a0324407ee61fe0aaae1822a40b66a"
+      "sha256": "dc96b825a765965a626315abf26a551d79fed92fa89ce8e440a2539fe2d71f71"
     },
     {
       "path": "modern/roster/weapons/6.glb",
       "bytes": 826804,
-      "sha256": "a67e1d9002470a9548253ecc1122bceba3c92c9c8b773bd4e9e9c544ae929c28"
+      "sha256": "0a6b182ddd9ff2b48a416e7507a431d3dcdc34e1e9b09a0d767f3ad4e5f22db1"
     },
     {
       "path": "modern/roster/weapons/7.glb",
       "bytes": 719800,
-      "sha256": "480bc7a381fbdd35268af88fc296714d24b58c104973992f7d109f0c343d0c98"
+      "sha256": "fc7e8c2b855ae0d487bb47435fe084d8b6661dd7a8d8973e8b6eecda433a6fe1"
     },
     {
       "path": "modern/textures/concrete.webp",

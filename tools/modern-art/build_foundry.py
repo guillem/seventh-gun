@@ -40,9 +40,9 @@ scene.render.threads_mode = 'FIXED'
 scene.render.threads = 4
 scene.world.use_nodes = True
 scene.world.node_tree.nodes['Background'].inputs[0].default_value = (.32, .43, .55, 1)
-scene.world.node_tree.nodes['Background'].inputs[1].default_value = .045
+scene.world.node_tree.nodes['Background'].inputs[1].default_value = .012
 
-concrete = a.material('foundry.concrete', (.43,.45,.44), 0, .88)
+concrete = a.material('foundry.concrete', (.27,.29,.27), 0, .91)
 arrival_concrete = a.material('foundry.arrivalConcrete', (.28,.29,.26), 0, .92)
 arrival_floor = a.material('foundry.arrivalFloor', (.13,.14,.13), 0, .86)
 floor = a.material('foundry.floor', (.18,.21,.22), .55, .47)
@@ -51,8 +51,8 @@ edge = a.material('foundry.edge', (.31,.35,.36), .8, .36)
 ochre = a.material('foundry.ochre', (.44,.25,.07), .35, .64)
 label_paint = a.material('foundry.labelPaint', (.72,.68,.55), 0, .9)
 black = a.material('foundry.black', (.026,.034,.04), .5, .65)
-white = a.material('foundry.whiteLamp', (.72,.85,1), 0, .5, 1.2)
-amber = a.material('foundry.amberLamp', (1,.38,.075), 0, .5, 5)
+white = a.material('foundry.whiteLamp', (.81,.88,1), 0, .5, .8)
+amber = a.material('foundry.amberLamp', (1,.58,.27), 0, .5, 3)
 meshes = []
 lights = []
 
@@ -78,7 +78,7 @@ def area(name, pos, target, color, power, size):
     scene.collection.objects.link(ob)
     ob.location = a.gv(pos)
     ob.rotation_euler = (a.gv(target)-ob.location).to_track_quat('-Z','Y').to_euler()
-    lights.append({'position':pos,'color':color,'power':power})
+    lights.append({'name':name,'position':pos,'target':target,'color':color,'power':power,'size':size})
     return ob
 
 layout = json.loads((SOURCE/'layout.json').read_text())
@@ -116,14 +116,16 @@ for x,z in sorted(cells):
             continue
         px=(x+.5)*2+dx*1.25; pz=(z+.5)*2+dz*1.25
         box('Cast concrete boundary',(px,h/2,pz),(.5,h,2) if dx else (2,h,.5),arrival_concrete if x<18 else concrete,0)
-        box('Foundation curb',(px,.17,pz),(.51,.34,2) if dx else (2,.34,.51),black,.015)
+        # A visible steel curb must sit distinctly in front of its concrete
+        # backing, rather than sharing its rasterized plane at long distance.
+        box('Foundation curb',(px,.17,pz),(.56,.34,2) if dx else (2,.34,.56),black,.015)
 
 # Entrance roof: two narrow clerestories bring daylight across the room.
 for za,zb in [(80,81.1),(82.1,90),(91,94)]:
     box('Arrival roof',(19,11.12,(za+zb)/2),(14,.24,zb-za),concrete)
 for z in [81.6,90.5]:
     box('Arrival clerestory',(19,11.22,z),(13.9,.045,.96),white,0)
-    area('Arrival daylight',(19,10.9,z),(20,0,87),(.65,.79,1),780 if z<87 else 180,1.1)
+    area('Arrival daylight',(19,10.9,z),(20,0,87),(.77,.85,1),520 if z<87 else 90,1.1)
 for x in [12.3,25.7]:
     for z in [80.35,84,90,93.65]:
         # The lower column face stays at the collision wall; the upper frame
@@ -232,7 +234,10 @@ for i,x in enumerate([39,49,59,69,79,89,99]):
         row=38 if z<87 else 48
         if all(not walk(math.floor(xx/2),row) for xx in [x-.7,x,x+.7]):
             box('Full height structural pier',(x,7.8,outside),(1.3,15.6,1.1),concrete,.025)
-            box('Pier steel base',(x,.8,outside),(1.36,1.6,1.1),steel,.015)
+            # The former 1.1m base exactly coincided with the concrete pier's
+            # front face, producing black z-fighting patches. A 3cm wrap keeps
+            # the sheet visibly proud while staying inside 0.2m clearance.
+            box('Pier steel base',(x,.8,outside),(1.36,1.6,1.16),steel,.015)
     box('Cross hall structural beam',(x,15.4,87),(.7,1.1,18),steel,.04)
     for z in [80,83,86,89,92]:
         pipe('Truss diagonal',(x,14.8,z),(x,13.9,z+2.2),.065,edge)
@@ -252,7 +257,10 @@ for i,x in enumerate([39,49,59,69,79,89,99]):
 # lowest surface is eight metres above the floor, safely outside combat.
 pipe('Central pressure chamber',(65,8.3,87),(65,14.2,87),2.35,steel,32)
 for y in [8.4,8.7,10.8,13.8]:
-    pipe('Central chamber flange',(65,y-.1,87),(65,y+.1,87),2.48,edge,32)
+    # The bottom flange must cover, rather than coincide with, the chamber's
+    # y=8.3 end cap. The 3cm lip removes a second coplanar flicker source.
+    lower=y-.13 if y==8.4 else y-.1
+    pipe('Central chamber flange',(65,lower,87),(65,y+.1,87),2.48,edge,32)
 for z in [85.1,88.9]:
     pipe('Central load hanger',(65,14.2,z),(65,16,z),.13,ochre)
     pipe('Central chamber bypass',(62.3,9.2,z),(62.3,14.5,z),.2,edge)
@@ -273,13 +281,32 @@ for z in [79.1,94.9]:
         for x in range(38,104,6):
             pipe('Utility coupling',(x-.055,12.8+j*.27,pz),(x+.055,12.8+j*.27,pz),.16+j*.035,edge)
 
-# Roof slots and their lights share positions so the illumination is motivated.
-for x0 in range(36,104,10):
+# Only three selected clerestory slots admit daylight. Closed intermediate
+# bays leave the roof, galleries and machinery in shadow, instead of bathing
+# every wall in one continuous cool wash.
+for bay,x0 in enumerate(range(36,104,10)):
     x1=min(104,x0+10)
     for za,zb in [(78,80.0),(81.6,96)]:
         box('Casting roof',((x0+x1)/2,16.15,(za+zb)/2),(x1-x0,.3,zb-za),concrete)
-    box('Hall skylight',((x0+x1)/2,16.23,80.8),(x1-x0-.5,.06,1.6),white)
-    area('Hall skylight bounce',((x0+x1)/2,15.85,80.8),((x0+x1)/2+2,0,88),(.68,.82,1),2600,1.8)
+    mid=(x0+x1)/2
+    if bay in [0,3,6]:
+        slot=3.2
+        for xa,xb in [(x0,mid-slot/2),(mid+slot/2,x1)]:
+            box('Closed clerestory roof',((xa+xb)/2,16.15,80.8),(xb-xa,.3,1.6),concrete,0)
+        box('Hall skylight',(mid,16.23,80.8),(slot,.06,1.6),white)
+        area('Selective hall daylight',(mid,15.85,80.8),(mid+2,0,88),(.81,.88,1),1400 if bay==0 else 1050 if bay==3 else 850,.85)
+    else:
+        box('Closed clerestory roof',(mid,16.15,80.8),(x1-x0,.3,1.6),concrete,0)
+
+# Suspended high-bay practicals give the travel route warm, separated pools.
+# Their lenses and cables are visible; everything stays above combat height.
+# Runtime stationary lights for moving actors use these same fixed positions.
+for i,x in enumerate([46,61,76,91]):
+    z=85.5 if i%2==0 else 89
+    pipe('Pendant power cable',(x,8.95,z),(x,15.75,z),.026,black,8)
+    pipe('Pendant lamp housing',(x,8.58,z),(x,8.94,z),.34,steel,16)
+    pipe('Pendant diffuser',(x,8.545,z),(x,8.58,z),.27,amber,16)
+    area('Warm high-bay pool',(x,8.5,z),(x+.8,0,z+.35),(1,.66,.38),430,.38)
 
 # Low amber wall lamps in the start and casting hall. Bodies stay behind the
 # boundary plane; their luminous lenses project less than the player radius.
@@ -293,7 +320,7 @@ for x,z,side in [(12,83,1),(12,91,1),(24,80,0),(24,94,0)]+[(x,z,0) for x in [40,
     else:
         box('Wall luminaire',(x,2.8,z-inward*.06),(.3,.64,.12),black)
         box('Amber lens',(x,2.8,z+inward*.012),(.16,.4,.035),amber)
-        area('Casting wall light',(x,2.8,z+inward*.16),(x,1,z+inward*3),(1,.47,.16),115,1)
+        area('Casting wall light',(x,2.8,z+inward*.16),(x,1,z+inward*3),(1,.59,.29),180,.45)
 
 # Join the static assembly into one GLB mesh with a small set of materials.
 bpy.ops.object.select_all(action='DESELECT')
@@ -333,7 +360,8 @@ for mat in hero.data.materials:
     if 'Lamp' not in mat.name:
         # Color is excluded from the receiving pass, but surrounding albedos
         # must remain plausible: white bounce surfaces badly over-light rooms.
-        if mat.name in ['foundry.concrete','foundry.arrivalConcrete']: p.inputs['Base Color'].default_value=(.21,.22,.21,1)
+        if mat.name=='foundry.concrete': p.inputs['Base Color'].default_value=(.13,.14,.13,1)
+        if mat.name=='foundry.arrivalConcrete': p.inputs['Base Color'].default_value=(.18,.19,.17,1)
         if mat.name in ['foundry.floor','foundry.arrivalFloor']: p.inputs['Base Color'].default_value=(.045,.052,.058,1)
         p.inputs['Metallic'].default_value=0
     target=mat.node_tree.nodes.new('ShaderNodeTexImage')

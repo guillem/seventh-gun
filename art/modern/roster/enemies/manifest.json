@@ -1,8 +1,8 @@
 [
   {
     "type": "husk",
-    "triangles": 15496,
-    "materialMeshes": 5,
+    "triangles": 23723,
+    "materialMeshes": 6,
     "bones": 18,
     "clips": {
       "idle": 2,
@@ -16,12 +16,12 @@
       1.668,
       0.53
     ],
-    "bytes": 804892
+    "bytes": 1344872
   },
   {
     "type": "crawler",
-    "triangles": 15300,
-    "materialMeshes": 5,
+    "triangles": 30190,
+    "materialMeshes": 6,
     "bones": 18,
     "clips": {
       "idle": 2,
@@ -35,12 +35,12 @@
       0.38,
       0.64
     ],
-    "bytes": 773132
+    "bytes": 1397076
   },
   {
     "type": "slab",
-    "triangles": 17444,
-    "materialMeshes": 5,
+    "triangles": 25803,
+    "materialMeshes": 6,
     "bones": 18,
     "clips": {
       "idle": 2,
@@ -54,12 +54,12 @@
       0.752,
       0.5
     ],
-    "bytes": 825192
+    "bytes": 1201596
   },
   {
     "type": "wisp",
-    "triangles": 13050,
-    "materialMeshes": 5,
+    "triangles": 20228,
+    "materialMeshes": 6,
     "bones": 13,
     "clips": {
       "idle": 2,
@@ -73,12 +73,12 @@
       -0.1,
       0.34
     ],
-    "bytes": 621020
+    "bytes": 956140
   },
   {
     "type": "hierophant",
-    "triangles": 18948,
-    "materialMeshes": 5,
+    "triangles": 25222,
+    "materialMeshes": 6,
     "bones": 21,
     "clips": {
       "idle": 2,
@@ -92,12 +92,12 @@
       2.07,
       0.24
     ],
-    "bytes": 949448
+    "bytes": 1203676
   },
   {
     "type": "fiend",
-    "triangles": 15342,
-    "materialMeshes": 5,
+    "triangles": 27841,
+    "materialMeshes": 6,
     "bones": 19,
     "clips": {
       "idle": 2,
@@ -111,6 +111,6 @@
       2.216,
       0.9
     ],
-    "bytes": 796032
+    "bytes": 1345488
   }
 ]

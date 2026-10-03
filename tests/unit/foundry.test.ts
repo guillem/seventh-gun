@@ -6,6 +6,38 @@ import { CAMPAIGN } from '../../src/campaign';
 import { addFoundryDoorHardware, foundryCell } from '../../src/render/foundry';
 
 describe('authored Foundry environment', () => {
+  it('separates the pier cladding and lower vessel flange from their former coplanar backing faces', async () => {
+    const bytes = readFileSync(new URL('../../public/modern/foundry/environment.glb', import.meta.url));
+    const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
+    model.updateMatrixWorld(true);
+    const pier = new Map<string, number[]>();
+    const cap = new Map<string, number[]>();
+    const vertex = new THREE.Vector3();
+    model.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const name = (node.material as THREE.Material).name;
+      if (!['foundry.concrete', 'foundry.steel', 'foundry.edge'].includes(name)) return;
+      const positions = node.geometry.getAttribute('position');
+      for (let i = 0; i < positions.count; i++) {
+        vertex.fromBufferAttribute(positions, i).applyMatrix4(node.matrixWorld);
+        if (vertex.x > 38 && vertex.x < 40 && vertex.y > .005 && vertex.y < 1.61 && vertex.z > 77.9 && vertex.z < 78.5) {
+          if (!pier.has(name)) pier.set(name, []);
+          pier.get(name)!.push(vertex.z);
+        }
+        if (vertex.x > 62.5 && vertex.x < 67.5 && vertex.z > 84.5 && vertex.z < 89.5 && vertex.y > 8 && vertex.y < 8.4) {
+          if (!cap.has(name)) cap.set(name, []);
+          cap.get(name)!.push(vertex.y);
+        }
+      }
+    });
+    expect(pier.get('foundry.concrete')!.length).toBeGreaterThan(0);
+    expect(pier.get('foundry.steel')!.length).toBeGreaterThan(0);
+    expect(Math.max(...pier.get('foundry.steel')!) - Math.max(...pier.get('foundry.concrete')!)).toBeGreaterThan(.025);
+    expect(cap.get('foundry.steel')!.length).toBeGreaterThan(0);
+    expect(cap.get('foundry.edge')!.length).toBeGreaterThan(0);
+    expect(Math.min(...cap.get('foundry.steel')!) - Math.min(...cap.get('foundry.edge')!)).toBeGreaterThan(.025);
+  });
+
   it('keeps the saved door guards within the original span and attached throughout lift travel', async () => {
     const bytes = readFileSync(new URL('../../public/modern/foundry/door-hardware.glb', import.meta.url));
     const source = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;

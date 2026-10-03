@@ -53,8 +53,33 @@ function boneRotations(model: THREE.Object3D): number[] {
   return values;
 }
 
+function connectedSkinVertices(mesh: THREE.SkinnedMesh): number[][] {
+  const position = mesh.geometry.getAttribute('position');
+  const welded = new Map<string, number>();
+  const parent: number[] = [];
+  const ids: number[] = [];
+  for (let i = 0; i < position.count; i++) {
+    const key = [position.getX(i), position.getY(i), position.getZ(i)].map(v => Math.round(v * 100000)).join(',');
+    if (!welded.has(key)) { welded.set(key, parent.length); parent.push(parent.length); }
+    ids.push(welded.get(key)!);
+  }
+  const find = (id: number): number => parent[id] === id ? id : parent[id] = find(parent[id]);
+  const index = mesh.geometry.index!;
+  for (let i = 0; i < index.count; i += 3) {
+    const root = find(ids[index.getX(i)]);
+    for (let j = 1; j < 3; j++) parent[find(ids[index.getX(i + j)])] = root;
+  }
+  const groups = new Map<number, number[]>();
+  for (let i = 0; i < ids.length; i++) {
+    const root = find(ids[i]);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root)!.push(i);
+  }
+  return [...groups.values()].sort((a, b) => b.length - a.length);
+}
+
 describe('six saved skeletal enemy assets', () => {
-  it('ships five skinned material draws and all five clips for every species', () => {
+  it('ships six skinned material draws and all five clips for every species', () => {
     for (const type of types) {
       let meshes = 0, triangles = 0;
       models[type].traverse(node => {
@@ -68,15 +93,74 @@ describe('six saved skeletal enemy assets', () => {
         for (let i = 0; i < weights.count; i++) {
           expect(weights.getX(i) + weights.getY(i) + weights.getZ(i) + weights.getW(i)).toBeCloseTo(1, 4);
         }
-        expect((node.material as THREE.Material).name).toMatch(/^(enemy\.(skin|armour|dark|bone)|eye\.)/);
+        expect((node.material as THREE.Material).name).toMatch(/^(enemy\.(skin|raw|armour|dark|bone)|eye\.)/);
         triangles += (node.geometry.index?.count ?? node.geometry.getAttribute('position').count) / 3;
         meshes++;
       });
-      expect(meshes, type).toBe(5);
+      expect(meshes, type).toBe(6);
       expect(triangles, type).toBeGreaterThan(4000);
-      expect(triangles, type).toBeLessThan(25000);
+      expect(triangles, type).toBeLessThan(32000);
       expect(clips[type].map(clip => clip.name).sort()).toEqual(['attack', 'death', 'hit', 'idle', 'walk']);
     }
+  });
+
+  it('retains authored husk tissue variation in the rendered vertex-colour channel', () => {
+    const skin = models.husk.getObjectByName('enemy_skin_husk') as THREE.SkinnedMesh;
+    const colour = skin.geometry.getAttribute('color');
+    expect((skin.material as THREE.MeshStandardMaterial).vertexColors).toBe(true);
+    expect(colour).toBeDefined();
+    let min = 1, max = 0;
+    for (let i = 0; i < colour.count; i++) {
+      min = Math.min(min, colour.getX(i));
+      max = Math.max(max, colour.getX(i));
+    }
+    // A valid-looking export previously put white in COLOR_0 and the authored
+    // tone in COLOR_1, which Three does not use for material colour.
+    expect(max - min).toBeGreaterThan(.25);
+    expect(min).toBeGreaterThan(.08);
+    expect(max).toBeLessThan(.6);
+  });
+
+  it('keeps husk shoulders, ankles and neck on a connected deforming surface', () => {
+    const model = cache.cloneOwnedModel(models.husk);
+    const skin = model.getObjectByName('enemy_skin_husk') as THREE.SkinnedMesh;
+    const [body, face] = connectedSkinVertices(skin);
+    const indices = skin.geometry.getAttribute('skinIndex');
+    const weights = skin.geometry.getAttribute('skinWeight');
+    const bodyBones = new Set<string>();
+    for (const vertex of body) {
+      for (let component = 0; component < 4; component++) {
+        if (weights.getComponent(vertex, component) > .5) {
+          bodyBones.add(skin.skeleton.bones[indices.getComponent(vertex, component)].name);
+        }
+      }
+    }
+    // The substantial neck and all limb joints share actual triangles with
+    // the torso, rather than merely overlapping disconnected limb capsules.
+    for (const bone of ['head', 'chest', 'arm_l', 'arm_r', 'fore_l', 'fore_r',
+      'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r']) expect(bodyBones.has(bone), bone).toBe(true);
+
+    const position = skin.geometry.getAttribute('position');
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    const bodyNeck = body.filter(i => position.getY(i) > 1.64 && position.getZ(i) > .17);
+    const faceBack = face.filter(i => position.getY(i) > 1.68 && position.getZ(i) < .28);
+    let pair: [number, number] | undefined, closest = Infinity;
+    for (const i of bodyNeck) for (const j of faceBack) {
+      const distance = a.fromBufferAttribute(position, i).distanceToSquared(b.fromBufferAttribute(position, j));
+      if (distance < closest) { closest = distance; pair = [i, j]; }
+    }
+    expect(pair).toBeDefined();
+    const mixer = new THREE.AnimationMixer(model);
+    for (const clip of clips.husk.filter(c => c.name === 'idle' || c.name === 'walk' || c.name === 'attack')) {
+      mixer.stopAllAction();
+      const action = mixer.clipAction(clip).play(); action.paused = true;
+      for (const fraction of [0, .25, .5, .75]) {
+        action.time = clip.duration * fraction; mixer.update(0); model.updateMatrixWorld(true); skin.skeleton.update();
+        skin.getVertexPosition(pair![0], a); skin.getVertexPosition(pair![1], b);
+        expect(a.distanceTo(b), `${clip.name} face/neck attachment`).toBeLessThan(.016);
+      }
+    }
+    mixer.uncacheRoot(model);
   });
 
   it('keeps animated heads within the unchanged vertical gun volume and exact muzzle markers', () => {

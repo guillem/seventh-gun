@@ -1,5 +1,24 @@
 # STATUS
 
+## Review refinement — in progress 2026-10-03
+
+The user reported camera-dependent black patches on Foundry column bases,
+whole-gun disappearance, simple creature anatomy/materials and overly bright
+warehouse lighting. Work remains on the experimental branch and draft PR #32.
+See `docs/ART-REFINEMENT.md` and `art/modern/refinement/` for scope and sources.
+
+Implemented: separate coplanar column/chamber faces; replace
+continuous roof wash with selected openings and warm practical pools; use matte
+concrete flooring and fixed actor-light locations. GPU occlusion queries reproduce
+whole-gun disappearance in the first frames of exaggerated equip clips; all seven
+clips now retain visible geometry (0 blank frames in 2,679 after-fix observations).
+All six creature species now have more developed anatomy,
+facial/joint detail and four new generated albedos plus eight Blender-baked
+normal/roughness maps. All 393 unit tests, all three TypeScript projects and the
+production build pass under Node 24.21.0. Runtime art is 96 files / 31,631,152
+bytes before compression. Full browser, final visual and hosted checks are running.
+No simulation, map, balance or network changes. No merge or production deployment.
+
 ## Full roster and campaign art pass — delivered 2026-10-03
 
 Implemented on `codex/experimental-modern-art`, draft PR #32: seven animated

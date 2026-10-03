@@ -1,0 +1,292 @@
+{
+  "base": "http://127.0.0.1:5176",
+  "capturedAt": "2026-10-03T07:15:14.125Z",
+  "errors": [],
+  "captures": [
+    {
+      "mode": "baseline",
+      "frame": 0,
+      "file": "baseline-0.png"
+    },
+    {
+      "mode": "baseline",
+      "frame": 4,
+      "file": "baseline-4.png"
+    },
+    {
+      "mode": "no-occlusion",
+      "frame": 0,
+      "file": "no-occlusion-0.png"
+    },
+    {
+      "mode": "no-occlusion",
+      "frame": 4,
+      "file": "no-occlusion-4.png"
+    },
+    {
+      "mode": "no-shadows",
+      "frame": 0,
+      "file": "no-shadows-0.png"
+    },
+    {
+      "mode": "no-shadows",
+      "frame": 4,
+      "file": "no-shadows-4.png"
+    },
+    {
+      "mode": "direct-world",
+      "frame": 0,
+      "file": "direct-world-0.png"
+    },
+    {
+      "mode": "direct-world",
+      "frame": 4,
+      "file": "direct-world-4.png"
+    }
+  ],
+  "limitation": "Fixed debug poses with a temporary browser-only renderer probe; not a performance measurement.",
+  "passes": [
+    "RenderPass",
+    "ContactOcclusionPass",
+    "_UnrealBloomPass",
+    "OutputPass"
+  ],
+  "geometry": [
+    {
+      "name": "Continuous_tailored_fabric_sleeve001",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.fabric",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "left_hand__handglove",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.glove",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "left_hand__handstitch",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.stitch",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "Velcro_glove_wrist_tab001",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.pad",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "Continuous_tailored_fabric_sleeve",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.fabric",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "right_hand__handglove",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.glove",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "right_hand__handpad",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.pad",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "right_hand__handstitch",
+      "culled": true,
+      "materials": [
+        {
+          "name": "hand.stitch",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "mechanism__weaponaccent",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.accent",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "mechanism__weapondark",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.dark",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "mechanism__weaponmetal",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.metal",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "Viper_engraved_model",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.engraving",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "weapon__weapondark",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.dark",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "weapon__weaponedge",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.edge",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "weapon__weapongrip",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.grip",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    },
+    {
+      "name": "weapon__weaponmetal",
+      "culled": true,
+      "materials": [
+        {
+          "name": "weapon.metal",
+          "depthWrite": true,
+          "depthTest": true,
+          "transparent": false
+        }
+      ]
+    }
+  ],
+  "weaponDraws": [
+    {
+      "gun": 1,
+      "frames": 90,
+      "meshes": 8,
+      "missing": []
+    },
+    {
+      "gun": 2,
+      "frames": 90,
+      "meshes": 10,
+      "missing": []
+    },
+    {
+      "gun": 3,
+      "frames": 90,
+      "meshes": 11,
+      "missing": []
+    },
+    {
+      "gun": 4,
+      "frames": 90,
+      "meshes": 9,
+      "missing": []
+    },
+    {
+      "gun": 5,
+      "frames": 90,
+      "meshes": 10,
+      "missing": []
+    },
+    {
+      "gun": 6,
+      "frames": 90,
+      "meshes": 8,
+      "missing": []
+    },
+    {
+      "gun": 7,
+      "frames": 90,
+      "meshes": 9,
+      "missing": []
+    }
+  ]
+}

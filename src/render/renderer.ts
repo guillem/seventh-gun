@@ -26,6 +26,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ContactOcclusionPass } from './contactOcclusion';
+import { insideAuthoredFoundry, placeFoundryActorLights } from './foundryLighting';
 
 const MAZE_FOG = 0x0b0709;
 const MAZE_FOG_NEAR = 10;
@@ -50,6 +51,7 @@ export class GameRenderer {
   private presentationTime = 0;
   private torch: THREE.PointLight;
   private hemisphere: THREE.HemisphereLight;
+  private ambient: THREE.AmbientLight;
   private artId?: CampaignArtId;
   private muzzleSprite: THREE.Sprite | null = null;
   private muzzleLife = 0;
@@ -57,6 +59,10 @@ export class GameRenderer {
   private renderFrames = 0;
   private modernKey: THREE.SpotLight | null = null;
   private practicalLights: THREE.PointLight[] = [];
+  private foundryActorLights: THREE.SpotLight[] = [];
+  private foundryLightBlend = 0;
+  private vmAmbient: THREE.AmbientLight;
+  private vmKey: THREE.DirectionalLight;
   private lightTimer = 0;
   private lightDirection = new THREE.Vector3();
   private composer: EffectComposer | null = null;
@@ -91,7 +97,8 @@ export class GameRenderer {
     this.scene.fog = new THREE.Fog(MAZE_FOG, MAZE_FOG_NEAR, MAZE_FOG_FAR);
 
     // lighting for dynamic meshes (enemies/pickups/doors)
-    this.scene.add(new THREE.AmbientLight(modern ? 0xa4b7c2 : 0x77706d, modern ? 0.2 : 1.35));
+    this.ambient = new THREE.AmbientLight(modern ? 0xa4b7c2 : 0x77706d, modern ? 0.2 : 1.35);
+    this.scene.add(this.ambient);
     const hemi = new THREE.HemisphereLight(modern ? 0xc2d9e1 : 0x5a4850, modern ? 0x333028 : 0x2a2226, modern ? 0.55 : 0.7);
     this.hemisphere = hemi;
     this.scene.add(hemi);
@@ -112,11 +119,22 @@ export class GameRenderer {
         this.practicalLights.push(light);
         this.scene.add(light);
       }
+      for (let i = 0; i < 7; i++) {
+        const light = new THREE.SpotLight(i < 4 ? 0xffce99 : 0xd4e5ff,
+          i < 4 ? 180 : [70, 52.5, 42.5][i - 4], i < 4 ? 19 : 27, i < 4 ? .82 : .42, .7, 1.6);
+        light.userData.baseIntensity = light.intensity;
+        light.visible = false;
+        this.foundryActorLights.push(light);
+        this.scene.add(light, light.target);
+      }
+      placeFoundryActorLights(this.foundryActorLights);
     }
 
     // viewmodel pass lights
-    this.vmScene.add(new THREE.AmbientLight(modern ? 0xb6c9d5 : 0x777168, modern ? 0.7 : 1.1));
+    this.vmAmbient = new THREE.AmbientLight(modern ? 0xb6c9d5 : 0x777168, modern ? 0.7 : 1.1);
+    this.vmScene.add(this.vmAmbient);
     const vmKey = new THREE.DirectionalLight(0xfff1d8, modern ? 2.0 : 1.3);
+    this.vmKey = vmKey;
     vmKey.position.set(-0.6, 1, 0.4);
     this.vmScene.add(vmKey);
     this.vmScene.add(this.vmHolder);
@@ -372,28 +390,48 @@ export class GameRenderer {
 
   private updateModernLights(view: WorldView, dt: number): void {
     if (!this.modernKey) return;
-    const authored = view.map.seed === 'campaign:01-foundry' && view.player.x >= 12 && view.player.x < 104 && view.player.z >= 78 && view.player.z < 96;
-    this.torch.intensity = authored ? 1.2 : 5;
-    this.modernKey.intensity = authored ? 8 : 24;
-    if (authored) this.practicalLights.forEach(light => { light.visible = false; });
+    const authored = insideAuthoredFoundry(view.map.seed, view.player.x, view.player.z);
+    // New runs initialize directly; crossing a room boundary fades lighting so
+    // the weapon and nearby actors cannot flash as the region flag changes.
+    this.foundryLightBlend = dt > 0
+      ? THREE.MathUtils.damp(this.foundryLightBlend, authored ? 1 : 0, 7, dt)
+      : authored ? 1 : 0;
+    const blend = this.foundryLightBlend;
+    this.ambient.intensity = THREE.MathUtils.lerp(.2, .08, blend);
+    this.hemisphere.intensity = THREE.MathUtils.lerp(.55, .22, blend);
+    this.scene.environmentIntensity = THREE.MathUtils.lerp(.3, .08, blend);
+    this.vmAmbient.intensity = THREE.MathUtils.lerp(.7, .4, blend);
+    this.vmKey.intensity = THREE.MathUtils.lerp(2, 1.3, blend);
+    this.vmScene.environmentIntensity = THREE.MathUtils.lerp(.65, .4, blend);
+    this.torch.intensity = THREE.MathUtils.lerp(5, .35, blend);
+    this.modernKey.visible = blend < .9999;
+    this.modernKey.intensity = 24 * (1 - blend);
+    this.foundryActorLights.forEach(light => {
+      light.visible = blend > .0001;
+      light.intensity = light.userData.baseIntensity * blend;
+    });
+    this.practicalLights.forEach(light => {
+      light.visible = !!light.userData.baseIntensity && blend < .9999;
+      light.intensity = (light.userData.baseIntensity ?? 0) * (1 - blend);
+    });
     this.camera.getWorldDirection(this.lightDirection);
     this.modernKey.position.copy(this.camera.position).add(new THREE.Vector3(-0.16, 0.16, 0));
     this.modernKey.target.position.copy(this.camera.position).addScaledVector(this.lightDirection, 14);
     this.lightTimer -= dt;
     if (this.lightTimer > 0) return;
     this.lightTimer = 0.25;
-    if (authored) return;
     const { x, z } = view.player;
     const nearest = [...view.map.lights].sort((a, b) =>
       (a.x - x) ** 2 + (a.z - z) ** 2 - (b.x - x) ** 2 - (b.z - z) ** 2,
     ).slice(0, this.practicalLights.length);
     this.practicalLights.forEach((light, i) => {
       const source = nearest[i];
-      light.visible = !!source;
+      light.userData.baseIntensity = source ? 24 * source.intensity : 0;
+      light.visible = !!source && blend < .9999;
       if (!source) return;
       light.position.set(source.x, Math.min(source.y, 3.8), source.z);
       light.color.setRGB(...source.color).lerp(new THREE.Color(this.artId ? CAMPAIGN_ENVIRONMENT_PALETTES[this.artId].fixture : 0xf0d6b4), 0.7);
-      light.intensity = 24 * source.intensity;
+      light.intensity = light.userData.baseIntensity * (1 - blend);
       light.distance = Math.min(24, source.radius * 1.2);
     });
   }

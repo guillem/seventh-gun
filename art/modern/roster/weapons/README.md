@@ -63,3 +63,23 @@ triangle counts, bytes and neutral muzzle coordinates. The unit checks load the
 real GLBs with Three.js, validate timing/bounds/anchors/UVs, sample the pistol
 mechanism using its exact cooldown, verify cached source isolation, and confirm
 all pickups hide their hands without including them in recentering bounds.
+
+## Surface stability correction
+
+The Spiker's moving bolt cap previously coincided with a sight-rail saddle;
+the Sunlance's ceramic jaw face coincided with its barrel cap. Their saved
+geometry now has 3 mm and 2 mm separation respectively. Muzzles, hit volumes,
+animation timing and silhouette dimensions are unchanged. The regression check
+intersects actual GLB triangles to reject positive-area coplanar faces between
+different weapon parts. `tools/modern-art/inspect_weapon_overlaps.mjs` prints
+the complete asset diagnostic; tiny adjacent triangles within one rounded
+material mesh are reported separately and do not fail the cross-part guard.
+
+The original equip clip also moved the assembly 23 cm down and 19 cm toward the
+camera, with a 0.55 radian tilt. Normal-mode GPU occlusion queries reproduced
+whole-gun blank frames during the beginning of this action. The saved clips now
+start with a 6.5 cm dip, 3.5 cm approach and 0.10 radian tilt, retaining the
+450 ms equip duration. A real-GLB regression projects every weapon during the
+full action, including simultaneous recoil, through desktop and portrait camera
+frusta. It failed on the previous clip (zero visible pistol vertices at t=0) and
+passes after re-export. Gameplay and firing cadence are unchanged.

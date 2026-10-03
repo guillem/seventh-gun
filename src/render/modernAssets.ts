@@ -4,9 +4,22 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
+import { bindCreatureSurface, type CreatureSurfaces } from './creatureMaterials';
 
-export const MODERN_ASSET_VERSION = 'roster-01';
+export const MODERN_ASSET_VERSION = 'refinement-01';
 export const MODERN_ASSET_URLS = {
+  creatureSkin: '/modern/refinement/materials/skin.webp',
+  creatureSkinNormal: '/modern/refinement/materials/skin-normal.webp',
+  creatureSkinRoughness: '/modern/refinement/materials/skin-roughness.webp',
+  creatureRaw: '/modern/refinement/materials/raw.webp',
+  creatureRawNormal: '/modern/refinement/materials/raw-normal.webp',
+  creatureRawRoughness: '/modern/refinement/materials/raw-roughness.webp',
+  creatureArmour: '/modern/refinement/materials/chitin.webp',
+  creatureArmourNormal: '/modern/refinement/materials/chitin-normal.webp',
+  creatureArmourRoughness: '/modern/refinement/materials/chitin-roughness.webp',
+  creatureBone: '/modern/refinement/materials/bone.webp',
+  creatureBoneNormal: '/modern/refinement/materials/bone-normal.webp',
+  creatureBoneRoughness: '/modern/refinement/materials/bone-roughness.webp',
   weaponMetal: '/modern/roster/materials/weapon-metal.webp',
   glove: '/modern/roster/materials/glove.webp',
   fabric: '/modern/roster/materials/fabric.webp',
@@ -57,6 +70,7 @@ export interface ModernAssets {
   weaponClips: Record<number, THREE.AnimationClip[]>;
   enemyModels: Record<string, THREE.Group>;
   enemyClips: Record<string, THREE.AnimationClip[]>;
+  creatureSurfaces: CreatureSurfaces;
   environmentKit: THREE.Group;
   support: THREE.Group;
   surfaces: Record<string, THREE.Texture>;
@@ -144,6 +158,10 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       entranceFloor: texture('entranceFloor'), doorHardware: model('doorHardware'),
       weapons, weaponClips: Object.fromEntries(Object.entries(weapons).map(([id, group]) => [id, group.animations])),
       enemyModels, enemyClips: Object.fromEntries(Object.entries(enemyModels).map(([id, group]) => [id, group.animations])),
+      creatureSurfaces: Object.fromEntries(['skin', 'raw', 'armour', 'bone'].map(role => {
+        const key = `creature${role[0].toUpperCase()}${role.slice(1)}`;
+        return [role, { albedo: texture(key), normal: texture(`${key}Normal`), roughness: texture(`${key}Roughness`) }];
+      })) as CreatureSurfaces,
       environmentKit: model('environmentKit'), support: model('support'),
       surfaces: Object.fromEntries(['basalt', 'organic', 'ceramic', 'limestone', 'alloy', 'concrete', 'steel', 'entranceFloor']
         .map(id => [id, texture(id)])),
@@ -166,14 +184,13 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
         if (name.startsWith('weapon.metal') || name.startsWith('weapon.edge')) material.map = assets!.weaponMetal;
         else if (name.startsWith('weapon.grip') || name.startsWith('hand.glove')) material.map = assets!.glove;
         else if (name.startsWith('hand.fabric')) material.map = assets!.fabric;
-        else if (name.startsWith('enemy.skin')) material.map = assets!.skin;
-        else if (name.startsWith('enemy.armour')) material.map = assets!.carapace;
-        else if (name.startsWith('enemy.bone')) { material.map = assets!.titanium; material.metalness = 0.08; }
         if (/^(support.metal|marine.steel)/.test(name)) material.map = assets!.weaponMetal;
         else if (name.startsWith('marine.fabric')) material.map = assets!.fabric;
         else if (name.startsWith('marine.dark')) material.map = assets!.glove;
         material.envMapIntensity = name.startsWith('weapon.') ? 0.85 : 0.4;
-        // Keep the model's authored tint and roughness; all maps are base-color only.
+        bindCreatureSurface(material, assets!.creatureSurfaces);
+        // Creature tint comes from its model; saved surface maps add relief and
+        // roughness. Other roster maps remain base-color only.
         material.needsUpdate = true;
       }
     });
@@ -195,7 +212,7 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
         foundryMaterials.add(material);
         material.lightMap = assets!.irradiance;
         material.lightMapIntensity = 8 * Math.PI;
-        material.envMapIntensity = 0.35;
+        material.envMapIntensity = 0.18;
         if (material.name === 'foundry.arrivalFloor') {
           material.map = assets!.entranceFloor;
           material.color.set(0xb9b6ac);
@@ -205,31 +222,33 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
           material.normalScale.setScalar(0.1);
         } else if (['foundry.concrete', 'foundry.arrivalConcrete'].includes(material.name)) {
           material.map = assets!.concrete;
-          material.color.set(material.name === 'foundry.arrivalConcrete' ? 0x92958b : 0xc6c8c2);
+          material.color.set(material.name === 'foundry.arrivalConcrete' ? 0x85877d : 0x93988f);
           material.normalMap = assets!.concreteNormal;
           material.normalScale.setScalar(0.3);
           material.roughnessMap = assets!.concreteRoughness;
           material.roughness = 1;
         } else if (material.name === 'foundry.floor') {
-          material.map = assets!.steel;
-          material.color.set(0x87989e);
-          material.metalness = 0.25;
-          material.normalMap = assets!.steelNormal;
-          material.normalScale.setScalar(0.12);
-          material.roughnessMap = assets!.steelRoughness;
-          material.roughness = 1;
+          // A worn concrete slab catches local lamp pools without the broad
+          // showroom reflections of the previous metallic checkerplate.
+          material.map = assets!.entranceFloor;
+          material.color.set(0x8d9388);
+          material.metalness = 0;
+          material.normalMap = assets!.concreteNormal;
+          material.normalScale.setScalar(0.08);
+          material.roughnessMap = null;
+          material.roughness = 0.93;
         } else if (/steel|edge|ochre/.test(material.name)) {
           material.map = assets!.titanium;
           material.metalness = 0.45;
-          material.envMapIntensity = 1;
-          material.color.multiplyScalar(1.7);
+          material.envMapIntensity = 0.42;
+          material.color.multiplyScalar(1.3);
           material.normalMap = assets!.steelNormal;
           material.normalScale.setScalar(0.12);
           material.roughnessMap = assets!.steelRoughness;
         }
       }
     });
-    // Bind saved material scans to named, UV-mapped Blender materials once.
+    // Bind saved generated images to named, UV-mapped Blender materials once.
     // Texture data is shared by all instances; the authored GLBs stay compact.
     const configured = new Set<THREE.Material>();
     for (const root of [assets.pistol, assets.husk, assets.architecture]) root.traverse(node => {
