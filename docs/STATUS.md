@@ -19,7 +19,20 @@ First art deploy (user-run `npx wrangler deploy`, version
 It serves the branch build (`index-BB85Hx6o.js`, real `modern/` GLBs). Production
 <https://seventhgun.com> still serves `main` (`index-DgFETa6F.js`) and passed the
 same smoke check; `www.seventhgun.com` 301-redirects to it via a Cloudflare Redirect
-Rule. Redeploy the art Worker by hand after pushing new art commits.
+Rule. Pushes to this branch now redeploy the art Worker automatically
+(`.github/workflows/deploy-art.yml`, gated on the full suite).
+
+Local unit runs on Node 26 fail `secrets.test.ts` "campaign lights+decors hash"
+(also on `main`); Node 24 (CI) passes. Cause: `src/sim/cosmetics.ts` and
+`src/sim/mapgen.ts` shuffle wall-decor directions with
+`sort(() => rng.float() - 0.5)`, whose order depends on the JS engine's sort
+(verified: same 5 comparator calls, different order on Node 24 vs 26). Campaign,
+blueprint and arena maps give cosmetics their own or final RNG use, so there only
+wall decors differ. In random mazes the decor loop shares `rng` with the later
+key-room pick (`mapgen.ts` ~468), so the vault key's room can differ by engine.
+The fix is a seeded Fisher-Yates shuffle, which changes generated maps and needs
+a `GEN_VERSION` decision, so it is deferred to the user and out of scope for this
+art branch. Run unit tests under Node 22/24 until then.
 
 ## Safari seed-field focus — 2026-10-03
 

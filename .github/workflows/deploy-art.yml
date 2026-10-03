@@ -1,0 +1,97 @@
+name: Deploy art Worker
+
+# BRANCH-ONLY: this file exists only on codex/experimental-modern-art, which is
+# never merged. GitHub runs push workflows from the pushed commit, so main never
+# sees it. It deploys the separate `seventh-gun-art` Worker (art.seventhgun.com,
+# its own Durable Object arena) after the same suite production is gated on.
+# Production `seventh-gun` is deployed only by deploy.yml from main.
+on:
+  push:
+    branches: [codex/experimental-modern-art]
+
+# One art deploy at a time; a newer push queues behind a running deploy rather
+# than cancelling it mid-upload.
+concurrency:
+  group: deploy-art
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: typecheck + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  deploy:
+    name: deploy art worker
+    needs: test
+    if: github.ref == 'refs/heads/codex/experimental-modern-art'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # The token can deploy production too; never let it reach wrangler with
+      # anything but the art Worker's name and domain.
+      - name: Refuse anything but the art Worker
+        run: node scripts/check-art-deploy-target.mjs
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      - name: Smoke check the deployment
+        run: |
+          set -euo pipefail
+          for url in https://seventh-gun-art.default-428.workers.dev https://art.seventhgun.com; do
+            ok=
+            for i in $(seq 1 10); do
+              if node scripts/smoke-deployment.mjs "$url"; then ok=1; break; fi
+              echo "$url attempt $i failed, retrying"; sleep 6
+            done
+            [ -n "$ok" ] || { echo "::error::$url failed its asset and arena smoke check"; exit 1; }
+          done

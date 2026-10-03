@@ -8,9 +8,9 @@ Previews for review. **Do not merge, tag, publish, or deploy production.**
 This overrides the normal merge-after-preview workflow below for this branch.
 See `docs/EXPERIMENTAL-ART.md` and `docs/STATUS.md` for scope and progress.
 On this branch `wrangler.jsonc` names a separate Worker, `seventh-gun-art`, served
-at <https://art.seventhgun.com> with its own arena. Deploy it only by hand, after the
-built `dist/seventh_gun_art/wrangler.json` shows that name and only that domain
-(see `docs/EXPERIMENTAL-ART.md`; `--dry-run` does not print routes).
+at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy it via
+`.github/workflows/deploy-art.yml` (branch-only) after tests and
+`scripts/check-art-deploy-target.mjs`; see `docs/EXPERIMENTAL-ART.md`.
 
 A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
 with an optional Cloudflare Workers or portable Node arena server. Everything

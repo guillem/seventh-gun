@@ -10,21 +10,30 @@ AGENTS.md instruction to merge after preview verification for this experiment.
 Multiplayer review uses a separate Cloudflare Worker, `seventh-gun-art`, at
 <https://art.seventhgun.com> (and its `seventh-gun-art.default-428.workers.dev`
 address). It has its own Durable Object, so it never shares a room with
-production. The branch's `wrangler.jsonc` carries that name and domain. CI never
-deploys it. Deploy by hand from a clean checkout of this branch:
+production. The branch's `wrangler.jsonc` carries that name and domain.
+
+Every push to this branch deploys it automatically through
+`.github/workflows/deploy-art.yml`, which exists only on this branch. It runs the
+same typecheck, unit and E2E gate as production on Node 24, then
+`scripts/check-art-deploy-target.mjs` refuses to deploy unless the built config
+names `seventh-gun-art` with only `art.seventhgun.com` and `workers_dev` on (the
+shared `CLOUDFLARE_API_TOKEN` can deploy production too, and non-interactive
+wrangler takes a domain over from another Worker without asking). It then
+smoke-checks both art URLs. Production's `deploy.yml` still deploys only `main`.
+
+Manual fallback, from a clean checkout of this branch in an interactive
+terminal (wrangler then asks before taking over a domain or DNS record):
 
     npx wrangler login
     npm run build
-    node -p 'const c=require("./dist/seventh_gun_art/wrangler.json"); c.name+" "+JSON.stringify(c.routes)'
+    node scripts/check-art-deploy-target.mjs
     npx wrangler deploy
     node scripts/smoke-deployment.mjs https://art.seventhgun.com
 
-The check must print `seventh-gun-art` and only `art.seventhgun.com`. A
-`--dry-run` deploy does not show routes. Run the deploy in an interactive
-terminal: wrangler then asks before taking over an existing domain or DNS
-record, but not when its output is not a terminal. If `main` is merged into this branch, keep this branch's name and domain in
-`wrangler.jsonc`. Remove the Worker with
-`npx wrangler delete --name seventh-gun-art` when the experiment ends.
+A `--dry-run` deploy does not show routes, so it is not a substitute for the
+check. If `main` is merged into this branch, keep this branch's name and domain
+in `wrangler.jsonc`. When the experiment ends, remove the Worker with
+`npx wrangler delete --name seventh-gun-art`.
 
 ## Direction and first milestone
 
