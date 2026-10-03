@@ -19,7 +19,7 @@ import {
 import { applyRadialFog } from './radialFog';
 import { getModernAssets, modernSurface } from './modernAssets';
 import { addModernArchitecture } from './modernWorld';
-import { addFoundryEnvironment, foundryCell } from './foundry';
+import { addFoundryDoorHardware, addFoundryEnvironment, foundryCell } from './foundry';
 
 interface QuadMesh {
   pos: number[];
@@ -258,7 +258,10 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       d.axis === 'x' ? CELL * 3 : 0.5,
     );
     disposables.push(geo);
-    const mat = modernSurface('door') ?? new THREE.MeshLambertMaterial({
+    const entranceDoor = modern && map.seed === 'campaign:01-foundry' && d.id === 0;
+    const mat = entranceDoor ? new THREE.MeshStandardMaterial({
+      map: modern.entranceDoor, color: 0xffffff, metalness: 0.28, roughness: 0.7, envMapIntensity: 0.45,
+    }) : modernSurface('door') ?? new THREE.MeshLambertMaterial({
       map: camp?.door ?? tex.door,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
     });
@@ -267,6 +270,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     mesh.castShadow = mesh.receiveShadow = !!modern;
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
+    if (entranceDoor) addFoundryDoorHardware(mesh, modern.doorHardware);
     doorMeshes.set(d.id, mesh);
   }
 

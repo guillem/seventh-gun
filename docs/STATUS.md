@@ -1,5 +1,24 @@
 # STATUS
 
+## Entrance detail pass — 2026-10-03
+
+The entrance and first doorway now use saved generated door/floor textures,
+Blender service panels, louvers, clipped cables, matte signage, warm caged lamps
+and attached door guard hardware. The updated lightmap reduces broad entrance
+fill, while a ceiling practical keeps the moving door readable. Original floor
+layout and door motion remain unchanged. Sources/prompts/screenshots are under
+`art/modern/entrance/`; old screenshots remain available for comparison.
+
+349 unit tests pass under Node 24.21.0. All TypeScript projects and the production
+build pass. Full desktop/mobile Playwright: **103 passed, 13 intentional skips**,
+zero failures/retries (8.0 minutes), including blocking/opening/traversing the new
+door. Normal-mode installed Chrome / Apple M5 Pro holds about 60 fps in all four
+views (desktop, retina, mobile emulation, first combat hall), p95 16.7–16.8 ms;
+real controls pass without game errors. Physical phones remain untested. Hosted
+preview verification is next.
+The current art payload is 25 files / 10,075,650 bytes before compression.
+Keep the branch experimental and PR #32 draft; no merge, tag or production deploy.
+
 ## Foundry architecture and lighting milestone — 2026-10-03
 
 Implemented on `codex/experimental-modern-art` / draft PR #32. The entrance,

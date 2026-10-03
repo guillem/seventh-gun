@@ -46,6 +46,7 @@ test.describe('modern art bootstrap', () => {
       '/modern/models/pistol.glb', '/modern/models/husk.glb', '/modern/models/architecture.glb',
       '/modern/textures/concrete.webp', '/modern/textures/steel.webp',
       '/modern/foundry/environment.glb', '/modern/foundry/irradiance.webp',
+      '/modern/foundry/entrance-door.webp', '/modern/foundry/entrance-floor.webp', '/modern/foundry/door-hardware.glb',
       '/modern/foundry/concrete-normal.webp', '/modern/foundry/concrete-roughness.webp',
       '/modern/foundry/steel-normal.webp', '/modern/foundry/steel-roughness.webp',
       '/modern/audio/pistol-a.mp3', '/modern/audio/pistol-b.mp3', '/modern/audio/shotgun.mp3',
@@ -66,6 +67,27 @@ test.describe('modern art bootstrap', () => {
     expect(render.geometries).toBeGreaterThan(0);
     expect(render.textures).toBeGreaterThan(0);
     expect(errors).toEqual([]);
+  });
+
+  test('the authored entrance door still blocks, opens and lets the player reach the hall', async ({ page }) => {
+    await gotoGame(page);
+    await page.evaluate(() => {
+      const game = (window as unknown as { __GAME__: { startCampaign: (n: number) => void; teleport: (x: number, z: number) => void; look: (yaw: number) => void } }).__GAME__;
+      game.startCampaign(1);
+      game.teleport(32, 87);
+      game.look(-90);
+    });
+    await page.keyboard.down('w');
+    await page.waitForFunction(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x > 33);
+    await page.waitForTimeout(200);
+    await page.keyboard.up('w');
+    const blockedX = await page.evaluate(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x);
+    expect(blockedX).toBeGreaterThan(32.5);
+    expect(blockedX).toBeLessThan(34);
+    await page.keyboard.press('e');
+    await page.keyboard.down('w');
+    await page.waitForFunction(() => (window as unknown as { __GAME__: { state: () => { pos: { x: number } } } }).__GAME__.state().pos.x > 37);
+    await page.keyboard.up('w');
   });
 
   test('keeps gameplay behind the loading screen while a sound file is pending', async ({ page }) => {

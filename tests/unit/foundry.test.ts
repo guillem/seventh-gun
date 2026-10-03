@@ -3,9 +3,31 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CAMPAIGN } from '../../src/campaign';
-import { foundryCell } from '../../src/render/foundry';
+import { addFoundryDoorHardware, foundryCell } from '../../src/render/foundry';
 
 describe('authored Foundry environment', () => {
+  it('keeps the saved door guards within the original span and attached throughout lift travel', async () => {
+    const bytes = readFileSync(new URL('../../public/modern/foundry/door-hardware.glb', import.meta.url));
+    const source = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(.5, 4.32, 6));
+    addFoundryDoorHardware(slab, source);
+    const hardware = slab.getObjectByName('foundry-door-hardware')!;
+    slab.position.set(35, 2.16, 87);
+    slab.updateMatrixWorld(true);
+    const closed = new THREE.Box3().setFromObject(hardware);
+    expect(closed.min.y).toBeGreaterThanOrEqual(0);
+    expect(closed.max.y).toBeLessThanOrEqual(4.32);
+    expect(closed.min.z).toBeGreaterThanOrEqual(84);
+    expect(closed.max.z).toBeLessThanOrEqual(90);
+    expect(closed.min.x).toBeGreaterThan(34.69);
+    expect(closed.max.x).toBeLessThan(35.31);
+    slab.position.y += 4.57;
+    slab.updateMatrixWorld(true);
+    const open = new THREE.Box3().setFromObject(hardware);
+    expect(open.min.y - closed.min.y).toBeCloseTo(4.57, 5);
+    expect(open.min.y).toBeGreaterThan(4.32);
+  });
+
   it('replaces only the saved campaign footprint, leaving editor/maze maps alone', () => {
     const layout = JSON.parse(readFileSync(new URL('../../art/modern/foundry-room/layout.json', import.meta.url), 'utf8'));
     const map = CAMPAIGN[0].map;
@@ -42,7 +64,7 @@ describe('authored Foundry environment', () => {
       }
       atlasMeshes++;
       const material = node.material as THREE.Material;
-      if (material.name === 'foundry.floor') {
+      if (['foundry.floor', 'foundry.arrivalFloor'].includes(material.name)) {
         const indices = node.geometry.index!;
         for (let i = 0; i < indices.count; i += 3) {
           a.fromBufferAttribute(pos, indices.getX(i)).applyMatrix4(node.matrixWorld);
@@ -70,7 +92,7 @@ describe('authored Foundry environment', () => {
         }
       }
     });
-    expect(atlasMeshes).toBe(8);
+    expect(atlasMeshes).toBe(11);
     expect(floorArea).toBeCloseTo(370 * 4, 3);
     expect(new THREE.Box3().setFromObject(model).max.y).toBeGreaterThan(16);
   });

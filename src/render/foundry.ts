@@ -18,6 +18,12 @@ export function addFoundryEnvironment(parent: THREE.Group, source: THREE.Group):
   });
   applyRadialFogDeep(model);
   parent.add(model);
+  // The saved bake cannot light moving doors/actors. This small practical
+  // sits below the airlock ceiling fixture and keeps the slab readable.
+  const doorLight = new THREE.PointLight(0xc6dbe2, 38, 10, 2);
+  doorLight.name = 'foundry-door-practical';
+  doorLight.position.set(33.2, 3.8, 87);
+  parent.add(doorLight);
   // A few soft, transparent shafts suggest dust in the skylight paths. They
   // are lighting effects, never opaque cover or a change to visibility tests.
   const material = new THREE.ShaderMaterial({
@@ -47,4 +53,12 @@ export function addFoundryEnvironment(parent: THREE.Group, source: THREE.Group):
     shaft.renderOrder = 2;
     parent.add(shaft);
   }
+}
+
+/** Keep all hardware parented to the original slab so door travel is unchanged. */
+export function addFoundryDoorHardware(slab: THREE.Mesh, source: THREE.Group): void {
+  const hardware = cloneOwnedModel(source);
+  hardware.name = 'foundry-door-hardware';
+  applyRadialFogDeep(hardware);
+  slab.add(hardware);
 }

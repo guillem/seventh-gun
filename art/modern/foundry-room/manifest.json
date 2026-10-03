@@ -5,8 +5,8 @@
   "bakeSize": 2048,
   "bakeSamples": 128,
   "bake": "Cycles CPU diffuse direct+indirect, color excluded; explicit sRGB OETF of linear irradiance / 8; Non-Color PNG storage",
-  "meshFaces": 13468,
-  "glbBytes": 2230776,
+  "meshFaces": 18666,
+  "glbBytes": 2937404,
   "lights": [
     {
       "position": [
@@ -19,7 +19,7 @@
         0.79,
         1
       ],
-      "power": 1600
+      "power": 780
     },
     {
       "position": [
@@ -32,7 +32,7 @@
         0.79,
         1
       ],
-      "power": 1600
+      "power": 180
     },
     {
       "position": [
@@ -41,11 +41,11 @@
         87
       ],
       "color": [
-        0.63,
-        0.78,
+        0.68,
+        0.8,
         1
       ],
-      "power": 420
+      "power": 135
     },
     {
       "position": [
@@ -54,11 +54,37 @@
         87
       ],
       "color": [
-        0.63,
-        0.78,
+        0.68,
+        0.8,
         1
       ],
-      "power": 420
+      "power": 135
+    },
+    {
+      "position": [
+        25.68,
+        3.6,
+        83.1
+      ],
+      "color": [
+        1,
+        0.46,
+        0.17
+      ],
+      "power": 145
+    },
+    {
+      "position": [
+        25.68,
+        3.6,
+        90.9
+      ],
+      "color": [
+        1,
+        0.46,
+        0.17
+      ],
+      "power": 145
     },
     {
       "position": [

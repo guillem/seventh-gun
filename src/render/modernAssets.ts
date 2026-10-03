@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 
-export const MODERN_ASSET_VERSION = 'foundry-02';
+export const MODERN_ASSET_VERSION = 'foundry-03';
 export const MODERN_ASSET_URLS = {
   concrete: '/modern/textures/concrete.webp',
   steel: '/modern/textures/steel.webp',
@@ -15,6 +15,9 @@ export const MODERN_ASSET_URLS = {
   husk: '/modern/models/husk.glb',
   architecture: '/modern/models/architecture.glb',
   foundry: '/modern/foundry/environment.glb',
+  entranceDoor: '/modern/foundry/entrance-door.webp',
+  entranceFloor: '/modern/foundry/entrance-floor.webp',
+  doorHardware: '/modern/foundry/door-hardware.glb',
   irradiance: '/modern/foundry/irradiance.webp',
   concreteNormal: '/modern/foundry/concrete-normal.webp',
   concreteRoughness: '/modern/foundry/concrete-roughness.webp',
@@ -31,6 +34,9 @@ export interface ModernAssets {
   husk: THREE.Group;
   architecture: THREE.Group;
   foundry: THREE.Group;
+  entranceDoor: THREE.Texture;
+  entranceFloor: THREE.Texture;
+  doorHardware: THREE.Group;
   irradiance: THREE.Texture;
   concreteNormal: THREE.Texture;
   concreteRoughness: THREE.Texture;
@@ -77,6 +83,8 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       loadModel(MODERN_ASSET_URLS.foundry), loadTexture(MODERN_ASSET_URLS.irradiance),
       loadTexture(MODERN_ASSET_URLS.concreteNormal), loadTexture(MODERN_ASSET_URLS.concreteRoughness),
       loadTexture(MODERN_ASSET_URLS.steelNormal), loadTexture(MODERN_ASSET_URLS.steelRoughness),
+      loadTexture(MODERN_ASSET_URLS.entranceDoor), loadTexture(MODERN_ASSET_URLS.entranceFloor),
+      loadModel(MODERN_ASSET_URLS.doorHardware),
     ]);
     const failure = results.find(result => result.status === 'rejected');
     if (failure) {
@@ -96,11 +104,15 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       foundry: values[7] as THREE.Group, irradiance: values[8] as THREE.Texture,
       concreteNormal: values[9] as THREE.Texture, concreteRoughness: values[10] as THREE.Texture,
       steelNormal: values[11] as THREE.Texture, steelRoughness: values[12] as THREE.Texture,
+      entranceDoor: values[13] as THREE.Texture, entranceFloor: values[14] as THREE.Texture,
+      doorHardware: values[15] as THREE.Group,
     };
     for (const texture of [assets.concreteNormal, assets.concreteRoughness, assets.steelNormal, assets.steelRoughness]) {
       texture.colorSpace = THREE.NoColorSpace;
       texture.flipY = false;
     }
+    assets.entranceFloor.flipY = false;
+    assets.entranceDoor.wrapS = assets.entranceDoor.wrapT = THREE.ClampToEdgeWrapping;
     assets.irradiance.flipY = false;
     assets.irradiance.channel = 1;
     assets.irradiance.wrapS = assets.irradiance.wrapT = THREE.ClampToEdgeWrapping;
@@ -113,9 +125,16 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
         material.lightMap = assets!.irradiance;
         material.lightMapIntensity = 8 * Math.PI;
         material.envMapIntensity = 0.35;
-        if (material.name === 'foundry.concrete') {
+        if (material.name === 'foundry.arrivalFloor') {
+          material.map = assets!.entranceFloor;
+          material.color.set(0xb9b6ac);
+          material.metalness = 0;
+          material.roughness = 0.84;
+          material.normalMap = assets!.concreteNormal;
+          material.normalScale.setScalar(0.1);
+        } else if (['foundry.concrete', 'foundry.arrivalConcrete'].includes(material.name)) {
           material.map = assets!.concrete;
-          material.color.set(0xc6c8c2);
+          material.color.set(material.name === 'foundry.arrivalConcrete' ? 0x92958b : 0xc6c8c2);
           material.normalMap = assets!.concreteNormal;
           material.normalScale.setScalar(0.3);
           material.roughnessMap = assets!.concreteRoughness;

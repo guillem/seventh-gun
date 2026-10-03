@@ -9,7 +9,8 @@ The scene adds tall concrete bays, overhead service galleries, roof trusses,
 clerestories, suspended process vessels and a central pressure chamber. These
 are visual architecture; overhead galleries are not playable platforms. Low
 trim stays inside the existing wall-clearance margin. Existing side passages
-remain open. Eight material meshes share one independent lightmap UV atlas.
+remain open. The current entrance refinement has eleven material meshes sharing
+one independent lightmap UV atlas. See `../entrance/README.md` for that pass.
 
 ## Sources and reproduction
 
@@ -40,9 +41,10 @@ surface microdetail, not recovered physical measurements of the base-color image
 No runtime noise texture generation, external models, paid assets or services
 were added. The GLB stores material names; the game binds texture maps at preload.
 
-`provenance.json` lists runtime checksums. All six new resources total 3,483,510
-bytes. The complete experiment now has 22 runtime art files totaling 8,226,436
-bytes, before transport compression. Source PNGs and Blender files are not served.
+`provenance.json` lists current runtime checksums. The second milestone introduced
+six resources totaling 3,483,510 bytes, for 22 experimental art files / 8,226,436
+bytes at that point. Current entrance-pass totals are in `../entrance/README.md`.
+Source PNGs and Blender files are not served.
 
 ## Runtime and evidence
 

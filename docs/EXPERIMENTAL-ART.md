@@ -150,3 +150,26 @@ all four recorded views, p95 16.7–16.8 ms. The bundled Chromium functional run
 uses SwiftShader and is too slow for the normal-mode 30-second frame sample;
 its failed profile is retained alongside the hardware results. See the room's
 README and reports for exact counters and reproduction. Phones remain untested.
+
+
+## Third milestone: entrance detail and material pass
+
+The first doorway now has a generated weathered door texture and saved Blender
+guard hardware attached to the original rising slab. The entrance and airlock
+floor use a new generated worn-concrete texture. Bolted service cabinets,
+ventilation louvers, clipped cables, lower wall cladding, matte lettering and
+caged amber sconces add detail at player eye level. Reduced broad light fill,
+rebaked local warm pools and a small runtime door practical improve contrast
+without making the moving door a black silhouette.
+
+All changes remain in saved art, rendering and validation. The simulation grid,
+movement, door timing and original 6m × 4.32m slab dimensions are unchanged.
+Geometry tests check low wall relief and moving hardware bounds; the browser
+suite checks that the first door blocks, opens and allows passage into the hall.
+No new cover, platform or route was introduced.
+
+The complete art payload is now 10,075,650 bytes / 25 files, up 1,849,214 bytes.
+Editable sources, exact imagegen prompts, checksums and actual closed/open-door
+screenshots are under `art/modern/entrance/`. The previous screenshots remain
+available for comparison. This pass keeps the existing pistol, hands and husk;
+their model/animation improvements remain a separate subsequent milestone.

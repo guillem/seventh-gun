@@ -40,15 +40,18 @@ scene.render.threads_mode = 'FIXED'
 scene.render.threads = 4
 scene.world.use_nodes = True
 scene.world.node_tree.nodes['Background'].inputs[0].default_value = (.32, .43, .55, 1)
-scene.world.node_tree.nodes['Background'].inputs[1].default_value = .12
+scene.world.node_tree.nodes['Background'].inputs[1].default_value = .045
 
 concrete = a.material('foundry.concrete', (.43,.45,.44), 0, .88)
+arrival_concrete = a.material('foundry.arrivalConcrete', (.28,.29,.26), 0, .92)
+arrival_floor = a.material('foundry.arrivalFloor', (.13,.14,.13), 0, .86)
 floor = a.material('foundry.floor', (.18,.21,.22), .55, .47)
 steel = a.material('foundry.steel', (.085,.115,.13), .75, .4)
 edge = a.material('foundry.edge', (.31,.35,.36), .8, .36)
 ochre = a.material('foundry.ochre', (.44,.25,.07), .35, .64)
+label_paint = a.material('foundry.labelPaint', (.72,.68,.55), 0, .9)
 black = a.material('foundry.black', (.026,.034,.04), .5, .65)
-white = a.material('foundry.whiteLamp', (.72,.85,1), 0, .5, 3)
+white = a.material('foundry.whiteLamp', (.72,.85,1), 0, .5, 1.2)
 amber = a.material('foundry.amberLamp', (1,.38,.075), 0, .5, 5)
 meshes = []
 lights = []
@@ -95,6 +98,9 @@ for x,z in sorted(cells):
     verts.extend([(x*2,0,z*2),((x+1)*2,0,z*2),((x+1)*2,0,(z+1)*2),(x*2,0,(z+1)*2)])
     faces.append((i+3,i+2,i+1,i))
 ob=a.mesh('Continuous original walkable floor',verts,faces,floor)
+ob.data.materials.append(arrival_floor)
+for poly,(x,z) in zip(ob.data.polygons,sorted(cells)):
+    if x<18: poly.material_index=1
 meshes.append(ob)
 
 # Boundary walls use the exact same grid edges. Their thickness projects into
@@ -106,10 +112,10 @@ for x,z in sorted(cells):
             next_h=height(x+dx) if (x+dx,z+dz) in cells else 4.2
             if h > next_h:
                 box('Portal upper closure',((x+.5)*2+dx,h-(h-next_h)/2,(z+.5)*2+dz),
-                    (.35,h-next_h,2) if dx else (2,h-next_h,.35),concrete,0)
+                    (.35,h-next_h,2) if dx else (2,h-next_h,.35),arrival_concrete if x<18 else concrete,0)
             continue
         px=(x+.5)*2+dx*1.25; pz=(z+.5)*2+dz*1.25
-        box('Cast concrete boundary',(px,h/2,pz),(.5,h,2) if dx else (2,h,.5),concrete,0)
+        box('Cast concrete boundary',(px,h/2,pz),(.5,h,2) if dx else (2,h,.5),arrival_concrete if x<18 else concrete,0)
         box('Foundation curb',(px,.17,pz),(.51,.34,2) if dx else (2,.34,.51),black,.015)
 
 # Entrance roof: two narrow clerestories bring daylight across the room.
@@ -117,7 +123,7 @@ for za,zb in [(80,81.1),(82.1,90),(91,94)]:
     box('Arrival roof',(19,11.12,(za+zb)/2),(14,.24,zb-za),concrete)
 for z in [81.6,90.5]:
     box('Arrival clerestory',(19,11.22,z),(13.9,.045,.96),white,0)
-    area('Arrival daylight',(19,10.9,z),(20,0,87),(.65,.79,1),1600,1.8)
+    area('Arrival daylight',(19,10.9,z),(20,0,87),(.65,.79,1),780 if z<87 else 180,1.1)
 for x in [12.3,25.7]:
     for z in [80.35,84,90,93.65]:
         # The lower column face stays at the collision wall; the upper frame
@@ -141,7 +147,77 @@ for z in [84.45,89.55]:
     pipe('Airlock feed',(26,5.6,z),(36,5.6,z),.16)
 for x in [28,32]:
     box('Airlock light',(x,6.32,87),(.7,.06,3),white)
-    area('Airlock downlight',(x,6.15,87),(x,0,87),(.63,.78,1),420,2)
+    area('Airlock downlight',(x,6.15,87),(x,0,87),(.68,.8,1),135,.8)
+
+# Entrance eye-level assemblies sit against existing solid wall faces. The
+# largest relief is 0.16m, within the unchanged player-wall clearance margin.
+def lettering(label, pos, size, mat=label_paint):
+    curve=bpy.data.curves.new('Cast foundry lettering', 'FONT')
+    curve.body=label
+    curve.align_x='CENTER'; curve.align_y='CENTER'
+    curve.size=size; curve.extrude=.001; curve.resolution_u=3
+    ob=bpy.data.objects.new(label,curve); scene.collection.objects.link(ob)
+    ob.location=a.gv(pos); ob.rotation_euler=(math.pi/2,0,-math.pi/2)
+    ob.data.materials.append(mat)
+    bpy.ops.object.select_all(action='DESELECT')
+    ob.select_set(True); bpy.context.view_layer.objects.active=ob
+    bpy.ops.object.convert(target='MESH'); meshes.append(bpy.context.object)
+
+for z in [81.9,92.1]:
+    box('Recessed service assembly',(26.015,1.8,z),(.1,2.85,2.5),black,.025)
+    box('Worn access cover',(25.955,1.83,z),(.045,2.6,2.26),steel,.018)
+    for zz in [z-1.12,z+1.12]:
+        box('Panel edge weld',(25.915,1.83,zz),(.025,2.58,.026),edge,.005)
+        for y in [.65,1.2,2.4,3]:
+            pipe('Hex fastener',(25.91,y,zz),(25.875,y,zz),.043,edge,6)
+    if z<87:
+        for y in [.7+i*.115 for i in range(12)]:
+            box('Exhaust louvre',(25.907,y,z),(.038,.04,1.8),black,.008)
+        box('Vent identification plate',(25.9,2.64,z),(.025,.42,1.7),black,.008)
+        lettering('EXTRACTION', (25.877,2.64,z),.19)
+    else:
+        for zz in [z-.62,z+.62]:
+            box('Fuse cabinet',(25.912,2.03,zz),(.032,1.45,.85),black,.025)
+            box('Cabinet inset',(25.89,2.05,zz),(.024,1.22,.68),steel,.015)
+            box('Cabinet pull',(25.852,1.9,zz+.21),(.026,.26,.038),edge,.006)
+        lettering('POWER / 07',(25.884,2.95,z),.19)
+        lettering('480 V',(25.875,.72,z),.2)
+    # Conduit leaves the panel vertically; no free-standing cable obstacles.
+    for zz in [z-.7,z+.7]:
+        pipe('Panel supply conduit',(25.91,3.1,zz),(25.91,5.35,zz),.043)
+        for y in [3.5,4.5,5.2]:
+            box('Conduit saddle',(25.93,y,zz),(.05,.055,.16),edge,.006)
+
+box('Cast hall enamel sign',(25.87,5.72,87),(.10,.84,4.65),black,.025)
+lettering('CASTING  /  01',(25.805,5.76,87),.36)
+lettering('FOUNDRY ACCESS',(25.805,5.43,87),.13)
+# Two visible warm sconces create local light pools around the doorway.
+for z in [83.1,90.9]:
+    box('Caged amber sconce',(25.975,3.62,z),(.09,.78,.24),black,.015)
+    box('Sconce diffuser',(25.915,3.62,z),(.03,.58,.12),amber,.015)
+    for y in [3.38,3.62,3.86]:
+        box('Sconce guard',(25.885,y,z),(.025,.022,.22),edge,.004)
+    area('Portal warm pool',(25.68,3.6,z),(23,1.2,z),(1,.46,.17),145,.42)
+
+# Flush wall cladding and pinned pipework give the corridor human-scale detail.
+for z,sgn in [(84,1),(90,-1)]:
+    for x in [27.6,29.7,31.8,33.9]:
+        box('Airlock lower cladding',(x,1.45,z+sgn*.025),(1.94,2.7,.05),steel,.018)
+        box('Cladding recessed joint',(x-1,1.45,z+sgn*.055),(.025,2.72,.023),black,.002)
+        for xx in [x-.8,x+.8]:
+            for y in [.35,2.55]:
+                pipe('Cladding fastener',(xx,y,z+sgn*.052),(xx,y,z+sgn*.085),.032,edge,6)
+    for y in [3.15,3.42,3.69]:
+        pipe('Clipped airlock cable',(26.35,y,z+sgn*.07),(34.5,y,z+sgn*.07),.038,black)
+        for x in [27,29,31,33]:
+            box('Cable clip',(x,y,z+sgn*.095),(.05,.11,.035),edge,.004)
+# Door header mechanism lives above the original moving slab / combat height.
+box('Lift motor housing',(34.4,5.35,87),(.7,.85,2.4),steel,.055)
+for z in [85.9,88.1]:
+    pipe('Header drive shaft',(34.4,5.35,z-.12),(34.4,5.35,z+.12),.31,edge,16)
+    for y in [4.9,5.8]:
+        pipe('Header hydraulic',(34.22,y,z),(35.6,y,z),.065,ochre)
+
 
 # Seven structural bays turn the large rectangular castfloor into a foundry.
 # Hanging vessels and galleries remain above the unchanged combat space.
@@ -236,7 +312,8 @@ for poly in hero.data.polygons:
     axes=(0,1) if abs(n.z)>.7 else (0,2) if abs(n.y)>.7 else (1,2)
     for li in poly.loop_indices:
         v=hero.data.vertices[hero.data.loops[li].vertex_index].co
-        uv.data[li].uv=(v[axes[0]]/3,v[axes[1]]/3)
+        scale=7 if hero.data.materials[poly.material_index].name=='foundry.arrivalFloor' else 3
+        uv.data[li].uv=(v[axes[0]]/scale,v[axes[1]]/scale)
 while len(hero.data.uv_layers)>1:
     hero.data.uv_layers.remove(hero.data.uv_layers[0 if hero.data.uv_layers[0].name!='SurfaceUV' else 1])
 hero.data.uv_layers.new(name='BakeUV')
@@ -256,8 +333,8 @@ for mat in hero.data.materials:
     if 'Lamp' not in mat.name:
         # Color is excluded from the receiving pass, but surrounding albedos
         # must remain plausible: white bounce surfaces badly over-light rooms.
-        if mat.name=='foundry.concrete': p.inputs['Base Color'].default_value=(.21,.22,.21,1)
-        if mat.name=='foundry.floor': p.inputs['Base Color'].default_value=(.045,.052,.058,1)
+        if mat.name in ['foundry.concrete','foundry.arrivalConcrete']: p.inputs['Base Color'].default_value=(.21,.22,.21,1)
+        if mat.name in ['foundry.floor','foundry.arrivalFloor']: p.inputs['Base Color'].default_value=(.045,.052,.058,1)
         p.inputs['Metallic'].default_value=0
     target=mat.node_tree.nodes.new('ShaderNodeTexImage')
     target.name='Baked irradiance target'

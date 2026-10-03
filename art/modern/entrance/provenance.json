@@ -1,0 +1,33 @@
+{
+  "tool": "built-in imagegen",
+  "prompts": "prompts.md",
+  "created": "2026-10-03",
+  "processing": "cwebp -q 88; original PNG files unchanged",
+  "sources": [
+    {
+      "file": "art/modern/entrance/door-source.png",
+      "sha256": "0be982b31175e583aa21189ee66a98c760173139ea977fff029fde389678f0e4"
+    },
+    {
+      "file": "art/modern/entrance/floor-source.png",
+      "sha256": "4682807794e5e0a9309acbc12cdf620b6f3cecde7e9467bb0353e5157a0b3d65"
+    }
+  ],
+  "runtime": [
+    {
+      "path": "public/modern/foundry/door-hardware.glb",
+      "bytes": 159284,
+      "sha256": "2cd42a12b3adeb234b27f2bd1f52fb1977a74b09c2252bfb0ae5e00d182659be"
+    },
+    {
+      "path": "public/modern/foundry/entrance-door.webp",
+      "bytes": 427900,
+      "sha256": "bcdb15cb9a02b1231e4127f894ee23d202505c783bf6a66ae0f84d6c87acdd4e"
+    },
+    {
+      "path": "public/modern/foundry/entrance-floor.webp",
+      "bytes": 559460,
+      "sha256": "17bc749ab233e075c945b7ab816b3679a16261d124388a764752a61416b8f5e1"
+    }
+  ]
+}
