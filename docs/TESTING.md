@@ -80,6 +80,37 @@
 - `tests/unit/hud.test.ts` — health bar ends before gun slot 1 at several
   panel widths (the old `panelW * 0.2` bar overlaps).
 
+- Arena and server: `arenagen.test.ts` (96×96 generator invariants and
+  determinism), `protocol.test.ts` (v3 frame guards, 32-frame resend window
+  inside 8 KiB), `nodeServer.test.ts` (origin allow list, socket adapter),
+  `arenaPresentation.test.ts` / `arenaRenderPresentation.test.ts` (gun
+  yaw/pitch, pitched rail/nail geometry, projectile identity across delayed
+  samples), `players.test.ts` (remote rig fog), `screens.test.ts` (scoreboard
+  drawn on the HUD canvas, no opaque overlay).
+- Combat and enemies: `combatGolden.test.ts` (all guns, pitched aim, three
+  seeds, stable hashes), `enemyHitbox.test.ts` (art fills the hit volume),
+  `enemyMuzzleOffset.test.ts` (per-species muzzle origin and yaw),
+  `enemyEyeFlare.test.ts` (eye colour restored after windup/pain/death),
+  `enemyLifecycleRender.test.ts` (six species wake, attack, fire, die in sim
+  and renderer), `gunArt.test.ts` (single-sourced flash colours).
+- Resources and startup: `dispose.test.ts` (owned GPU objects freed once,
+  cached textures kept), `fxLifecycle.test.ts` (prepared FX reused, exactly
+  three FX lights), `viewmodelLifecycle.test.ts` (seven retained weapons, one
+  flash sprite), `prepareGpu.test.ts` and `afterPaint.test.ts` (GPU
+  preparation behind a painted loading screen, restored state on failure),
+  `game.test.ts` (audio retry on gestures, pause/arena menu resume),
+  `audio.test.ts` (sample playback for every gun/creature/cue, checksums,
+  arena voice admission, one ambient loop), `softwareGl.test.ts` (`E2E_GL`
+  selection).
+- Saved art (this branch): `modernAssets.test.ts`, `weaponRoster.test.ts`,
+  `enemyRoster.test.ts`, `supportRoster.test.ts`, `creatureMaterials.test.ts`
+  check the GLB contracts (muzzles, clips, hit volumes, clone isolation, no
+  blank equip frames, no coplanar parts); `foundry.test.ts`,
+  `foundryLighting.test.ts`, `modernLighting.test.ts`, `modernWorld.test.ts`,
+  `campaignEnvironment.test.ts` and `contactOcclusion.test.ts` check the
+  environment (no doorway overlaps, unchanged 370-cell floor, stationary
+  fixtures, modules outside the combat volume, contact-depth exclusions).
+
 E2E specs are excluded from vitest (see `vitest.config.ts`).
 
 ## E2E (playwright, `npm run test:e2e`)
@@ -105,6 +136,11 @@ START room + `loadBlueprint` / PLAYTEST, COPY LINK on a START-only invalid map e
 button (title panel still fits 390×844 with MAP LOG + CAMPAIGN + EDITOR),
 FIRE latches and unlatches, playtest crawler pose via `look(0, 22)` +
   InputManager mousedown (crawler hp drops; `lastAimDir.dirY < 0`).
+
+`modern-art.spec.ts` (this branch): saved assets load before the Foundry is
+usable, GPU preparation happens behind a painted loading screen, a pending
+sound keeps gameplay behind it, recordings decode on gesture, the entrance door
+blocks/opens, and touch menus pause/resume/quit.
 
 Rules honored: never drive pointer lock with synthetic mousemove — everything
 goes through `window.__GAME__` (only present with `?e2e=1`; production
@@ -173,7 +209,7 @@ world/HUD visibility, crosshair clearance, muzzle flashes and touch layout.
 Those historical checks do not validate the current redesigned species or
 replace the September resource/presentation regression pass.
 
-Current automated coverage and rollout state are tracked in REPAIR-PLAN.md.
+Current state is in STATUS.md; the September repair record is REPAIR-PLAN.md.
 Inspect the built game and Netlify preview for campaign/maze visuals; use a
 server-capable target for arena. Check all six species from wake through
 firing and death, all seven guns at pitched headings, secret controls, and

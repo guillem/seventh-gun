@@ -60,8 +60,8 @@ Portrait browser emulation does not establish physical-phone performance.
 Aggregate regression and hosted checks are recorded in `docs/STATUS.md` and
 `art/modern/refinement/validation.json`: 393 unit tests, 107 applicable browser
 checks, all 96 hosted asset hashes, 27 actual-game views and 18 normal-mode
-hardware scenarios. The separate GitHub browser job has a known timing limit;
-its status is distinguished from the completed local and hosted verification.
+hardware scenarios. The GitHub browser job then exceeded its time limit on
+SwiftShader; that was fixed later by running CI E2E on llvmpipe (TESTING.md).
 
 New generated originals and exact prompts are under
 `art/modern/refinement/materials/`. They are illustrative albedo surfaces, not

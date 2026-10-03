@@ -133,6 +133,11 @@ Balance numbers live in [game design](https://github.com/guillem/seventh-gun/blo
 
 ## License
 
+> On the experimental art branch (`codex/experimental-modern-art`, not
+> released) the game also loads saved Blender models, AI-generated images and
+> Runway-generated audio from `public/modern/`; provenance is under
+> `art/modern/`. The statement below describes `main`.
+
 [MIT](LICENSE). Textures, meshes and sounds are generated at runtime; random
 mazes are seed-generated and campaign maps are authored here. There are no
 asset packs, fonts or third-party art. The client bundles

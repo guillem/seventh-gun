@@ -89,8 +89,9 @@ delivered validation and preview commit.
 
 The optional `PLAYWRIGHT_CHANNEL=chrome` setting runs the same end-to-end
 assertions in locally installed Chrome. The bundled headless Chromium on this
-Mac reports ANGLE/SwiftShader (Vulkan software rendering); the default config
-and CI remain unchanged unless that setting is supplied. Software-rendered
+Mac reports ANGLE/SwiftShader (Vulkan software rendering). Local defaults are
+unchanged; CI later moved to Mesa llvmpipe (`E2E_GL=llvmpipe`, see TESTING.md
+"E2E in CI"). Software-rendered
 timing is recorded separately and is not used for gameplay frame-rate claims.
 
 Restart an existing Cloudflare local `npm run preview` after rebuilding: its

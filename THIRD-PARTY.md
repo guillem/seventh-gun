@@ -1,5 +1,11 @@
 # Third-party software
 
+> On the experimental art branch (`codex/experimental-modern-art`, never
+> released) the first paragraph below does not hold: the client loads saved
+> Blender models, AI-generated images and Runway-generated audio from
+> `public/modern/`. Their sources, prompts and provenance are under
+> `art/modern/`. How to license and credit them is an open decision.
+
 Every texture, mesh and sound in SEVENTH GUN is generated at runtime. Random
 mazes are seed-generated and the seven campaign maps are authored in this
 repository. There are no asset packs, no fonts, no CDN scripts and no

@@ -1,5 +1,46 @@
 # STATUS
 
+## Current state — 2026-10-04
+
+Read this block first; the dated sections below are a newest-first log. Older
+entries are kept as written, so some of their claims are superseded (the CI
+timeouts, "remote main remains `8bf93b3`", workers.dev as the only production
+URL). Where they disagree with this block, this block wins.
+
+- **Branch** `codex/experimental-modern-art`, draft
+  [PR #32](https://github.com/guillem/seventh-gun/pull/32). Never merge, tag or
+  release it. It is 29 commits ahead of `origin/main` and 2 behind (PR #33,
+  docs only: seventhgun.com and the Node 26 note); merging `main` in is
+  pending, keep this branch's `wrangler.jsonc` name and domain when it happens.
+- **Production** is `main` (`79485c2`) on the `seventh-gun` Worker at
+  <https://seventhgun.com>; `www` redirects there. Netlify stays a static mirror.
+- **Art review targets:** <https://art.seventhgun.com> (own Worker and arena,
+  auto-deployed by `deploy-art.yml` on every push to this branch) and the
+  Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
+- **CI** is green on this branch since run 37143784123 (`ea51a0c`): typecheck,
+  456 unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
+- **Art scope delivered:** all seven weapons, six species, support props, 28
+  environment modules over seven maps, forty sound samples; rendering
+  continuity and Safari audio-start fixes. Simulation, maps, balance, network
+  and `GEN_VERSION` are unchanged from `main`.
+
+### Waiting on the user
+
+- Review of the refined art preview (no review of the last three art
+  milestones is recorded yet).
+- Native Safari retest of the seed-field/audio start fix (automation disabled).
+- Merge `origin/main` into this branch (blocked for the agent).
+- Decide the Node 26 wall-decor shuffle fix; it needs a `GEN_VERSION` call.
+- Decide whether `SOCKET_IDLE_S` (15 s) should tolerate slow software-GL joins.
+- Decide how to license and credit the shipped AI-generated images (ImageGen)
+  and Runway-generated audio. README and THIRD-PARTY still say every asset is
+  generated at runtime; this branch now says otherwise in a note (see
+  `art/modern/textures/PROVENANCE.md`, `art/modern/audio-provenance.json`).
+- First npm publication (bootstrap token, then trusted publishing); see
+  [TESTING](TESTING.md#release-smoke-checks). Independent of this branch.
+
+The consolidated backlog is in [ROADMAP](ROADMAP.md#backlog).
+
 ## CI E2E on software GL — fixed 2026-10-03
 
 E2E had never completed on this branch's CI. Cause, measured on GitHub runners:

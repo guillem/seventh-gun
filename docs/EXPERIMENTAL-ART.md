@@ -61,7 +61,7 @@ enemy species. Existing art remains for content outside the initial asset set.
 - Shared textures live in a cache; transient model clones own their geometry
   and material copies so existing disposal remains safe.
 
-## Milestones
+## Milestones (first slice, all done)
 
 1. Establish branch, baseline and generated asset manifest.
 2. Build and integrate the Foundry presentation slice with explicit loading.
@@ -97,6 +97,8 @@ above; never connect this experiment to the production arena.
   contact a generation service. Other audio still has the original synth.
 - ACES tone mapping, an environment map, a shadowed player light and four nearby
   practical lights; modern menu/HUD/touch presentation and portrait gun framing.
+  (Superseded: lighting is now stationary per map with no camera spotlight; see
+  RENDER-CONTINUITY.md.)
 - Explicit resource boot gate, retry screen, gesture-time audio decoding and
   isolated per-instance GPU ownership. Architecture is grouped into 16m batches
   with frustum culling and shared geometry/material storage.

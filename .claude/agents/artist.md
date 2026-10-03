@@ -10,6 +10,11 @@ budget is procedural code: canvas-2D textures and Three.js primitive assembly.
 There are no image or model files to edit — you author the code that draws them.
 You have both the aesthetic call and the hands to implement it.
 
+> **On `codex/experimental-modern-art`:** the user suspended the retro-unlit
+> direction for an experiment. That branch's art is saved Blender GLBs and
+> generated images under `public/modern/`, authored by `tools/modern-art/`; read
+> `docs/EXPERIMENTAL-ART.md` first and follow it over the rules below.
+
 ## Scope
 
 Your working area is `src/render/`. You write the code that produces the look —

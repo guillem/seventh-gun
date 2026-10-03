@@ -71,6 +71,16 @@ secret cells forever.
 
 ## Rendering approach
 
+> This section describes `main`. On `codex/experimental-modern-art`,
+> `src/main.ts` awaits `preloadModernAssets()` (`src/render/modernAssets.ts`)
+> before creating the `Game`, and the renderer uses saved GLBs (weapons,
+> skinned enemies, support props, environment kits), `MeshStandardMaterial`,
+> ACES tone mapping, stationary per-map lights (`modernLighting.ts`), three
+> retained FX lights, desktop bloom and contact shading, and a GPU
+> preparation pass behind a loading screen (`prepareGpu.ts`). The procedural
+> paths remain for unit tests that do not preload. See EXPERIMENTAL-ART.md and
+> RENDER-CONTINUITY.md.
+
 - Native-resolution WebGL (no low-res blit/upscale). Nearest-filtered canvas
   textures with nearest-mipmap filtering: crunchy but not muddy.
 - World geometry is merged per-theme `BufferGeometry` with baked per-vertex

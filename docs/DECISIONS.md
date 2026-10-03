@@ -12,6 +12,9 @@ Unspecified things got decided; this is the record.
   and rejected in PR #20. Flat Lambert/Basic with blob shadows is the
   intended late-90s look. Do not "upgrade" it to physical lighting.
   Branch `feat/lookdev-pbr` is kept as the reference for what was tried.
+  Exception: `codex/experimental-modern-art` (draft PR #32) deliberately
+  explores a modern lit look at the user's request and is never merged; this
+  decision is unchanged on `main`. See EXPERIMENTAL-ART.md.
 - **Silhouette over detail — the character art rule.** Player feedback rated
   the roster: crawler and wisp good, husk/slab/hierophant/fiend bad. The
   correlation with effort was *inverted*. The two liked designs were the least

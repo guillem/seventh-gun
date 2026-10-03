@@ -13,6 +13,11 @@ at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy
 `scripts/check-art-deploy-target.mjs`; see `docs/EXPERIMENTAL-ART.md`.
 CI runs E2E on Mesa llvmpipe (`E2E_GL=llvmpipe`) in six shards, because the
 default SwiftShader cannot render this branch in time; see `docs/TESTING.md`.
+On this branch the "everything procedural" line below does not hold: the game
+loads saved Blender GLBs, generated images and Runway audio from
+`public/modern/`, with sources and provenance under `art/modern/` and build
+scripts under `tools/modern-art/`. The retro-unlit rule in DECISIONS.md is
+suspended here by the user's request; it still holds on `main`.
 
 A one-shot, seeded, late-90s-style FPS. Vite + TypeScript + Three.js client,
 with an optional Cloudflare Workers or portable Node arena server. Everything
