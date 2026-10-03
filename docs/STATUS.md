@@ -16,7 +16,13 @@ M5 Pro holds about 60 fps in all four recorded normal-mode scenarios (desktop,
 retina, mobile emulation, first combat hall), with real entry/pause/quit checks.
 The bundled test browser uses SwiftShader: functional tests pass, but normal
 software-rendered performance is poor. Both reports are saved; real phones remain
-untested. The updated Netlify deployment still needs hosted verification. Sources and actual gameplay evidence are
+untested. Netlify deployed implementation commit `f69e25d`; hosted desktop and
+mobile checks load all 22 resources (8,226,436 bytes), retain map hash `ee306bc5`,
+and show no game errors. All six new assets match local SHA-256 checksums. Hosted
+normal-mode entry/pause/quit and four hardware performance scenarios pass. The
+preview toolbar's blocked telemetry is recorded separately in hosted reports.
+PR #32 remains draft; remote `main` remains `8bf93b3`. GitHub CI runs separately.
+Next step: user review of the entrance and first casting hall before more rooms. Sources and actual gameplay evidence are
 in `art/modern/foundry-room/`. Six new resources add 3.48 MB; the full experimental
 art payload is 8.23 MB / 22 files. No merge, release or production deployment.
 

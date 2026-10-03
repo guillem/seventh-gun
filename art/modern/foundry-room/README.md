@@ -78,3 +78,9 @@ It passes the functional suite but its normal desktop frame sample exceeded
 30 seconds; that failure is preserved in `review-software-renderer.json`.
 Use `PLAYWRIGHT_CHANNEL=chrome` for hardware profiling. Hardware acceleration is
 needed for useful performance; no claim is made for software rendering or phones.
+
+Hosted verification of implementation commit `f69e25d` at the PR #32 preview
+passed desktop/mobile loading, map hash `ee306bc5`, all six new file SHA-256
+checksums, and four normal-mode control/performance scenarios. Reports are
+`review-hosted-visual.json` and `review-hosted-performance.json`. Netlify toolbar
+telemetry blocked by the test network is recorded separately from game errors.
