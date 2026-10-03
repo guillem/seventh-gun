@@ -2,7 +2,7 @@
 // codec-failure fallback. WebAudio unlocks on first gesture. iOS: request
 // playback audio session so the silent switch doesn't mute us.
 import type { SimEvent, EnemyType } from '../sim/types';
-import { decodeModernAudio, type ModernSampleId } from './samples';
+import { decodeModernAudio, settleAudioPreparation, type ModernSampleId } from './samples';
 
 type Ctx = AudioContext;
 
@@ -41,13 +41,39 @@ export class AudioEngine {
         if (nav.audioSession) nav.audioSession.type = 'playback';
       } catch { /* older browsers */ }
     }
-    if (this.ctx.state === 'suspended') {
-      try { await this.ctx.resume(); } catch { /* ignore */ }
+    // Invoke resume before the first await so it keeps the user gesture, but
+    // do not serialize decoding behind a browser permission/device promise.
+    // Safari also reports "interrupted", beyond the standard state union.
+    let resumed: Promise<void> = Promise.resolve();
+    if (this.ctx.state !== 'running') {
+      try {
+        resumed = this.ctx.resume().catch(() => {
+          console.warn('Audio playback could not resume; another play gesture can retry it.');
+        });
+      } catch {
+        console.warn('Audio playback could not resume; another play gesture can retry it.');
+      }
     }
     if (!this.sampleDecode) {
       this.sampleDecode = decodeModernAudio(this.ctx).then((samples) => { this.samples = samples; });
     }
-    await this.sampleDecode;
+    await Promise.all([
+      this.sampleDecode,
+      settleAudioPreparation(resumed, () => {
+        console.warn('Audio playback is still suspended; continuing without waiting for sound.');
+      }),
+    ]);
+  }
+
+  /** A later gameplay gesture can recover Safari after an audio interruption. */
+  retryPlayback(): void {
+    if (!this.ctx || this.ctx.state === 'running' || this.ctx.state === 'closed') return;
+    try {
+      // No decoding, new context, timers or awaited work on an ordinary shot.
+      void this.ctx.resume().catch(() => {});
+    } catch {
+      // A subsequent gesture may succeed; playback never blocks gameplay.
+    }
   }
 
   setVolume(v: number): void {

@@ -1,0 +1,133 @@
+{
+  "base": "http://127.0.0.1:5177/",
+  "engine": "webkit",
+  "id": "decode-late-1984",
+  "seed": "1984",
+  "trigger": "click",
+  "fault": "decode-late",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:45:11.961Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [
+    "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+  ],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:45:11.961Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:45:12.713Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:45:19.785Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "bootMs": 737,
+  "startupWallMs": 5079,
+  "state": {
+    "at": 5454,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 10,
+    "audioState": "running",
+    "decodedSamples": 39,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 407,
+      "overlayAddedAt": 429,
+      "overlayRemovedAt": 5431,
+      "firstFaultAt": 429,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 407
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 434
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 438
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 482
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 913,
+          "ms": 431
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 917,
+          "ms": 479
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 917,
+          "ms": 483
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 5430,
+          "ms": 5023
+        }
+      ],
+      "warnings": [
+        {
+          "at": 5430,
+          "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+        }
+      ]
+    }
+  },
+  "readyAfterGestureMs": 5047,
+  "faultSettledMs": 5001,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 23,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "lateDecode": {
+    "at": 7429,
+    "decodedSamples": 40
+  },
+  "totalWallMs": 7824,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

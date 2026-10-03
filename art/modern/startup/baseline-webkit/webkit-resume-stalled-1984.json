@@ -1,0 +1,108 @@
+{
+  "base": "http://localhost:4173/",
+  "engine": "webkit",
+  "id": "resume-stalled-1984",
+  "seed": "1984",
+  "trigger": "click",
+  "fault": "resume",
+  "baseline": true,
+  "capturedAt": "2026-10-03T10:44:09.923Z",
+  "status": "expected-stall",
+  "errors": [],
+  "warnings": [],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:44:09.923Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:44:11.047Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:44:26.057Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "bootMs": 1107,
+  "startupWallMs": 15003,
+  "state": {
+    "at": 15759,
+    "phase": "playing",
+    "preparing": true,
+    "inputPaused": true,
+    "overlay": true,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 9,
+    "audioState": "suspended",
+    "decodedSamples": 0,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 790,
+      "overlayAddedAt": 791,
+      "overlayRemovedAt": null,
+      "firstFaultAt": 791,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 0,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 790
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 818
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 823
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 863
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 1273,
+          "ms": 410
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 1277,
+          "ms": 454
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 1277,
+          "ms": 459
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "totalWallMs": 16134,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

@@ -14,6 +14,24 @@ export const MODERN_SAMPLE_IDS = [
 ] as const;
 
 export type ModernSampleId = typeof MODERN_SAMPLE_IDS[number];
+// Safari can leave resume()/decodeAudioData() pending after an interruption.
+// Audio gets a generous preparation window, but must never prevent play.
+export const AUDIO_PREPARATION_TIMEOUT_MS = 5_000;
+
+export async function settleAudioPreparation(pending: Promise<unknown>, onTimeout: () => void): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      pending,
+      new Promise<void>((resolve) => {
+        timer = setTimeout(() => { onTimeout(); resolve(); }, AUDIO_PREPARATION_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const encoded = new Map<ModernSampleId, ArrayBuffer>();
 let preload: Promise<void> | null = null;
 const baseUrl = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/';
@@ -37,10 +55,10 @@ export function preloadModernAudio(): Promise<void> {
   return preload;
 }
 
-/** A codec failure is recoverable: that sound uses the existing synth. */
+/** A failed or stalled codec is recoverable: that sound uses the existing synth. */
 export async function decodeModernAudio(ctx: AudioContext): Promise<Map<ModernSampleId, AudioBuffer>> {
   const decoded = new Map<ModernSampleId, AudioBuffer>();
-  await Promise.all([...encoded].map(async ([id, bytes]) => {
+  const pending = Promise.all([...encoded].map(async ([id, bytes]) => {
     try {
       // decodeAudioData detaches the input on some browsers. Keep source bytes
       // for another context (or a resumed/restarted game).
@@ -50,5 +68,10 @@ export async function decodeModernAudio(ctx: AudioContext): Promise<Map<ModernSa
       console.warn(`Could not decode audio asset ${id}; using synthesized fallback.`);
     }
   }));
+  await settleAudioPreparation(pending, () => {
+    console.warn('Audio decoding is taking too long; unavailable recordings will use synthesized fallback.');
+  });
+  // Keep this Map alive: native decoding cannot be cancelled, and recordings
+  // that finish after the deadline should still become available to the game.
   return decoded;
 }

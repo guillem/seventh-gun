@@ -1,5 +1,28 @@
 # STATUS
 
+## Safari maze startup — 2026-10-03
+
+The user narrowed the `1984`/`1986` loading hang to Safari; Chrome loads quickly.
+The generator is unchanged from main and both layouts generate in about five
+milliseconds. Normal starts also pass in Playwright WebKit, so the exact native
+Safari trigger remains unconfirmed (Safari remote automation is disabled).
+
+Fixed an indefinite audio readiness gate that reproduces the reported loading
+state when a browser resume/decode promise stalls. Resume and decoding now run
+independently with a five-second deadline. Successful/late recordings remain
+usable; gameplay gestures can retry interrupted sound without blocking play.
+The loading message now distinguishes scene preparation from sound preparation.
+No renderer, generator, layout, simulation, balance or asset changes.
+
+451 unit tests, all three TypeScript projects and the production build pass.
+The full Chrome desktop/mobile suite passes 109 tests with 13 intentional skips,
+no retries. Ten normal-mode Chrome/WebKit startup checks pass, including both
+seeds, stalled resume/decode and late decode recovery. Baseline injected faults
+remain frozen after 15 seconds; fixed runs release at about five seconds.
+Map hashes remain `62624244` / `8f50b164`. Evidence and reproduction commands:
+`art/modern/startup/README.md`. Netlify verification is pending this push.
+Keep `codex/experimental-modern-art` and PR #32 draft; no production deployment.
+
 ## Rendering continuity — delivered 2026-10-03
 
 Fixes the user's first-shot/first-room stalls, global lighting changes at room

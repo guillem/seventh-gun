@@ -1,0 +1,129 @@
+{
+  "base": "http://127.0.0.1:5177/",
+  "engine": "webkit",
+  "id": "resume-stalled-1984",
+  "seed": "1984",
+  "trigger": "click",
+  "fault": "resume",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:44:59.569Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [
+    "Audio playback is still suspended; continuing without waiting for sound."
+  ],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:44:59.569Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:45:00.285Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:45:05.556Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "bootMs": 703,
+  "startupWallMs": 5060,
+  "state": {
+    "at": 5419,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1984",
+    "mapHash": "62624244",
+    "simTime": 0,
+    "renderFrames": 9,
+    "audioState": "suspended",
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 383,
+      "overlayAddedAt": 384,
+      "overlayRemovedAt": 5385,
+      "firstFaultAt": 384,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 383
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 401
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 406
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 448
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 864,
+          "ms": 416
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 868,
+          "ms": 462
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 868,
+          "ms": 467
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 5385,
+          "ms": 5002
+        }
+      ],
+      "warnings": [
+        {
+          "at": 5385,
+          "message": "Audio playback is still suspended; continuing without waiting for sound."
+        }
+      ]
+    }
+  },
+  "readyAfterGestureMs": 5036,
+  "faultSettledMs": 5001,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 22,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "totalWallMs": 5987,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

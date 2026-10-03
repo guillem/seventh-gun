@@ -1,0 +1,122 @@
+{
+  "base": "http://127.0.0.1:5177/",
+  "engine": "chromium",
+  "id": "normal-1986-enter",
+  "seed": "1986",
+  "trigger": "enter",
+  "fault": "none",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:44:34.019Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:44:34.019Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:44:34.526Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:44:35.478Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "154.0.8037.98",
+  "bootMs": 495,
+  "startupWallMs": 654,
+  "state": {
+    "at": 879.4000000059605,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1986",
+    "mapHash": "8f50b164",
+    "simTime": 0,
+    "renderFrames": 6,
+    "audioState": "running",
+    "decodedSamples": 40,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 227.5,
+      "overlayAddedAt": 344.59999999403954,
+      "overlayRemovedAt": 878.0999999940395,
+      "firstFaultAt": null,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 0,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 227.69999998807907
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 345.7999999821186
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 350.5
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 393.7999999821186
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 872.7999999821186,
+          "ms": 479
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 875.6999999880791,
+          "ms": 525.1999999880791
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 875.7999999821186,
+          "ms": 530
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 877.7999999821186,
+          "ms": 650.0999999940395
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "readyAfterGestureMs": 651.9000000059605,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 20,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "screenshot": "chromium-normal-1986-enter.jpg",
+  "totalWallMs": 1459,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

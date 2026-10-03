@@ -205,7 +205,10 @@ export class Game {
     this.screens.bindSaveLibrary(() => { void this.saveAuthoredToLibrary(); });
     this.screens.bindBackToEditor(() => this.returnToEditor());
     this.screens.setTouchUi({
-      fire: (down) => this.input.setFire(down),
+      fire: (down) => {
+        if (down && !this.preparingWorld && this.isPlayingLike) this.audio.retryPlayback();
+        this.input.setFire(down);
+      },
       use: () => { if (this.sim && !this.preparingWorld) this.sim.tryUse(); },
       map: () => this.toggleMap(!this.screens.isMapOpen()),
       pause: () => this.togglePause(),
@@ -283,8 +286,9 @@ export class Game {
   private canvasClickLock(): void {
     const canvas = this.renderer.domElement;
     canvas.addEventListener('click', () => {
-      if (!this.preparingWorld && this.phase === 'playing' && !this.input.pointerLocked && !this.input.isTouch) {
-        this.input.requestLock();
+      if (!this.preparingWorld && this.phase === 'playing') {
+        this.audio.retryPlayback();
+        if (!this.input.pointerLocked && !this.input.isTouch) this.input.requestLock();
       }
     });
   }
@@ -333,7 +337,7 @@ export class Game {
     overlay.setAttribute('aria-busy', 'true');
     overlay.innerHTML = '<div class="boot-mark" aria-hidden="true">VII</div>' +
       '<div class="boot-label">SEVENTH GUN</div><h1>Preparing the world</h1>' +
-      '<p class="boot-status">Getting the scene and sound ready. This may take a few seconds.</p>' +
+      '<p class="boot-status">Creating the scene. This may take a few seconds.</p>' +
       '<div class="world-loading-line" aria-hidden="true"></div>';
     document.body.appendChild(overlay);
     this.worldLoading = overlay;
@@ -343,7 +347,13 @@ export class Game {
     if (!this.input.isTouch) this.input.requestLock();
     const task = afterPaint(action);
     this.cancelWorldPreparation = task.cancel;
-    void Promise.all([task.done, audioReady]).then(([completed]) => {
+    const worldReady = task.done.then((completed) => {
+      if (completed && !this.disposed && this.worldLoading === overlay) {
+        overlay.querySelector('.boot-status')!.textContent = 'Scene ready. Preparing sound…';
+      }
+      return completed;
+    });
+    void Promise.all([worldReady, audioReady]).then(([completed]) => {
       if (!completed || this.disposed) return;
       this.cancelWorldPreparation = null;
       // Discard clicks, wheel/weapon edges and elapsed loading time before play.
@@ -996,6 +1006,7 @@ export class Game {
       return;
     }
     if (this.phase !== 'paused') return;
+    this.audio.retryPlayback();
     this.phase = 'playing';
     this.input.paused = false;
     this.screens.showPause(false);

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AudioEngine } from '../../src/audio/audio';
 import { MODERN_SAMPLE_IDS } from '../../src/audio/samples';
 import type { EnemyType, SimEvent } from '../../src/sim/types';
@@ -176,5 +176,150 @@ describe('saved audio preload', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe('bounded audio preparation', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  async function fixture() {
+    vi.useFakeTimers();
+    vi.resetModules();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(32),
+    })));
+    const { preloadModernAudio, AUDIO_PREPARATION_TIMEOUT_MS } = await import('../../src/audio/samples');
+    const { AudioEngine: FreshAudioEngine } = await import('../../src/audio/audio');
+    await preloadModernAudio();
+    const ctx = {
+      state: 'suspended',
+      resume: vi.fn(() => Promise.resolve()),
+      decodeAudioData: vi.fn((_bytes: ArrayBuffer): Promise<AudioBuffer> => Promise.resolve({ duration: 1 } as AudioBuffer)),
+    };
+    const engine = new FreshAudioEngine();
+    Object.assign(engine, { ctx });
+    const sampleMap = () => (engine as unknown as { samples: Map<string, AudioBuffer> }).samples;
+    return { engine, ctx, sampleMap, deadline: AUDIO_PREPARATION_TIMEOUT_MS };
+  }
+
+  it('starts decoding within the gesture even when Safari resume never settles, and eventually allows play', async () => {
+    const { engine, ctx, sampleMap, deadline } = await fixture();
+    ctx.resume.mockImplementation(() => new Promise(() => {}));
+    engine.setMuted(true);
+    engine.setVolume(.25);
+    let ready = false;
+    const preparing = engine.unlock().then(() => { ready = true; });
+    // No await or timer advance: permission and codec calls both start in the gesture.
+    expect(ctx.resume).toHaveBeenCalledOnce();
+    expect(ctx.decodeAudioData).toHaveBeenCalledTimes(MODERN_SAMPLE_IDS.length);
+    await vi.advanceTimersByTimeAsync(deadline - 1);
+    expect(ready).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await preparing;
+    expect(ready).toBe(true);
+    expect(sampleMap().size).toBe(MODERN_SAMPLE_IDS.length);
+    expect(engine.muted).toBe(true);
+    expect(engine.volume).toBe(.25);
+    expect(vi.getTimerCount()).toBe(0);
+
+    // The next real gesture can retry Safari's non-standard interrupted state.
+    ctx.state = 'interrupted';
+    ctx.resume.mockImplementation(() => { ctx.state = 'running'; return Promise.resolve(); });
+    await engine.unlock();
+    expect(ctx.resume).toHaveBeenCalledTimes(2);
+    expect(ctx.state).toBe('running');
+    expect(ctx.decodeAudioData).toHaveBeenCalledTimes(MODERN_SAMPLE_IDS.length);
+  });
+
+  it('keeps successful recordings when one decoder stalls and adopts its late result without another unlock', async () => {
+    const { engine, ctx, sampleMap, deadline } = await fixture();
+    ctx.state = 'running';
+    let finish!: (buffer: AudioBuffer) => void;
+    ctx.decodeAudioData.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const preparing = engine.unlock();
+    await vi.advanceTimersByTimeAsync(deadline);
+    await preparing;
+    expect(sampleMap().size).toBe(MODERN_SAMPLE_IDS.length - 1);
+    expect(sampleMap().has('pistol-a')).toBe(false);
+    expect(sampleMap().has('shotgun')).toBe(true);
+    const decodedLate = { duration: 2 } as AudioBuffer;
+    finish(decodedLate);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sampleMap().get('pistol-a')).toBe(decodedLate);
+    expect(sampleMap().size).toBe(MODERN_SAMPLE_IDS.length);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('handles a late codec rejection after the deadline without an unhandled promise', async () => {
+    const { engine, ctx, sampleMap, deadline } = await fixture();
+    ctx.state = 'running';
+    let fail!: (error: Error) => void;
+    ctx.decodeAudioData.mockImplementationOnce(() => new Promise((_resolve, reject) => { fail = reject; }));
+    const preparing = engine.unlock();
+    await vi.advanceTimersByTimeAsync(deadline);
+    await preparing;
+    fail(new Error('Codec interrupted'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sampleMap().has('pistol-a')).toBe(false);
+    expect(sampleMap().size).toBe(MODERN_SAMPLE_IDS.length - 1);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('pistol-a'));
+  });
+
+  it('finishes immediately on healthy decoders and removes every deadline timer', async () => {
+    const { engine, ctx, sampleMap } = await fixture();
+    await engine.unlock();
+    expect(ctx.resume).toHaveBeenCalledOnce();
+    expect(sampleMap().size).toBe(MODERN_SAMPLE_IDS.length);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it('uses the existing fallback for rejected codecs even when resume throws synchronously', async () => {
+    const { engine, ctx, sampleMap } = await fixture();
+    ctx.resume.mockImplementation(() => { throw new Error('Device interrupted'); });
+    ctx.decodeAudioData.mockRejectedValue(new Error('Unsupported codec'));
+    await engine.unlock();
+    expect(sampleMap().size).toBe(0);
+    expect(ctx.decodeAudioData).toHaveBeenCalledTimes(MODERN_SAMPLE_IDS.length);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(['suspended', 'interrupted'])('retries %s playback synchronously without decoding or allocating deadline timers', async (state) => {
+    const { engine, ctx } = await fixture();
+    ctx.state = state;
+    ctx.resume.mockImplementation(() => new Promise(() => {}));
+    engine.retryPlayback();
+    expect(ctx.resume).toHaveBeenCalledOnce();
+    expect(ctx.decodeAudioData).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('does nothing for an absent, running or closed context', async () => {
+    expect(() => new AudioEngine().retryPlayback()).not.toThrow();
+    const { engine, ctx } = await fixture();
+    for (const state of ['running', 'closed']) {
+      ctx.state = state;
+      engine.retryPlayback();
+    }
+    expect(ctx.resume).not.toHaveBeenCalled();
+    expect(ctx.decodeAudioData).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('contains both rejected and synchronously thrown gesture retries', async () => {
+    const { engine, ctx } = await fixture();
+    ctx.resume.mockRejectedValueOnce(new Error('Still suspended'));
+    engine.retryPlayback();
+    await Promise.resolve();
+    ctx.resume.mockImplementationOnce(() => { throw new Error('Device missing'); });
+    expect(() => engine.retryPlayback()).not.toThrow();
+    expect(ctx.decodeAudioData).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
