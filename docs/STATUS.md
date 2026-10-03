@@ -1,5 +1,17 @@
 # STATUS
 
+## Art Worker for multiplayer review — 2026-10-03
+
+The user bought `seventhgun.com` and moved its DNS to Cloudflare (free plan,
+no payment method). This branch's `wrangler.jsonc` now names a separate Worker,
+`seventh-gun-art`, with custom domain `art.seventhgun.com` and `workers_dev`
+kept on. It has its own Durable Object room. Deploy steps and guard rails are in
+[EXPERIMENTAL-ART.md](EXPERIMENTAL-ART.md). Production `seventh-gun` and its CI
+deploy from `main` are unchanged. `seventhgun.com` and `www` are meant to be
+attached to production in the Cloudflare dashboard, not in `main`'s
+`wrangler.jsonc`: a domain there would break the README's deploy-to-your-own-
+account path, and dashboard domains survive config deploys that list none.
+
 ## Safari seed-field focus — 2026-10-03
 
 The user isolated the sound failure to clicking ENTER THE MAZE while the seed

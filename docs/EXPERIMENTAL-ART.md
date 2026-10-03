@@ -7,6 +7,22 @@ do not tag, and do not deploy the Cloudflare production Worker. Netlify Deploy
 Previews are the review destination. This explicitly overrides the ordinary
 AGENTS.md instruction to merge after preview verification for this experiment.
 
+Multiplayer review uses a separate Cloudflare Worker, `seventh-gun-art`, at
+<https://art.seventhgun.com> (and its `seventh-gun-art.default-428.workers.dev`
+address). It has its own Durable Object, so it never shares a room with
+production. The branch's `wrangler.jsonc` carries that name and domain. CI never
+deploys it. Deploy by hand from a clean checkout of this branch:
+
+    npx wrangler login
+    npm run build
+    npx wrangler deploy --dry-run   # must say seventh-gun-art, art.seventhgun.com only
+    npx wrangler deploy
+    node scripts/smoke-deployment.mjs https://art.seventhgun.com
+
+If `main` is merged into this branch, keep this branch's name and domain in
+`wrangler.jsonc`. Remove the Worker with
+`npx wrangler delete --name seventh-gun-art` when the experiment ends.
+
 ## Direction and first milestone
 
 Grounded industrial / biomechanical science-fiction horror: cast concrete,
@@ -49,8 +65,8 @@ Report download size, startup readiness and frame timings as measurements of
 the tested environment, not universal performance guarantees.
 
 Netlify is sufficient for solo visual/audio review. Arena regression tests use
-the local Worker preview; do not connect this experiment to production arena
-just to make the preview's multiplayer button work.
+the local Worker preview. Live multiplayer review uses the separate art Worker
+above; never connect this experiment to the production arena.
 
 ## First slice implementation
 
