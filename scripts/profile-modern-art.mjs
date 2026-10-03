@@ -73,8 +73,19 @@ try {
     });
     const page = await context.newPage();
     const errors = [];
+    const previewTelemetryErrors = [];
     page.on('pageerror', error => errors.push(error.message));
-    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+    page.on('console', message => {
+      if (message.type() !== 'error') return;
+      const location = message.location().url;
+      // Netlify injects its preview toolbar independently of this game. Record
+      // its known blocked telemetry endpoints separately; never hide asset,
+      // application, or other unexpected console errors.
+      const telemetry = /^https:\/\/(cdn\.segment\.com|sessions\.bugsnag\.com)\//.test(location);
+      if (telemetry && message.text().startsWith('Failed to load resource:')) {
+        previewTelemetryErrors.push({ url: location, message: message.text() });
+      } else errors.push(message.text());
+    });
     try {
       await page.addInitScript(() => {
         window.__profileCounters = { draws: 0, triangles: 0 };
@@ -117,7 +128,7 @@ try {
         await page.getByRole('button', { name: 'QUIT TO TITLE', exact: true }).click();
       }
       await play.waitFor();
-      const result = { name: config.name, startupMs, ...metrics, menuExitPassed: true, errors };
+      const result = { name: config.name, startupMs, ...metrics, menuExitPassed: true, errors, previewTelemetryErrors };
       report.scenarios.push(result);
       console.log(JSON.stringify(result));
       if (errors.length) throw new Error(`${config.name} produced browser errors.`);

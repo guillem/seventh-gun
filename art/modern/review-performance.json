@@ -1,0 +1,83 @@
+{
+  "base": "http://127.0.0.1:5175/",
+  "capturedAt": "2026-10-03T00:50:33.908Z",
+  "limitations": [
+    "Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.",
+    "Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.",
+    "Local startup timing does not represent an uncached public network download."
+  ],
+  "scenarios": [
+    {
+      "name": "desktop",
+      "startupMs": 136,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 421,
+      "trianglesPerFrame": 477384,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": []
+    },
+    {
+      "name": "desktop-retina",
+      "startupMs": 121,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 421,
+      "trianglesPerFrame": 477384,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        2560,
+        1600
+      ],
+      "menuExitPassed": true,
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "startupMs": 124,
+      "frames": 180,
+      "fps": 60.00400026668445,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000273,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 394,
+      "trianglesPerFrame": 466562,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": []
+    },
+    {
+      "name": "combat",
+      "startupMs": 125,
+      "frames": 180,
+      "fps": 60.00400026668444,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.800000000000182,
+      "maxMs": 16.80000000000109,
+      "drawsPerFrame": 628,
+      "trianglesPerFrame": 607236,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": []
+    }
+  ]
+}

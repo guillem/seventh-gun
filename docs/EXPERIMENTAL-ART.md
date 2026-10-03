@@ -84,17 +84,23 @@ render allocation counts. Its fixed-camera harness bypasses pointer lock;
 normal-mode interaction checks separately exercise the real entry/exit flow.
 The inspected Foundry topology hash is unchanged: `ee306bc5`.
 
+`scripts/profile-modern-art.mjs [baseURL] [outputDirectory]` exercises normal
+entry/exit controls, measures frame cadence and counts WebGL draw calls without
+enabling the debug API. The captured report is `art/modern/review-performance.json`;
+`art/modern/foundry-gameplay.png` is an actual game screenshot.
+
 Normal-mode Chromium on the local Apple M5 Pro, after a 30-frame warmup and over
-180 sampled frames at the initial Foundry spawn:
+180 sampled frames at the initial Foundry spawn and after walking into combat:
 
 | View | Render buffer | Mean fps | Frame p95 | Draws/frame | Triangles/frame |
 | --- | --- | --- | --- | --- | --- |
-| Desktop | 1280 × 800 | 60.06 | 16.8 ms | 421 | 477,384 |
-| Desktop retina | 2560 × 1600 | 60.06 | 16.8 ms | 421 | 477,384 |
-| Mobile emulation | 780 × 1688 | 60.04 | 16.7 ms | 385 | 460,138 |
+| Desktop | 1280 × 800 | 60.00 | 16.7 ms | 421 | 477,384 |
+| Desktop retina | 2560 × 1600 | 60.00 | 16.7 ms | 421 | 477,384 |
+| Mobile emulation | 780 × 1688 | 60.00 | 16.7 ms | 394 | 466,562 |
+| First combat room | 1280 × 800 | 60.00 | 16.8 ms | 628 | 607,236 |
 
-These are measurements on a desktop GPU at one camera position, not real-phone
-or full-combat performance guarantees. Normal mode enables antialiasing and
+These are measurements on a desktop GPU at two camera positions, not real-phone
+or general combat performance guarantees. Normal mode enables antialiasing and
 caps DPR at two. Actual phone testing and wider level/combat profiling remain
 review work. The standard production-build warning about the large JavaScript
 bundle remains; this first slice has no new runtime package dependencies.

@@ -15,8 +15,24 @@ Local verification: 346 unit tests pass under Node 24.21.0, all three TypeScript
 projects and the production build pass. Normal-mode desktop/retina and mobile
 emulation held about 60 fps on this Mac's Apple M5 Pro; this is not real-phone
 performance evidence. Visual review fixed portrait weapon cropping and touch
-controls intercepting pause-menu actions. Browser regression and Netlify preview
-verification are in progress.
+controls intercepting pause-menu actions. The final repository Playwright run
+passes **99 tests with 13 intentional project skips**, zero failures/retries,
+under pinned Chromium 1234, desktop and mobile projects (6.0 minutes).
+
+Draft [PR #32](https://github.com/guillem/seventh-gun/pull/32) is open. Review at
+<https://deploy-preview-32--seventh-gun.netlify.app>. Verified the deployed desktop
+and mobile game boots, all sixteen art resources load (4,742,926 bytes), and
+Foundry retains hash `ee306bc5`. Local and hosted normal-mode entry, pause/resume,
+quit and first-combat-room rendering checks pass. Hosted preview-toolbar
+telemetry to Segment/Bugsnag is blocked in this test environment and recorded
+separately; game resources and game JavaScript have no observed errors.
+
+Reproduce with `scripts/inspect-modern-art.mjs` (fixed debug cameras) and
+`scripts/profile-modern-art.mjs` (real normal-mode controls). Sources, provenance,
+local performance report and gameplay screenshot are in `art/modern/`. GitHub
+CI also runs on the draft PR; no production deployment is enabled for PRs.
+Next step is user review of this first slice before expanding the remaining
+weapon/enemy roster, animation and environment composition.
 
 Node 26.10.0 on this machine has a pre-existing cosmetic secret snapshot mismatch:
 it also fails on the unchanged main baseline. Use Node 24, as CI does; no snapshot
