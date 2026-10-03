@@ -1,5 +1,24 @@
 # STATUS
 
+## Safari seed-field focus — 2026-10-03
+
+The user isolated the sound failure to clicking ENTER THE MAZE while the seed
+input has focus. The same seed works with Enter, or after clicking outside the
+input first. The button now ends seed editing on pointer-down before its normal
+click initializes audio. Pointer-down alone does not launch; dragging away still
+cancels. This is a focused UI fix, with no audio/render/simulation/asset changes.
+
+453 unit tests and the production build pass. Eighteen normal-mode Chrome/WebKit
+checks pass across both seeds, three start methods, a control seed and injected
+audio failures. Fourteen healthy cases have a running audio clock, forty decoded
+recordings and nonzero game audio signal, without the five-second timeout.
+The retained-focus regression fails on the previous build as expected. See
+`art/modern/startup/FOCUS-FIX.md`. Native Safari confirmation remains pending;
+its test driver is disabled. All 113 desktop/mobile browser checks pass with
+13 intentional skips and no retries, including both focus regressions on both
+device profiles. Netlify preview verification is pending this push.
+Keep the experimental branch and draft PR #32; no production deployment.
+
 ## Safari maze startup — 2026-10-03
 
 The user narrowed the `1984`/`1986` loading hang to Safari; Chrome loads quickly.

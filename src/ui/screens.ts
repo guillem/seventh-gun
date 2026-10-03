@@ -429,6 +429,12 @@ export class Screens {
     openCampaign: () => void;
     openArena?: () => void;
   }): void {
+    // Safari can leave WebAudio suspended when this click also ends editing
+    // the seed. Finish editing on pointer-down, before the separate trusted
+    // click starts audio. Keep launch on click (and the seed's Enter handler).
+    this.startBtn.addEventListener('pointerdown', (event) => {
+      if (event.button === 0 && document.activeElement === this.seedInput) this.seedInput.blur();
+    });
     this.startBtn.addEventListener('click', handlers.start);
     this.retryBtn.addEventListener('click', handlers.retry);
     this.newMazeBtn.addEventListener('click', handlers.newMaze);

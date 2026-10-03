@@ -1,0 +1,37 @@
+
+Running 1 test using 1 worker
+
+(node:78669) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [desktop] › tests/e2e/modern-art.spec.ts:14:40 › modern art bootstrap › seed 1984: pointer-down ends editing before the Start click (5.4s)
+
+
+  1) [desktop] › tests/e2e/modern-art.spec.ts:14:40 › modern art bootstrap › seed 1984: pointer-down ends editing before the Start click 
+
+    Error: expect(locator).not.toBeFocused() failed
+
+    Locator:  locator('#seed-input')
+    Expected: not focused
+    Received: focused
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "not toBeFocused" with timeout 5000ms
+      - waiting for locator('#seed-input')
+        14 × locator resolved to <input maxlength="24" id="seed-input" autocomplete="off" spellcheck="false"/>
+           - unexpected value "focused"
+
+
+      26 |     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+      27 |     await page.mouse.down();
+    > 28 |     await expect(input).not.toBeFocused();
+         |                             ^
+      29 |     // Pressing must not launch: release outside still cancels a normal button.
+      30 |     await expect(page.locator('#world-loading')).toHaveCount(0);
+      31 |     await expect(page.locator('#title-screen')).toBeVisible();
+        at /Users/guillem/Development/seventh-gun/tests/e2e/modern-art.spec.ts:28:29
+
+    Error Context: test-results/modern-art-modern-art-boot-a0b6d-ting-before-the-Start-click-desktop/error-context.md
+
+  1 failed
+    [desktop] › tests/e2e/modern-art.spec.ts:14:40 › modern art bootstrap › seed 1984: pointer-down ends editing before the Start click 

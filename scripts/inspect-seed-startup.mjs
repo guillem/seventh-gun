@@ -4,6 +4,7 @@
 // BASELINE=1 expects the two injected audio faults to remain blocked; point the
 // URL at an unfixed build. No source replacement or baseline checkout is made.
 // LATE_DECODE_MS=7000 optionally checks a recording completing after fallback.
+// CASE_FILTER=normal-1984-click selects matching case IDs for focused checks.
 import { chromium, webkit } from '@playwright/test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
@@ -26,11 +27,17 @@ if (lateDecodeMs && (!Number.isFinite(lateDecodeMs) || lateDecodeMs < 6000 || la
 }
 const cases = [
   { id: 'normal-1984-click', seed: '1984', trigger: 'click', fault: 'none' },
+  { id: 'normal-1984-enter', seed: '1984', trigger: 'enter', fault: 'none' },
+  { id: 'normal-1984-blur-click', seed: '1984', trigger: 'blur-click', fault: 'none' },
+  { id: 'normal-1986-click', seed: '1986', trigger: 'click', fault: 'none' },
   { id: 'normal-1986-enter', seed: '1986', trigger: 'enter', fault: 'none' },
+  { id: 'normal-1986-blur-click', seed: '1986', trigger: 'blur-click', fault: 'none' },
+  { id: 'normal-1985-click', seed: '1985', trigger: 'click', fault: 'none' },
   { id: 'resume-stalled-1984', seed: '1984', trigger: 'click', fault: 'resume' },
   { id: 'decode-stalled-1986', seed: '1986', trigger: 'enter', fault: 'decode' },
   ...(lateDecodeMs ? [{ id: 'decode-late-1984', seed: '1984', trigger: 'click', fault: 'decode-late' }] : []),
-];
+].filter(scenario => !process.env.CASE_FILTER || scenario.id.includes(process.env.CASE_FILTER));
+if (!cases.length) throw new Error('CASE_FILTER matched no startup cases');
 const workerIndex = process.argv.indexOf('--worker');
 
 function check(condition, message) { if (!condition) throw new Error(message); }
@@ -147,7 +154,7 @@ async function inspectCase(engine, scenario, reportPath) {
           if (typeof original !== 'function') continue;
           owner[name] = function (...args) {
             const start = performance.now();
-            probe.events.push({ name, kind: 'begin', at: start });
+            probe.events.push({ name, kind: 'begin', at: start, focusedElement: document.activeElement?.id });
             const end = kind => probe.events.push({ name, kind, at: performance.now(), ms: performance.now() - start });
             try {
               const result = original.apply(this, args);
@@ -163,7 +170,8 @@ async function inspectCase(engine, scenario, reportPath) {
     await page.locator('#seed-input').fill(scenario.seed);
     await save('starting-via-menu');
     const start = Date.now();
-    if (scenario.trigger === 'click') await page.locator('#start-btn').click({ timeout: STARTUP_TIMEOUT_MS, noWaitAfter: true });
+    if (scenario.trigger === 'blur-click') await page.locator('h1').first().click();
+    if (scenario.trigger !== 'enter') await page.locator('#start-btn').click({ timeout: STARTUP_TIMEOUT_MS, noWaitAfter: true });
     else await page.locator('#seed-input').press('Enter', { timeout: STARTUP_TIMEOUT_MS, noWaitAfter: true });
     let timedOut = false;
     try {
@@ -183,7 +191,7 @@ async function inspectCase(engine, scenario, reportPath) {
         overlay: !!document.getElementById('world-loading'), seed: game.sim?.map.seed,
         mapHash: game.sim ? game.mapHash() : null, simTime: game.sim?.time,
         renderFrames: game.renderer.debugStats.frames, audioState: game.audio.ctx?.state,
-        decodedSamples: game.audio.samples.size, debugApiAbsent: !window.__GAME__, probe,
+        audioTime: game.audio.ctx?.currentTime, decodedSamples: game.audio.samples.size, debugApiAbsent: !window.__GAME__, probe,
       };
     });
     const state = report.state, probe = state.probe;
@@ -221,6 +229,32 @@ async function inspectCase(engine, scenario, reportPath) {
         report.lateDecode = await page.evaluate(() => ({ at: window.__startupProbe.lateDecodeResolvedAt, decodedSamples: window.__normalGame.audio.samples.size }));
       }
       if (scenario.fault === 'none') {
+        if (!baseline && scenario.trigger === 'click') {
+          const unlock = probe.events.find(event => event.name === 'unlock' && event.kind === 'begin');
+          check(unlock?.focusedElement !== 'seed-input', 'Audio started while the seed editor still had focus');
+        }
+        check(state.audioState === 'running', `Audio context is ${state.audioState}`);
+        // Verify a running clock AND real signal, not merely successful decode
+        // promises or an overlay disappearing. This is a silent analysis branch
+        // alongside the unchanged speaker output; no synthetic test tone.
+        await page.evaluate(() => {
+          const audio = window.__normalGame.audio;
+          const analyser = audio.ctx.createAnalyser(), silent = audio.ctx.createGain();
+          silent.gain.value = 0;
+          audio.master.connect(analyser); analyser.connect(silent); silent.connect(audio.ctx.destination);
+          window.__startupAudioMeter = { analyser, silent, samples: new Float32Array(analyser.fftSize) };
+        });
+        await page.waitForFunction(startTime => {
+          const audio = window.__normalGame.audio, meter = window.__startupAudioMeter;
+          meter.analyser.getFloatTimeDomainData(meter.samples);
+          return audio.ctx.currentTime > startTime + .1 && meter.samples.some(value => Math.abs(value) > .000001);
+        }, state.audioTime, { timeout: 3000 });
+        report.audioOutput = await page.evaluate(() => {
+          const audio = window.__normalGame.audio, meter = window.__startupAudioMeter;
+          const peak = Math.max(...meter.samples.map(Math.abs));
+          audio.master.disconnect(meter.analyser); meter.analyser.disconnect(); meter.silent.disconnect();
+          return { state: audio.ctx.state, currentTime: audio.ctx.currentTime, peak, decodedSamples: audio.samples.size };
+        });
         const name = `${engine}-${scenario.id}.jpg`;
         await page.screenshot({ path: resolve(output, name), quality: 85, timeout: 4000 });
         report.screenshot = name;

@@ -11,6 +11,35 @@ type GameApi = {
 type AudioProbe = { decoded: number; sampledStarts: number; activeLoops: number };
 
 test.describe('modern art bootstrap', () => {
+  for (const seed of ['1984', '1986']) test(`seed ${seed}: pointer-down ends editing before the Start click`, async ({ page }) => {
+    await gotoGame(page);
+    const input = page.locator('#seed-input');
+    await input.fill(seed);
+    await expect(input).toBeFocused();
+    // Model a browser/button that does not take focus on mouse press. The
+    // editor must still be dismissed before click, without cancelling click.
+    await page.locator('#start-btn').evaluate(button => {
+      button.addEventListener('mousedown', event => event.preventDefault());
+    });
+    const box = await page.locator('#start-btn').boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.mouse.down();
+    await expect(input).not.toBeFocused();
+    // Pressing must not launch: release outside still cancels a normal button.
+    await expect(page.locator('#world-loading')).toHaveCount(0);
+    await expect(page.locator('#title-screen')).toBeVisible();
+    await page.mouse.move(1, 1);
+    await page.mouse.up();
+    await expect(page.locator('#title-screen')).toBeVisible();
+    await input.fill(seed);
+    await expect(input).toBeFocused();
+    await page.locator('#start-btn').click();
+    await expect(page.locator('#world-loading')).toHaveCount(0, { timeout: 15000 });
+    await expect(page.locator('#title-screen')).toBeHidden();
+    await expect(input).toHaveValue(seed);
+  });
+
   test('prepares GPU programs behind a painted loading screen before the first shot or room reveal', async ({ page }) => {
     test.setTimeout(60000);
     await page.addInitScript(() => {
