@@ -86,6 +86,10 @@ jobs:
       - name: Verify browser-distribution notices
         run: test -f dist/client/LICENSE && test -f dist/client/THIRD-PARTY.md
 
+      # Only the production Worker, never the art Worker's config.
+      - name: Check deploy target
+        run: node scripts/check-prod-deploy-target.mjs
+
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:

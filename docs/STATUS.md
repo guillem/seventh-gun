@@ -5,6 +5,17 @@ first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
 integration and rollout gates. A local passing build is not a publication.
 
+## Production deploy guard — 2026-10-04
+
+`deploy.yml` now runs `scripts/check-prod-deploy-target.mjs` before
+`wrangler deploy` and refuses anything but Worker `seventh-gun` with no `routes`
+and workers.dev on. Production and the art Worker share one Cloudflare token;
+the art branch's `wrangler.jsonc` names `seventh-gun-art` on art.seventhgun.com,
+so a mistaken merge of that branch now fails here instead of redeploying the
+art Worker from `main`. The art branch has the opposite guard. Checked locally
+both ways: each guard passes its own build and refuses the other's. Open items
+moved to the Backlog in [ROADMAP](ROADMAP.md#backlog).
+
 ## seventhgun.com — 2026-10-03
 
 The user registered `seventhgun.com` (DirectNIC) and moved its DNS to Cloudflare
