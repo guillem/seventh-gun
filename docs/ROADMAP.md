@@ -123,5 +123,5 @@ Art experiment (this branch):
   `models/pistol.glb`, `models/husk.glb`, `models/architecture.glb` and
   `textures/dermal.webp` (about 3.4 MB) although the roster assets replaced
   them in play; only a material-patching loop and unit tests read them.
-- When the experiment ends: `npx wrangler delete --name seventh-gun-art` and
-  remove the `art` DNS record.
+- When the experiment ends: `npx wrangler delete --name seventh-gun-art`, then
+  check whether an `art` DNS record remains in the zone.

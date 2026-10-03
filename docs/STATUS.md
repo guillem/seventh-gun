@@ -9,9 +9,8 @@ URL). Where they disagree with this block, this block wins.
 
 - **Branch** `codex/experimental-modern-art`, draft
   [PR #32](https://github.com/guillem/seventh-gun/pull/32). Never merge, tag or
-  release it. It is 29 commits ahead of `origin/main` and 2 behind (PR #33,
-  docs only: seventhgun.com and the Node 26 note); merging `main` in is
-  pending, keep this branch's `wrangler.jsonc` name and domain when it happens.
+  release it. It is 2 commits behind `origin/main` (PR #33, docs only:
+  seventhgun.com and the Node 26 note); merging `main` in is pending, keep this branch's `wrangler.jsonc` name and domain when it happens.
 - **Production** is `main` (`79485c2`) on the `seventh-gun` Worker at
   <https://seventhgun.com>; `www` redirects there. Netlify stays a static mirror.
 - **Art review targets:** <https://art.seventhgun.com> (own Worker and arena,
@@ -26,8 +25,8 @@ URL). Where they disagree with this block, this block wins.
 
 ### Waiting on the user
 
-- Review of the refined art preview (no review of the last three art
-  milestones is recorded yet).
+- Review of the current preview build. The refinement, continuity and Safari
+  passes answered earlier user reports; no verdict on the result is recorded.
 - Native Safari retest of the seed-field/audio start fix (automation disabled).
 - Merge `origin/main` into this branch (blocked for the agent).
 - Decide the Node 26 wall-decor shuffle fix; it needs a `GEN_VERSION` call.
