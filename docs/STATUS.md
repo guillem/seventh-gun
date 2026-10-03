@@ -9,9 +9,11 @@ URL). Where they disagree with this block, this block wins.
 
 - **Branch** `codex/experimental-modern-art`, draft
   [PR #32](https://github.com/guillem/seventh-gun/pull/32). Never merge, tag or
-  release it. It is 2 commits behind `origin/main` (PR #33, docs only:
-  seventhgun.com and the Node 26 note); merging `main` in is pending, keep this branch's `wrangler.jsonc` name and domain when it happens.
-- **Production** is `main` (`79485c2`) on the `seventh-gun` Worker at
+  release it. It is behind `origin/main` by PR #33 and #34 (docs, and a
+  production-only deploy guard). Merging `main` in is deliberately deferred:
+  do it only when `main` has code wanted on the art build, and keep this
+  branch's `wrangler.jsonc`, `deploy.yml` and `deploy-art.yml` when it happens.
+- **Production** is `main` (`e1e2acb`) on the `seventh-gun` Worker at
   <https://seventhgun.com>; `www` redirects there. Netlify stays a static mirror.
 - **Art review targets:** <https://art.seventhgun.com> (own Worker and arena,
   auto-deployed by `deploy-art.yml` on every push to this branch) and the
@@ -28,7 +30,6 @@ URL). Where they disagree with this block, this block wins.
 - Review of the current preview build. The refinement, continuity and Safari
   passes answered earlier user reports; no verdict on the result is recorded.
 - Native Safari retest of the seed-field/audio start fix (automation disabled).
-- Merge `origin/main` into this branch (blocked for the agent).
 - Decide the Node 26 wall-decor shuffle fix; it needs a `GEN_VERSION` call.
 - Decide whether `SOCKET_IDLE_S` (15 s) should tolerate slow software-GL joins.
 - Decide how to license and credit the shipped AI-generated images (ImageGen)
