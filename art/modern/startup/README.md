@@ -34,6 +34,16 @@ not performance guarantees or evidence of the exact native Safari trigger.
 Map hashes stay `62624244` for `1984` and `8f50b164` for `1986` across all cases.
 No simulation, generator, renderer, map, balance or saved art changes.
 
+All 451 unit tests, three TypeScript projects and the production build pass.
+`e2e.txt` records 109 passing desktop/mobile Chrome checks, 13 intentional skips
+and no retries. `hosted-build.json` verifies that preview implementation
+`9af7a8e` serves exactly the local JavaScript/CSS bytes. `hosted/report.json`
+records eight passing normal-menu Chrome/WebKit checks on the live preview,
+including both audio failures. Healthy starts took 493–658 ms and fault
+recovery 5.04–5.16 seconds. Hosted probes exclude only Netlify's injected review
+toolbar (the excluded script URL is recorded); game errors remain failures.
+GitHub-hosted CI is separate and was still running when these checks finished.
+
 Reproduce against the appropriate running build:
 
 ```sh

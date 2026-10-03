@@ -1,0 +1,1027 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engines": [
+    "chromium",
+    "webkit"
+  ],
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:50:48.329Z",
+  "cases": [
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "chromium",
+      "id": "normal-1984-click",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:50:48.503Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:50:48.503Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:50:58.792Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:50:59.754Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 10277,
+      "startupWallMs": 658,
+      "state": {
+        "at": 10594.40000000596,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 9957.5,
+          "overlayAddedAt": 10070.09999999404,
+          "overlayRemovedAt": 10592.5,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 9957.59999999404
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 10071.40000000596
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 10075.800000011921
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 10128.90000000596
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 10587.300000011921,
+              "ms": 458.40000000596046
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 10590.200000017881,
+              "ms": 514.4000000059605
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 10590.40000000596,
+              "ms": 519
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 10592.300000011921,
+              "ms": 634.7000000178814
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 636.9000000059605,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "screenshot": "chromium-normal-1984-click.jpg",
+      "totalWallMs": 11251,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "chromium",
+      "id": "normal-1986-enter",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:00.057Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:00.057Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:04.031Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:04.983Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3962,
+      "startupWallMs": 651,
+      "state": {
+        "at": 4350.5,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 3700,
+          "overlayAddedAt": 3814.5,
+          "overlayRemovedAt": 4341.199999988079,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 3700.199999988079
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 3816.0999999940395
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 3819.899999976158
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 3870.899999976158
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 4336.0999999940395,
+              "ms": 465.2000000178814
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 4339.0999999940395,
+              "ms": 519.2000000178814
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 4339.0999999940395,
+              "ms": 523
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 4341.0999999940395,
+              "ms": 640.9000000059605
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 650.5,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "screenshot": "chromium-normal-1986-enter.jpg",
+      "totalWallMs": 4926,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "chromium",
+      "id": "resume-stalled-1984",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "resume",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:05.287Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio playback is still suspended; continuing without waiting for sound."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:05.287Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:08.479Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:13.853Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3178,
+      "startupWallMs": 5164,
+      "state": {
+        "at": 8088.5,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 9,
+        "audioState": "suspended",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 2942.199999988079,
+          "overlayAddedAt": 3054.699999988079,
+          "overlayRemovedAt": 8056.0999999940395,
+          "firstFaultAt": 3054,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 2942.2999999821186
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 3056
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 3060
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 3114.2999999821186
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 3575.5,
+              "ms": 461.2000000178814
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 3578.699999988079,
+              "ms": 518.6999999880791
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 3578.7999999821186,
+              "ms": 522.7999999821186
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 8055.5,
+              "ms": 5113.200000017881
+            }
+          ],
+          "warnings": [
+            {
+              "at": 8055.299999982119,
+              "message": "Audio playback is still suspended; continuing without waiting for sound."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5146.300000011921,
+      "faultSettledMs": 5001.5,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 22,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 8566,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "chromium",
+      "id": "decode-stalled-1986",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "decode",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:14.165Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:14.165Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:17.489Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:22.834Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "154.0.8037.98",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3312,
+      "startupWallMs": 5139,
+      "state": {
+        "at": 8187.600000023842,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 7,
+        "audioState": "running",
+        "decodedSamples": 39,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 3047.800000011921,
+          "overlayAddedAt": 3163,
+          "overlayRemovedAt": 8166.5,
+          "firstFaultAt": 3162.5,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 0,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 3047.9000000059605
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 3164.4000000059605
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 3168.5
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 3219.9000000059605
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 3686.600000023842,
+              "ms": 466.7000000178814
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 3689.5,
+              "ms": 521
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 3689.5,
+              "ms": 525.0999999940395
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 8165.800000011921,
+              "ms": 5117.9000000059605
+            }
+          ],
+          "warnings": [
+            {
+              "at": 8165.5,
+              "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5139.800000011921,
+      "faultSettledMs": 5003.300000011921,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 20,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 8669,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "webkit",
+      "id": "normal-1984-click",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:23.149Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:23.149Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:26.327Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:27.137Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3165,
+      "startupWallMs": 536,
+      "state": {
+        "at": 3347,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 9,
+        "audioState": "running",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 2844,
+          "overlayAddedAt": 2864,
+          "overlayRemovedAt": 3338,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 2844
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 2873
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 2878
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 2920
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 3331,
+              "ms": 411
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 3335,
+              "ms": 457
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 3335,
+              "ms": 462
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 3337,
+              "ms": 493
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 503,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 23,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "screenshot": "webkit-normal-1984-click.jpg",
+      "totalWallMs": 3988,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "webkit",
+      "id": "normal-1986-enter",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "none",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:27.334Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:27.335Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:30.468Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:31.231Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3120,
+      "startupWallMs": 493,
+      "state": {
+        "at": 3255,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 2764,
+          "overlayAddedAt": 2783,
+          "overlayRemovedAt": 3244,
+          "firstFaultAt": null,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 2764
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 2792
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 2796
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 2836
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 3237,
+              "ms": 401
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 3241,
+              "ms": 445
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 3241,
+              "ms": 449
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 3244,
+              "ms": 480
+            }
+          ],
+          "warnings": []
+        }
+      },
+      "readyAfterGestureMs": 491,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 19,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "screenshot": "webkit-normal-1986-enter.jpg",
+      "totalWallMs": 3896,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "webkit",
+      "id": "resume-stalled-1984",
+      "seed": "1984",
+      "trigger": "click",
+      "fault": "resume",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:31.434Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio playback is still suspended; continuing without waiting for sound."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:31.434Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:35.788Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:41.055Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 4341,
+      "startupWallMs": 5062,
+      "state": {
+        "at": 9058,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1984",
+        "mapHash": "62624244",
+        "simTime": 0,
+        "renderFrames": 9,
+        "audioState": "suspended",
+        "decodedSamples": 40,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 4023,
+          "overlayAddedAt": 4025,
+          "overlayRemovedAt": 9028,
+          "firstFaultAt": 4024,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 4023
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 4049
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 4054
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 4097
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 4516,
+              "ms": 419
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 4520,
+              "ms": 466
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 4520,
+              "ms": 471
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 9027,
+              "ms": 5004
+            }
+          ],
+          "warnings": [
+            {
+              "at": 9027,
+              "message": "Audio playback is still suspended; continuing without waiting for sound."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5035,
+      "faultSettledMs": 5003,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 21,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 9621,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    },
+    {
+      "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+      "engine": "webkit",
+      "id": "decode-stalled-1986",
+      "seed": "1986",
+      "trigger": "enter",
+      "fault": "decode",
+      "baseline": false,
+      "capturedAt": "2026-10-03T10:51:41.260Z",
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+      ],
+      "requestFailures": [],
+      "stages": [
+        {
+          "stage": "launching",
+          "at": "2026-10-03T10:51:41.260Z"
+        },
+        {
+          "stage": "starting-via-menu",
+          "at": "2026-10-03T10:51:44.746Z"
+        },
+        {
+          "stage": "finished",
+          "at": "2026-10-03T10:51:49.997Z"
+        }
+      ],
+      "limits": {
+        "externalWatchdogMs": 45000,
+        "startupTimeoutMs": 15000
+      },
+      "browserVersion": "26.5",
+      "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+      "bootMs": 3473,
+      "startupWallMs": 5045,
+      "state": {
+        "at": 8176,
+        "phase": "playing",
+        "preparing": false,
+        "inputPaused": false,
+        "overlay": false,
+        "seed": "1986",
+        "mapHash": "8f50b164",
+        "simTime": 0,
+        "renderFrames": 5,
+        "audioState": "running",
+        "decodedSamples": 39,
+        "debugApiAbsent": true,
+        "probe": {
+          "startedAt": 3122,
+          "overlayAddedAt": 3142,
+          "overlayRemovedAt": 8146,
+          "firstFaultAt": 3142,
+          "lateDecodeResolvedAt": null,
+          "resumeCalls": 1,
+          "decodeCalls": 40,
+          "patched": [
+            "AudioContext"
+          ],
+          "events": [
+            {
+              "name": "unlock",
+              "kind": "begin",
+              "at": 3122
+            },
+            {
+              "name": "startRun",
+              "kind": "begin",
+              "at": 3151
+            },
+            {
+              "name": "setRun",
+              "kind": "begin",
+              "at": 3155
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "begin",
+              "at": 3197
+            },
+            {
+              "name": "prefetchDynamicMeshes",
+              "kind": "end",
+              "at": 3599,
+              "ms": 402
+            },
+            {
+              "name": "setRun",
+              "kind": "end",
+              "at": 3602,
+              "ms": 447
+            },
+            {
+              "name": "startRun",
+              "kind": "end",
+              "at": 3603,
+              "ms": 452
+            },
+            {
+              "name": "unlock",
+              "kind": "end",
+              "at": 8145,
+              "ms": 5023
+            }
+          ],
+          "warnings": [
+            {
+              "at": 8144,
+              "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+            }
+          ]
+        }
+      },
+      "readyAfterGestureMs": 5054,
+      "faultSettledMs": 5003,
+      "progress": {
+        "simTime": 0.21666666666666665,
+        "renderFrames": 17,
+        "phase": "playing",
+        "inputPaused": false
+      },
+      "totalWallMs": 8737,
+      "process": {
+        "code": 0,
+        "signal": null,
+        "watchdog": false
+      }
+    }
+  ],
+  "limitations": [
+    "Normal rendering settings with browser-only bootstrap/prototype instrumentation; no game source changes.",
+    "Local browser/driver measurements, not a universal performance guarantee. The watchdog bounds each isolated case to 45 seconds."
+  ]
+}

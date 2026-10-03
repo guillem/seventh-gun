@@ -1,0 +1,130 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "engine": "webkit",
+  "id": "decode-stalled-1986",
+  "seed": "1986",
+  "trigger": "enter",
+  "fault": "decode",
+  "baseline": false,
+  "capturedAt": "2026-10-03T10:51:41.260Z",
+  "status": "passed",
+  "errors": [],
+  "warnings": [
+    "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+  ],
+  "requestFailures": [],
+  "stages": [
+    {
+      "stage": "launching",
+      "at": "2026-10-03T10:51:41.260Z"
+    },
+    {
+      "stage": "starting-via-menu",
+      "at": "2026-10-03T10:51:44.746Z"
+    },
+    {
+      "stage": "finished",
+      "at": "2026-10-03T10:51:49.997Z"
+    }
+  ],
+  "limits": {
+    "externalWatchdogMs": 45000,
+    "startupTimeoutMs": 15000
+  },
+  "browserVersion": "26.5",
+  "excludedPreviewToolbar": "https://deploy-preview-32--seventh-gun.netlify.app/.netlify/scripts/cdp",
+  "bootMs": 3473,
+  "startupWallMs": 5045,
+  "state": {
+    "at": 8176,
+    "phase": "playing",
+    "preparing": false,
+    "inputPaused": false,
+    "overlay": false,
+    "seed": "1986",
+    "mapHash": "8f50b164",
+    "simTime": 0,
+    "renderFrames": 5,
+    "audioState": "running",
+    "decodedSamples": 39,
+    "debugApiAbsent": true,
+    "probe": {
+      "startedAt": 3122,
+      "overlayAddedAt": 3142,
+      "overlayRemovedAt": 8146,
+      "firstFaultAt": 3142,
+      "lateDecodeResolvedAt": null,
+      "resumeCalls": 1,
+      "decodeCalls": 40,
+      "patched": [
+        "AudioContext"
+      ],
+      "events": [
+        {
+          "name": "unlock",
+          "kind": "begin",
+          "at": 3122
+        },
+        {
+          "name": "startRun",
+          "kind": "begin",
+          "at": 3151
+        },
+        {
+          "name": "setRun",
+          "kind": "begin",
+          "at": 3155
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "begin",
+          "at": 3197
+        },
+        {
+          "name": "prefetchDynamicMeshes",
+          "kind": "end",
+          "at": 3599,
+          "ms": 402
+        },
+        {
+          "name": "setRun",
+          "kind": "end",
+          "at": 3602,
+          "ms": 447
+        },
+        {
+          "name": "startRun",
+          "kind": "end",
+          "at": 3603,
+          "ms": 452
+        },
+        {
+          "name": "unlock",
+          "kind": "end",
+          "at": 8145,
+          "ms": 5023
+        }
+      ],
+      "warnings": [
+        {
+          "at": 8144,
+          "message": "Audio decoding is taking too long; unavailable recordings will use synthesized fallback."
+        }
+      ]
+    }
+  },
+  "readyAfterGestureMs": 5054,
+  "faultSettledMs": 5003,
+  "progress": {
+    "simTime": 0.21666666666666665,
+    "renderFrames": 17,
+    "phase": "playing",
+    "inputPaused": false
+  },
+  "totalWallMs": 8737,
+  "process": {
+    "code": 0,
+    "signal": null,
+    "watchdog": false
+  }
+}

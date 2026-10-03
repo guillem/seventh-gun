@@ -20,8 +20,12 @@ no retries. Ten normal-mode Chrome/WebKit startup checks pass, including both
 seeds, stalled resume/decode and late decode recovery. Baseline injected faults
 remain frozen after 15 seconds; fixed runs release at about five seconds.
 Map hashes remain `62624244` / `8f50b164`. Evidence and reproduction commands:
-`art/modern/startup/README.md`. Netlify verification is pending this push.
+`art/modern/startup/README.md`. Implementation `9af7a8e` is verified live at
+<https://deploy-preview-32--seventh-gun.netlify.app/>: JavaScript/CSS match the
+tested build byte-for-byte; all eight hosted Chrome/WebKit seed/audio checks
+pass, with unchanged hashes. Native Safari still needs user confirmation.
 Keep `codex/experimental-modern-art` and PR #32 draft; no production deployment.
+GitHub CI runs separately and was still in progress at verification.
 
 ## Rendering continuity — delivered 2026-10-03
 

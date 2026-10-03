@@ -1,0 +1,18 @@
+{
+  "runtimeCommit": "9af7a8e7f1d086fb7fb8c60c331a671468c328ee",
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app",
+  "assets": [
+    {
+      "path": "/assets/index-SIblqMSU.js",
+      "bytes": 1117959,
+      "sha256": "d90aefe551b749d92d3db6185b8149be9048684728eaaf31f9d41fe52ad9ebf1",
+      "matchesLocal": true
+    },
+    {
+      "path": "/assets/index-CiAH5ZR0.css",
+      "bytes": 9734,
+      "sha256": "b4ccf309576c4fe94b7294cd2f59a210e86c44fadaee3c8f7dfff97586a18ca0",
+      "matchesLocal": true
+    }
+  ]
+}
