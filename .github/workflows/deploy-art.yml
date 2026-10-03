@@ -3,7 +3,8 @@ name: Deploy art Worker
 # BRANCH-ONLY: this file exists only on codex/experimental-modern-art, which is
 # never merged. GitHub runs push workflows from the pushed commit, so main never
 # sees it. It deploys the separate `seventh-gun-art` Worker (art.seventhgun.com,
-# its own Durable Object arena) after the same suite production is gated on.
+# its own Durable Object arena) after typecheck, unit tests and the full E2E
+# suite (six shards on Mesa llvmpipe) all pass.
 # Production `seventh-gun` is deployed only by deploy.yml from main.
 on:
   push:
@@ -17,9 +18,46 @@ concurrency:
 
 jobs:
   test:
-    name: typecheck + tests
+    name: typecheck + unit tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Shards are filtered after discovery, so a config mistake that finds few
+      # or no tests would leave every shard green. (--list runs no browser.)
+      - name: E2E inventory
+        run: |
+          count=$(npx playwright test --list | grep -c ' › ')
+          echo "$count E2E tests listed"
+          test "$count" -ge 100
+
+  # The whole suite, split across runners. Each shard builds and serves its own
+  # local Worker preview, so the arena specs never share a room across shards.
+  # Playwright splits by spec file and project: six shards put desktop and
+  # mobile {arena*, campaign}, {editor, game} and {modern-art} on one runner
+  # each, about three minutes of tests at most. Runners vary 2-3x in speed.
+  e2e:
+    name: e2e (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
 
@@ -33,20 +71,28 @@ jobs:
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Typecheck
-        run: npm run typecheck
+      # Runners have no GPU. Chromium's built-in SwiftShader cannot render this
+      # branch fast enough (the suite never finished on it); Mesa's llvmpipe
+      # can. tests/helpers/softwareGl.ts explains E2E_GL, and the suite refuses
+      # to start if the browser does not actually report llvmpipe.
+      - name: Install Mesa software rasterizer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libegl-mesa0 libgl1-mesa-dri
 
-      - name: Unit tests
-        run: npm run test:unit
-
+      # playwright.config.ts ends a slow run itself after 17 minutes so its
+      # failure report is printed; this limit and the job's are backstops.
       - name: E2E tests
-        run: npm run test:e2e
+        timeout-minutes: 20
+        env:
+          E2E_GL: llvmpipe
+        run: npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/
@@ -55,7 +101,7 @@ jobs:
 
   deploy:
     name: deploy art worker
-    needs: test
+    needs: [test, e2e]
     if: github.ref == 'refs/heads/codex/experimental-modern-art'
     runs-on: ubuntu-latest
     timeout-minutes: 15
