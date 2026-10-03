@@ -1,6 +1,6 @@
 # STATUS
 
-## Full roster and campaign art pass — local validation complete 2026-10-03
+## Full roster and campaign art pass — delivered 2026-10-03
 
 Implemented on `codex/experimental-modern-art`, draft PR #32: seven animated
 weapons/fitted hands, six skinned enemy species, saved pickups/arena marine,
@@ -21,8 +21,26 @@ These are selected views on a desktop GPU, not traversal/phone/headroom guarante
 Physical phones and Safari remain untested. The full browser suite passed 105
 checks with 13 intentional skips; two obsolete rigid-body corpse assertions were
 updated to inspect actual skeletal death/reset poses and both fresh reruns pass.
-This verifies 107 browser checks across the full run and focused rerun. Netlify
-verification is pending. Source simulation/network/server files are unchanged.
+This verifies 107 browser checks across the full run and focused rerun. Source
+simulation/network/server files and authored map data are unchanged.
+
+Netlify implementation `4cb3253` is verified at
+<https://deploy-preview-32--seventh-gun.netlify.app/>. All 84 runtime assets match
+local byte counts and SHA-256 checksums. Hosted desktop/touch review captures
+all 27 views, loads all 84 assets per device, confirms all six species and matches
+all seven local map hashes (Foundry `ee306bc5`). No game errors or missing assets.
+Four hosted normal hardware/control scenarios also pass at approximately 60 fps,
+p95 16.7–16.8 ms. Blocked Netlify toolbar telemetry is recorded separately; the
+visual harness waits for actual game readiness rather than network idleness.
+Evidence is in `art/modern/roster/hosted/`; aggregate local results are in
+`art/modern/roster/validation.json`. Later commits only record evidence and improve
+verification scripts. Remote main remains `8bf93b3`; PR #32 remains draft.
+GitHub-hosted CI runs independently and was still in progress at this handoff.
+
+Next: user review of the complete playable art pass. Further art-direction changes
+should follow that feedback; this remains a modular game and does not reach the
+photorealism of its generated menu illustration. Only the Foundry opening has
+baked indirect lighting. Physical-device/Safari checks remain useful future QA.
 
 Keep the branch experimental and PR #32 draft. No merge, tag or production deploy.
 The milestone entries below preserve earlier stages of the same experiment.

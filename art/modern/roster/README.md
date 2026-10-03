@@ -60,9 +60,16 @@ Safari are not verified by desktop Chrome emulation.
   first combat-room controls and frame measurements on Apple M5 Pro.
 - `campaign-performance/report.json`: fourteen normal-mode campaign entry views,
   selected through real menus with observed HUD identity and no debug API.
+- `hosted/`: deployed asset checksums, normal control/performance measurements,
+  and the same 27-view visual review captured from Netlify.
+- `validation.json`: aggregate local unit/build/browser results, including the
+  two outdated corpse assertions repaired and rerun after the full suite.
 - `../../../docs/STATUS.md`: final aggregate validation and preview status.
 
 Local hardware measurements hold approximately 60 fps across all four general
 scenarios and fourteen campaign entry views, p95 16.7–16.8 ms, with no game errors.
 These measure frame cadence at selected
 views; they are not a guarantee of every scene, GPU headroom or phone performance.
+Hosted implementation `4cb3253` matches all 84 asset checksums, all seven map hashes
+and all six species identities, with no game errors or missing assets. Recheck
+the deployed bytes with `python3 tools/modern-art/verify_hosted.py report.json`.

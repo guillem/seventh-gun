@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-03",
+  "branch": "codex/experimental-modern-art",
+  "implementationCommit": "4cb3253753f16bda08c92ba9a87e147c0c8779f4",
+  "node": "24.21.0",
+  "units": { "filesPassed": 46, "testsPassed": 384, "durationSeconds": 3.77 },
+  "typecheck": { "projects": 3, "passed": true },
+  "productionBuild": { "passed": true, "deployedProduction": false },
+  "browser": {
+    "projects": ["desktop", "mobile"],
+    "fullRun": { "passed": 105, "failed": 2, "intentionalSkips": 13, "durationMinutes": 13 },
+    "repair": "The old corpse test expected whole-group rotation. Saved skinned models fall through their root-bone animation. The updated assertion checks the completed death action, actual root-bone tilt, then neutral bones after replay. Gameplay behavior was unchanged by this test repair.",
+    "focusedRerun": { "passed": 2, "failed": 0, "durationSeconds": 16.9 },
+    "applicableChecksVerified": 107
+  },
+  "visualReview": { "captures": 27, "report": "review/report.json" },
+  "normalHardwareProfile": { "scenarios": 4, "report": "performance/report.json" },
+  "normalCampaignProfile": { "scenarios": 14, "report": "campaign-performance/report.json" },
+  "hostedAssets": { "report": "hosted/assets.json", "matched": 84, "failed": 0 },
+  "hostedNormalProfile": { "scenarios": 4, "report": "hosted/performance/report.json" },
+  "hostedVisualReview": { "captures": 27, "resourcesPerDevice": 84, "allMapHashesMatch": true, "report": "hosted/review/report.json" },
+  "limitations": [
+    "Browser functional checks use Chromium; mobile is touch emulation on the desktop GPU.",
+    "Hardware frame measurements use installed Chrome on Apple M5 Pro and selected views; they do not establish GPU headroom or worst-case traversal/combat performance.",
+    "Physical phones and Safari remain untested.",
+    "GitHub-hosted CI runs separately from these local checks.",
+    "Blocked telemetry from Netlify's injected preview toolbar is recorded separately from game errors."
+  ]
+}

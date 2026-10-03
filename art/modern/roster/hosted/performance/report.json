@@ -1,0 +1,157 @@
+{
+  "base": "https://deploy-preview-32--seventh-gun.netlify.app/",
+  "mode": "default-four-scenarios",
+  "browserChannel": "chrome",
+  "capturedAt": "2026-10-03T06:37:28.575Z",
+  "limitations": [
+    "Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.",
+    "Frame timing is requestAnimationFrame cadence and can be capped by display refresh; it does not measure remaining GPU headroom.",
+    "Local startup timing does not represent an uncached public network download."
+  ],
+  "scenarios": [
+    {
+      "name": "desktop",
+      "startupMs": 2747,
+      "frames": 180,
+      "fps": 60.0020000666689,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.700000000000728,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 810,
+      "trianglesPerFrame": 581451,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "desktop-retina",
+      "startupMs": 6989,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.69999999999891,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.80000000000109,
+      "drawsPerFrame": 810,
+      "trianglesPerFrame": 581451,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        2560,
+        1600
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "mobile",
+      "startupMs": 2798,
+      "frames": 180,
+      "fps": 60.00200006666888,
+      "p50ms": 16.699999999999818,
+      "p95ms": 16.799999999999727,
+      "maxMs": 16.800000000000182,
+      "drawsPerFrame": 385,
+      "trianglesPerFrame": 286616,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        780,
+        1688
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "combat",
+      "startupMs": 1886,
+      "frames": 180,
+      "fps": 60.00400026668446,
+      "p50ms": 16.69999999999891,
+      "p95ms": 16.799999999999272,
+      "maxMs": 16.80000000000109,
+      "drawsPerFrame": 841,
+      "trianglesPerFrame": 897229,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+      "renderSize": [
+        1280,
+        800
+      ],
+      "menuExitPassed": true,
+      "errors": [],
+      "previewTelemetryErrors": [
+        {
+          "url": "https://cdn.segment.com/analytics.js/v1/PzoD1qlC1wpvDGhNckresPQM3zcX8I1s/analytics.min.js",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "https://sessions.bugsnag.com/",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    }
+  ]
+}

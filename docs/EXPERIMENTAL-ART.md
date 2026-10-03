@@ -210,8 +210,8 @@ not generated concept imagery.
 All simulation/network/server code remains unchanged. GPU resource ownership
 now includes cloned skeleton textures and animation mixers; animated parts use
 outer-rig culling so a cached rest-pose sphere cannot hide moving limbs. Local
-unit suite: 383 passed. Three TypeScript projects and production build pass.
-Normal Chrome on Apple M5 Pro measures approximately 60 fps across the initial
-four standard views, p95 16.7–16.8 ms. Final browser/hosted results are maintained
+unit suite: 384 passed. Three TypeScript projects and production build pass.
+Normal Chrome on Apple M5 Pro measures approximately 60 fps across four standard
+views and fourteen campaign entry views, p95 16.7–16.8 ms. Final browser/hosted results are maintained
 in STATUS.md. This remains a stylized original game with rectangular layouts and
 reused modules, rather than photorealistic parity with the menu illustration.

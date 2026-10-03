@@ -67,15 +67,25 @@ try {
   ]) {
     const context = await browser.newContext({ viewport: { width: device.width, height: device.height }, deviceScaleFactor: 1, isMobile: device.touch, hasTouch: device.touch });
     const page = await context.newPage();
-    const record = { ...device, errors: [], assetMisses: [], captures: [], startupMs: 0, gpu: null, resources: [] };
+    const record = { ...device, errors: [], previewTelemetryErrors: [], assetMisses: [], captures: [], startupMs: 0, gpu: null, resources: [] };
     report.devices.push(record);
     page.on('pageerror', error => record.errors.push({ type: 'pageerror', message: error.message }));
-    page.on('console', message => { if (message.type() === 'error') record.errors.push({ type: 'console', message: message.text(), location: message.location().url }); });
+    page.on('console', message => {
+      if (message.type() !== 'error') return;
+      const location = message.location().url;
+      const entry = { type: 'console', message: message.text(), location };
+      // Netlify's injected toolbar telemetry is separate from game failures.
+      if (/^https:\/\/(cdn\.segment\.com|sessions\.bugsnag\.com)\//.test(location)
+        && message.text().startsWith('Failed to load resource:')) record.previewTelemetryErrors.push(entry);
+      else record.errors.push(entry);
+    });
     page.on('response', response => { if (response.status() >= 400 && response.url().includes('/modern/')) record.assetMisses.push({ url: response.url(), status: response.status() }); });
     page.on('requestfailed', request => { if (request.url().includes('/modern/')) record.assetMisses.push({ url: request.url(), failure: request.failure()?.errorText }); });
     await page.addInitScript(() => { HTMLCanvasElement.prototype.requestPointerLock = () => Promise.resolve(); });
     const start = Date.now();
-    await page.goto(`${base}/?e2e=1`, { waitUntil: 'networkidle', timeout: 60_000 });
+    // Hosted preview toolbars can keep telemetry requests alive indefinitely;
+    // the real game/debug API and enabled play button establish readiness.
+    await page.goto(`${base}/?e2e=1`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
     await page.waitForFunction(() => !!window.__GAME__, null, { timeout: 60_000 });
     record.startupMs = Date.now() - start;
     record.gpu = await page.evaluate(() => {
@@ -108,6 +118,7 @@ try {
       .filter(entry => entry.name.includes('/modern/'))
       .map(entry => ({ url: new URL(entry.name).pathname, bytes: entry.decodedBodySize, durationMs: Math.round(entry.duration) })));
     await context.close();
+    if (record.errors.length || record.assetMisses.length) throw new Error(`${device.name} has game errors or missing assets; see report.json`);
   }
 } catch (error) {
   report.failure = error.stack ?? error.message;
