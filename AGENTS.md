@@ -62,8 +62,11 @@ debug API. Arena: `joinArena`, `leaveArena`, `arena()`.
 
 Three targets, one client build.
 
-- **Cloudflare Workers is production** (`wrangler.jsonc`, Worker name `seventh-gun`).
+- **Cloudflare Workers is production** (`wrangler.jsonc`, Worker name `seventh-gun`),
+  served at <https://seventhgun.com> and `seventh-gun.default-428.workers.dev`.
   Never add a Cloudflare payment method. `run_worker_first` is only `/arena` and `/health`.
+  The domain is attached in the Cloudflare dashboard, **not** in `wrangler.jsonc`; do
+  not add `routes` there (see DECISIONS.md, "Custom domain").
 - **Netlify** stays a static mirror: `publish = dist/client`. Arena is offline there
   unless `VITE_ARENA_WS_URL` / `ALLOWED_ORIGINS` point at the Worker.
 - **Portable Node** (`server/node/main.ts` -> `bin/seventh-gun.mjs`) is what ships to

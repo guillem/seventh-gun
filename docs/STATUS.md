@@ -5,6 +5,27 @@ first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
 integration and rollout gates. A local passing build is not a publication.
 
+## seventhgun.com — 2026-10-03
+
+The user registered `seventhgun.com` (DirectNIC) and moved its DNS to Cloudflare
+on the free plan, no payment method. The apex is a Workers Custom Domain on the
+production `seventh-gun` Worker, attached in the dashboard; `www` is a proxied
+`AAAA 100::` placeholder plus a Redirect Rule (301 to the apex, path and query
+kept). Assets, arena welcome and advancing snapshots passed
+`scripts/smoke-deployment.mjs` on <https://seventhgun.com>.
+`art.seventhgun.com` belongs to the separate `seventh-gun-art` Worker, deployed
+only from the never-merged `codex/experimental-modern-art` branch.
+
+Local unit runs on Node 26 fail `secrets.test.ts` "campaign lights+decors hash";
+Node 22/24 (CI) pass. `src/sim/cosmetics.ts` and `src/sim/mapgen.ts` shuffle wall
+decor directions with `sort(() => rng.float() - 0.5)`, whose order is engine
+dependent (same comparator calls, different order on Node 24 vs 26). Campaign,
+blueprint and arena maps keep cosmetics on their own or final RNG use, so only
+wall decors differ there; random mazes share `rng` with the later vault key-room
+pick, so the key's room can differ by engine. The fix (seeded Fisher-Yates)
+changes generated maps and needs a `GEN_VERSION` decision; until then run unit
+tests on Node 22/24.
+
 ## Product
 
 Seeded mazes, seven authored campaign maps, an editor, 15 campaign secrets,
@@ -13,7 +34,8 @@ Maze `GEN_VERSION` remains 4; `ARENA_GEN_VERSION` remains 1. Repairs preserve
 authored layouts and the accepted retro art direction. Arena contains remote
 players, not AI monsters.
 
-Cloudflare Workers is production at
+Cloudflare Workers is production at <https://seventhgun.com>
+(`www.seventhgun.com` 301-redirects there) and at
 <https://seventh-gun.default-428.workers.dev>. A Durable Object owns the
 shared arena. Netlify is a static mirror at
 <https://seventh-gun.netlify.app>; arena is offline there unless explicitly
