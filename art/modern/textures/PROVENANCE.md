@@ -56,6 +56,10 @@ logos, no watermark. Original architecture, not from an existing game.
 
 ## Synthetic dermal surface
 
+Retired 2026-10-04: `dermal.webp` only textured the first-slice pistol hands and
+husk, and was removed from `public/modern/textures/` with them. The source PNG
+remains here.
+
 Source: `dermal-source.png`. Runtime: `dermal.webp`, 1024 square, quality 88.
 Applied to the husk's tissue and the pistol's gloves/sleeves with material tinting.
 

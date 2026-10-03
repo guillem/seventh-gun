@@ -1,3 +1,5 @@
+// RETIRED with the first-slice models (art/modern/models.md); it needs their
+// GLBs, which are no longer in public/modern/models/.
 // Validate the actual exported resources and document integration coordinates.
 // This uses the same Three.js GLTFLoader as the client, without a browser.
 import { readFile, writeFile } from 'node:fs/promises';

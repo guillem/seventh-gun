@@ -1,4 +1,7 @@
-"""Offline MR-7 art authoring. Run with Blender --background --factory-startup.
+"""RETIRED first-slice pistol/husk/architecture authoring (see art/modern/models.md):
+the game no longer loads these GLBs. Kept to reproduce the first milestone.
+
+Offline MR-7 art authoring. Run with Blender --background --factory-startup.
 
 All input positions use the game's right-handed X/Y-up/Z coordinates. Blender's
 glTF exporter restores those coordinates exactly. This script is never shipped

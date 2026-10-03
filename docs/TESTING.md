@@ -102,12 +102,13 @@
   `audio.test.ts` (sample playback for every gun/creature/cue, checksums,
   arena voice admission, one ambient loop), `softwareGl.test.ts` (`E2E_GL`
   selection).
-- Saved art (this branch): `modernAssets.test.ts`, `weaponRoster.test.ts`,
-  `enemyRoster.test.ts`, `supportRoster.test.ts`, `creatureMaterials.test.ts`
-  check the GLB contracts (muzzles, clips, hit volumes, clone isolation, no
+- Saved art (this branch): `modernAssets.test.ts` (model clones never dispose
+  shared resources); `weaponRoster.test.ts`, `enemyRoster.test.ts`,
+  `supportRoster.test.ts`, `creatureMaterials.test.ts` check the GLB contracts (muzzles, clips, hit volumes, clone isolation, no
   blank equip frames, no coplanar parts); `foundry.test.ts`,
-  `foundryLighting.test.ts`, `modernLighting.test.ts`, `modernWorld.test.ts`,
-  `campaignEnvironment.test.ts` and `contactOcclusion.test.ts` check the
+  `foundryLighting.test.ts`, `modernLighting.test.ts`, `modernWorld.test.ts`
+  (kit modules keep their authored transform at every wall facing, chunked
+  batches), `campaignEnvironment.test.ts` and `contactOcclusion.test.ts` check the
   environment (no doorway overlaps, unchanged 370-cell floor, stationary
   fixtures, modules outside the combat volume, contact-depth exclusions).
 

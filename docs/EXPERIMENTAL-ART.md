@@ -85,6 +85,10 @@ above; never connect this experiment to the production arena.
 
 ## First slice implementation
 
+(The first-slice pistol, husk and architecture GLBs and the dermal texture
+were retired on 2026-10-04 after the roster pack replaced them; the runtime
+pack is now 92 files / 28,255,528 bytes. See `art/modern/models.md`.)
+
 - Four saved base-color textures: concrete, steel, synthetic dermal surface and
   titanium. The menu uses a fifth generated concept image, labelled as concept
   art in its provenance rather than represented as a gameplay screenshot.

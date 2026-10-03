@@ -114,7 +114,6 @@ test.describe('modern art bootstrap', () => {
     await expect(page.getByRole('button', { name: 'PLAY THE FOUNDRY' })).toBeVisible();
     expect([...loaded]).toEqual(expect.arrayContaining(Object.values(MODERN_ASSET_URLS)));
     expect([...loaded]).toEqual(expect.arrayContaining([
-      '/modern/models/pistol.glb', '/modern/models/husk.glb', '/modern/models/architecture.glb',
       '/modern/textures/concrete.webp', '/modern/textures/steel.webp',
       '/modern/foundry/environment.glb', '/modern/foundry/irradiance.webp',
       '/modern/foundry/entrance-door.webp', '/modern/foundry/entrance-floor.webp', '/modern/foundry/door-hardware.glb',
@@ -124,6 +123,11 @@ test.describe('modern art bootstrap', () => {
       '/modern/audio/door-open.mp3', '/modern/audio/metal-impact.mp3',
       '/modern/audio/husk-alert.mp3', '/modern/audio/husk-pain.mp3', '/modern/audio/industrial-ambient.mp3',
     ]));
+    // First-slice models and the dermal texture were superseded by the roster
+    // pack; the boot gate must not download them.
+    for (const retired of ['/modern/models/', '/modern/textures/dermal.webp']) {
+      expect([...loaded].filter(path => path.startsWith(retired))).toEqual([]);
+    }
     await page.getByRole('button', { name: 'PLAY THE FOUNDRY' }).click();
     await page.waitForFunction(() => {
       const game = (window as unknown as { __GAME__: GameApi }).__GAME__;
@@ -238,7 +242,7 @@ test.describe('modern art bootstrap', () => {
     expect(await page.evaluate(() => (window as unknown as { __audioProbe: AudioProbe }).__audioProbe.decoded)).toBe(MODERN_SAMPLE_IDS.length);
   });
 
-  for (const path of ['models/pistol.glb', 'audio/pistol-a.mp3', 'foundry/irradiance.webp', 'roster/enemies/husk.glb', 'roster/effects/flash.webp']) {
+  for (const path of ['roster/weapons/1.glb', 'audio/pistol-a.mp3', 'foundry/irradiance.webp', 'roster/enemies/husk.glb', 'roster/effects/flash.webp']) {
     test(`a failed ${path} exposes retry before gameplay and recovers`, async ({ page }) => {
       const pattern = `**/modern/${path}`;
       await page.route(pattern, route => route.fulfill({ status: 503, body: 'Temporarily unavailable' }));

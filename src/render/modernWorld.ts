@@ -1,10 +1,8 @@
-// Place saved Blender architecture against existing collision walls.
+// Instance saved Blender architecture modules against existing collision walls.
 // Instancing keeps repeated fixtures inexpensive; no simulation data changes.
 import * as THREE from 'three';
 import { CELL } from '../sim/types';
-import type { GameMap } from '../sim/types';
 import { applyRadialFog } from './radialFog';
-import { foundryCell } from './foundry';
 
 export type ArchitecturePlacement = { x: number; y: number; z: number; yaw: number; color?: THREE.Color };
 type Placement = ArchitecturePlacement;
@@ -63,28 +61,4 @@ export function instanceArchitecturePart(
       parent.add(instanced);
     }
   });
-}
-
-export function addModernArchitecture(parent: THREE.Group, map: GameMap, source: THREE.Group): void {
-  const ribs: Placement[] = [];
-  const pipes: Placement[] = [];
-  const fixtures: Placement[] = [];
-  const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
-  for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
-    if (!walkable(x, z)) continue;
-    if (foundryCell(map, x, z)) continue;
-    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      if (walkable(x + dx, z + dz)) continue;
-      // Parts face +Z into the room; their backs lie on the collision wall.
-      const yaw = Math.atan2(-dx, -dz);
-      const px = (x + 0.5) * CELL + dx * (CELL * 0.5 - 0.02);
-      const pz = (z + 0.5) * CELL + dz * (CELL * 0.5 - 0.02);
-      if ((x + z) % 3 === 0) ribs.push({ x: px, y: 0, z: pz, yaw });
-      if ((x + z) % 4 === 1) fixtures.push({ x: px, y: 3.15, z: pz, yaw });
-      if ((x + z) % 2 === 0) pipes.push({ x: px, y: 3.65, z: pz, yaw });
-    }
-  }
-  instanceArchitecturePart(parent, source, 'wall_rib', ribs);
-  instanceArchitecturePart(parent, source, 'wall_fixture', fixtures);
-  instanceArchitecturePart(parent, source, 'pipe_run', pipes);
 }

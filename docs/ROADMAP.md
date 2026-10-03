@@ -119,9 +119,5 @@ Art experiment (this branch):
 - Only the Foundry opening has a baked lightmap; the other six maps use
   real-time lighting. Fixed practical lights are unshadowed and can bleed.
 - Licensing and credit for the generated images and Runway audio.
-- Boot payload: `preloadModernAssets()` still downloads the first-slice
-  `models/pistol.glb`, `models/husk.glb`, `models/architecture.glb` and
-  `textures/dermal.webp` (about 3.4 MB) although the roster assets replaced
-  them in play; only a material-patching loop and unit tests read them.
 - When the experiment ends: `npx wrangler delete --name seventh-gun-art`, then
   check whether an `art` DNS record remains in the zone.

@@ -1,6 +1,6 @@
 {
-  "fileCount": 96,
-  "bytes": 31636814,
+  "fileCount": 92,
+  "bytes": 28255528,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -249,21 +249,6 @@
       "sha256": "3cd017fce4a88cf6976dd0cb62a3c8574c10b42ceb9d2aaaf765e3478efebe4b"
     },
     {
-      "path": "modern/models/architecture.glb",
-      "bytes": 306548,
-      "sha256": "d744ca69203412a4804c3991662e9e4fee26b5a02f4c985851fce3469a38d92e"
-    },
-    {
-      "path": "modern/models/husk.glb",
-      "bytes": 1292988,
-      "sha256": "77ade2424c7c0934cfb54940306a829eacf9606e685756524db627581f680d3b"
-    },
-    {
-      "path": "modern/models/pistol.glb",
-      "bytes": 1433332,
-      "sha256": "125b28879fa202cf51f8aa816687687829d0af0a2ed0e2caf21521d98939fd2f"
-    },
-    {
       "path": "modern/refinement/materials/bone-normal.webp",
       "bytes": 150844,
       "sha256": "fec69b252eb799b228245bb6dd11f6134599686ede480ffd25ef79add70972a8"
@@ -462,11 +447,6 @@
       "path": "modern/textures/concrete.webp",
       "bytes": 316810,
       "sha256": "83d7b8fc4cde1f70588b38dd4f8f209f2c93630ba218b0fc9f48f7d6af5cff36"
-    },
-    {
-      "path": "modern/textures/dermal.webp",
-      "bytes": 348418,
-      "sha256": "5d82ae7d569d0c1eee18bbb1f594f45b1ca6db1bcdb5156b2ef9cfe3d4a9ee4d"
     },
     {
       "path": "modern/textures/foundry-concept.webp",

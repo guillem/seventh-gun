@@ -19,11 +19,12 @@ URL). Where they disagree with this block, this block wins.
   auto-deployed by `deploy-art.yml` on every push to this branch) and the
   Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
 - **CI** is green on this branch since run 37143784123 (`ea51a0c`): typecheck,
-  456 unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
+  unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
 - **Art scope delivered:** all seven weapons, six species, support props, 28
   environment modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes. Simulation, maps, balance, network
-  and `GEN_VERSION` are unchanged from `main`.
+  and `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
+  28,255,528 bytes before compression.
 
 ### Waiting on the user
 
@@ -40,6 +41,27 @@ URL). Where they disagree with this block, this block wins.
   [TESTING](TESTING.md#release-smoke-checks). Independent of this branch.
 
 The consolidated backlog is in [ROADMAP](ROADMAP.md#backlog).
+
+## Retired first-slice boot assets — 2026-10-04
+
+`preloadModernAssets()` no longer downloads `models/pistol.glb`,
+`models/husk.glb`, `models/architecture.glb` or `textures/dermal.webp`
+(3,381,286 bytes). The roster pack had replaced them in play; only a
+material-patching loop and three unit tests still read them. The files are
+removed from `public/modern/`, so they no longer ship either. The pack is now
+92 files / 28,255,528 bytes (`art/modern/roster/runtime-manifest.json`), pack
+version `refinement-02`. `.blend` sources and provenance stay under `art/modern/`;
+`art/modern/models.md` records the retirement.
+
+`addModernArchitecture` (test-only, used the retired architecture GLB) is gone.
+Its orientation and chunking test now runs `instanceArchitecturePart`, which the
+campaign environment uses, against the live kit modules. The E2E boot test
+asserts the retired paths are never requested, and the failed-asset retry test
+uses `roster/weapons/1.glb` in place of the old pistol.
+
+Local: typecheck, 454 unit tests on Node 24, production build, and the full
+desktop/mobile Playwright suite in hardware Chrome (113 passed, 13 intentional
+skips). No visual change is expected: nothing visible used these files.
 
 ## CI E2E on software GL — fixed 2026-10-03
 

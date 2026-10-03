@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { bindCreatureSurface, type CreatureSurfaces } from './creatureMaterials';
 
-export const MODERN_ASSET_VERSION = 'refinement-01';
+export const MODERN_ASSET_VERSION = 'refinement-02';
 export const MODERN_ASSET_URLS = {
   creatureSkin: '/modern/refinement/materials/skin.webp',
   creatureSkinNormal: '/modern/refinement/materials/skin-normal.webp',
@@ -49,11 +49,7 @@ export const MODERN_ASSET_URLS = {
   enemy_fiend: '/modern/roster/enemies/fiend.glb',
   concrete: '/modern/textures/concrete.webp',
   steel: '/modern/textures/steel.webp',
-  skin: '/modern/textures/dermal.webp',
   titanium: '/modern/textures/titanium.webp',
-  pistol: '/modern/models/pistol.glb',
-  husk: '/modern/models/husk.glb',
-  architecture: '/modern/models/architecture.glb',
   foundry: '/modern/foundry/environment.glb',
   entranceDoor: '/modern/foundry/entrance-door.webp',
   entranceFloor: '/modern/foundry/entrance-floor.webp',
@@ -83,11 +79,7 @@ export interface ModernAssets {
   sky: THREE.Texture;
   concrete: THREE.Texture;
   steel: THREE.Texture;
-  skin: THREE.Texture;
   titanium: THREE.Texture;
-  pistol: THREE.Group;
-  husk: THREE.Group;
-  architecture: THREE.Group;
   foundry: THREE.Group;
   entranceDoor: THREE.Texture;
   entranceFloor: THREE.Texture;
@@ -150,8 +142,7 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
     const enemyModels = Object.fromEntries(['husk', 'crawler', 'slab', 'wisp', 'hierophant', 'fiend']
       .map(type => [type, model(`enemy_${type}`)]));
     assets = {
-      concrete: texture('concrete'), steel: texture('steel'), skin: texture('skin'), titanium: texture('titanium'),
-      pistol: model('pistol'), husk: model('husk'), architecture: model('architecture'), foundry: model('foundry'),
+      concrete: texture('concrete'), steel: texture('steel'), titanium: texture('titanium'), foundry: model('foundry'),
       irradiance: texture('irradiance'), concreteNormal: texture('concreteNormal'),
       concreteRoughness: texture('concreteRoughness'), steelNormal: texture('steelNormal'),
       steelRoughness: texture('steelRoughness'), entranceDoor: texture('entranceDoor'),
@@ -198,7 +189,7 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       texture.colorSpace = THREE.NoColorSpace;
       texture.flipY = false;
     }
-    assets.skin.flipY = assets.titanium.flipY = false;
+    assets.titanium.flipY = false;
     assets.entranceFloor.flipY = false;
     assets.entranceDoor.wrapS = assets.entranceDoor.wrapT = THREE.ClampToEdgeWrapping;
     assets.irradiance.flipY = false;
@@ -246,29 +237,6 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
           material.normalScale.setScalar(0.12);
           material.roughnessMap = assets!.steelRoughness;
         }
-      }
-    });
-    // Bind saved generated images to named, UV-mapped Blender materials once.
-    // Texture data is shared by all instances; the authored GLBs stay compact.
-    const configured = new Set<THREE.Material>();
-    for (const root of [assets.pistol, assets.husk, assets.architecture]) root.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
-      for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
-        if (!(material instanceof THREE.MeshStandardMaterial) || configured.has(material)) continue;
-        configured.add(material);
-        const name = material.name.toLowerCase();
-        if (/tissue|tendon/.test(name)) {
-          material.map = assets!.skin;
-          material.color.set(0xb7c3b8);
-          material.roughness = 0.88;
-        } else if (/glove leather|polymer|sleeve/.test(name)) {
-          material.map = assets!.skin;
-          material.color.set(/sleeve/.test(name) ? 0x9ea892 : 0xa3afaa);
-        } else if (/titanium|surgical metal|ivory composite|exposed nickel|painted steel|brushed/.test(name)) {
-          material.map = assets!.titanium;
-          material.color.set(/ivory/.test(name) ? 0xd8cfb8 : 0xc4ccd0);
-        }
-        material.needsUpdate = true;
       }
     });
   })().catch(error => { loading = null; throw error; });

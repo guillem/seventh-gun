@@ -1,5 +1,12 @@
 # First experimental model pack
 
+> **Retired 2026-10-04.** The roster pack (`art/modern/roster/`) replaced these
+> models in play, so the runtime GLBs and the dermal texture were removed from
+> `public/modern/` (3,381,286 bytes no longer downloaded at boot). The `.blend`
+> sources, renders and inspection data below remain as the first milestone's
+> record. `tools/modern-art/build_assets.py` would write the GLBs back into
+> `public/modern/models/`; nothing loads them there.
+
 Original models authored locally for Seventh Gun with Blender 5.2.2 LTS. No
 downloaded meshes or third-party assets. These are the editable sources and CPU
 inspection renders for the first experimental art milestone, not a release pack.

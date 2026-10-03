@@ -5,8 +5,9 @@ The seven editable `.blend` files retain their object hierarchy, UVs, material
 assignments and three NLA actions. `tools/modern-art/build_weapons.py` is the
 reproducible offline authoring source; nothing in it runs in the browser.
 
-The original `art/modern/pistol.blend` and `public/modern/models/pistol.glb` are
-preserved as first-milestone comparison assets. This roster replaces that pistol
+The original `art/modern/pistol.blend` is preserved as a first-milestone
+comparison source (its runtime GLB was removed on 2026-10-04; see
+`art/modern/models.md`). This roster replaces that pistol
 with a more compact tapered slide, redesigned grip and new hand anatomy, and
 replaces the other six runtime-built weapon meshes with saved Blender models.
 
