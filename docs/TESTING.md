@@ -2,6 +2,10 @@
 
 ## Unit (vitest, `npm test`)
 
+Run the unit suite on Node 22 or 24, as CI does. On Node 26 the campaign
+lights+decors hash in `tests/unit/secrets.test.ts` fails because wall decor
+placement shuffles with an engine-dependent `sort` (see STATUS.md).
+
 - `tests/unit/mapgen.test.ts` — 300-seed sweep: connectivity, guns ordered
   along the route, nothing essential behind the key door, key-before-lock,
   safe spawn (distance + no LOS + nothing wakes in 2s), door counts,

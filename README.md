@@ -9,6 +9,9 @@ optional arena runs on Cloudflare Workers or the portable Node server.
 
 ## Play
 
+Play at <https://seventhgun.com>. Campaign, random mazes, the editor and the
+multiplayer arena all run there.
+
 Find seven guns scattered along a twisted maze of industrial halls, organic
 gullets and open courtyards under an alien sky. Each gun changes how you
 fight. The Seventh — a void-cannon that erases whole packs — shatters the

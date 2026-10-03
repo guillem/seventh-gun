@@ -87,6 +87,15 @@ Unspecified things got decided; this is the record.
 - **Netlify**: static mirror, publish `dist/client`. Arena button shows
   offline unless pointed at Cloudflare via `ALLOWED_ORIGINS` /
   `VITE_ARENA_WS_URL`.
+- **Custom domain in the dashboard, not `wrangler.jsonc`.** `seventhgun.com` is
+  a Workers Custom Domain attached to `seventh-gun` in the Cloudflare dashboard.
+  A `routes` entry in `wrangler.jsonc` would break the README's
+  deploy-to-your-own-account path (nobody else owns the zone); once `routes`
+  exist wrangler turns `workers_dev` off unless it is set explicitly, which
+  would break CI's smoke URL; and non-interactive wrangler (CI) takes a domain
+  over from another Worker and replaces conflicting DNS records without asking.
+  A deploy whose config lists no custom domains leaves dashboard domains alone.
+  `www` redirects to the apex with a Cloudflare Redirect Rule.
 - **Cloudflare Workers + one Durable Object** is production for arena
   (Free plan, no card). Hosting considered Fly.io, rejected: no spend cap.
 - **Combat extraction spread:** `spreadDir` normalises the right vector
