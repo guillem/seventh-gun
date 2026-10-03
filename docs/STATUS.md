@@ -24,10 +24,14 @@ Details and the measurement table are in [TESTING.md](TESTING.md) "E2E in CI".
   checks read the phase before a wrongly triggered start could land, and the
   entrance-door check was vacuous at software frame rates.
 
-Validation run 37143503675 (same jobs on a throwaway branch, deploy skipped):
-113 passed, 13 skipped, 0 failed, 0 retried; 576 s of tests in total, slowest
-shard 2.6 min, slowest test 19.6 s against the 120 s CI limit; whole workflow
-3.5 min. Unit: 456 passed on Node 24.
+First real run on this branch, 37143784123 (ea51a0c): typecheck, 456 unit tests,
+six E2E shards (113 passed, 13 skipped, 0 failed, 0 retried; slowest shard
+3.3 min, slowest test under 20 s against the 120 s CI limit), deploy-target
+check, deploy of `seventh-gun-art` version `9d6670ae-a678-4fd9-97bc-ad8d3043f8c2`
+and the smoke check on both art URLs: 4 min 45 s in total. Draft PR #32 has
+every check green for the first time. Production still serves `main`
+(`index-DgFETa6F.js`) and passes its smoke check. The throwaway `ci-diag/*`
+branches used for the measurements are deleted.
 
 Not done, deliberately: no lower render scale or lighter render profile for
 tests (not needed once the rasterizer was fixed, and it would stop E2E drawing
