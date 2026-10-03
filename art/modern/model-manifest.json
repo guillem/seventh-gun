@@ -1,0 +1,20 @@
+[
+  {
+    "asset": "pistol",
+    "faces": 15617,
+    "meshes": 24,
+    "glbBytes": 1433332
+  },
+  {
+    "asset": "husk",
+    "faces": 17677,
+    "meshes": 37,
+    "glbBytes": 1292988
+  },
+  {
+    "asset": "architecture",
+    "faces": 2692,
+    "meshes": 17,
+    "glbBytes": 306548
+  }
+]

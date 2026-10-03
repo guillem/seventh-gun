@@ -1,0 +1,3 @@
+# Preserve local Blender save history without shipping redundant snapshots.
+*.blend1
+*.blend2
