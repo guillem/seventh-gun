@@ -319,16 +319,3 @@ export function cloneOwnedModel(source: THREE.Object3D): THREE.Group {
   group.add(copy);
   return group;
 }
-
-export function modernSurface(kind: 'wall' | 'floor' | 'ceil' | 'door'): THREE.MeshStandardMaterial | null {
-  if (!assets) return null;
-  const metal = kind === 'floor' || kind === 'door';
-  return new THREE.MeshStandardMaterial({
-    map: metal ? assets.steel : assets.concrete,
-    color: kind === 'ceil' ? 0x7e8d93 : metal ? 0x8c9ca4 : 0xb3b9b7,
-    metalness: metal ? 0.42 : 0.02,
-    roughness: metal ? 0.7 : 0.91,
-    envMapIntensity: metal ? 0.45 : 0.25,
-    side: kind === 'floor' || kind === 'ceil' ? THREE.DoubleSide : THREE.FrontSide,
-  });
-}
