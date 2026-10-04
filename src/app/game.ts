@@ -62,6 +62,10 @@ export class Game {
   private deathHandled = false;
   private winHandled = false;
   private lastGunCycled = 0;
+  /** Edge inputs (E, weapon switch) wait for the next fixed step. At display
+   * rates above 60 Hz many frames run no step, and polling clears edges. */
+  private pendingUse = false;
+  private pendingSwitch: number | null = null;
   seed = '';
   debug = false;
   freeze = false;
@@ -360,6 +364,8 @@ export class Game {
       this.input.setFire(false);
       this.input.poll(0, 0);
       this.lastGunCycled = 0;
+      this.pendingUse = false;
+      this.pendingSwitch = null;
       this.accumulator = 0;
       this.lastTime = performance.now();
       if (this.sim?.phase === 'playing' && this.isPlayingLike) this.audio.startAmbient();
@@ -1096,17 +1102,22 @@ export class Game {
       }
       const switchGun = this.lastGunCycled || polled.switchGun;
       this.lastGunCycled = 0;
+      this.pendingUse ||= polled.use;
+      if (switchGun) this.pendingSwitch = switchGun;
 
       const input = {
         moveX: polled.moveX, moveZ: polled.moveZ,
         yaw: sim.player.yaw, pitch: sim.player.pitch,
-        fire: polled.fire, use: polled.use, switchGun,
+        fire: polled.fire, use: false, switchGun: null as number | null,
         aimDir: this.lookAimDir(sim),
       };
       this.accumulator += dtReal;
       let steps = 0;
       while (this.accumulator >= STEP_DT && steps < 5) {
-        sim.step(input, STEP_DT);
+        // The first step of the frame consumes any held edge.
+        sim.step({ ...input, use: this.pendingUse, switchGun: this.pendingSwitch }, STEP_DT);
+        this.pendingUse = false;
+        this.pendingSwitch = null;
         this.accumulator -= STEP_DT;
         steps++;
       }
