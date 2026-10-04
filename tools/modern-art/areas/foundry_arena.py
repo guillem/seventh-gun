@@ -147,8 +147,9 @@ for side in 'sw':
         tx, _, tz = area.wall_point(side, t, .4, 3)
         area.light('Wall lamp pool', (lx, 3.3, lz), (tx, .4, tz), (1, .58, .28), 90, .5)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': GX + 1.6, 'y': LY + 1.2, 'z': CZ + 2, 'color': [1, .5, .22], 'intensity': 34, 'distance': 26},
-    {'x': CX, 'y': ROOF - 2, 'z': CZ + 3, 'color': [.8, .88, 1], 'intensity': 18, 'distance': 26},
 ]
 area.finish(practicals=practicals, bake_albedo=.45)

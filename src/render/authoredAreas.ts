@@ -46,6 +46,12 @@ interface LoadedArea { model: THREE.Group; lightmap: THREE.Texture }
 const loaded = new Map<string, LoadedArea>();
 const loading = new Map<string, Promise<void>>();
 
+/** Tests only: mark an area loaded (or not) without fetching its assets. */
+export function setAreaLoadedForTest(id: string, isLoaded: boolean): void {
+  if (isLoaded) loaded.set(id, { model: new THREE.Group(), lightmap: new THREE.Texture() });
+  else loaded.delete(id);
+}
+
 export function areaUrl(id: string, file: string): string {
   return `/modern/areas/${id}/${file}`;
 }

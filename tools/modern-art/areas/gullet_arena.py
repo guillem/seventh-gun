@@ -225,8 +225,9 @@ for i, x in enumerate([(RIBS[k] + RIBS[k + 1]) / 2 for k in range(len(RIBS) - 1)
 
 # Runtime lights at baked fixtures (src/render/authoredAreas.ts), for actors
 # and the arena seal; they must match these positions.
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': HX, 'y': HY - 3.6, 'z': HZ, 'color': [1, .42, .3], 'intensity': 40, 'distance': 28},
-    {'x': X1 - 2, 'y': 12, 'z': ZC, 'color': [.72, .84, 1], 'intensity': 22, 'distance': 30},
 ]
 area.finish(practicals=practicals, bake_albedo=.4)

@@ -108,7 +108,6 @@ for k in range(4):
     area.box('Grave slab', (x, .006, CZ), (1.1, .012, 2.2), slab, 0)
     area.box('Slab border', (x, .009, CZ), (1.25, .006, 2.35), ashlar, 0)
 
-practicals = [
-    {'x': X1 - .9, 'y': 6.1, 'z': CZ, 'color': [1, .66, .36], 'intensity': 16, 'distance': 18},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.45)

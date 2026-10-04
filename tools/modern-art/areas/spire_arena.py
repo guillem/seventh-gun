@@ -88,8 +88,9 @@ for cx, cz in [(CX - 7, CZ - 5), (CX + 7, CZ - 5), (CX - 7, CZ + 5), (CX + 7, CZ
 for r, m in [(9.5, marble), (8.8, inlay), (5.5, marble), (4.8, inlay), (1.6, sun)]:
     common.disc(area, 'Floor ring', (CX, .004 + (9.5 - r) * .001, CZ), r, m, samples=48)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': TOP - 1.6, 'z': CZ, 'color': [1, .86, .6], 'intensity': 30, 'distance': 30},
-    {'x': CX - 7, 'y': 9.0, 'z': CZ + 5, 'color': [1, .8, .5], 'intensity': 18, 'distance': 18},
 ]
 area.finish(practicals=practicals, bake_albedo=.5)

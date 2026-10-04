@@ -65,7 +65,6 @@ for k in range(8):
     th = k * math.pi / 4
     area.box('Floor seam', (CX + math.cos(th) * 2.0, .006, CZ + math.sin(th) * 2.0), (.05, .012, .05), dark, 0)
 
-practicals = [
-    {'x': CX, 'y': WALL - 1.9, 'z': CZ, 'color': [.6, .95, 1], 'intensity': 18, 'distance': 16},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.5)

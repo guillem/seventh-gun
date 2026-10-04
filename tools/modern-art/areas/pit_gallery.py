@@ -104,9 +104,10 @@ area.wall_text('MILL  2  -  CRUSHER FEED', 'w', CZ, 5.6, .5, ochre, off=.17)
 for dz in (-.55, .55):
     area.box('Rail', (CX, .0075, CZ + 3 + dz), (X1 - X0 - .4, .015, .07), edge, 0)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': frames[1], 'y': 6.75, 'z': Z0 + .95, 'color': [1, .82, .58], 'intensity': 26, 'distance': 24},
-    {'x': frames[3], 'y': 6.75, 'z': Z0 + .95, 'color': [1, .82, .58], 'intensity': 26, 'distance': 24},
 ]
 # Work lamps hung under the conveyor light the belt and the floor.
 for x in frames:

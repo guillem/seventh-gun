@@ -142,8 +142,9 @@ for side in 'nswe':
         tx, _, tz = area.wall_point(side, t, .2, 3)
         area.light('Wall candle glow', (lx, ly, lz), (tx, .2, tz), (1, .66, .34), 50, .3)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': CY - .3, 'z': CZ, 'color': [1, .68, .38], 'intensity': 30, 'distance': 24},
-    {'x': CX, 'y': oy - 2, 'z': CZ, 'color': [.75, .82, .95], 'intensity': 14, 'distance': 26},
 ]
 area.finish(practicals=practicals, bake_albedo=.45)

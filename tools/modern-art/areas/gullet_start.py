@@ -91,7 +91,6 @@ for i in range(9):
     area.tube('Hanging strand', [p, (p[0] + .1, (p[1] + end) / 2, p[2]), (p[0], end, p[2])], .035, sinew)
     area.ellipsoid('Strand bead', (p[0], end - .08, p[2]), (.08, .12, .08), gland, segments=8, rings=4)
 
-practicals = [
-    {'x': cx - 1.0, 'y': cy, 'z': cz, 'color': [1, .4, .3], 'intensity': 18, 'distance': 18},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.4)

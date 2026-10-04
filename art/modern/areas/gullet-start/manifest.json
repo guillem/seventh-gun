@@ -168,20 +168,7 @@
       "size": 0.45
     }
   ],
-  "practicals": [
-    {
-      "x": 22.85,
-      "y": 6.6,
-      "z": 20.0,
-      "color": [
-        1,
-        0.4,
-        0.3
-      ],
-      "intensity": 18,
-      "distance": 18
-    }
-  ],
+  "practicals": [],
   "seamCleanup": {
     "clippedFaces": 4,
     "removedArea": 5.319299643317631,

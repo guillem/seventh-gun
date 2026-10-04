@@ -77,7 +77,6 @@ area.box('Marble border', (CX, .006, CZ), (X1 - X0 - 2, .012, Z1 - Z0 - 2), marb
 area.box('Inner floor', (CX, .009, CZ), (X1 - X0 - 3, .012, Z1 - Z0 - 3), inlay, 0)
 common.disc(area, 'Gilt star', (CX, .014, CZ), 1.4, gilt, samples=8)
 
-practicals = [
-    {'x': CX, 'y': WALL - 1.2, 'z': CZ, 'color': [1, .86, .62], 'intensity': 16, 'distance': 16},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.5)

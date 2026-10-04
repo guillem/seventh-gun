@@ -1,0 +1,322 @@
+[
+ {
+  "id": "catacombs-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 239,
+   "trianglesPerFrame": 668045
+  },
+  "up": {
+   "drawsPerFrame": 147,
+   "trianglesPerFrame": 427549
+  },
+  "back": {
+   "drawsPerFrame": 308,
+   "trianglesPerFrame": 1122581
+  }
+ },
+ {
+  "id": "catacombs-crossing",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 264,
+   "trianglesPerFrame": 801169
+  },
+  "up": {
+   "drawsPerFrame": 234,
+   "trianglesPerFrame": 777007
+  },
+  "back": {
+   "drawsPerFrame": 303,
+   "trianglesPerFrame": 967003
+  }
+ },
+ {
+  "id": "catacombs-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 287,
+   "trianglesPerFrame": 921433
+  },
+  "up": {
+   "drawsPerFrame": 121,
+   "trianglesPerFrame": 304063
+  },
+  "back": {
+   "drawsPerFrame": 59,
+   "trianglesPerFrame": 170083
+  }
+ },
+ {
+  "id": "foundry-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 261,
+   "trianglesPerFrame": 614501
+  },
+  "up": {
+   "drawsPerFrame": 115,
+   "trianglesPerFrame": 307433
+  },
+  "back": {
+   "drawsPerFrame": 192,
+   "trianglesPerFrame": 509455
+  }
+ },
+ {
+  "id": "foundry-spur",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 376,
+   "trianglesPerFrame": 832223
+  },
+  "up": {
+   "drawsPerFrame": 114,
+   "trianglesPerFrame": 277297
+  },
+  "back": {
+   "drawsPerFrame": 129,
+   "trianglesPerFrame": 259141
+  }
+ },
+ {
+  "id": "gullet-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 210,
+   "trianglesPerFrame": 674391
+  },
+  "up": {
+   "drawsPerFrame": 198,
+   "trianglesPerFrame": 880589
+  },
+  "back": {
+   "drawsPerFrame": 389,
+   "trianglesPerFrame": 1710387
+  }
+ },
+ {
+  "id": "gullet-crop",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 316,
+   "trianglesPerFrame": 1238887
+  },
+  "up": {
+   "drawsPerFrame": 119,
+   "trianglesPerFrame": 395823
+  },
+  "back": {
+   "drawsPerFrame": 190,
+   "trianglesPerFrame": 719617
+  }
+ },
+ {
+  "id": "gullet-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 362,
+   "trianglesPerFrame": 1682813
+  },
+  "up": {
+   "drawsPerFrame": 64,
+   "trianglesPerFrame": 125751
+  },
+  "back": {
+   "drawsPerFrame": 56,
+   "trianglesPerFrame": 122239
+  }
+ },
+ {
+  "id": "pit-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 188,
+   "trianglesPerFrame": 520563
+  },
+  "up": {
+   "drawsPerFrame": 378,
+   "trianglesPerFrame": 926345
+  },
+  "back": {
+   "drawsPerFrame": 464,
+   "trianglesPerFrame": 1132165
+  }
+ },
+ {
+  "id": "pit-gallery",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 378,
+   "trianglesPerFrame": 909913
+  },
+  "up": {
+   "drawsPerFrame": 98,
+   "trianglesPerFrame": 221673
+  },
+  "back": {
+   "drawsPerFrame": 177,
+   "trianglesPerFrame": 367373
+  }
+ },
+ {
+  "id": "pit-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 367,
+   "trianglesPerFrame": 847141
+  },
+  "up": {
+   "drawsPerFrame": 73,
+   "trianglesPerFrame": 80747
+  },
+  "back": {
+   "drawsPerFrame": 55,
+   "trianglesPerFrame": 45011
+  }
+ },
+ {
+  "id": "sanctum-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 238,
+   "trianglesPerFrame": 826947
+  },
+  "up": {
+   "drawsPerFrame": 329,
+   "trianglesPerFrame": 1165985
+  },
+  "back": {
+   "drawsPerFrame": 641,
+   "trianglesPerFrame": 1869963
+  }
+ },
+ {
+  "id": "sanctum-chamber",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 331,
+   "trianglesPerFrame": 850079
+  },
+  "up": {
+   "drawsPerFrame": 273,
+   "trianglesPerFrame": 756403
+  },
+  "back": {
+   "drawsPerFrame": 302,
+   "trianglesPerFrame": 870043
+  }
+ },
+ {
+  "id": "sanctum-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 292,
+   "trianglesPerFrame": 779665
+  },
+  "up": {
+   "drawsPerFrame": 52,
+   "trianglesPerFrame": 111439
+  },
+  "back": {
+   "drawsPerFrame": 54,
+   "trianglesPerFrame": 111791
+  }
+ },
+ {
+  "id": "spire-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 458,
+   "trianglesPerFrame": 1298547
+  },
+  "up": {
+   "drawsPerFrame": 167,
+   "trianglesPerFrame": 471169
+  },
+  "back": {
+   "drawsPerFrame": 205,
+   "trianglesPerFrame": 618143
+  }
+ },
+ {
+  "id": "spire-nave",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 182,
+   "trianglesPerFrame": 441401
+  },
+  "up": {
+   "drawsPerFrame": 258,
+   "trianglesPerFrame": 670105
+  },
+  "back": {
+   "drawsPerFrame": 384,
+   "trianglesPerFrame": 958079
+  }
+ },
+ {
+  "id": "spire-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 64,
+   "trianglesPerFrame": 51235
+  },
+  "up": {
+   "drawsPerFrame": 366,
+   "trianglesPerFrame": 820437
+  },
+  "back": {
+   "drawsPerFrame": 236,
+   "trianglesPerFrame": 506805
+  }
+ },
+ {
+  "id": "ward-arena",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 272,
+   "trianglesPerFrame": 796359
+  },
+  "up": {
+   "drawsPerFrame": 366,
+   "trianglesPerFrame": 800505
+  },
+  "back": {
+   "drawsPerFrame": 618,
+   "trianglesPerFrame": 1245871
+  }
+ },
+ {
+  "id": "ward-atrium",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 356,
+   "trianglesPerFrame": 675235
+  },
+  "up": {
+   "drawsPerFrame": 264,
+   "trianglesPerFrame": 492561
+  },
+  "back": {
+   "drawsPerFrame": 319,
+   "trianglesPerFrame": 607677
+  }
+ },
+ {
+  "id": "ward-start",
+  "drawn": true,
+  "corner": {
+   "drawsPerFrame": 287,
+   "trianglesPerFrame": 324711
+  },
+  "up": {
+   "drawsPerFrame": 167,
+   "trianglesPerFrame": 159645
+  },
+  "back": {
+   "drawsPerFrame": 58,
+   "trianglesPerFrame": 37875
+  }
+ }
+]

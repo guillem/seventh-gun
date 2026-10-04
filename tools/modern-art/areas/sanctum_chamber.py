@@ -84,8 +84,9 @@ area.wall_text('REACTOR HALL  B', 'w', CZ, 6.0, .55, teal, off=.2)
 for dz in (-4.5, 4.5):
     area.box('Guide line', (CX, .008, CZ + dz), (X1 - X0 - 3, .016, .12), teal, 0)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': X0 + 7.5, 'y': RY - 5.9, 'z': CZ, 'color': [.4, .95, .95], 'intensity': 20, 'distance': 22},
-    {'x': X1 - 7.5, 'y': RY - 5.9, 'z': CZ, 'color': [.4, .95, .95], 'intensity': 20, 'distance': 22},
 ]
 area.finish(practicals=practicals, bake_albedo=.5)

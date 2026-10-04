@@ -85,6 +85,8 @@ for k in range(16):
     area.box('Radial line', (CX + math.cos(a) * 7, .008, CZ + math.sin(a) * 7), (.1, .016, .1), teal, 0)
 area.tube('Containment circle', [(x, .008, z) for x, _, z in common.ring((CX, 0, CZ), 4.5, samples=56)], .006, teal)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': CY - 3.4, 'z': CZ, 'color': [.5, 1, 1], 'intensity': 34, 'distance': 30},
 ]

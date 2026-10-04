@@ -118,8 +118,9 @@ for i in range(6):
     for j in range(4):
         common.disc(area, 'Drill hole', (CX - 5 + i * 2, .011, CZ + 4 + j * 1.2), .07, rope, samples=8)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': BX, 'y': 12, 'z': BZ, 'color': [.8, .86, .95], 'intensity': 22, 'distance': 30},
-    {'x': CX, 'y': 5.6, 'z': Z0 + 1.55, 'color': [1, .82, .58], 'intensity': 24, 'distance': 22},
 ]
 area.finish(practicals=practicals, bake_albedo=.55)

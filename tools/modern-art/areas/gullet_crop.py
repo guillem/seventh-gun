@@ -133,8 +133,9 @@ for px, pz, rx, rz in [(CX - 4, CZ + 1, 3.2, 2.0), (CX + 6, CZ - 4, 2.2, 1.4), (
     area.mesh('Acid pool', verts, [(0, (k + 1) % 28 + 1, k + 1) for k in range(28)], acid)
     area.light('Acid glow', (px, .6, pz), (px, 3, pz), (.6, .95, .35), 60, max(rx, rz))
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX - 6, 'y': 8.2, 'z': CZ - 3, 'color': [1, .5, .32], 'intensity': 26, 'distance': 22},
-    {'x': CX + 5, 'y': 8.2, 'z': CZ + 4, 'color': [1, .5, .32], 'intensity': 26, 'distance': 22},
 ]
 area.finish(practicals=practicals, bake_albedo=.4)

@@ -7,114 +7,102 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
     id: 'foundry-arena', mapSeed: 'campaign:01-foundry', rects: [[54,10,69,23]],
     practicals: [
       { x: 120.6, y: 10.2, z: 35, color: [1, 0.5, 0.22], intensity: 34, distance: 26 },
-      { x: 123, y: 15, z: 36, color: [0.8, 0.88, 1], intensity: 18, distance: 26 },
     ],
   },
   {
     id: 'foundry-spur', mapSeed: 'campaign:01-foundry', rects: [[22,26,31,34]],
     practicals: [
       { x: 53, y: 6, z: 56, color: [0.85, 0.92, 1], intensity: 16, distance: 16 },
-      { x: 53, y: 6, z: 64, color: [0.85, 0.92, 1], intensity: 16, distance: 16 },
     ],
   },
   {
     id: 'gullet-arena', mapSeed: 'campaign:02-gullet', rects: [[59,34,73,46]],
     practicals: [
       { x: 132.5, y: 10.1, z: 80, color: [1, 0.42, 0.3], intensity: 40, distance: 28 },
-      { x: 144, y: 12, z: 80, color: [0.72, 0.84, 1], intensity: 22, distance: 30 },
     ],
   },
   {
     id: 'gullet-crop', mapSeed: 'campaign:02-gullet', rects: [[38,6,51,17]],
     practicals: [
       { x: 83, y: 8.2, z: 20, color: [1, 0.5, 0.32], intensity: 26, distance: 22 },
-      { x: 94, y: 8.2, z: 27, color: [1, 0.5, 0.32], intensity: 26, distance: 22 },
     ],
   },
   {
     id: 'gullet-start', mapSeed: 'campaign:02-gullet', rects: [[5,7,12,13]],
     practicals: [
-      { x: 22.85, y: 6.6, z: 20, color: [1, 0.4, 0.3], intensity: 18, distance: 18 },
+
     ],
   },
   {
     id: 'catacombs-arena', mapSeed: 'campaign:03-catacombs', rects: [[75,22,88,35]],
     practicals: [
       { x: 150.8, y: 11, z: 57, color: [0.62, 0.74, 0.95], intensity: 18, distance: 26 },
-      { x: 175.2, y: 11, z: 57, color: [0.62, 0.74, 0.95], intensity: 18, distance: 26 },
     ],
   },
   {
     id: 'catacombs-crossing', mapSeed: 'campaign:03-catacombs', rects: [[38,38,50,50]],
     practicals: [
       { x: 88, y: 9.5, z: 88, color: [1, 0.68, 0.38], intensity: 30, distance: 24 },
-      { x: 88, y: 27.387, z: 88, color: [0.75, 0.82, 0.95], intensity: 14, distance: 26 },
     ],
   },
   {
     id: 'catacombs-start', mapSeed: 'campaign:03-catacombs', rects: [[2,41,9,47]],
     practicals: [
-      { x: 17.1, y: 6.1, z: 88, color: [1, 0.66, 0.36], intensity: 16, distance: 18 },
+
     ],
   },
   {
     id: 'pit-arena', mapSeed: 'campaign:04-pit', rects: [[42,62,56,74]],
     practicals: [
       { x: 102, y: 12, z: 134, color: [0.8, 0.86, 0.95], intensity: 22, distance: 30 },
-      { x: 98, y: 5.6, z: 125.55, color: [1, 0.82, 0.58], intensity: 24, distance: 22 },
     ],
   },
   {
     id: 'pit-gallery', mapSeed: 'campaign:04-pit', rects: [[18,4,32,13]],
     practicals: [
       { x: 42.98, y: 6.75, z: 8.95, color: [1, 0.82, 0.58], intensity: 26, distance: 24 },
-      { x: 52.34, y: 6.75, z: 8.95, color: [1, 0.82, 0.58], intensity: 26, distance: 24 },
     ],
   },
   {
     id: 'pit-start', mapSeed: 'campaign:04-pit', rects: [[6,6,13,12]],
     practicals: [
-      { x: 19.6, y: 4.85, z: 18.8, color: [1, 0.62, 0.32], intensity: 16, distance: 16 },
+
     ],
   },
   {
     id: 'spire-arena', mapSeed: 'campaign:05-spire', rects: [[24,4,38,16]],
     practicals: [
       { x: 62, y: 20.4, z: 20, color: [1, 0.86, 0.6], intensity: 30, distance: 30 },
-      { x: 55, y: 9, z: 25, color: [1, 0.8, 0.5], intensity: 18, distance: 18 },
     ],
   },
   {
     id: 'spire-nave', mapSeed: 'campaign:05-spire', rects: [[48,48,62,57]],
     practicals: [
       { x: 101, y: 6.4, z: 105, color: [1, 0.8, 0.5], intensity: 22, distance: 22 },
-      { x: 119, y: 6.4, z: 105, color: [1, 0.8, 0.5], intensity: 22, distance: 22 },
     ],
   },
   {
     id: 'spire-start', mapSeed: 'campaign:05-spire', rects: [[40,76,47,82]],
     practicals: [
-      { x: 87, y: 7.8, z: 158, color: [1, 0.86, 0.62], intensity: 16, distance: 16 },
+
     ],
   },
   {
     id: 'ward-arena', mapSeed: 'campaign:06-ward', rects: [[59,52,77,67]],
     practicals: [
       { x: 136, y: 7.9, z: 119, color: [0.95, 0.98, 1], intensity: 28, distance: 28 },
-      { x: 126, y: 11.7, z: 119, color: [0.82, 0.93, 1], intensity: 14, distance: 24 },
     ],
   },
   {
     id: 'ward-atrium', mapSeed: 'campaign:06-ward', rects: [[18,36,32,50]],
     practicals: [
       { x: 50, y: 8, z: 86, color: [0.9, 0.96, 1], intensity: 24, distance: 26 },
-      { x: 44, y: 6.9, z: 80, color: [0.92, 0.97, 1], intensity: 14, distance: 16 },
     ],
   },
   {
     id: 'ward-start', mapSeed: 'campaign:06-ward', rects: [[6,40,13,47]],
     practicals: [
-      { x: 19, y: 7, z: 87, color: [0.88, 0.96, 1], intensity: 18, distance: 18 },
+
     ],
   },
   {
@@ -127,13 +115,12 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
     id: 'sanctum-chamber', mapSeed: 'campaign:07-sanctum', rects: [[32,52,54,65]],
     practicals: [
       { x: 71.5, y: 6.6, z: 117, color: [0.4, 0.95, 0.95], intensity: 20, distance: 22 },
-      { x: 100.5, y: 6.6, z: 117, color: [0.4, 0.95, 0.95], intensity: 20, distance: 22 },
     ],
   },
   {
     id: 'sanctum-start', mapSeed: 'campaign:07-sanctum', rects: [[41,3,48,9]],
     practicals: [
-      { x: 89, y: 6.1, z: 12, color: [0.6, 0.95, 1], intensity: 18, distance: 16 },
+
     ],
   },
 ];

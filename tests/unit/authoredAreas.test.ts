@@ -5,8 +5,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { CAMPAIGN } from '../../src/campaign';
 import {
-  areaReady, AUTHORED_AREAS, authoredCell, authoredDoor, readyAreaPracticals,
+  areaReady, AUTHORED_AREAS, authoredCell, authoredDoor, readyAreaPracticals, setAreaLoadedForTest,
 } from '../../src/render/authoredAreas';
+import { CAMPAIGN_ART_IDS } from '../../src/render/campaignTextures';
+import { selectModernPracticalLights } from '../../src/render/modernLighting';
 import { foundryCell } from '../../src/render/foundry';
 import { BASE_CEILING, planRoomVolumes } from '../../src/render/roomVolumes';
 
@@ -39,6 +41,27 @@ describe('authored area registry', () => {
       // Unloaded, the grammar raises the room as usual.
       const volumes = planRoomVolumes(map, undefined);
       expect(volumes.ceilingAt(x0, z0)).toBeGreaterThanOrEqual(BASE_CEILING);
+    }
+  });
+
+  it('keeps every ordinary room\'s practical light when a map\'s areas load', () => {
+    for (const campaign of CAMPAIGN) {
+      const map = campaign.map;
+      const artId = CAMPAIGN_ART_IDS.find(id => campaign.id.endsWith(id))!;
+      const litRooms = (ready: boolean) => {
+        for (const area of lazyAreas) setAreaLoadedForTest(area.id, ready && area.mapSeed === map.seed);
+        const lights = selectModernPracticalLights(map, artId, undefined, planRoomVolumes(map, artId));
+        expect(lights.length).toBeLessThanOrEqual(12);
+        return new Set(lights.map(light => light.roomId));
+      };
+      const before = litRooms(false), after = litRooms(true);
+      for (const area of lazyAreas) setAreaLoadedForTest(area.id, false);
+      const areaRoom = (x: number, z: number) => lazyAreas.some(area => area.mapSeed === map.seed &&
+        area.rects.some(([x0, z0, x1, z1]) => x >= x0 && x < x1 && z >= z0 && z < z1));
+      for (const room of map.rooms) {
+        if (room.kind === 'secret' || room.outdoor || areaRoom(room.x, room.z)) continue;
+        if (before.has(room.id)) expect(after.has(room.id), `${campaign.id} room ${room.id}`).toBe(true);
+      }
     }
   });
 

@@ -122,8 +122,9 @@ for i in range(5):
     for j in (-1, 1):
         area.box('Ledger stone', (X0 + 4 + i * 4.5, .006, CZ + j * 2.2), (1.2, .012, 2.4), dark, 0)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': X0 + .8, 'y': 11, 'z': CZ, 'color': [.62, .74, .95], 'intensity': 18, 'distance': 26},
-    {'x': X1 - .8, 'y': 11, 'z': CZ, 'color': [.62, .74, .95], 'intensity': 18, 'distance': 26},
 ]
 area.finish(practicals=practicals, bake_albedo=.45)

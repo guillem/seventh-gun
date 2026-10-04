@@ -77,3 +77,18 @@ Captures (actual game frames): `<id>/capture-{corner,up,back}.png`, from
 `tools/modern-art/bake_areas.sh [scriptRegex]` (about 9 minutes for all 20 on
 an M5 Pro), then `node tools/modern-art/register_areas.mjs` (the bake script
 runs it) regenerates `src/render/authoredAreaList.ts`.
+
+## Runtime cost and lights (measured 2026-10-04)
+
+Installed Chrome, ANGLE Metal on an Apple M5 Pro, 1280 x 800, `?e2e=1`:
+GPU submissions per frame at each area's three capture views
+(`capture-report.json`) range from 52 to 641 draws and 0.04 to 1.87 M
+triangles. Those counts cover the whole visible scene (the views look out
+through doorways), including the renderer's extra passes. The three heaviest
+views (Sanctum core and Gullet arena looking back, Gullet throat) all hold
+60 fps, p95 16.9 ms. Phones are untested.
+
+Each area declares at most one runtime light (none in start rooms, which hold
+no enemies): with three areas per map the stationary 12-light budget still
+lights every ordinary room it lit before (unit-tested).
+

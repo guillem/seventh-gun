@@ -73,7 +73,6 @@ while x < X1 - .2:
 area.wall_text('SHAFT  4', 'w', CZ, 3.6, .55, paint, off=.17)
 area.wall_text('NO NAKED FLAME', 'e', CZ, 3.2, .3, paint, off=.17)
 
-practicals = [
-    {'x': CX + .6, 'y': 4.85, 'z': CZ + .8, 'color': [1, .62, .32], 'intensity': 16, 'distance': 16},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.55)

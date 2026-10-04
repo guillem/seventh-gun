@@ -285,18 +285,6 @@
       ],
       "intensity": 18,
       "distance": 26
-    },
-    {
-      "x": 175.2,
-      "y": 11,
-      "z": 57.0,
-      "color": [
-        0.62,
-        0.74,
-        0.95
-      ],
-      "intensity": 18,
-      "distance": 26
     }
   ],
   "seamCleanup": {

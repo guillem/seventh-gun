@@ -96,8 +96,9 @@ for k in range(12):
 common.disc(area, 'Central drain', (CX, .013, CZ), .5, dark, samples=20)
 area.wall_text('THEATRE  1  -  STERILE FIELD', 'n', CX, 4.2, .5, seat, off=.06)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': 7.9, 'z': CZ, 'color': [.95, .98, 1], 'intensity': 28, 'distance': 28},
-    {'x': CX - 10, 'y': 11.7, 'z': CZ, 'color': [.82, .93, 1], 'intensity': 14, 'distance': 24},
 ]
 area.finish(practicals=practicals, bake_albedo=.5)

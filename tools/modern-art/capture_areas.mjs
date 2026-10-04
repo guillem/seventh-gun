@@ -14,7 +14,32 @@ const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=m
 const results = [];
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
-  await page.addInitScript(() => { Element.prototype.requestPointerLock = () => Promise.resolve(); });
+  await page.addInitScript(() => {
+    Element.prototype.requestPointerLock = () => Promise.resolve();
+    // Count GPU submissions per frame, including WEBGL_multi_draw.
+    const hook = window.__drawHook = { draws: 0, tris: 0 };
+    const wrap = (proto, name, count) => {
+      const original = proto[name];
+      if (!original) return;
+      proto[name] = function (...args) { hook.draws++; if (args[0] === 4) hook.tris += count(args) / 3; return original.apply(this, args); };
+    };
+    const gl = WebGL2RenderingContext.prototype;
+    wrap(gl, 'drawElements', a => a[1]);
+    wrap(gl, 'drawArrays', a => a[2]);
+    wrap(gl, 'drawElementsInstanced', a => a[1] * a[4]);
+    wrap(gl, 'drawArraysInstanced', a => a[2] * a[3]);
+    const getExtension = gl.getExtension;
+    gl.getExtension = function (name) {
+      const ext = getExtension.call(this, name);
+      if (name === 'WEBGL_multi_draw' && ext && !ext.__hooked) {
+        const sum = (counts, offset, n) => { let t = 0; for (let i = 0; i < n; i++) t += counts[offset + i]; return t; };
+        const proto = Object.getPrototypeOf(ext);
+        wrap(proto, 'multiDrawElementsWEBGL', a => sum(a[1], a[2], a[a.length - 1]));
+        ext.__hooked = true;
+      }
+      return ext;
+    };
+  });
   await page.goto(`${base}/?e2e=1`);
   await page.waitForFunction(() => !!window.__GAME__);
   for (const area of areas) {
@@ -38,9 +63,19 @@ try {
         const g = window.__GAME__; g.unfreeze(); g.teleport(x, z); g.pose({ yaw, pitch }); g.tickNow();
       }, [x, z, yaw, pitch]);
       await page.waitForTimeout(600);
+      const counts = await page.evaluate(async () => {
+        const hook = window.__drawHook;
+        await new Promise(r => requestAnimationFrame(r));
+        hook.draws = 0; hook.tris = 0;
+        let frames = 0;
+        const until = performance.now() + 800;
+        while (performance.now() < until) { await new Promise(r => requestAnimationFrame(r)); frames++; }
+        return { drawsPerFrame: Math.round(hook.draws / frames), trianglesPerFrame: Math.round(hook.tris / frames) };
+      });
       await page.screenshot({ path: `art/modern/areas/${area.id}/capture-${name}.png` });
+      (area.counts ??= {})[name] = counts;
     }
-    results.push({ id: area.id, drawn: drawn.includes(area.id) });
+    results.push({ id: area.id, drawn: drawn.includes(area.id), ...area.counts });
   }
 } finally { await browser.close(); }
 writeFileSync('/dev/stdout', JSON.stringify(results) + '\n');

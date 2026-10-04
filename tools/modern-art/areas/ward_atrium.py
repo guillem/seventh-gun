@@ -89,8 +89,9 @@ area.wall_text('WARD  6  -  ATRIUM', 'n', CX, 3.9, .45, teal, off=.05)
 common.disc(area, 'Atrium floor medallion', (CX, .008, CZ), 4.5, teal, samples=40)
 common.disc(area, 'Medallion centre', (CX, .012, CZ), 3.8, area.mat('ceramic.inlay', (.32, .36, .36), 0, .5), samples=40)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': 8.0, 'z': CZ, 'color': [.9, .96, 1], 'intensity': 24, 'distance': 26},
-    {'x': CX - 6, 'y': 6.9, 'z': CZ - 6, 'color': [.92, .97, 1], 'intensity': 14, 'distance': 16},
 ]
 area.finish(practicals=practicals, bake_albedo=.5)

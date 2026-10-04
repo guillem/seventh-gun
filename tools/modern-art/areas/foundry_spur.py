@@ -108,8 +108,9 @@ for x in [X0 + 1.5, X1 - 1.5]:
 for z in [Z0 + 2, Z1 - 2]:
     area.box('Drain grate', (CX, .008, z), (2.4, .016, .4), edge, 0)
 
+# One runtime light per area (actors only; the bake lights surfaces),
+# so ordinary rooms keep theirs within the map's 12-light budget.
 practicals = [
     {'x': CX, 'y': 6.0, 'z': Z0 + 4, 'color': [.85, .92, 1], 'intensity': 16, 'distance': 16},
-    {'x': CX, 'y': 6.0, 'z': Z1 - 4, 'color': [.85, .92, 1], 'intensity': 16, 'distance': 16},
 ]
 area.finish(practicals=practicals, bake_albedo=.45)

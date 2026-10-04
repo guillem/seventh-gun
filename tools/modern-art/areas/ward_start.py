@@ -81,7 +81,6 @@ for k in range(9):
 for z in [Z0 + 1.2, Z1 - 1.2]:
     area.box('Walkway stripe', (CX, .008, z), (X1 - X0 - 2.4, .016, .3), teal, 0)
 
-practicals = [
-    {'x': CX, 'y': WALL - .5, 'z': CZ, 'color': [.88, .96, 1], 'intensity': 18, 'distance': 18},
-]
+# Start rooms hold no enemies: the bake lights them, no runtime light.
+practicals = []
 area.finish(practicals=practicals, bake_albedo=.5)
