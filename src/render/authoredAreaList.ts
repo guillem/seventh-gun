@@ -117,4 +117,23 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
       { x: 19, y: 7, z: 87, color: [0.88, 0.96, 1], intensity: 18, distance: 18 },
     ],
   },
+  {
+    id: 'sanctum-arena', mapSeed: 'campaign:07-sanctum', rects: [[71,67,87,81]],
+    practicals: [
+      { x: 158, y: 10.6, z: 148, color: [0.5, 1, 1], intensity: 34, distance: 30 },
+    ],
+  },
+  {
+    id: 'sanctum-chamber', mapSeed: 'campaign:07-sanctum', rects: [[32,52,54,65]],
+    practicals: [
+      { x: 71.5, y: 6.6, z: 117, color: [0.4, 0.95, 0.95], intensity: 20, distance: 22 },
+      { x: 100.5, y: 6.6, z: 117, color: [0.4, 0.95, 0.95], intensity: 20, distance: 22 },
+    ],
+  },
+  {
+    id: 'sanctum-start', mapSeed: 'campaign:07-sanctum', rects: [[41,3,48,9]],
+    practicals: [
+      { x: 89, y: 6.1, z: 12, color: [0.6, 0.95, 1], intensity: 18, distance: 16 },
+    ],
+  },
 ];

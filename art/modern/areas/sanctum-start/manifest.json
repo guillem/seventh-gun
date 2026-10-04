@@ -1,0 +1,106 @@
+{
+  "id": "sanctum-start",
+  "mapSeed": "campaign:07-sanctum",
+  "cells": 42,
+  "rects": [
+    [
+      41,
+      3,
+      48,
+      9
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 15.225485801696777,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 20947,
+  "glbBytes": 378324,
+  "glbUncompressedBytes": 1761012,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 168440,
+  "lights": [
+    {
+      "name": "Iris core",
+      "kind": "AREA",
+      "position": [
+        89.0,
+        6.1,
+        12.0
+      ],
+      "target": [
+        89.0,
+        0,
+        12.0
+      ],
+      "color": [
+        0.7,
+        0.95,
+        1
+      ],
+      "power": 520,
+      "size": 1.6
+    },
+    {
+      "name": "Wall channel glow",
+      "kind": "AREA",
+      "position": [
+        82.5,
+        3.0,
+        12.0
+      ],
+      "target": [
+        86,
+        0,
+        12.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 90,
+      "size": 1.2
+    },
+    {
+      "name": "Wall channel glow",
+      "kind": "AREA",
+      "position": [
+        95.5,
+        3.0,
+        12.0
+      ],
+      "target": [
+        92,
+        0,
+        12.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 90,
+      "size": 1.2
+    }
+  ],
+  "practicals": [
+    {
+      "x": 89.0,
+      "y": 6.1,
+      "z": 12.0,
+      "color": [
+        0.6,
+        0.95,
+        1
+      ],
+      "intensity": 18,
+      "distance": 16
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369295055452951,
+    "corridorHeight": 6.0
+  }
+}

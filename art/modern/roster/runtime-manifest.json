@@ -1,6 +1,6 @@
 {
-  "fileCount": 126,
-  "bytes": 40467424,
+  "fileCount": 132,
+  "bytes": 43075858,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -112,6 +112,36 @@
       "path": "modern/areas/pit-start/irradiance.webp",
       "bytes": 47210,
       "sha256": "42c2c50dd3debf28622452f953cb90561772d56030a095c7e27216a260028673"
+    },
+    {
+      "path": "modern/areas/sanctum-arena/environment.glb",
+      "bytes": 420424,
+      "sha256": "0a514e7333d364f09b5787ea8c70332f1b67edae6d82efec8b176cea328d9f8f"
+    },
+    {
+      "path": "modern/areas/sanctum-arena/irradiance.webp",
+      "bytes": 551290,
+      "sha256": "64e516d862ba46815785d1a655d598031ec84f69a441dd4eb8219dac9866a1a3"
+    },
+    {
+      "path": "modern/areas/sanctum-chamber/environment.glb",
+      "bytes": 541740,
+      "sha256": "bb8db338c16a4e129fc8bdd7eb67353f60e1d3f6bc3401336091a25a4283c434"
+    },
+    {
+      "path": "modern/areas/sanctum-chamber/irradiance.webp",
+      "bytes": 548216,
+      "sha256": "7fde2d598710a920350014f9b53e24a596ab7501b77e1496741bd5babb0d1e93"
+    },
+    {
+      "path": "modern/areas/sanctum-start/environment.glb",
+      "bytes": 378324,
+      "sha256": "71f79ab62e65611fa80fc8959a1c9f3ea216411725bd2047779d4e61a64ec702"
+    },
+    {
+      "path": "modern/areas/sanctum-start/irradiance.webp",
+      "bytes": 168440,
+      "sha256": "aad9712e0ab17806f63775ecfa14896ede58c25de97b1c5bea78ae35036b4914"
     },
     {
       "path": "modern/areas/spire-arena/environment.glb",

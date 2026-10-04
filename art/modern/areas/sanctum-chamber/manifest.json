@@ -1,0 +1,181 @@
+{
+  "id": "sanctum-chamber",
+  "mapSeed": "campaign:07-sanctum",
+  "cells": 286,
+  "rects": [
+    [
+      32,
+      52,
+      54,
+      65
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 64.80054473876953,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 26652,
+  "glbBytes": 541740,
+  "glbUncompressedBytes": 2505124,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 548216,
+  "lights": [
+    {
+      "name": "Conduit glow",
+      "kind": "AREA",
+      "position": [
+        68,
+        11.3,
+        117.0
+      ],
+      "target": [
+        68,
+        0,
+        117.0
+      ],
+      "color": [
+        0.5,
+        1,
+        1
+      ],
+      "power": 600,
+      "size": 1.5
+    },
+    {
+      "name": "Conduit glow",
+      "kind": "AREA",
+      "position": [
+        104,
+        11.3,
+        117.0
+      ],
+      "target": [
+        104,
+        0,
+        117.0
+      ],
+      "color": [
+        0.5,
+        1,
+        1
+      ],
+      "power": 600,
+      "size": 1.5
+    },
+    {
+      "name": "Ring band glow",
+      "kind": "AREA",
+      "position": [
+        70.5,
+        6.6,
+        117.0
+      ],
+      "target": [
+        71.5,
+        0,
+        117.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 300,
+      "size": 1.0
+    },
+    {
+      "name": "Ring band glow",
+      "kind": "AREA",
+      "position": [
+        80,
+        6.6,
+        117.0
+      ],
+      "target": [
+        81,
+        0,
+        117.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 300,
+      "size": 1.0
+    },
+    {
+      "name": "Ring band glow",
+      "kind": "AREA",
+      "position": [
+        90,
+        6.6,
+        117.0
+      ],
+      "target": [
+        91,
+        0,
+        117.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 300,
+      "size": 1.0
+    },
+    {
+      "name": "Ring band glow",
+      "kind": "AREA",
+      "position": [
+        99.5,
+        6.6,
+        117.0
+      ],
+      "target": [
+        100.5,
+        0,
+        117.0
+      ],
+      "color": [
+        0.3,
+        0.95,
+        0.95
+      ],
+      "power": 300,
+      "size": 1.0
+    }
+  ],
+  "practicals": [
+    {
+      "x": 71.5,
+      "y": 6.6,
+      "z": 117.0,
+      "color": [
+        0.4,
+        0.95,
+        0.95
+      ],
+      "intensity": 20,
+      "distance": 22
+    },
+    {
+      "x": 100.5,
+      "y": 6.6,
+      "z": 117.0,
+      "color": [
+        0.4,
+        0.95,
+        0.95
+      ],
+      "intensity": 20,
+      "distance": 22
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 28,
+    "removedArea": 29.477248905072535,
+    "corridorHeight": 6.0
+  }
+}
