@@ -5,8 +5,11 @@ is editable; `public/modern/roster/environment/kit.glb` is the runtime export.
 The authoring script is `tools/modern-art/build_environment_kit.py`. No purchased
 assets, downloaded models, or copied levels are included.
 
-The kit supplies 28 named assemblies: a wall relief, luminaire, overhead
-assembly and continuous plinth/course trim for each campaign identity.
+The kit supplies 56 named assemblies. For each campaign identity: a wall
+relief, luminaire, overhead crown and continuous plinth/course trim, plus a
+tall-room set used by the room vertical grammar (`../../vertical/README.md`):
+a 6 m string course, an upper order stretched to the wall height, a 2 m
+overhead span tile and a suspended piece (at most 3.2 m deep).
 Foundry uses riveted structure and process
 pipes; Gullet uses organic costal folds and ossified vaults; Catacombs uses blind
 stone arches and burial niches; Pit uses mine shoring and hoist rails; Spire uses
@@ -31,7 +34,7 @@ slightly dimmed; there is no runtime weather or procedural sky replacement.
 Every module faces local +Z into a room. Low relief is at most 0.18 m deep and
 confined to its two-metre wall cell; overhead volumes start above 4.3 m. Mounts
 occur only along solid/walkable grid boundaries. Indoor modern ceilings use the
-existing six-metre wall height. No collision, door, enemy, or simulation data is
+existing six-metre wall height, except rooms raised by the room vertical grammar. No collision, door, enemy, or simulation data is
 modified. Sixteen-metre instance batches share geometry and remain frustum
 cullable. Wall/floor textures use continuous four-metre UVs across grid cells.
 

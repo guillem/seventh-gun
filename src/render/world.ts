@@ -21,8 +21,8 @@ import { getModernAssets } from './modernAssets';
 import { addFoundryDoorHardware, addFoundryEnvironment, foundryCell } from './foundry';
 import {
   addCampaignEnvironment, campaignEnvironmentSurface, CAMPAIGN_ENVIRONMENT_PALETTES,
-  MODERN_CAMPAIGN_CEILING,
 } from './campaignEnvironment';
+import { planRoomVolumes, type RoomVolumes } from './roomVolumes';
 
 interface QuadMesh {
   pos: number[];
@@ -97,7 +97,7 @@ function roomThemeAt(map: GameMap, cx: number, cz: number): { theme: Theme; outd
   return { theme: best ? best.theme : 'stone', outdoor: false };
 }
 
-export function buildWorld(map: GameMap, artId?: CampaignArtId): {
+export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVolumes = planRoomVolumes(map, artId)): {
   group: THREE.Group;
   doorMeshes: Map<number, THREE.Mesh>;
   plateMeshes: Map<number, THREE.Mesh>;
@@ -108,8 +108,11 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   const tex = getTextures();
   const modern = getModernAssets();
   const resolved = artId;
-  const modernArt = resolved ?? 'foundry';
-  const ceilingHeight = modern ? MODERN_CAMPAIGN_CEILING : CEIL_H;
+  // Modern art resolves identity and headroom per cell. Without the room
+  // grammar every cell is the map's identity under the original 6 m ceiling.
+  const artAt = (cx: number, cz: number): CampaignArtId => volumes.artAt(cx, cz);
+  const ceilingAt = (cx: number, cz: number): number => modern ? volumes.ceilingAt(cx, cz) : CEIL_H;
+  const wallTop = (cx: number, cz: number): number => modern ? volumes.ceilingAt(cx, cz) : WALL_H;
   // Saved specimens span four metres, with continuous UVs across grid cells.
   // This avoids restarting a complete texture image at every two-metre tile.
   const textureSpan = modern ? 4 : CELL;
@@ -150,7 +153,9 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       const x0 = cx * CELL, x1 = x0 + CELL;
       const z0 = cz * CELL, z1 = z0 + CELL;
       const amb = campAmb ?? themeAmbient[theme];
-      const surf = camp ? 'campaign' : theme;
+      const surf = modern ? artAt(cx, cz) : camp ? 'campaign' : theme;
+      const ceilingHeight = ceilingAt(cx, cz);
+      const top = wallTop(cx, cz);
 
       // floor (winding faces UP: cross((b-a),(c-b)) = +Y)
       {
@@ -186,20 +191,38 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
       const m = bucket(`wall:${surf}`);
       const bake = (p: THREE.Vector3) => bakeColor(map.lights, p.x, p.y, p.z, amb, outdoor);
       for (const [dx, dz, n] of sides) {
-        if (!solidAt(cx + dx, cz + dz)) continue;
+        // A solid neighbour gets a full wall. A walkable neighbour with less
+        // headroom (a corridor mouth into a raised room) gets the header strip
+        // between the two ceilings, facing into the taller cell.
+        let y0 = 0;
+        if (!solidAt(cx + dx, cz + dz)) {
+          if (!modern) continue;
+          y0 = ceilingAt(cx + dx, cz + dz);
+          if (y0 >= top) continue;
+        }
         let a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, d: THREE.Vector3;
         if (n.z === 1) {
-          a = V(x0, 0, z0); b = V(x1, 0, z0); c = V(x1, WALL_H, z0); d = V(x0, WALL_H, z0);
+          a = V(x0, y0, z0); b = V(x1, y0, z0); c = V(x1, top, z0); d = V(x0, top, z0);
         } else if (n.z === -1) {
-          a = V(x1, 0, z1); b = V(x0, 0, z1); c = V(x0, WALL_H, z1); d = V(x1, WALL_H, z1);
+          a = V(x1, y0, z1); b = V(x0, y0, z1); c = V(x0, top, z1); d = V(x1, top, z1);
         } else if (n.x === 1) {
-          a = V(x0, 0, z1); b = V(x0, 0, z0); c = V(x0, WALL_H, z0); d = V(x0, WALL_H, z1);
+          a = V(x0, y0, z1); b = V(x0, y0, z0); c = V(x0, top, z0); d = V(x0, top, z1);
         } else {
-          a = V(x1, 0, z0); b = V(x1, 0, z1); c = V(x1, WALL_H, z1); d = V(x1, WALL_H, z0);
+          a = V(x1, y0, z0); b = V(x1, y0, z1); c = V(x1, top, z1); d = V(x1, top, z0);
         }
         const along = n.z ? (n.z > 0 ? x0 : -x1) : (n.x > 0 ? -z1 : z0);
-        pushQuad(m, a, b, c, d, n, CELL / textureSpan, WALL_H / textureSpan,
-          [bake(a), bake(b), bake(c), bake(d)], modern ? [along / textureSpan, 0] : [0, 0]);
+        pushQuad(m, a, b, c, d, n, CELL / textureSpan, (top - y0) / textureSpan,
+          [bake(a), bake(b), bake(c), bake(d)], modern ? [along / textureSpan, y0 / textureSpan] : [0, 0]);
+        // Above the original wall line a raised room is visible from outside
+        // (from a courtyard, over its 6 m walls). Give that part an outward
+        // skin so the room reads as a solid mass, not a culled cut-away.
+        const outerFrom = Math.max(y0, WALL_H);
+        if (modern && top > outerFrom) {
+          const lift = (p: THREE.Vector3) => V(p.x, Math.max(p.y, outerFrom), p.z);
+          const [oa, ob] = [lift(b), lift(a)];
+          pushQuad(m, oa, ob, d.clone(), c.clone(), n.clone().negate(), CELL / textureSpan, (top - outerFrom) / textureSpan,
+            [bake(oa), bake(ob), bake(d), bake(c)], [-along / textureSpan, outerFrom / textureSpan]);
+        }
       }
     }
   }
@@ -223,7 +246,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
         : type === 'ceil' ? tex.ceilings[theme]
           : tex.walls[theme];
     const wallRepeat = type === 'wall' ? 1 : 1;
-    const mat = modern ? campaignEnvironmentSurface(type as 'floor' | 'ceil' | 'wall', modernArt, modern) : new THREE.MeshBasicMaterial({
+    const mat = modern ? campaignEnvironmentSurface(type as 'floor' | 'ceil' | 'wall', themeStr as CampaignArtId, modern) : new THREE.MeshBasicMaterial({
       map: texture, vertexColors: true, fog: true,
       // floors/ceilings are single-sided quads seen from one side; DoubleSide
       // removes any chance of a culled surface showing the sky through it
@@ -276,7 +299,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     const entranceDoor = modern && map.seed === 'campaign:01-foundry' && d.id === 0;
     const mat = entranceDoor ? new THREE.MeshStandardMaterial({
       map: modern.entranceDoor, color: 0xffffff, metalness: 0.28, roughness: 0.7, envMapIntensity: 0.45,
-    }) : modern ? campaignEnvironmentSurface('door', modernArt, modern) : new THREE.MeshLambertMaterial({
+    }) : modern ? campaignEnvironmentSurface('door', artAt(Math.floor(d.x / CELL), Math.floor(d.z / CELL)), modern) : new THREE.MeshLambertMaterial({
       map: camp?.door ?? tex.door,
       emissive: new THREE.Color(resolved ? CAMPAIGN_DOOR_EMISSIVE[resolved] : 0x2a1000),
     });
@@ -301,7 +324,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
     );
     disposables.push(geo);
     const wallTex = camp?.walls ?? tex.walls[theme];
-    const mat = modern ? campaignEnvironmentSurface('wall', modernArt, modern) : new THREE.MeshLambertMaterial({ map: wallTex });
+    const mat = modern ? campaignEnvironmentSurface('wall', artAt(Math.floor(s.x / CELL), Math.floor(s.z / CELL)), modern) : new THREE.MeshLambertMaterial({ map: wallTex });
     if (modern) (mat as THREE.MeshStandardMaterial).vertexColors = false;
     applyRadialFog(mat);
     const mesh = new THREE.Mesh(geo, mat);
@@ -421,7 +444,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId): {
   }
 
   if (modern) {
-    addCampaignEnvironment(group, map, modernArt, modern);
+    addCampaignEnvironment(group, map, volumes.primaryArt, modern, volumes);
     if (map.seed === 'campaign:01-foundry') addFoundryEnvironment(group, modern.foundry);
   } else if (camp && resolved) {
     applyCampaignDecor(group, map, resolved, camp, disposables);

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { CELL } from '../sim/types';
 import { applyRadialFog } from './radialFog';
 
-export type ArchitecturePlacement = { x: number; y: number; z: number; yaw: number; color?: THREE.Color };
+export type ArchitecturePlacement = { x: number; y: number; z: number; yaw: number; color?: THREE.Color; scaleY?: number };
 type Placement = ArchitecturePlacement;
 export const MODERN_ARCHITECTURE_CHUNK_SIZE = CELL * 8;
 
@@ -48,6 +48,7 @@ export function instanceArchitecturePart(
       chunk.forEach((placement, i) => {
         transform.position.set(placement.x, placement.y, placement.z);
         transform.rotation.set(0, placement.yaw, 0);
+        transform.scale.set(1, placement.scaleY ?? 1, 1);
         transform.updateMatrix();
         instanced.setMatrixAt(i, transform.matrix);
         if (placement.color) instanced.setColorAt(i, placement.color);
@@ -61,4 +62,73 @@ export function instanceArchitecturePart(
       parent.add(instanced);
     }
   });
+}
+
+/** Kit modules whose placements share one material in a single multi-draw.
+ * A mixed-identity maze would otherwise submit one instanced draw per module
+ * mesh per 16 m chunk. Geometry is stored once per module mesh; BatchedMesh
+ * culls each placement against the frustum. `materialKey` names the shared
+ * material, and `configure` binds it the first time that key is seen. */
+export function batchArchitecture(
+  parent: THREE.Group, source: THREE.Group, placements: Record<string, Placement[]>,
+  materialKey: (module: string, material: THREE.Material) => string,
+  configure: (module: string, material: THREE.Material) => void,
+): void {
+  source.updateMatrixWorld(true);
+  const origin = new THREE.Matrix4().copy(source.matrixWorld).invert();
+  type Entry = { geometry: THREE.BufferGeometry; placements: Placement[] };
+  const groups = new Map<string, { material: THREE.Material; entries: Entry[] }>();
+  for (const [name, list] of Object.entries(placements).sort(([a], [b]) => a.localeCompare(b))) {
+    const part = source.getObjectByName(name);
+    if (!part || !list.length) continue;
+    part.traverse(node => {
+      if (!(node instanceof THREE.Mesh) || Array.isArray(node.material)) return;
+      const key = materialKey(name, node.material);
+      let group = groups.get(key);
+      if (!group) {
+        const material = node.material.clone();
+        configure(name, material);
+        applyRadialFog(material);
+        group = { material, entries: [] };
+        groups.set(key, group);
+      }
+      // BatchedMesh needs one attribute layout; the kit's extra UV sets and
+      // tangents are not used by these materials.
+      const geometry = new THREE.BufferGeometry();
+      for (const attribute of ['position', 'normal', 'uv']) {
+        const value = node.geometry.getAttribute(attribute);
+        if (value) geometry.setAttribute(attribute, value.clone());
+      }
+      geometry.setIndex(node.geometry.index ? node.geometry.index.clone()
+        : [...Array(node.geometry.getAttribute('position').count).keys()]);
+      geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(origin, node.matrixWorld));
+      group.entries.push({ geometry, placements: list });
+    });
+  }
+  const transform = new THREE.Object3D();
+  for (const [key, { material, entries }] of groups) {
+    const instances = entries.reduce((sum, entry) => sum + entry.placements.length, 0);
+    const vertices = entries.reduce((sum, entry) => sum + entry.geometry.getAttribute('position').count, 0);
+    const indices = entries.reduce((sum, entry) => sum + entry.geometry.index!.count, 0);
+    const batch = new THREE.BatchedMesh(instances, vertices, indices, material);
+    batch.name = `modern-batch-${key}`;
+    batch.perObjectFrustumCulled = true;
+    batch.sortObjects = false;
+    batch.castShadow = false;
+    batch.receiveShadow = true;
+    for (const { geometry, placements: list } of entries) {
+      const id = batch.addGeometry(geometry);
+      geometry.dispose();
+      for (const placement of list) {
+        const instance = batch.addInstance(id);
+        transform.position.set(placement.x, placement.y, placement.z);
+        transform.rotation.set(0, placement.yaw, 0);
+        transform.scale.set(1, placement.scaleY ?? 1, 1);
+        transform.updateMatrix();
+        batch.setMatrixAt(instance, transform.matrix);
+        if (placement.color) batch.setColorAt(instance, placement.color);
+      }
+    }
+    parent.add(batch);
+  }
 }

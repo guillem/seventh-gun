@@ -1,0 +1,92 @@
+{
+  "base": "http://localhost:4173",
+  "label": "after",
+  "capturedAt": "2026-10-04T00:23:42.441Z",
+  "views": [
+    {
+      "name": "gullet-hall",
+      "run": {
+        "campaign": 2
+      },
+      "x": 78,
+      "z": 32,
+      "yaw": -60,
+      "pitch": -8,
+      "frames": 61,
+      "drawsPerFrame": 144,
+      "trianglesPerFrame": 503877,
+      "mapHash": "a31305c5"
+    },
+    {
+      "name": "gullet-hall-up",
+      "run": {
+        "campaign": 2
+      },
+      "x": 80,
+      "z": 16,
+      "yaw": -50,
+      "pitch": -30,
+      "frames": 61,
+      "drawsPerFrame": 94,
+      "trianglesPerFrame": 266001,
+      "mapHash": "a31305c5"
+    },
+    {
+      "name": "gullet-arena",
+      "run": {
+        "campaign": 2
+      },
+      "x": 120,
+      "z": 72,
+      "yaw": -135,
+      "pitch": -5,
+      "frames": 61,
+      "drawsPerFrame": 182,
+      "trianglesPerFrame": 645111,
+      "mapHash": "a31305c5"
+    },
+    {
+      "name": "seed-1984-catacombs",
+      "run": {
+        "seed": "1984"
+      },
+      "x": 123,
+      "z": 47,
+      "yaw": -125,
+      "pitch": -10,
+      "frames": 61,
+      "drawsPerFrame": 259,
+      "trianglesPerFrame": 731955,
+      "mapHash": "62624244"
+    },
+    {
+      "name": "seed-1984-ward",
+      "run": {
+        "seed": "1984"
+      },
+      "x": 26,
+      "z": 120,
+      "yaw": -135,
+      "pitch": -5,
+      "frames": 61,
+      "drawsPerFrame": 486,
+      "trianglesPerFrame": 1171915,
+      "mapHash": "62624244"
+    },
+    {
+      "name": "seed-1986-spire",
+      "run": {
+        "seed": "1986"
+      },
+      "x": 30,
+      "z": 58,
+      "yaw": -135,
+      "pitch": -10,
+      "frames": 61,
+      "drawsPerFrame": 617,
+      "trianglesPerFrame": 1271059,
+      "mapHash": "8f50b164"
+    }
+  ],
+  "errors": []
+}

@@ -2,9 +2,13 @@
 // unchanged simulation grid. The authored Foundry first encounter stays intact.
 import * as THREE from 'three';
 import { CELL, WALL_H, type GameMap } from '../sim/types';
+import { findExposedWallFace, reachableFloorCells } from '../sim/blueprint';
 import type { CampaignArtId } from './campaignTextures';
 import { foundryCell } from './foundry';
-import { instanceArchitecturePart, type ArchitecturePlacement } from './modernWorld';
+import { batchArchitecture, instanceArchitecturePart, type ArchitecturePlacement } from './modernWorld';
+import {
+  BASE_CEILING, cosmeticUnit, HANG_GLOW_DEPTH, tallRoomOverheads, UPPER_REGISTER_Y, type RoomVolumes,
+} from './roomVolumes';
 
 export interface EnvironmentAssets {
   environmentKit: THREE.Group;
@@ -146,9 +150,156 @@ export function campaignEnvironmentPlacements(map: GameMap, artId: CampaignArtId
   return result;
 }
 
-export function addCampaignEnvironment(parent: THREE.Group, map: GameMap, artId: CampaignArtId, assets: EnvironmentAssets): void {
+interface WallFace {
+  x: number; z: number; dx: number; dz: number;
+  /** A header is the strip above a lower opening into a taller room. */
+  header: boolean;
+  ceiling: number;
+  art: CampaignArtId;
+  outdoor: boolean;
+}
+
+/** Faces grouped into straight runs: same side, same line, same identity and
+ * headroom, contiguous. Dressing is laid out per run, centred and symmetric,
+ * instead of by absolute grid coordinate. */
+export function wallRuns(map: GameMap, volumes: RoomVolumes): WallFace[][] {
+  const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
+  const groups = new Map<string, WallFace[]>();
+  for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
+    if (!walkable(x, z) || foundryCell(map, x, z)) continue;
+    const ceiling = volumes.ceilingAt(x, z);
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const open = walkable(x + dx, z + dz);
+      if (open && volumes.ceilingAt(x + dx, z + dz) >= ceiling) continue;
+      const room = volumes.roomAt(x, z)?.room;
+      const face: WallFace = { x, z, dx, dz, header: open, ceiling, art: volumes.artAt(x, z), outdoor: !!room?.outdoor };
+      const key = `${dx},${dz},${dx ? x : z},${face.header},${face.ceiling},${face.art},${face.outdoor}`;
+      const list = groups.get(key);
+      if (list) list.push(face); else groups.set(key, [face]);
+    }
+  }
+  const runs: WallFace[][] = [];
+  for (const faces of groups.values()) {
+    faces.sort((a, b) => (a.dx ? a.z - b.z : a.x - b.x));
+    let run: WallFace[] = [];
+    for (const face of faces) {
+      const last = run[run.length - 1];
+      if (last && (face.dx ? face.z - last.z : face.x - last.x) !== 1) { runs.push(run); run = []; }
+      run.push(face);
+    }
+    if (run.length) runs.push(run);
+  }
+  return runs;
+}
+
+function evenly(length: number, count: number): Set<number> {
+  const out = new Set<number>();
+  for (let j = 0; j < count; j++) out.add(Math.round((j + .5) * length / count - .5));
+  return out;
+}
+
+function rhythm(length: number, bay: number): (i: number) => boolean {
+  const offset = Math.floor(((length - 1) % bay) / 2);
+  return i => (i - offset) % bay === 0;
+}
+
+/** Wall faces carrying a remote secret control (lever or shootable sigil),
+ * keyed as `x,z,dx,dz` from the walkable side. Same face lookup as world.ts. */
+export function secretControlFaces(map: GameMap): Set<string> {
+  const faces = new Set<string>();
+  const closed = new Set<number>();
+  for (const secret of map.secrets ?? []) for (const [x, z] of secret.cells) closed.add(z * map.w + x);
+  const reach = reachableFloorCells(map.grid, map.w, map.h,
+    Math.floor(map.playerStart.x / CELL), Math.floor(map.playerStart.z / CELL), closed);
+  for (const secret of map.secrets ?? []) {
+    if (!secret.trigger) continue;
+    const face = findExposedWallFace(map.grid, map.w, map.h, secret.trigger.x, secret.trigger.z, reach);
+    if (face) faces.add(`${secret.trigger.x + face.dx},${secret.trigger.z + face.dz},${-face.dx},${-face.dz}`);
+  }
+  return faces;
+}
+
+/** Run-based dressing for maps using the room vertical grammar. Keys are kit
+ * module names, since one maze mixes several identities. */
+export function verticalEnvironmentPlacements(map: GameMap, volumes: RoomVolumes): Record<string, ArchitecturePlacement[]> {
+  const result: Record<string, ArchitecturePlacement[]> = {};
+  const push = (module: string, placement: ArchitecturePlacement) => (result[module] ??= []).push(placement);
+  // Relief or a luminaire would hide a secret control mounted on the wall.
+  const controls = secretControlFaces(map);
+  for (const run of wallRuns(map, volumes)) {
+    const first = run[0];
+    const palette = CAMPAIGN_ENVIRONMENT_PALETTES[first.art];
+    const variety = cosmeticUnit(map.seed, `run:${first.dx},${first.dz},${first.x},${first.z},${run.length}`);
+    const relief = rhythm(run.length, palette.reliefInterval + (variety < .5 ? 0 : 1));
+    // The upper order uses a wider bay than the wall below, so tall walls get
+    // broad fields between major members instead of a dense repeat.
+    const upper = rhythm(run.length, 3 + Math.floor(variety * 4) % 2);
+    const crown = rhythm(run.length, palette.crownInterval);
+    const fixtures = first.header || run.length < 3 ? new Set<number>()
+      : evenly(run.length, run.length >= 17 ? 3 : run.length >= 10 ? 2 : 1);
+    const tall = first.ceiling > BASE_CEILING;
+    run.forEach((face, i) => {
+      const px = (face.x + .5) * CELL + face.dx * CELL / 2;
+      const pz = (face.z + .5) * CELL + face.dz * CELL / 2;
+      const yaw = Math.atan2(-face.dx, -face.dz);
+      const placement: ArchitecturePlacement = { x: px, y: 0, z: pz, yaw, color: placementColor(map, px, pz) };
+      const art = face.art;
+      if (!face.header) {
+        push(`${art}_trim`, placement);
+        if (controls.has(`${face.x},${face.z},${face.dx},${face.dz}`)) return;
+        if (fixtures.has(i)) push(`${art}_fixture`, { ...placement, color: undefined });
+        else if (relief(i)) push(`${art}_relief`, placement);
+      }
+      if (face.outdoor) return;
+      if (crown(i)) push(`${art}_crown`, { ...placement, y: face.ceiling - BASE_CEILING });
+      if (!tall || face.ceiling < 9) return;
+      push(`${art}_course`, { ...placement, y: UPPER_REGISTER_Y });
+      // The upper register continues the bay rhythm below it, so piers and
+      // ribs read as one tall order rather than a second stacked wall.
+      if (upper(i)) {
+        push(`${art}_upper`, { ...placement, y: UPPER_REGISTER_Y, scaleY: (face.ceiling - UPPER_REGISTER_Y - 1.2) / 4 });
+      }
+    });
+  }
+  for (const { module, ...placement } of tallRoomOverheads(map, volumes)) {
+    push(module, { ...placement, color: placementColor(map, placement.x, placement.z) });
+  }
+  return result;
+}
+
+/** A luminaire. Wall fixtures have no `y` (their lens height is per identity);
+ * hanging lamps in tall rooms carry their own height and need no wall offset. */
+export interface EnvironmentFixture { x: number; z: number; yaw: number; art: CampaignArtId; y?: number }
+
+/** Wall luminaires, used by the stationary practical-light selection. */
+export function environmentFixtures(map: GameMap, artId: CampaignArtId, volumes?: RoomVolumes): EnvironmentFixture[] {
+  if (!volumes?.vertical) {
+    return campaignEnvironmentPlacements(map, artId).fixture.map(({ x, z, yaw }) => ({ x, z, yaw, art: artId }));
+  }
+  return Object.entries(verticalEnvironmentPlacements(map, volumes))
+    .filter(([module]) => module.endsWith('_fixture') || module.endsWith('_hang'))
+    .flatMap(([module, list]) => list.map(({ x, y, z, yaw }): EnvironmentFixture => {
+      const art = module.split('_')[0] as CampaignArtId;
+      return module.endsWith('_hang') ? { x, z, yaw, art, y: y - HANG_GLOW_DEPTH[art] - 1 } : { x, z, yaw, art };
+    }))
+    .sort((a, b) => a.x - b.x || a.z - b.z);
+}
+
+export function addCampaignEnvironment(
+  parent: THREE.Group, map: GameMap, artId: CampaignArtId, assets: EnvironmentAssets, volumes?: RoomVolumes,
+): void {
   const group = new THREE.Group();
-  group.name = `campaign-environment-${artId}`;
+  group.name = `campaign-environment-${volumes?.vertical ? 'vertical' : artId}`;
+  if (volumes?.vertical) {
+    // Material binding depends only on identity and kit material name, so
+    // every module of one identity sharing a material shares one batch.
+    const art = (module: string) => module.split('_')[0] as CampaignArtId;
+    batchArchitecture(group, assets.environmentKit, verticalEnvironmentPlacements(map, volumes),
+      (module, material) => `${art(module)}|${material.name}`,
+      (module, material) => bindKitMaterial(material, assets, art(module)));
+    parent.add(group);
+    return;
+  }
   const placements = campaignEnvironmentPlacements(map, artId);
   for (const [role, parts] of Object.entries(placements)) {
     instanceArchitecturePart(group, assets.environmentKit, `${artId}_${role}`, parts, material => bindKitMaterial(material, assets, artId));

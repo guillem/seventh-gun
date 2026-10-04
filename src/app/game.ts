@@ -605,6 +605,7 @@ export class Game {
     this.renderer.setRun(
       this.sim,
       this.runKind === 'campaign' ? campaignArtIdFromIndex(this.campaignIndex) : undefined,
+      this.runKind === 'maze',
     );
     this.editor?.hide();
     this.screens.showMapLog(false);

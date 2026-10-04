@@ -21,6 +21,7 @@ import { applyRadialFogDeep, installRadialFog } from './radialFog';
 import { disposeOwnedObject } from './dispose';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { getModernAssets } from './modernAssets';
+import { planRoomVolumes, type RoomVolumes } from './roomVolumes';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -56,6 +57,7 @@ export class GameRenderer {
   private hemisphere: THREE.HemisphereLight;
   private ambient: THREE.AmbientLight;
   private artId?: CampaignArtId;
+  private volumes?: RoomVolumes;
   private muzzleSprite: THREE.Sprite | null = null;
   private muzzleLife = 0;
   private baseFov = 75;
@@ -176,7 +178,8 @@ export class GameRenderer {
     this.vmHolder.position.x = getModernAssets() ? -0.38 * Math.max(0, 1 - aspect) : 0;
   }
 
-  setRun(sim: WorldView, artId?: CampaignArtId): void {
+  /** `maze` marks a seeded solo maze, which uses the room vertical grammar. */
+  setRun(sim: WorldView, artId?: CampaignArtId, maze = false): void {
     if (this.world) {
       this.world.dispose();
     }
@@ -192,7 +195,8 @@ export class GameRenderer {
     const resolved = artId;
     this.artId = artId;
     if (getModernAssets()) this.hemisphere.color.set(artId ? CAMPAIGN_ENVIRONMENT_PALETTES[artId].sky : 0xc2d9e1);
-    this.world = buildWorld(sim.map, resolved);
+    this.volumes = planRoomVolumes(sim.map, resolved, maze);
+    this.world = buildWorld(sim.map, resolved, this.volumes);
     this.scene.add(this.world.group);
     this.scene.fog = getModernAssets()
       ? sim.map.seed === 'campaign:01-foundry' ? new THREE.Fog(0x15282f, 24, 110) : new THREE.Fog(resolved ? CAMPAIGN_ENVIRONMENT_PALETTES[resolved].fog : 0x273942, 14, 78)
@@ -457,7 +461,7 @@ export class GameRenderer {
       light.visible = foundry;
       light.intensity = foundry ? light.userData.baseIntensity : 0;
     });
-    const sources = selectModernPracticalLights(view.map, this.artId);
+    const sources = selectModernPracticalLights(view.map, this.artId ?? this.volumes?.primaryArt, undefined, this.volumes);
     this.practicalLights.forEach((light, i) => {
       const source = sources[i];
       // Intensity zero still participates in Three's fixed shader layout.

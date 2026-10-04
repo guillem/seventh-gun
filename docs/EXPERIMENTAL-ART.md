@@ -252,3 +252,15 @@ Normal Chrome on Apple M5 Pro measures approximately 60 fps across four standard
 views and fourteen campaign entry views, p95 16.7–16.8 ms. Final browser/hosted results are maintained
 in STATUS.md. This remains a stylized original game with rectangular layouts and
 reused modules, rather than photorealistic parity with the menu illustration.
+
+## Room vertical grammar pilot — 2026-10-04
+
+The Gullet and seeded solo mazes now use a shared, presentation-only room
+grammar (`src/render/roomVolumes.ts`): raised per-room ceilings with headers
+at room mouths, run-based wall dressing, and a tall-room set (course, upper
+order, overhead members, suspended lamps) of 28 new saved kit modules. Seed
+rooms take one of the seven identities from their generator theme. Layouts,
+simulation and `GEN_VERSION` are untouched; variation comes from a
+render-local hash. The other campaign maps, arena and `#m=` maps are unchanged
+pending review. Evidence and measurements are in `art/modern/vertical/`.
+

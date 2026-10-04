@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { CELL, type GameMap, type Room, type RoomLight } from '../sim/types';
 import type { CampaignArtId } from './campaignTextures';
-import { campaignEnvironmentPlacements, CAMPAIGN_ENVIRONMENT_PALETTES } from './campaignEnvironment';
+import { environmentFixtures, CAMPAIGN_ENVIRONMENT_PALETTES } from './campaignEnvironment';
+import type { RoomVolumes } from './roomVolumes';
 import { foundryCell } from './foundry';
 
 export const MODERN_PRACTICAL_LIGHT_LIMIT = 12;
@@ -26,7 +27,7 @@ const FIXTURE_HEIGHT: Record<CampaignArtId, number> = {
 };
 const FIXTURE_OFFSET = .24;
 type Source = { source: RoomLight; sourceIndex: number };
-type Position = { x: number; y: number; z: number };
+type Position = { x: number; y: number; z: number; art?: CampaignArtId };
 
 function distanceSq(a: Pick<Position, 'x' | 'z'>, b: Pick<Position, 'x' | 'z'>): number {
   return (a.x - b.x) ** 2 + (a.z - b.z) ** 2;
@@ -44,15 +45,19 @@ function sourceOrder(a: Source, b: Source): number {
  * ordinary indoor room gets a first source before secrets or second sources in
  * large rooms. The authored Foundry hall already has seven fixed spotlights. */
 export function selectModernPracticalLights(
-  map: GameMap, artId: CampaignArtId = 'foundry', limit = MODERN_PRACTICAL_LIGHT_LIMIT,
+  map: GameMap, artId: CampaignArtId = 'foundry', limit = MODERN_PRACTICAL_LIGHT_LIMIT, volumes?: RoomVolumes,
 ): ModernPracticalLight[] {
   const budget = Math.max(0, Math.min(MODERN_PRACTICAL_LIGHT_LIMIT, Math.floor(limit)));
   if (!budget) return [];
-  const fixtures = campaignEnvironmentPlacements(map, artId).fixture.map(fixture => ({
-    x: fixture.x + Math.sin(fixture.yaw) * FIXTURE_OFFSET,
-    y: FIXTURE_HEIGHT[artId],
-    z: fixture.z + Math.cos(fixture.yaw) * FIXTURE_OFFSET,
-  }));
+  const fixtures = environmentFixtures(map, artId, volumes).map(fixture => {
+    const offset = fixture.y === undefined ? FIXTURE_OFFSET : 0;
+    return {
+      x: fixture.x + Math.sin(fixture.yaw) * offset,
+      y: fixture.y ?? FIXTURE_HEIGHT[fixture.art],
+      z: fixture.z + Math.cos(fixture.yaw) * offset,
+      art: fixture.art,
+    };
+  });
   const groups = map.rooms.filter(room => !room.outdoor).map(room => ({
     room,
     sources: map.lights.map((source, sourceIndex) => ({ source, sourceIndex }))
@@ -70,7 +75,7 @@ export function selectModernPracticalLights(
   const occupied = new Set<string>();
   const positionKey = (position: Position) => `${position.x.toFixed(4)},${position.y.toFixed(4)},${position.z.toFixed(4)}`;
   const color = new THREE.Color();
-  const tint = new THREE.Color(CAMPAIGN_ENVIRONMENT_PALETTES[artId].fixture);
+  const tint = new THREE.Color();
 
   const add = (group: typeof groups[number], source: Source): void => {
     if (selected.length >= budget) return;
@@ -87,11 +92,14 @@ export function selectModernPracticalLights(
     });
     if (!position || occupied.has(positionKey(position))) return;
     occupied.add(positionKey(position));
+    tint.set(CAMPAIGN_ENVIRONMENT_PALETTES[position.art ?? artId].fixture);
     color.setRGB(...source.source.color).lerp(tint, .7);
     selected.push({
-      roomId: group.room.id, sourceIndex: source.sourceIndex, ...position,
-      color: [color.r, color.g, color.b], intensity: 24 * source.source.intensity,
-      distance: Math.min(24, source.source.radius * 1.35), decay: 1.6,
+      roomId: group.room.id, sourceIndex: source.sourceIndex, x: position.x, y: position.y, z: position.z,
+      // A lamp hung high in a raised room is further from the floor than a
+      // wall luminaire; compensate so the floor pool keeps its brightness.
+      color: [color.r, color.g, color.b], intensity: 24 * source.source.intensity * Math.max(1, position.y / 3.5) ** 1.2,
+      distance: Math.min(24, source.source.radius * 1.35) + Math.max(0, position.y - 3.5), decay: 1.6,
     });
   };
 

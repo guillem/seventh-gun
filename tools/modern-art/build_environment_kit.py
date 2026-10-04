@@ -177,6 +177,159 @@ def main():
         box('Shield fin',(x,5.1,.4),(.15,1.3,.77),dark,r,.016)
         box('Energy fin edge',(x,5.1,.795),(.045,.98,.025),teal,r)
 
+    # Tall-room vertical set (room vertical grammar, src/render/roomVolumes.ts).
+    # Everything here lives above the original six-metre wall, never in the
+    # combat volume. Conventions, in module space:
+    #   course  string course placed at the six-metre line, y -.25..+.35
+    #   upper   upper-wall register, y 0..4, stretched in Y to the band height;
+    #           so it is built from prismatic vertical members that tolerate it
+    #   span    2 m tile of an overhead member along local X, hanging from y 0
+    #           (the ceiling) down to at most -1.5
+    #   hang    suspended piece from y 0 to at most -3.2 (needs >= 8 m rooms)
+    def ceiling_rod(name,length,mat,r,radius=.03,x=0,z=0):
+        h.cylinder(name,(x,0,z),(x,-length,z),radius,mat,r,segments=6)
+
+    # Foundry: column, crane-rail corbel and clerestory glazing; a Warren truss
+    # and a chained ladle.
+    r=module('foundry','course')
+    box('Crane rail girder',(0,.05,.2),(1.99,.42,.4),iron,r)
+    box('Rail head',(0,.29,.33),(1.99,.06,.12),dark,r)
+    for x in [-.6,.6]: box('Girder stiffener',(x,.05,.36),(.05,.38,.06),dark,r)
+    r=module('foundry','upper')
+    box('Column web',(0,2,.07),(.3,4,.12),iron,r)
+    for x in [-.2,.2]: box('Column flange',(x,2,.13),(.06,4,.2),iron,r)
+    for x in [-.62,.62]:
+        box('Clerestory mullion',(x,2.2,.06),(.08,3.2,.1),dark,r)
+        box('Clerestory glazing',(x*1.04,2.2,.025),(.44,3.0,.02),white,r,0)
+    for y in [.55,3.85]: box('Glazing transom',(0,y,.07),(1.99,.1,.12),dark,r)
+    r=module('foundry','span')
+    for y in [-.12,-1.28]: box('Truss chord',(0,y,0),(1.99,.16,.22),iron,r)
+    beam_x=lambda n,a,b: h.cylinder(n,a,b,.045,iron,r,segments=6)
+    beam_x('Truss diagonal',(-.98,-1.2,0),(0,-.2,0)); beam_x('Truss diagonal',(0,-.2,0),(.98,-1.2,0))
+    for x in [-.98,0]: box('Truss gusset',(x,-.7,0),(.05,1.05,.26),dark,r)
+    r=module('foundry','hang')
+    for x in [-.18,.18]: ceiling_rod('Ladle chain',1.75,dark,r,.025,x)
+    box('Spreader bar',(0,-1.78,0),(.6,.1,.12),iron,r)
+    h.cylinder('Pour ladle',(0,-1.85,0),(0,-2.95,0),.42,iron,r,r2=.3,segments=14)
+    h.cylinder('Ladle lip glow',(0,-1.86,0),(0,-1.9,0),.36,amber,r,segments=14)
+
+    # Gullet: rising rib cage with taut membrane, ossified tendon arches across
+    # the room and suspended glandular sacs.
+    r=module('gullet','course')
+    pipe('Collar tendon',[(-1,.05,.22),(-.5,.12,.26),(0,.06,.24),(.5,.12,.26),(1,.05,.22)],.1,tissue,r)
+    box('Ossified shelf',(0,-.12,.14),(1.99,.14,.26),bone,r,.02)
+    r=module('gullet','upper')
+    # Two ribs rise from the course and meet in an ogive; sinew webbing
+    # stretches between them and a gland sits in the apex. No flat panel.
+    for s in [-1,1]:
+        pipe('Rising rib',[(s*.86,0,.1),(s*.8,1.4,.2),(s*.55,2.9,.32),(s*.05,4,.4)],.1,bone,r)
+        for k in range(4):
+            y=.5+k*.85
+            w=.78-k*.13
+            pipe('Sinew web',[(s*w,y,.16+k*.05),(s*w*.5,y+.25,.1+k*.04),(0,y+.12,.08+k*.04)],.035,tissue,r)
+    pipe('Costal ridge',[(0,.1,.06),(0,1.6,.1),(0,3.0,.18),(0,3.75,.3)],.06,tissue,r)
+    h.ellipsoid('Apex gland',(0,3.45,.33),(.16,.26,.1),red,r,segments=10,rings=5)
+    r=module('gullet','span')
+    pipe('Ossified tendon arch',[(-1,-.35,0),(-.5,-.62,0),(0,-.7,0),(.5,-.62,0),(1,-.35,0)],.14,bone,r)
+    pipe('Sinew strand',[(-1,-.12,.12),(0,-.32,.14),(1,-.12,.12)],.06,tissue,r)
+    pipe('Sinew strand',[(-1,-.15,-.12),(0,-.38,-.14),(1,-.15,-.12)],.06,tissue,r)
+    h.ellipsoid('Arch gland',(0,-.84,0),(.12,.1,.12),red,r,segments=8,rings=4)
+    r=module('gullet','hang')
+    pipe('Suspensory tendon',[(0,0,0),(.05,-.8,.03),(-.04,-1.5,0)],.05,tissue,r)
+    h.ellipsoid('Hanging sac',(0,-2.1,0),(.42,.62,.4),tissue,r,segments=14,rings=8)
+    h.ellipsoid('Sac glow',(0,-2.25,0),(.24,.36,.24),red,r,segments=10,rings=6)
+    for a in [0,2.1,4.2]:
+        pipe('Sac vein',[(0,-1.55,0),(math.cos(a)*.38,-2.0,math.sin(a)*.38),(math.cos(a)*.2,-2.65,math.sin(a)*.2)],.025,bone,r)
+
+    # Catacombs: tall stone piers with stacked ossuary niches, transverse
+    # stone ribs and an iron corona.
+    r=module('catacombs','course')
+    box('Cornice',(0,.05,.18),(1.99,.3,.36),stone,r,.025)
+    box('Cornice drip',(0,-.16,.24),(1.99,.1,.3),stone,r,.015)
+    r=module('catacombs','upper')
+    for x in [-.78,.78]: box('Tall pier',(x,2,.12),(.42,4,.24),stone,r,.02)
+    for y in [.7,2,3.3]:
+        box('Ossuary niche',(0,y,.04),(.9,.8,.06),dark,r)
+        box('Niche sill',(0,y-.45,.14),(1.05,.1,.2),stone,r,.012)
+    r=module('catacombs','span')
+    box('Transverse rib',(0,-.42,0),(1.99,.84,.5),stone,r,.03)
+    box('Voussoir joint',(.99,-.42,0),(.03,.86,.52),dark,r,0)
+    r=module('catacombs','hang')
+    for a in [0,2.1,4.2]: h.cylinder('Corona chain',(0,0,0),(math.cos(a)*.6,-2.2,math.sin(a)*.6),.02,iron,r,segments=5)
+    h.cylinder('Iron corona',(0,-2.2,0),(0,-2.32,0),.7,iron,r,segments=16)
+    for a in range(6):
+        t=a*math.pi/3
+        h.cylinder('Corona flame',(math.cos(t)*.6,-2.2,math.sin(t)*.6),(math.cos(t)*.6,-2.0,math.sin(t)*.6),.04,gold,r,segments=6)
+
+    # Pit: shoring towers, hoist girders and a hook block with a work lamp.
+    r=module('pit','course')
+    box('Ring beam',(0,.05,.22),(1.99,.36,.44),iron,r,.01)
+    for x in [-.65,0,.65]: h.cylinder('Ring bolt',(x,.05,.44),(x,.05,.47),.05,dark,r,segments=6)
+    r=module('pit','upper')
+    for x in [-.8,.8]: box('Shoring post',(x,2,.14),(.22,4,.26),iron,r,.01)
+    beam('Shoring brace',(-.72,.15),(.72,1.95),.12,.14,iron,r)
+    beam('Shoring brace',(.72,2.05),(-.72,3.85),.12,.14,iron,r)
+    for y in [1,3]: box('Rock bolt plate',(0,y,.05),(.3,.3,.06),dark,r)
+    r=module('pit','span')
+    box('Hoist girder',(0,-.4,0),(1.99,.7,.3),iron,r,.01)
+    for y in [-.08,-.72]: box('Girder flange',(0,y,0),(1.99,.07,.5),dark,r)
+    r=module('pit','hang')
+    for x in [-.08,.08]: ceiling_rod('Hoist cable',2.1,dark,r,.018,x)
+    box('Hook block',(0,-2.3,0),(.34,.42,.22),iron,r)
+    box('Hook lamp',(0,-2.62,0),(.3,.14,.3),amber,r)
+
+    # Spire: fluted giant order with lancet light slots, coffered beams and a
+    # bronze lantern.
+    r=module('spire','course')
+    for y,d in [(-.12,.2),(.04,.32),(.2,.42)]: box('Stepped string course',(0,y,d/2),(1.99,.16,d),pale,r,.012)
+    r=module('spire','upper')
+    box('Giant order field',(0,2,.05),(1.6,4,.08),pale,r,.012)
+    for x in [-.55,-.27,0,.27,.55]: box('Giant flute',(x,2,.12),(.13,3.9,.1),pale,r,.01)
+    for x in [-.86,.86]: box('Lancet slot',(x,2,.03),(.08,3.2,.03),gold,r,0)
+    r=module('spire','span')
+    box('Coffer beam',(0,-.5,0),(1.99,1,.4),pale,r,.02)
+    for y in [-.95,-.62]: box('Beam fascia',(0,y,0),(1.99,.08,.5),pale,r,.01)
+    r=module('spire','hang')
+    ceiling_rod('Lantern rod',1.6,iron,r,.03)
+    h.cylinder('Lantern cage',(0,-1.6,0),(0,-2.5,0),.3,iron,r,r2=.22,segments=8)
+    h.cylinder('Lantern light',(0,-1.7,0),(0,-2.4,0),.22,gold,r,r2=.16,segments=8)
+
+    # Ward: ceramic upper panelling with air louvres, service ducts and an
+    # articulated examination lamp.
+    r=module('ward','course')
+    box('Service rail',(0,.05,.16),(1.99,.3,.3),ceramic,r,.02)
+    box('Rail light',(0,-.12,.2),(1.8,.04,.18),white,r,0)
+    r=module('ward','upper')
+    box('Upper ceramic panel',(0,2,.05),(1.92,3.9,.09),ceramic,r,.02)
+    for y in [.6,1.0,1.4,2.6,3.0,3.4]: box('Air louvre',(0,y,.11),(1.4,.06,.05),iron,r)
+    box('Panel seam',(.97,2,.1),(.03,4,.04),trim_metal,r,0)
+    r=module('ward','span')
+    box('Service duct',(0,-.45,0),(1.99,.55,.7),ceramic,r,.03)
+    box('Duct band',(.9,-.45,0),(.08,.6,.75),trim_metal,r)
+    box('Duct light',(0,-.74,0),(1.6,.03,.3),white,r,0)
+    r=module('ward','hang')
+    ceiling_rod('Lamp arm',1.4,trim_metal,r,.04)
+    h.cylinder('Exam lamp head',(0,-1.4,0),(0,-1.75,0),.12,ceramic,r,r2=.5,segments=16)
+    h.cylinder('Exam lamp lens',(0,-1.74,0),(0,-1.77,0),.44,white,r,segments=16)
+
+    # Sanctum: armour vanes with energy conduits, shield beams and a
+    # suspended containment capsule.
+    r=module('sanctum','course')
+    box('Shield ledge',(0,.05,.2),(1.99,.3,.4),dark,r,.016)
+    box('Ledge channel',(0,.05,.405),(1.99,.06,.02),teal,r,0)
+    r=module('sanctum','upper')
+    for x in [-.66,0,.66]:
+        box('Upper vane',(x,2,.11),(.4,4,.2),dark,r,.02)
+        box('Vane conduit',(x,2,.215),(.05,3.6,.02),teal,r,0)
+    r=module('sanctum','span')
+    box('Shield beam',(0,-.45,0),(1.99,.8,.35),dark,r,.016)
+    box('Beam energy line',(0,-.86,0),(1.99,.03,.08),teal,r,0)
+    r=module('sanctum','hang')
+    ceiling_rod('Capsule mast',1.2,dark,r,.06)
+    h.cylinder('Containment capsule',(0,-1.2,0),(0,-2.8,0),.3,dark,r,segments=10)
+    h.cylinder('Contained energy',(0,-1.35,0),(0,-2.65,0),.32,teal,r,segments=10)
+    for y in [-1.3,-2.0,-2.7]: h.cylinder('Capsule band',(0,y,0),(0,y-.08,0),.36,iron,r,segments=10)
+
     # Continuous wall-to-floor connections and courses give large flat rooms
     # construction scale. Each saved section remains inside its two-metre wall
     # cell and below the original 0.18m relief allowance; none is new cover.

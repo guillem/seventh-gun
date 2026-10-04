@@ -20,14 +20,19 @@ URL). Where they disagree with this block, this block wins.
   Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
 - **CI** is green on this branch since run 37143784123 (`ea51a0c`): typecheck,
   unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
-- **Art scope delivered:** all seven weapons, six species, support props, 28
+- **Art scope delivered:** all seven weapons, six species, support props, 56
   environment modules over seven maps, forty sound samples; rendering
-  continuity and Safari audio-start fixes. Simulation, maps, balance, network
-  and `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
-  28,255,528 bytes before compression.
+  continuity and Safari audio-start fixes; the room vertical grammar pilot
+  (Gullet + seeded mazes). Simulation, maps, balance, network and
+  `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
+  28,653,356 bytes before compression, label `vertical-pilot-01`.
 
 ### Waiting on the user
 
+- Verdict on the room vertical grammar pilot (Gullet + seeded mazes; see
+  below). If approved: enable it for the other five campaign maps
+  (`VERTICAL_CAMPAIGN_ART` in `src/render/roomVolumes.ts`), then pilot one
+  authored hero room per map.
 - Review of the current preview build. The refinement, continuity and Safari
   passes answered earlier user reports; no verdict on the result is recorded.
 - Native Safari retest of the seed-field/audio start fix (automation disabled).
@@ -41,6 +46,41 @@ URL). Where they disagree with this block, this block wins.
   [TESTING](TESTING.md#release-smoke-checks). Independent of this branch.
 
 The consolidated backlog is in [ROADMAP](ROADMAP.md#backlog).
+
+## Room vertical grammar pilot — 2026-10-04
+
+User verdict on the previous build: the authored Foundry opening is much
+better (non-repetitive detail, vertical space); the other maps keep low
+corridors and repetitive details. Asked to extend the redesign to the whole
+campaign and to seeded mazes without changing layouts (players have favourite
+seeds). Agreed plan: a shared runtime grammar first, piloted on the Gullet and
+seeded solo mazes, reviewed before rolling out; authored hero rooms later.
+
+Delivered, all presentation-only: per-room ceilings (7.5–14 m; corridors,
+doors, secrets and outdoor rooms stay 6 m) with header walls at room mouths;
+seed rooms mapped from their generator theme to the seven identities;
+run-based wall dressing replacing `coordinate % interval`; a string course,
+upper order, crown, overhead members and suspended lamps in tall rooms, from
+28 new saved kit modules; hanging lamps as practical-light positions (same
+12-light budget, still configured once per map); and `BatchedMesh` rendering
+for this path. Variation uses a render-local hash of seed + room id, never
+sim RNG. Arena, `#m=` maps, the Foundry and the other five campaign maps keep
+the previous look.
+
+Seed grid hashes are unchanged (`62624244` / `8f50b164`, now pinned in
+`tests/unit/roomVolumes.test.ts`). Draw calls fall by 42–58% in the six review
+views; triangles are within ±5%. Raised walls get an outward skin above 6 m
+(seen from courtyards), and the grammar keeps relief/luminaires off remote
+secret controls. Details, before/after captures and the measurement table:
+`art/modern/vertical/README.md`. Local: typecheck, 463 unit tests on Node 24,
+production build, full desktop/mobile Playwright suite in hardware Chrome.
+
+Known limits: real-time lighting only, so tall rooms are Foundry-like, not
+Foundry-equal; still one relief and one upper module per identity, so bays are
+regular (module variants are the next step for repetition); the Ward's alloy
+ceiling reads near-black in tall rooms. Pre-existing, outside the pilot: the
+old modulo layout covers a remote secret control with relief or a luminaire
+in Catacombs, Pit and Sanctum; the rollout fixes it.
 
 ## Retired first-slice boot assets — 2026-10-04
 

@@ -1,5 +1,9 @@
 {
   "modules": {
+    "catacombs_course": {
+      "meshes": 1,
+      "triangles": 88
+    },
     "catacombs_crown": {
       "meshes": 1,
       "triangles": 264
@@ -8,13 +12,29 @@
       "meshes": 2,
       "triangles": 88
     },
+    "catacombs_hang": {
+      "meshes": 2,
+      "triangles": 228
+    },
     "catacombs_relief": {
       "meshes": 2,
       "triangles": 924
     },
+    "catacombs_span": {
+      "meshes": 2,
+      "triangles": 56
+    },
     "catacombs_trim": {
       "meshes": 2,
       "triangles": 144
+    },
+    "catacombs_upper": {
+      "meshes": 2,
+      "triangles": 352
+    },
+    "foundry_course": {
+      "meshes": 2,
+      "triangles": 176
     },
     "foundry_crown": {
       "meshes": 2,
@@ -24,13 +44,29 @@
       "meshes": 3,
       "triangles": 220
     },
+    "foundry_hang": {
+      "meshes": 3,
+      "triangles": 188
+    },
     "foundry_relief": {
       "meshes": 2,
       "triangles": 468
     },
+    "foundry_span": {
+      "meshes": 2,
+      "triangles": 216
+    },
     "foundry_trim": {
       "meshes": 2,
       "triangles": 172
+    },
+    "foundry_upper": {
+      "meshes": 3,
+      "triangles": 332
+    },
+    "gullet_course": {
+      "meshes": 2,
+      "triangles": 156
     },
     "gullet_crown": {
       "meshes": 2,
@@ -40,13 +76,29 @@
       "meshes": 2,
       "triangles": 900
     },
+    "gullet_hang": {
+      "meshes": 3,
+      "triangles": 520
+    },
     "gullet_relief": {
       "meshes": 2,
       "triangles": 1008
     },
+    "gullet_span": {
+      "meshes": 3,
+      "triangles": 272
+    },
     "gullet_trim": {
       "meshes": 2,
       "triangles": 132
+    },
+    "gullet_upper": {
+      "meshes": 3,
+      "triangles": 780
+    },
+    "pit_course": {
+      "meshes": 2,
+      "triangles": 104
     },
     "pit_crown": {
       "meshes": 2,
@@ -56,13 +108,29 @@
       "meshes": 3,
       "triangles": 220
     },
+    "pit_hang": {
+      "meshes": 3,
+      "triangles": 128
+    },
     "pit_relief": {
       "meshes": 2,
       "triangles": 560
     },
+    "pit_span": {
+      "meshes": 2,
+      "triangles": 132
+    },
     "pit_trim": {
       "meshes": 1,
       "triangles": 132
+    },
+    "pit_upper": {
+      "meshes": 2,
+      "triangles": 264
+    },
+    "sanctum_course": {
+      "meshes": 2,
+      "triangles": 56
     },
     "sanctum_crown": {
       "meshes": 2,
@@ -72,13 +140,29 @@
       "meshes": 2,
       "triangles": 176
     },
+    "sanctum_hang": {
+      "meshes": 3,
+      "triangles": 200
+    },
     "sanctum_relief": {
       "meshes": 2,
       "triangles": 484
     },
+    "sanctum_span": {
+      "meshes": 2,
+      "triangles": 56
+    },
     "sanctum_trim": {
       "meshes": 1,
       "triangles": 176
+    },
+    "sanctum_upper": {
+      "meshes": 2,
+      "triangles": 168
+    },
+    "spire_course": {
+      "meshes": 1,
+      "triangles": 132
     },
     "spire_crown": {
       "meshes": 1,
@@ -88,13 +172,29 @@
       "meshes": 2,
       "triangles": 88
     },
+    "spire_hang": {
+      "meshes": 2,
+      "triangles": 76
+    },
     "spire_relief": {
       "meshes": 1,
       "triangles": 352
     },
+    "spire_span": {
+      "meshes": 1,
+      "triangles": 132
+    },
     "spire_trim": {
       "meshes": 2,
       "triangles": 144
+    },
+    "spire_upper": {
+      "meshes": 2,
+      "triangles": 288
+    },
+    "ward_course": {
+      "meshes": 2,
+      "triangles": 56
     },
     "ward_crown": {
       "meshes": 3,
@@ -104,16 +204,28 @@
       "meshes": 2,
       "triangles": 88
     },
+    "ward_hang": {
+      "meshes": 3,
+      "triangles": 140
+    },
     "ward_relief": {
       "meshes": 4,
       "triangles": 492
     },
+    "ward_span": {
+      "meshes": 3,
+      "triangles": 100
+    },
     "ward_trim": {
       "meshes": 2,
       "triangles": 144
+    },
+    "ward_upper": {
+      "meshes": 3,
+      "triangles": 320
     }
   },
-  "bytes": 674204,
+  "bytes": 1072032,
   "authoring": "Original offline Blender assemblies; runtime instancing only",
   "limits": {
     "wallReliefMetres": 0.18,
