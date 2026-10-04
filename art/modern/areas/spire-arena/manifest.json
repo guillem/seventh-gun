@@ -1,0 +1,538 @@
+{
+  "id": "spire-arena",
+  "mapSeed": "campaign:05-spire",
+  "cells": 168,
+  "rects": [
+    [
+      24,
+      4,
+      38,
+      16
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 26.83262062072754,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 11668,
+  "glbBytes": 257064,
+  "glbUncompressedBytes": 1154988,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 411380,
+  "lights": [
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        50.8,
+        13,
+        8.6
+      ],
+      "target": [
+        50.8,
+        0,
+        18
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        56.4,
+        13,
+        8.6
+      ],
+      "target": [
+        56.4,
+        0,
+        18
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        62.0,
+        13,
+        8.6
+      ],
+      "target": [
+        62.0,
+        0,
+        18
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        67.6,
+        13,
+        8.6
+      ],
+      "target": [
+        67.6,
+        0,
+        18
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        73.2,
+        13,
+        8.6
+      ],
+      "target": [
+        73.2,
+        0,
+        18
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        50.8,
+        13,
+        31.4
+      ],
+      "target": [
+        50.8,
+        0,
+        22
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        56.4,
+        13,
+        31.4
+      ],
+      "target": [
+        56.4,
+        0,
+        22
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        62.0,
+        13,
+        31.4
+      ],
+      "target": [
+        62.0,
+        0,
+        22
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        67.6,
+        13,
+        31.4
+      ],
+      "target": [
+        67.6,
+        0,
+        22
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        73.2,
+        13,
+        31.4
+      ],
+      "target": [
+        73.2,
+        0,
+        22
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        48.6,
+        13,
+        11.0
+      ],
+      "target": [
+        58,
+        0,
+        11.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        48.6,
+        13,
+        17.0
+      ],
+      "target": [
+        58,
+        0,
+        17.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        48.6,
+        13,
+        23.0
+      ],
+      "target": [
+        58,
+        0,
+        23.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        48.6,
+        13,
+        29.0
+      ],
+      "target": [
+        58,
+        0,
+        29.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        75.4,
+        13,
+        11.0
+      ],
+      "target": [
+        66,
+        0,
+        11.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        75.4,
+        13,
+        17.0
+      ],
+      "target": [
+        66,
+        0,
+        17.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        75.4,
+        13,
+        23.0
+      ],
+      "target": [
+        66,
+        0,
+        23.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Window light",
+      "kind": "AREA",
+      "position": [
+        75.4,
+        13,
+        29.0
+      ],
+      "target": [
+        66,
+        0,
+        29.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 340,
+      "size": 1.0
+    },
+    {
+      "name": "Sun disc glow",
+      "kind": "AREA",
+      "position": [
+        62.0,
+        20.4,
+        20.0
+      ],
+      "target": [
+        62.0,
+        0,
+        20.0
+      ],
+      "color": [
+        1,
+        0.86,
+        0.58
+      ],
+      "power": 2600,
+      "size": 3.5
+    },
+    {
+      "name": "Ring lamp glow",
+      "kind": "AREA",
+      "position": [
+        55.0,
+        9.0,
+        15.0
+      ],
+      "target": [
+        55.0,
+        0,
+        15.0
+      ],
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "power": 320,
+      "size": 1.4
+    },
+    {
+      "name": "Ring lamp glow",
+      "kind": "AREA",
+      "position": [
+        69.0,
+        9.0,
+        15.0
+      ],
+      "target": [
+        69.0,
+        0,
+        15.0
+      ],
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "power": 320,
+      "size": 1.4
+    },
+    {
+      "name": "Ring lamp glow",
+      "kind": "AREA",
+      "position": [
+        55.0,
+        9.0,
+        25.0
+      ],
+      "target": [
+        55.0,
+        0,
+        25.0
+      ],
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "power": 320,
+      "size": 1.4
+    },
+    {
+      "name": "Ring lamp glow",
+      "kind": "AREA",
+      "position": [
+        69.0,
+        9.0,
+        25.0
+      ],
+      "target": [
+        69.0,
+        0,
+        25.0
+      ],
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "power": 320,
+      "size": 1.4
+    }
+  ],
+  "practicals": [
+    {
+      "x": 62.0,
+      "y": 20.4,
+      "z": 20.0,
+      "color": [
+        1,
+        0.86,
+        0.6
+      ],
+      "intensity": 30,
+      "distance": 30
+    },
+    {
+      "x": 55.0,
+      "y": 9.0,
+      "z": 25.0,
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "intensity": 18,
+      "distance": 18
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369317949873194,
+    "corridorHeight": 6.0
+  }
+}

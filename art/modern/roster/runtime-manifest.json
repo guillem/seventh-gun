@@ -1,6 +1,6 @@
 {
-  "fileCount": 114,
-  "bytes": 37489892,
+  "fileCount": 120,
+  "bytes": 39399886,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -112,6 +112,36 @@
       "path": "modern/areas/pit-start/irradiance.webp",
       "bytes": 47210,
       "sha256": "42c2c50dd3debf28622452f953cb90561772d56030a095c7e27216a260028673"
+    },
+    {
+      "path": "modern/areas/spire-arena/environment.glb",
+      "bytes": 257064,
+      "sha256": "670154389a4d9e0ebb2bfe0d34d9777a1e0cd5457dbe94932ebebaba87b31f4c"
+    },
+    {
+      "path": "modern/areas/spire-arena/irradiance.webp",
+      "bytes": 411380,
+      "sha256": "3e73d3a241e6fe564db0543ba7d9ee05d3b7312020a33f9a3ec145325cea2ccf"
+    },
+    {
+      "path": "modern/areas/spire-nave/environment.glb",
+      "bytes": 337316,
+      "sha256": "fd0124ec940d53082dad0d8185abd66b12c0fb6080c8c2abb69182890cf23086"
+    },
+    {
+      "path": "modern/areas/spire-nave/irradiance.webp",
+      "bytes": 590664,
+      "sha256": "5b31e6e647dc1e39e82e4b794a73269c7e158d801a1924856a73cd9584d54837"
+    },
+    {
+      "path": "modern/areas/spire-start/environment.glb",
+      "bytes": 213900,
+      "sha256": "747d41e4bc73b870c5ed5a53a00348035f6cbf52ef7d0852d5725ef2f20fc9a9"
+    },
+    {
+      "path": "modern/areas/spire-start/irradiance.webp",
+      "bytes": 99670,
+      "sha256": "ad104f4e5ae973d225ade6ccecfb152204108da117aa6c6dbd77d880ca980961"
     },
     {
       "path": "modern/audio/bile.mp3",

@@ -96,7 +96,9 @@ function bindAreaMaterial(material: THREE.MeshStandardMaterial, assets: ModernAs
   material.normalScale.setScalar(metal ? .12 : .2);
   material.roughnessMap = metal ? assets.steelRoughness : assets.concreteRoughness;
   if (metal) {
-    material.metalness = Math.min(material.metalness, .45);
+    // Area bakes hold diffuse light only; strongly metallic surfaces would
+    // keep little of it and read black against the dim environment map.
+    material.metalness = Math.min(material.metalness, .3);
     material.envMapIntensity = .4;
   }
   material.needsUpdate = true;

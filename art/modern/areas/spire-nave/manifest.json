@@ -1,0 +1,538 @@
+{
+  "id": "spire-nave",
+  "mapSeed": "campaign:05-spire",
+  "cells": 126,
+  "rects": [
+    [
+      48,
+      48,
+      62,
+      57
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 15.806492805480957,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 16062,
+  "glbBytes": 337316,
+  "glbUncompressedBytes": 1494336,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 590664,
+  "lights": [
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        98.17777777777778,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        98.17777777777778,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        98.17777777777778,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        98.17777777777778,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        101.13333333333334,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        101.13333333333334,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        101.13333333333334,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        101.13333333333334,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        104.08888888888889,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        104.08888888888889,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        104.08888888888889,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        104.08888888888889,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        107.04444444444445,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        107.04444444444445,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        107.04444444444445,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        107.04444444444445,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        110.0,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        110.0,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        110.0,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        110.0,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        112.95555555555556,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        112.95555555555556,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        112.95555555555556,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        112.95555555555556,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        115.91111111111111,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        115.91111111111111,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        115.91111111111111,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        115.91111111111111,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        118.86666666666667,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        118.86666666666667,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        118.86666666666667,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        118.86666666666667,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        121.82222222222222,
+        12.799320726724194,
+        112.51794451121293
+      ],
+      "target": [
+        121.82222222222222,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Clerestory light",
+      "kind": "AREA",
+      "position": [
+        121.82222222222222,
+        12.799320726724194,
+        97.48205548878707
+      ],
+      "target": [
+        121.82222222222222,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 260,
+      "size": 0.9
+    },
+    {
+      "name": "Apse glow",
+      "kind": "AREA",
+      "position": [
+        121.45,
+        11.0,
+        105.0
+      ],
+      "target": [
+        96,
+        2,
+        105.0
+      ],
+      "color": [
+        1,
+        0.82,
+        0.5
+      ],
+      "power": 900,
+      "size": 2.5
+    },
+    {
+      "name": "Lamp glow",
+      "kind": "AREA",
+      "position": [
+        101,
+        6.4,
+        105.0
+      ],
+      "target": [
+        101,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.78,
+        0.45
+      ],
+      "power": 380,
+      "size": 0.5
+    },
+    {
+      "name": "Lamp glow",
+      "kind": "AREA",
+      "position": [
+        107.5,
+        6.4,
+        105.0
+      ],
+      "target": [
+        107.5,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.78,
+        0.45
+      ],
+      "power": 380,
+      "size": 0.5
+    },
+    {
+      "name": "Lamp glow",
+      "kind": "AREA",
+      "position": [
+        112.5,
+        6.4,
+        105.0
+      ],
+      "target": [
+        112.5,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.78,
+        0.45
+      ],
+      "power": 380,
+      "size": 0.5
+    },
+    {
+      "name": "Lamp glow",
+      "kind": "AREA",
+      "position": [
+        119,
+        6.4,
+        105.0
+      ],
+      "target": [
+        119,
+        0,
+        105.0
+      ],
+      "color": [
+        1,
+        0.78,
+        0.45
+      ],
+      "power": 380,
+      "size": 0.5
+    }
+  ],
+  "practicals": [
+    {
+      "x": 101,
+      "y": 6.4,
+      "z": 105.0,
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "intensity": 22,
+      "distance": 22
+    },
+    {
+      "x": 119,
+      "y": 6.4,
+      "z": 105.0,
+      "color": [
+        1,
+        0.8,
+        0.5
+      ],
+      "intensity": 22,
+      "distance": 22
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 14,
+    "removedArea": 14.738635899746386,
+    "corridorHeight": 6.0
+  }
+}

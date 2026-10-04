@@ -77,4 +77,24 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
       { x: 19.6, y: 4.85, z: 18.8, color: [1, 0.62, 0.32], intensity: 16, distance: 16 },
     ],
   },
+  {
+    id: 'spire-arena', mapSeed: 'campaign:05-spire', rects: [[24,4,38,16]],
+    practicals: [
+      { x: 62, y: 20.4, z: 20, color: [1, 0.86, 0.6], intensity: 30, distance: 30 },
+      { x: 55, y: 9, z: 25, color: [1, 0.8, 0.5], intensity: 18, distance: 18 },
+    ],
+  },
+  {
+    id: 'spire-nave', mapSeed: 'campaign:05-spire', rects: [[48,48,62,57]],
+    practicals: [
+      { x: 101, y: 6.4, z: 105, color: [1, 0.8, 0.5], intensity: 22, distance: 22 },
+      { x: 119, y: 6.4, z: 105, color: [1, 0.8, 0.5], intensity: 22, distance: 22 },
+    ],
+  },
+  {
+    id: 'spire-start', mapSeed: 'campaign:05-spire', rects: [[40,76,47,82]],
+    practicals: [
+      { x: 87, y: 7.8, z: 158, color: [1, 0.86, 0.62], intensity: 16, distance: 16 },
+    ],
+  },
 ];
