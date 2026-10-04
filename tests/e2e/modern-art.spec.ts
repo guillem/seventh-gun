@@ -10,6 +10,11 @@ type GameApi = {
 
 type AudioProbe = { decoded: number; sampledStarts: number; activeLoops: number };
 
+// A normal (non-debug) start builds the Foundry, its authored areas and
+// every GPU program behind the loading screen. On CI's software renderer
+// that takes 12-22 s, past the default 20 s assertion limit.
+const FULL_BOOT_MS = 45_000;
+
 test.describe('modern art bootstrap', () => {
   for (const seed of ['1984', '1986']) test(`seed ${seed}: pointer-down ends editing before the Start click`, async ({ page }) => {
     await gotoGame(page);
@@ -59,7 +64,7 @@ test.describe('modern art bootstrap', () => {
     });
     await gotoGame(page);
     await page.getByRole('button', { name: 'PLAY THE FOUNDRY' }).click();
-    await expect(page.locator('#title-screen')).toBeHidden();
+    await expect(page.locator('#title-screen')).toBeHidden({ timeout: FULL_BOOT_MS });
     await expect(page.locator('#world-loading')).toHaveCount(0);
     const result = await page.evaluate(() => {
       const probe = (window as unknown as { __gpuPreparation: { programs: number; loadingPrograms: number; loadingFrames: number } }).__gpuPreparation;
@@ -89,7 +94,7 @@ test.describe('modern art bootstrap', () => {
     await expect(play).toBeVisible({ timeout: 25_000 });
     expect(await page.evaluate(() => '__GAME__' in window)).toBe(false);
     await play.tap();
-    await expect(page.locator('#title-screen')).toBeHidden();
+    await expect(page.locator('#title-screen')).toBeHidden({ timeout: FULL_BOOT_MS });
     await page.locator('#btn-pause').tap();
     await expect(page.locator('#pause-screen')).toBeVisible();
     await page.getByRole('button', { name: 'RESUME', exact: true }).tap();
