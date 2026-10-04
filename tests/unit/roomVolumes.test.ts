@@ -11,6 +11,7 @@ import {
 } from '../../src/render/campaignEnvironment';
 import { selectModernPracticalLights } from '../../src/render/modernLighting';
 import { disposeOwnedObject } from '../../src/render/dispose';
+import { foundryCell } from '../../src/render/foundry';
 import {
   BASE_CEILING, HANG_DEPTH, planRoomVolumes, VERTICAL_CAMPAIGN_ART,
 } from '../../src/render/roomVolumes';
@@ -93,16 +94,37 @@ describe('room vertical grammar', () => {
     }
   });
 
-  it('leaves campaign maps outside the pilot exactly as before', () => {
+  it('raises every campaign map but leaves the authored Foundry opening alone', () => {
     for (const campaign of CAMPAIGN) {
       const artId = CAMPAIGN_ART_IDS.find(id => campaign.id.endsWith(id))!;
+      expect(VERTICAL_CAMPAIGN_ART.has(artId)).toBe(true);
       const volumes = planRoomVolumes(campaign.map, artId);
-      expect(volumes.vertical).toBe(VERTICAL_CAMPAIGN_ART.has(artId));
-      if (volumes.vertical) continue;
-      expect(volumes.rooms.every(r => r.ceiling === BASE_CEILING && r.art === artId)).toBe(true);
+      expect(volumes.vertical).toBe(true);
+      expect(volumes.rooms.every(r => r.art === artId)).toBe(true);
+      expect(volumes.rooms.filter(r => r.ceiling > BASE_CEILING).length, campaign.id).toBeGreaterThanOrEqual(4);
+      for (const { room, ceiling } of volumes.rooms) {
+        let authored = false;
+        for (let z = room.z; z < room.z + room.h; z++) for (let x = room.x; x < room.x + room.w; x++) {
+          authored ||= foundryCell(campaign.map, x, z);
+        }
+        if (authored) expect(ceiling, `${campaign.id} room ${room.id}`).toBe(BASE_CEILING);
+      }
     }
     // Arena and shared maps are not mazes: no grammar without the flag.
     expect(planRoomVolumes(mazes()[0]).vertical).toBe(false);
+  });
+
+  it('keeps every campaign layout and secret intact while dressing it', () => {
+    for (const campaign of CAMPAIGN) {
+      const artId = CAMPAIGN_ART_IDS.find(id => campaign.id.endsWith(id))!;
+      const before = JSON.stringify(campaign.map);
+      const volumes = planRoomVolumes(campaign.map, artId);
+      verticalEnvironmentPlacements(campaign.map, volumes);
+      const lights = selectModernPracticalLights(campaign.map, artId, undefined, volumes);
+      expect(lights.length).toBeGreaterThan(0);
+      expect(lights.length).toBeLessThanOrEqual(12);
+      expect(JSON.stringify(campaign.map)).toBe(before);
+    }
   });
 
   it('authors the tall-room modules for every identity inside their envelopes', () => {
@@ -124,8 +146,9 @@ describe('room vertical grammar', () => {
   });
 
   it('keeps every overhead piece above the combat volume', () => {
-    for (const map of [...mazes(), gullet()]) {
-      const volumes = planRoomVolumes(map, map.seed.startsWith('campaign:') ? 'gullet' : undefined, true);
+    const campaigns = CAMPAIGN.map(c => [c.map, CAMPAIGN_ART_IDS.find(id => c.id.endsWith(id))!] as const);
+    for (const [map, artId] of [...mazes().map(m => [m, undefined] as const), ...campaigns]) {
+      const volumes = planRoomVolumes(map, artId, true);
       const placements = verticalEnvironmentPlacements(map, volumes);
       for (const [module, list] of Object.entries(placements)) {
         const role = module.split('_')[1];

@@ -264,3 +264,6 @@ simulation and `GEN_VERSION` are untouched; variation comes from a
 render-local hash. The other campaign maps, arena and `#m=` maps are unchanged
 pending review. Evidence and measurements are in `art/modern/vertical/`.
 
+Rolled out to all seven campaign maps the same day at the user's request. The
+authored Foundry opening keeps its saved scene; arena and `#m=` maps keep the
+previous look.

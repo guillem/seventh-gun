@@ -2,7 +2,7 @@
 // vertical grammar pilot (Gullet + seeded mazes). Uses installed Chrome so
 // WebGL runs on the GPU; the counts are for comparison between two builds on
 // the same machine, not device benchmarks.
-//   node tools/modern-art/capture_vertical_pilot.mjs <baseURL> <label> [outDir]
+//   node tools/modern-art/capture_vertical_pilot.mjs <baseURL> <label> [outDir] [nameRegex]
 import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -21,6 +21,28 @@ const VIEWS = [
   ['seed-1984-ward', { seed: '1984' }, 26, 120, -135, -5],
   ['seed-1986-spire', { seed: '1986' }, 30, 58, -135, -10],
 ];
+// Campaign rollout: stand 3 m inside a room corner (world-metre rect) and
+// look across to the opposite corner, slightly upward.
+const corner = (name, campaign, [x, z, w, h]) => {
+  const dx = w - 6, dz = h - 6;
+  return [name, { campaign }, x + 3, z + 3, Math.atan2(-dx, -dz) * 180 / Math.PI, -8];
+};
+VIEWS.push(
+  corner('foundry-arena', 1, [108, 20, 30, 26]),
+  corner('foundry-spur', 1, [44, 52, 18, 16]),
+  corner('catacombs-crossing', 3, [76, 76, 24, 24]),
+  corner('catacombs-arena', 3, [150, 44, 26, 26]),
+  corner('pit-gallery', 4, [36, 8, 28, 18]),
+  corner('pit-arena', 4, [84, 124, 28, 24]),
+  corner('pit-courtyard', 4, [56, 68, 68, 52]),
+  corner('spire-nave', 5, [96, 96, 28, 18]),
+  corner('spire-arena', 5, [48, 8, 28, 24]),
+  corner('ward-atrium', 6, [36, 72, 28, 28]),
+  corner('ward-arena', 6, [118, 104, 36, 30]),
+  corner('sanctum-chamber', 7, [64, 104, 44, 26]),
+  corner('sanctum-shaft', 7, [76, 56, 24, 36]),
+);
+const only = process.argv[5] ? new RegExp(process.argv[5]) : null;
 
 const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu'] });
 const report = { base, label, capturedAt: new Date().toISOString(), views: [] };
@@ -59,7 +81,7 @@ try {
   await page.goto(`${base}/?e2e=1`);
   await page.waitForFunction(() => !!window.__GAME__);
   let current = '';
-  for (const [name, run, x, z, yaw, pitch] of VIEWS) {
+  for (const [name, run, x, z, yaw, pitch] of VIEWS.filter(([name]) => !only || only.test(name))) {
     const key = JSON.stringify(run);
     if (key !== current) {
       await page.evaluate(async r => { if (r.campaign) await window.__GAME__.startCampaign(r.campaign); else await window.__GAME__.startRun(r.seed); }, run);

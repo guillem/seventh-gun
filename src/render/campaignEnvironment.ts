@@ -43,7 +43,7 @@ export const CAMPAIGN_ENVIRONMENT_PALETTES: Record<CampaignArtId, EnvironmentPal
   catacombs: { fog: 0x242b30, sky: 0x647482, fixture: 0xe5c29a, wall: 'limestone', floor: 'limestone', ceiling: 'limestone', wallColor: 0x737d81, floorColor: 0x777e85, ceilingColor: 0x657078, reliefInterval: 3, crownInterval: 3 },
   pit: { fog: 0x2b251d, sky: 0x8d7b65, fixture: 0xffb653, wall: 'basalt', floor: 'basalt', ceiling: 'concrete', wallColor: 0xc5a27d, floorColor: 0xbcb0a0, reliefInterval: 3, crownInterval: 3 },
   spire: { fog: 0x5e676e, sky: 0xb4c2cc, fixture: 0xffe2b0, wall: 'limestone', floor: 'limestone', ceiling: 'limestone', wallColor: 0xfff5dc, floorColor: 0xc5c7c2, reliefInterval: 4, crownInterval: 2 },
-  ward: { fog: 0x28363c, sky: 0x9ab6c1, fixture: 0xc8edff, wall: 'ceramic', floor: 'ceramic', ceiling: 'alloy', wallColor: 0xe6f4f3, floorColor: 0x91a6a4, reliefInterval: 4, crownInterval: 4 },
+  ward: { fog: 0x28363c, sky: 0x9ab6c1, fixture: 0xc8edff, wall: 'ceramic', floor: 'ceramic', ceiling: 'ceramic', wallColor: 0xe6f4f3, floorColor: 0x91a6a4, ceilingColor: 0xa9b8b8, reliefInterval: 4, crownInterval: 4 },
   sanctum: { fog: 0x101f28, sky: 0x426877, fixture: 0x65dfe8, wall: 'alloy', floor: 'alloy', ceiling: 'alloy', wallColor: 0x899ca8, floorColor: 0x81949e, reliefInterval: 2, crownInterval: 3 },
 };
 

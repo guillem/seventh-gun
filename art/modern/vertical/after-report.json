@@ -1,7 +1,7 @@
 {
   "base": "http://localhost:4173",
   "label": "after",
-  "capturedAt": "2026-10-04T00:23:42.441Z",
+  "capturedAt": "2026-10-04T00:37:20.364Z",
   "views": [
     {
       "name": "gullet-hall",
@@ -26,7 +26,7 @@
       "z": 16,
       "yaw": -50,
       "pitch": -30,
-      "frames": 61,
+      "frames": 60,
       "drawsPerFrame": 94,
       "trianglesPerFrame": 266001,
       "mapHash": "a31305c5"
@@ -68,7 +68,7 @@
       "z": 120,
       "yaw": -135,
       "pitch": -5,
-      "frames": 61,
+      "frames": 60,
       "drawsPerFrame": 486,
       "trianglesPerFrame": 1171915,
       "mapHash": "62624244"
@@ -86,6 +86,188 @@
       "drawsPerFrame": 617,
       "trianglesPerFrame": 1271059,
       "mapHash": "8f50b164"
+    },
+    {
+      "name": "foundry-arena",
+      "run": {
+        "campaign": 1
+      },
+      "x": 111,
+      "z": 23,
+      "yaw": -129.8055710922652,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 217,
+      "trianglesPerFrame": 595673,
+      "mapHash": "ee306bc5"
+    },
+    {
+      "name": "foundry-spur",
+      "run": {
+        "campaign": 1
+      },
+      "x": 47,
+      "z": 55,
+      "yaw": -129.8055710922652,
+      "pitch": -8,
+      "frames": 61,
+      "drawsPerFrame": 306,
+      "trianglesPerFrame": 781299,
+      "mapHash": "ee306bc5"
+    },
+    {
+      "name": "catacombs-crossing",
+      "run": {
+        "campaign": 3
+      },
+      "x": 79,
+      "z": 79,
+      "yaw": -135,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 208,
+      "trianglesPerFrame": 681685,
+      "mapHash": "cd52d505"
+    },
+    {
+      "name": "catacombs-arena",
+      "run": {
+        "campaign": 3
+      },
+      "x": 153,
+      "z": 47,
+      "yaw": -135,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 217,
+      "trianglesPerFrame": 634513,
+      "mapHash": "cd52d505"
+    },
+    {
+      "name": "pit-gallery",
+      "run": {
+        "campaign": 4
+      },
+      "x": 39,
+      "z": 11,
+      "yaw": -118.61045966596521,
+      "pitch": -8,
+      "frames": 61,
+      "drawsPerFrame": 315,
+      "trianglesPerFrame": 946019,
+      "mapHash": "ad63b245"
+    },
+    {
+      "name": "pit-arena",
+      "run": {
+        "campaign": 4
+      },
+      "x": 87,
+      "z": 127,
+      "yaw": -129.28940686250039,
+      "pitch": -8,
+      "frames": 61,
+      "drawsPerFrame": 166,
+      "trianglesPerFrame": 536939,
+      "mapHash": "ad63b245"
+    },
+    {
+      "name": "pit-courtyard",
+      "run": {
+        "campaign": 4
+      },
+      "x": 59,
+      "z": 71,
+      "yaw": -126.57303097851934,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 187,
+      "trianglesPerFrame": 633515,
+      "mapHash": "ad63b245"
+    },
+    {
+      "name": "spire-nave",
+      "run": {
+        "campaign": 5
+      },
+      "x": 99,
+      "z": 99,
+      "yaw": -118.61045966596521,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 160,
+      "trianglesPerFrame": 416401,
+      "mapHash": "6b5d8de5"
+    },
+    {
+      "name": "spire-arena",
+      "run": {
+        "campaign": 5
+      },
+      "x": 51,
+      "z": 11,
+      "yaw": -129.28940686250039,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 382,
+      "trianglesPerFrame": 1236387,
+      "mapHash": "6b5d8de5"
+    },
+    {
+      "name": "ward-atrium",
+      "run": {
+        "campaign": 6
+      },
+      "x": 39,
+      "z": 75,
+      "yaw": -135,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 282,
+      "trianglesPerFrame": 786575,
+      "mapHash": "a5572565"
+    },
+    {
+      "name": "ward-arena",
+      "run": {
+        "campaign": 6
+      },
+      "x": 121,
+      "z": 107,
+      "yaw": -128.6598082540901,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 250,
+      "trianglesPerFrame": 838123,
+      "mapHash": "a5572565"
+    },
+    {
+      "name": "sanctum-chamber",
+      "run": {
+        "campaign": 7
+      },
+      "x": 67,
+      "z": 107,
+      "yaw": -117.75854060106005,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 275,
+      "trianglesPerFrame": 828515,
+      "mapHash": "ddb9ca05"
+    },
+    {
+      "name": "sanctum-shaft",
+      "run": {
+        "campaign": 7
+      },
+      "x": 79,
+      "z": 59,
+      "yaw": -149.03624346792648,
+      "pitch": -8,
+      "frames": 60,
+      "drawsPerFrame": 373,
+      "trianglesPerFrame": 1135963,
+      "mapHash": "ddb9ca05"
     }
   ],
   "errors": []

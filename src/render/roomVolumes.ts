@@ -3,7 +3,8 @@
 // sight are 2D, so nothing here can change how a seed plays. Variation comes
 // from a render-local hash of the map seed and room id, never from src/sim RNG.
 import { CELL, WALL_H, type GameMap, type Room, type Theme } from '../sim/types';
-import type { CampaignArtId } from './campaignTextures';
+import { CAMPAIGN_ART_IDS, type CampaignArtId } from './campaignTextures';
+import { foundryCell } from './foundry';
 
 /** Height of the original indoor wall and of every corridor. */
 export const BASE_CEILING = WALL_H;
@@ -45,9 +46,9 @@ const THEME_ART: Record<Theme, CampaignArtId[]> = {
   tech: ['sanctum', 'ward'],
 };
 
-/** Campaign identities using the grammar. The pilot covers the Gullet; the
- * others keep the original flat-ceiling dressing until reviewed. */
-export const VERTICAL_CAMPAIGN_ART: ReadonlySet<CampaignArtId> = new Set(['gullet']);
+/** Campaign identities using the grammar: all seven since the Gullet pilot
+ * was approved. Removing an id restores its original flat-ceiling dressing. */
+export const VERTICAL_CAMPAIGN_ART: ReadonlySet<CampaignArtId> = new Set(CAMPAIGN_ART_IDS);
 
 /** FNV-1a; deterministic across engines, independent of the simulation. */
 export function cosmeticHash(text: string): number {
@@ -66,6 +67,10 @@ export function cosmeticUnit(seed: string, key: string): number {
 
 function roomCeiling(map: GameMap, room: Room): number {
   if (room.outdoor || room.kind === 'secret') return BASE_CEILING;
+  // The authored Foundry opening has its own saved roof heights and bake.
+  for (let z = room.z; z < room.z + room.h; z++) for (let x = room.x; x < room.x + room.w; x++) {
+    if (foundryCell(map, x, z)) return BASE_CEILING;
+  }
   const area = room.w * room.h;
   if (Math.min(room.w, room.h) < 5 || area < 42) return BASE_CEILING;
   const base = room.kind === 'arena' ? 14

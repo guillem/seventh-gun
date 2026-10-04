@@ -22,17 +22,16 @@ URL). Where they disagree with this block, this block wins.
   unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
 - **Art scope delivered:** all seven weapons, six species, support props, 56
   environment modules over seven maps, forty sound samples; rendering
-  continuity and Safari audio-start fixes; the room vertical grammar pilot
-  (Gullet + seeded mazes). Simulation, maps, balance, network and
-  `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
-  28,653,356 bytes before compression, label `vertical-pilot-01`.
+  continuity and Safari audio-start fixes; the room vertical grammar on all
+  seven campaign maps and seeded solo mazes. Simulation, maps, balance,
+  network and `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
+  28,653,356 bytes before compression, label `vertical-01`.
 
 ### Waiting on the user
 
-- Verdict on the room vertical grammar pilot (Gullet + seeded mazes; see
-  below). If approved: enable it for the other five campaign maps
-  (`VERTICAL_CAMPAIGN_ART` in `src/render/roomVolumes.ts`), then pilot one
-  authored hero room per map.
+- Review of the campaign-wide room vertical grammar (see below). Proposed
+  next steps: module variants for repetition, then one authored hero room
+  (Blender + optional lightmap) piloted on one map.
 - Review of the current preview build. The refinement, continuity and Safari
   passes answered earlier user reports; no verdict on the result is recorded.
 - Native Safari retest of the seed-field/audio start fix (automation disabled).
@@ -46,6 +45,37 @@ URL). Where they disagree with this block, this block wins.
   [TESTING](TESTING.md#release-smoke-checks). Independent of this branch.
 
 The consolidated backlog is in [ROADMAP](ROADMAP.md#backlog).
+
+## Room vertical grammar on the whole campaign — 2026-10-04
+
+The user approved the pilot below and asked to roll it out to the rest of the
+campaign. `VERTICAL_CAMPAIGN_ART` now holds all seven identities. In the
+Foundry, rooms touching the authored opening (start room, casting hall) keep
+their saved geometry, roof heights and bake; the grammar covers its other
+rooms. The Ward's ceiling specimen changed from dark alloy to its ceramic
+finish, which read as a black void in tall rooms (Ward corridors lighten too).
+The rollout also clears the relief/luminaires that the old layout put over
+remote secret controls in Catacombs, Pit and Sanctum.
+
+Nineteen before/after views (`f80adad` vs this change) cover every campaign
+map and the two seeds: every grid hash is unchanged (Foundry `ee306bc5`),
+draw calls fall 28–71%, triangles change by −14% to +9% except the Spire
+arena (+20%) and Ward atrium (+14%). Table and captures:
+`art/modern/vertical/README.md`. Local: typecheck, 464 unit tests on Node 24,
+production build, full desktop/mobile Playwright suite in hardware Chrome
+(112 passed, 13 skipped, 1 failed: the pre-existing door flake below).
+
+Pre-existing E2E flake, not caused by this work: "the authored entrance door
+still blocks, opens and lets the player reach the hall" (desktop) times out at
+`modern-art.spec.ts:172` (after pressing E, the player never passes x 37).
+With `--repeat-each=16 --retries=0` in hardware Chrome it fails 3/16 both on
+the pilot commit `70e8683` (Foundry rendering unchanged) and on this rollout.
+It passes alone. The use key is latched (`input.ts`), so a short press is not
+dropped; the cause is still open.
+
+Known limits: real-time lighting only outside the Foundry hall; regular bays
+(one relief and one upper module per identity); raised rooms seen from a
+courtyard are plain blocks above the wall line.
 
 ## Room vertical grammar pilot — 2026-10-04
 
@@ -69,7 +99,7 @@ the previous look.
 
 Seed grid hashes are unchanged (`62624244` / `8f50b164`, now pinned in
 `tests/unit/roomVolumes.test.ts`). Draw calls fall by 42–58% in the six review
-views; triangles are within ±5%. Raised walls get an outward skin above 6 m
+views; triangles change by −14% to +5%. Raised walls get an outward skin above 6 m
 (seen from courtyards), and the grammar keeps relief/luminaires off remote
 secret controls. Details, before/after captures and the measurement table:
 `art/modern/vertical/README.md`. Local: typecheck, 463 unit tests on Node 24,
