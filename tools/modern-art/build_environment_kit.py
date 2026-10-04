@@ -330,6 +330,172 @@ def main():
     h.cylinder('Contained energy',(0,-1.35,0),(0,-2.65,0),.32,teal,r,segments=10)
     for y in [-1.3,-2.0,-2.7]: h.cylinder('Capsule band',(0,y,0),(0,y-.08,0),.36,iron,r,segments=10)
 
+    # Door assemblies (src/render/world.ts). The original moving slab is 6 m
+    # wide, 4.32 m tall and 0.5 m thick; collision is unchanged.
+    #   doorhead  static frame at the door centre in the door plane (local XY,
+    #             travel along Z): jambs project at most 0.18 m from the
+    #             corridor walls (|x| >= 2.82); the housing fills 4.2..6 m and is
+    #             deeper than the slab, so the rising slab disappears into it.
+    #             One lens uses env.lamp.status, recoloured per door at runtime.
+    #   doorleaf  hardware parented to the slab, on both faces (0.25 < |z| <= 0.33),
+    #             inside |x| <= 2.9 and |y| <= 2.1 of the slab centre.
+    status = h.material('env.lamp.status',(1,1,1),0,.35,4)
+    hazard = h.material('env.hazard',(.62,.42,.08),.2,.6)
+    timber = h.material('env.timber',(.36,.25,.14),0,.85)
+    glass = h.material('env.glass',(.12,.2,.22),.1,.15)
+    def jambs(mat,r,width=.18,depth=1.0,top=4.2):
+        for s in [-1,1]: box('Door jamb',(s*(3-width/2),top/2,0),(width,top,depth),mat,r)
+    def housing(mat,r,depth=1.1,bottom=4.2):
+        box('Door housing',(0,(bottom+6)/2,0),(6,6-bottom,depth),mat,r)
+    def both(fn):
+        for s in [-1,1]: fn(s)
+
+    r=module('foundry','doorhead')
+    jambs(iron,r); housing(dark,r)
+    both(lambda s: box('Hazard lintel band',(0,4.42,s*.56),(5.6,.36,.03),hazard,r,0))
+    for x in [-1.9,1.9]:
+        both(lambda s: h.cylinder('Lift ram',(x,4.75,s*.6),(x,5.75,s*.6),.09,iron,r,segments=10))
+    both(lambda s: box('Status lens',(0,5.25,s*.57),(.5,.16,.04),status,r))
+    r=module('foundry','doorleaf')
+    for x in [-2.2,-1.1,0,1.1,2.2]: both(lambda s: box('Leaf rib',(x,0,s*.29),(.14,4.1,.08),iron,r))
+    both(lambda s: box('Leaf kick plate',(0,-1.75,s*.27),(5.7,.5,.04),dark,r))
+    both(lambda s: box('Leaf hazard band',(0,-1.35,s*.275),(5.7,.12,.05),hazard,r,0))
+
+    r=module('gullet','doorhead')
+    for s in [-1,1]:
+        pipe('Ossified jamb',[(s*2.93,0,0),(s*2.92,2.2,.05),(s*2.93,4.2,0)],.09,bone,r)
+    housing(tissue,r,1.05)
+    for s in [-1,1]:
+        pipe('Collar ridge',[(-3,4.25,s*.56),(-1.5,4.55,s*.6),(0,4.4,s*.6),(1.5,4.55,s*.6),(3,4.25,s*.56)],.12,bone,r)
+        h.ellipsoid('Status gland',(0,5.2,s*.56),(.3,.18,.08),status,r,segments=12,rings=6)
+    r=module('gullet','doorleaf')
+    for x in [-2.0,-0.7,0.7,2.0]:
+        both(lambda s: pipe('Leaf tendon',[(x,-2.0,s*.27),(x*.9,0,s*.31),(x,2.0,s*.27)],.05,tissue,r))
+    both(lambda s: pipe('Leaf seam',[(0,-2.05,s*.27),(0,2.05,s*.27)],.06,bone,r))
+
+    r=module('catacombs','doorhead')
+    jambs(stone,r,.18,1.1)
+    housing(stone,r,1.15)
+    both(lambda s: box('Carved lintel',(0,4.45,s*.6),(6,.5,.06),cut,r,.01))
+    both(lambda s: box('Keystone',(0,4.62,s*.62),(.6,.8,.1),stone,r,.02))
+    both(lambda s: box('Status lantern',(1.8,5.2,s*.6),(.2,.32,.06),status,r))
+    r=module('catacombs','doorleaf')
+    for y in [-1.6,-.5,.6,1.7]: both(lambda s: box('Iron strap',(0,y,s*.28),(5.8,.14,.06),dark,r))
+    for x in [-2.6,-1.3,0,1.3,2.6]:
+        for y in [-1.6,-.5,.6,1.7]: both(lambda s: h.cylinder('Rivet head',(x,y,s*.31),(x,y,s*.33),.05,iron,r,segments=6))
+
+    r=module('pit','doorhead')
+    jambs(iron,r,.18,1.0)
+    housing(iron,r,1.05)
+    both(lambda s: box('Portal cross beam',(0,4.4,s*.58),(6,.4,.08),dark,r))
+    for x in [-2.6,2.6]: both(lambda s: box('Portal gusset',(x,5.1,s*.56),(.5,1.4,.06),dark,r))
+    both(lambda s: box('Status work lamp',(0,5.3,s*.6),(.4,.25,.08),status,r))
+    r=module('pit','doorleaf')
+    for s in [-1,1]:
+        ob=box('Leaf diagonal',(0,0,s*.28),(.18,5.3,.06),iron,r)
+        ob.rotation_euler.y=math.atan2(5.2,3.8)
+    for x in [-2.75,2.75]: both(lambda s: box('Leaf stile',(x,0,s*.28),(.2,4.1,.06),iron,r))
+    for y in [-1.9,0,1.9]: both(lambda s: box('Leaf rail',(0,y,s*.28),(5.6,.2,.06),iron,r))
+
+    r=module('spire','doorhead')
+    jambs(pale,r,.18,1.1)
+    housing(pale,r,1.12)
+    for y,d in [(4.32,.06),(4.5,.1),(4.7,.14)]: both(lambda s: box('Stepped lintel',(0,y,s*(.56+d/2)),(6,.18,d),pale,r,.01))
+    both(lambda s: box('Status slit',(0,5.4,s*.57),(1.6,.06,.04),status,r))
+    r=module('spire','doorleaf')
+    for x in [-1.5,1.5]:
+        both(lambda s: box('Panel field',(x,0,s*.27),(2.6,3.9,.04),pale,r,.01))
+        both(lambda s: box('Panel bead',(x,0,s*.3),(2.3,3.6,.02),dark,r,0))
+
+    r=module('ward','doorhead')
+    jambs(trim_metal,r,.16,1.0)
+    housing(ceramic,r,1.05)
+    both(lambda s: box('Clean seal strip',(0,4.28,s*.54),(5.8,.08,.04),white,r,0))
+    both(lambda s: box('Ward sign',(-1.4,5.1,s*.56),(1.8,.5,.04),dark,r))
+    both(lambda s: box('Status indicator',(1.6,5.1,s*.56),(.6,.2,.05),status,r))
+    r=module('ward','doorleaf')
+    both(lambda s: box('Vision strip',(0,.9,s*.27),(.5,1.4,.04),dark,r))
+    both(lambda s: box('Push plate',(0,-.1,s*.27),(1.1,.4,.04),trim_metal,r))
+    for x in [-2,2]: both(lambda s: box('Leaf seal',(x,0,s*.27),(.06,4.1,.04),trim_metal,r,0))
+
+    r=module('sanctum','doorhead')
+    jambs(dark,r,.18,1.05)
+    housing(dark,r,1.1)
+    both(lambda s: box('Field emitter',(0,4.3,s*.57),(5.7,.1,.06),teal,r,0))
+    for x in [-2.4,-1.2,0,1.2,2.4]: both(lambda s: box('Shield fin',(x,5.1,s*.58),(.16,1.2,.1),dark,r))
+    both(lambda s: box('Status core',(0,5.6,s*.6),(.4,.2,.06),status,r))
+    r=module('sanctum','doorleaf')
+    for x in [-2.2,-.75,.75,2.2]:
+        both(lambda s: box('Leaf vane',(x,0,s*.28),(.42,4.1,.06),dark,r))
+        both(lambda s: box('Vane conduit',(x,0,s*.315),(.04,3.8,.02),teal,r,0))
+
+    # Variant reliefs and upper orders: a second construction per identity, so
+    # neighbouring bays alternate instead of repeating one module. Same limits
+    # as relief (<= 0.18 m below 4.3 m) and upper (y 0..4 before stretching).
+    r=module('foundry','relief2')
+    box('Service panel',(0,1.7,.06),(1.5,2.2,.1),dark,r)
+    for y in [1.0,1.4,1.8,2.2]: box('Panel louvre',(0,y,.125),(1.2,.05,.04),iron,r)
+    for x in [-.55,.55]: h.cylinder('Vertical conduit',(x,2.85,.1),(x,5.6,.1),.06,iron,r,segments=8)
+    box('Junction box',(0,3.3,.11),(.6,.45,.13),iron,r)
+    r=module('foundry','upper2')
+    box('Crane bracket',(0,.5,.25),(.5,.9,.5),iron,r)
+    box('Upper web',(0,2.2,.07),(.3,3.6,.12),iron,r)
+    for y in [1.2,2.4,3.6]: box('Bolted splice',(0,y,.15),(.5,.18,.05),dark,r)
+
+    r=module('gullet','relief2')
+    h.ellipsoid('Pustule cluster',(0,2.6,.06),(.55,.9,.1),tissue,r,segments=14,rings=7)
+    for x,y in [(-.25,2.9),(.2,2.4),(0,3.3)]: h.ellipsoid('Pustule glow',(x,y,.13),(.09,.12,.05),red,r,segments=8,rings=4)
+    for s in [-1,1]: pipe('Root vein',[(s*.3,1.8,.06),(s*.6,1.0,.07),(s*.8,.1,.05)],.05,tissue,r)
+    r=module('gullet','upper2')
+    for k in range(5):
+        y=.3+k*.8
+        pipe('Vertebral ring',[(-.5,y,.12),(0,y+.15,.24),(.5,y,.12)],.08,bone,r)
+    pipe('Spinal cord',[(0,0,.08),(0,2,.1),(0,4,.12)],.06,tissue,r)
+
+    r=module('catacombs','relief2')
+    box('Memorial slab',(0,1.9,.06),(1.3,2.6,.1),cut,r,.015)
+    box('Slab border',(0,1.9,.04),(1.5,2.8,.06),stone,r,.015)
+    box('Inscription band',(0,2.6,.12),(.9,.06,.03),dark,r,0)
+    box('Inscription band',(0,2.4,.12),(.8,.06,.03),dark,r,0)
+    arch('Tympanum',1.4,3.2,.6,.12,.15,stone,r,10)
+    r=module('catacombs','upper2')
+    for y in [.6,2.0,3.4]: arch('Stacked niche',1.2,y-.5,.5,.1,.14,stone,r,8)
+    for x in [-.75,.75]: box('Slender pier',(x,2,.08),(.2,4,.16),stone,r,.015)
+
+    r=module('pit','relief2')
+    for x in [-.5,.5]: box('Timber prop',(x,2.7,.09),(.24,5.4,.17),timber,r,.01)
+    box('Rock face mesh',(0,2.7,.03),(1.6,5.0,.04),dark,r)
+    for y in [1.2,2.7,4.2]: box('Cleat',(0,y,.15),(1.3,.14,.06),iron,r)
+    r=module('pit','upper2')
+    box('Ore chute',(0,2,.2),(.9,3.8,.35),iron,r)
+    for y in [.8,2,3.2]: box('Chute band',(0,y,.39),(1.0,.12,.05),dark,r)
+
+    r=module('spire','relief2')
+    box('Rusticated block field',(0,2.8,.05),(1.7,5.4,.08),pale,r,.02)
+    for y in [.6+.9*i for i in range(6)]: box('Rustication joint',(0,y,.095),(1.72,.05,.02),dark,r,0)
+    box('Bronze medallion',(0,3.2,.12),(.5,.5,.06),iron,r,.02)
+    r=module('spire','upper2')
+    arch('Clerestory arch',1.6,2.4,1.4,.18,.16,pale,r)
+    box('Clerestory glazing',(0,2.4,.02),(1.3,2.4,.02),gold,r,0)
+    box('Arch sill',(0,.4,.12),(1.8,.2,.22),pale,r,.01)
+
+    r=module('ward','relief2')
+    box('Viewing window frame',(0,2.3,.06),(1.6,1.4,.1),ceramic,r,.02)
+    box('Viewing window',(0,2.3,.1),(1.3,1.1,.02),glass,r,0)
+    box('Handrail',(0,1.05,.15),(1.9,.06,.06),trim_metal,r)
+    for x in [-.8,.8]: box('Rail standoff',(x,1.05,.09),(.05,.06,.12),trim_metal,r,0)
+    r=module('ward','upper2')
+    box('Duct riser',(0,2,.2),(.8,4,.38),ceramic,r,.03)
+    for y in [1,2,3]: box('Riser band',(0,y,.4),(.86,.08,.04),trim_metal,r,0)
+
+    r=module('sanctum','relief2')
+    box('Reactor port',(0,2.6,.06),(1.2,1.8,.1),dark,r,.02)
+    for y in [2.0,2.6,3.2]: box('Port aperture',(0,y,.12),(.8,.12,.03),teal,r,0)
+    for x in [-.7,.7]: box('Port flange',(x,2.6,.1),(.12,2.2,.15),iron,r)
+    r=module('sanctum','upper2')
+    for x in [-.45,.45]: box('Containment rib',(x,2,.15),(.22,4,.3),dark,r,.02)
+    box('Rib energy',(0,2,.05),(.5,3.8,.02),teal,r,0)
+
     # Continuous wall-to-floor connections and courses give large flat rooms
     # construction scale. Each saved section remains inside its two-metre wall
     # cell and below the original 0.18m relief allowance; none is new cover.

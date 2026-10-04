@@ -20,7 +20,8 @@ import { applyRadialFog } from './radialFog';
 import { getModernAssets } from './modernAssets';
 import { addFoundryDoorHardware, addFoundryEnvironment, foundryCell } from './foundry';
 import {
-  addCampaignEnvironment, campaignEnvironmentSurface, CAMPAIGN_ENVIRONMENT_PALETTES,
+  addCampaignEnvironment, addDoorAssembly, campaignEnvironmentSurface, CAMPAIGN_ENVIRONMENT_PALETTES,
+  DOOR_CEILING_CLIP, doorStatusColor,
 } from './campaignEnvironment';
 import { planRoomVolumes, type RoomVolumes } from './roomVolumes';
 
@@ -309,6 +310,10 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
     if (entranceDoor) addFoundryDoorHardware(mesh, modern.doorHardware);
+    else if (modern) {
+      const art = artAt(Math.floor(d.x / CELL), Math.floor(d.z / CELL));
+      addDoorAssembly(group, modern, art, d, doorStatusColor(art, d.locked), mesh);
+    }
     doorMeshes.set(d.id, mesh);
   }
 
@@ -331,6 +336,19 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
     mesh.position.set(s.x, (WALL_H * 0.72) / 2, s.z);
     group.add(mesh);
     plateMeshes.set(s.id, mesh);
+    if (modern) {
+      // Plain wall above the plate up to the 6 m ceiling: no frame, so the
+      // secret is not announced, and no slot showing the passage behind. It
+      // is deeper than the plate, which rises into it and is clipped above.
+      (mat as THREE.Material).clippingPlanes = [DOOR_CEILING_CLIP];
+      const fillTop = WALL_H, fillBottom = WALL_H * 0.72 - 0.12;
+      const fillGeo = new THREE.BoxGeometry(s.axis === 'x' ? 0.62 : CELL * 3, fillTop - fillBottom, s.axis === 'x' ? CELL * 3 : 0.62);
+      disposables.push(fillGeo);
+      const fill = new THREE.Mesh(fillGeo, mat);
+      fill.name = 'secret-plate-head';
+      fill.position.set(s.x, (fillTop + fillBottom) / 2, s.z);
+      group.add(fill);
+    }
 
     // Crack / light seam on the public-facing side. PlaneGeometry faces local
     // +Z, so the rotation must point away from the secret room.
@@ -396,7 +414,9 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
   // arena seal barrier
   const sealMesh = new THREE.Group();
   {
-    const geo = new THREE.PlaneGeometry(CELL * 3, CEIL_H);
+    // The modern doorhead housing covers 4.2..6 m above the barrier.
+    const sealHeight = CEIL_H;
+    const geo = new THREE.PlaneGeometry(CELL * 3, sealHeight);
     disposables.push(geo);
     const mat = new THREE.MeshBasicMaterial({
       color: 0x7a1aff,
@@ -408,7 +428,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
       fog: false,
     });
     const plane = new THREE.Mesh(geo, mat);
-    plane.position.y = CEIL_H / 2;
+    plane.position.y = sealHeight / 2;
     sealMesh.add(plane);
     // rune ring on top of it
     const ring = new THREE.Mesh(
@@ -421,6 +441,10 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
     sealMesh.position.set(map.seal.x, 0, map.seal.z);
     if (map.seal.axis === 'x') sealMesh.rotation.y = Math.PI / 2;
     group.add(sealMesh);
+    if (modern) {
+      const art = artAt(Math.floor(map.seal.x / CELL), Math.floor(map.seal.z / CELL));
+      addDoorAssembly(group, modern, art, map.seal, 0xb070ff);
+    }
   }
 
   // Sky dome: texture must fill the canvas (equirect) so the sphere is not a

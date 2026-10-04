@@ -8,6 +8,14 @@
       "meshes": 1,
       "triangles": 264
     },
+    "catacombs_doorhead": {
+      "meshes": 3,
+      "triangles": 396
+    },
+    "catacombs_doorleaf": {
+      "meshes": 2,
+      "triangles": 1152
+    },
     "catacombs_fixture": {
       "meshes": 2,
       "triangles": 88
@@ -19,6 +27,10 @@
     "catacombs_relief": {
       "meshes": 2,
       "triangles": 924
+    },
+    "catacombs_relief2": {
+      "meshes": 3,
+      "triangles": 300
     },
     "catacombs_span": {
       "meshes": 2,
@@ -32,6 +44,10 @@
       "meshes": 2,
       "triangles": 352
     },
+    "catacombs_upper2": {
+      "meshes": 1,
+      "triangles": 556
+    },
     "foundry_course": {
       "meshes": 2,
       "triangles": 176
@@ -39,6 +55,14 @@
     "foundry_crown": {
       "meshes": 2,
       "triangles": 396
+    },
+    "foundry_doorhead": {
+      "meshes": 4,
+      "triangles": 388
+    },
+    "foundry_doorleaf": {
+      "meshes": 3,
+      "triangles": 552
     },
     "foundry_fixture": {
       "meshes": 3,
@@ -52,6 +76,10 @@
       "meshes": 2,
       "triangles": 468
     },
+    "foundry_relief2": {
+      "meshes": 2,
+      "triangles": 320
+    },
     "foundry_span": {
       "meshes": 2,
       "triangles": 216
@@ -64,6 +92,10 @@
       "meshes": 3,
       "triangles": 332
     },
+    "foundry_upper2": {
+      "meshes": 2,
+      "triangles": 220
+    },
     "gullet_course": {
       "meshes": 2,
       "triangles": 156
@@ -71,6 +103,14 @@
     "gullet_crown": {
       "meshes": 2,
       "triangles": 332
+    },
+    "gullet_doorhead": {
+      "meshes": 3,
+      "triangles": 620
+    },
+    "gullet_doorleaf": {
+      "meshes": 2,
+      "triangles": 504
     },
     "gullet_fixture": {
       "meshes": 2,
@@ -84,6 +124,10 @@
       "meshes": 2,
       "triangles": 1008
     },
+    "gullet_relief2": {
+      "meshes": 2,
+      "triangles": 424
+    },
     "gullet_span": {
       "meshes": 3,
       "triangles": 272
@@ -96,6 +140,10 @@
       "meshes": 3,
       "triangles": 780
     },
+    "gullet_upper2": {
+      "meshes": 2,
+      "triangles": 336
+    },
     "pit_course": {
       "meshes": 2,
       "triangles": 104
@@ -103,6 +151,14 @@
     "pit_crown": {
       "meshes": 2,
       "triangles": 352
+    },
+    "pit_doorhead": {
+      "meshes": 3,
+      "triangles": 484
+    },
+    "pit_doorleaf": {
+      "meshes": 1,
+      "triangles": 528
     },
     "pit_fixture": {
       "meshes": 3,
@@ -116,6 +172,10 @@
       "meshes": 2,
       "triangles": 560
     },
+    "pit_relief2": {
+      "meshes": 3,
+      "triangles": 264
+    },
     "pit_span": {
       "meshes": 2,
       "triangles": 132
@@ -128,6 +188,10 @@
       "meshes": 2,
       "triangles": 264
     },
+    "pit_upper2": {
+      "meshes": 2,
+      "triangles": 176
+    },
     "sanctum_course": {
       "meshes": 2,
       "triangles": 56
@@ -135,6 +199,14 @@
     "sanctum_crown": {
       "meshes": 2,
       "triangles": 440
+    },
+    "sanctum_doorhead": {
+      "meshes": 3,
+      "triangles": 684
+    },
+    "sanctum_doorleaf": {
+      "meshes": 2,
+      "triangles": 448
     },
     "sanctum_fixture": {
       "meshes": 2,
@@ -148,6 +220,10 @@
       "meshes": 2,
       "triangles": 484
     },
+    "sanctum_relief2": {
+      "meshes": 3,
+      "triangles": 168
+    },
     "sanctum_span": {
       "meshes": 2,
       "triangles": 56
@@ -160,6 +236,10 @@
       "meshes": 2,
       "triangles": 168
     },
+    "sanctum_upper2": {
+      "meshes": 2,
+      "triangles": 100
+    },
     "spire_course": {
       "meshes": 1,
       "triangles": 132
@@ -167,6 +247,14 @@
     "spire_crown": {
       "meshes": 1,
       "triangles": 176
+    },
+    "spire_doorhead": {
+      "meshes": 2,
+      "triangles": 484
+    },
+    "spire_doorleaf": {
+      "meshes": 2,
+      "triangles": 224
     },
     "spire_fixture": {
       "meshes": 2,
@@ -180,6 +268,10 @@
       "meshes": 1,
       "triangles": 352
     },
+    "spire_relief2": {
+      "meshes": 3,
+      "triangles": 160
+    },
     "spire_span": {
       "meshes": 1,
       "triangles": 132
@@ -192,6 +284,10 @@
       "meshes": 2,
       "triangles": 288
     },
+    "spire_upper2": {
+      "meshes": 2,
+      "triangles": 276
+    },
     "ward_course": {
       "meshes": 2,
       "triangles": 56
@@ -199,6 +295,14 @@
     "ward_crown": {
       "meshes": 3,
       "triangles": 264
+    },
+    "ward_doorhead": {
+      "meshes": 5,
+      "triangles": 332
+    },
+    "ward_doorleaf": {
+      "meshes": 2,
+      "triangles": 224
     },
     "ward_fixture": {
       "meshes": 2,
@@ -212,6 +316,10 @@
       "meshes": 4,
       "triangles": 492
     },
+    "ward_relief2": {
+      "meshes": 3,
+      "triangles": 124
+    },
     "ward_span": {
       "meshes": 3,
       "triangles": 100
@@ -223,9 +331,13 @@
     "ward_upper": {
       "meshes": 3,
       "triangles": 320
+    },
+    "ward_upper2": {
+      "meshes": 2,
+      "triangles": 80
     }
   },
-  "bytes": 1072032,
+  "bytes": 1817548,
   "authoring": "Original offline Blender assemblies; runtime instancing only",
   "limits": {
     "wallReliefMetres": 0.18,

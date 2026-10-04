@@ -72,6 +72,8 @@ export class GameRenderer {
   constructor(canvas: HTMLCanvasElement, e2e = false) {
     installRadialFog();
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !e2e, powerPreference: 'high-performance', preserveDrawingBuffer: e2e });
+    // Door slabs are clipped at the corridor ceiling (DOOR_CEILING_CLIP).
+    this.renderer.localClippingEnabled = true;
     this.renderer.setPixelRatio(e2e ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;

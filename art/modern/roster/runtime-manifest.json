@@ -1,6 +1,6 @@
 {
   "fileCount": 92,
-  "bytes": 28653356,
+  "bytes": 29398872,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -350,8 +350,8 @@
     },
     {
       "path": "modern/roster/environment/kit.glb",
-      "bytes": 1072032,
-      "sha256": "156d4ebc5b42738ceb7cbb3755830dde189311b673f63688092b22693d55cdae"
+      "bytes": 1817548,
+      "sha256": "51848032327694cd19aec2ebec79feb6318b920ddece6db4f4176375286e7d54"
     },
     {
       "path": "modern/roster/materials/alloy.webp",

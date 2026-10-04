@@ -6,6 +6,8 @@ import { findExposedWallFace, reachableFloorCells } from '../sim/blueprint';
 import type { CampaignArtId } from './campaignTextures';
 import { foundryCell } from './foundry';
 import { batchArchitecture, instanceArchitecturePart, type ArchitecturePlacement } from './modernWorld';
+import { cloneOwnedModel } from './modernAssets';
+import { applyRadialFog } from './radialFog';
 import {
   BASE_CEILING, cosmeticUnit, HANG_GLOW_DEPTH, tallRoomOverheads, UPPER_REGISTER_Y, type RoomVolumes,
 } from './roomVolumes';
@@ -68,7 +70,9 @@ export function campaignEnvironmentSurface(
     map: surface(assets, specimen),
     color: kind === 'floor' ? palette.floorColor : kind === 'ceil' ? palette.ceilingColor ?? 0x9da7a6 : kind === 'door' ? 0xaab9bf : palette.wallColor,
     roughness: metal ? .64 : ceramic ? .49 : specimen === 'organic' ? .68 : .9,
-    metalness: metal ? .52 : 0,
+    // Door slabs are painted plate: fully metallic alloy reflected the dark
+    // environment and read as a black void in the doorway.
+    metalness: kind === 'door' ? .22 : metal ? .52 : 0,
     envMapIntensity: metal ? .6 : ceramic ? .4 : .18,
     normalMap: metal ? assets.steelNormal : assets.concreteNormal,
     normalScale: new THREE.Vector2(metal ? .06 : ceramic ? .035 : .14, metal ? .06 : ceramic ? .035 : .14),
@@ -84,11 +88,26 @@ export function campaignEnvironmentSurface(
 function bindKitMaterial(material: THREE.Material, assets: EnvironmentAssets, artId: CampaignArtId): void {
   if (!(material instanceof THREE.MeshStandardMaterial)) return;
   const key = material.name.slice(4);
+  if (key === 'lamp.status') {
+    // Recoloured per door (locked or not); see doorStatusColor.
+    material.emissiveIntensity *= .3;
+    return;
+  }
   if (key.startsWith('lamp.')) {
     // Keep lenses legible without turning every fitting into a blown-out neon
     // spot. Gullet glands have a warm, organic rather than pink-white glow.
     material.emissiveIntensity *= artId === 'gullet' ? .35 : .6;
     if (artId === 'gullet') material.emissive.set(0xcb906b);
+    return;
+  }
+  if (key === 'hazard' || key === 'timber' || key === 'glass') {
+    // Painted bands, mine timber and glazing keep their authored colour; a
+    // stone or metal specimen would read as the wrong material.
+    material.map = key === 'timber' ? surface(assets, 'basalt') : null;
+    material.normalMap = assets.concreteNormal;
+    material.normalScale.setScalar(key === 'glass' ? 0 : .1);
+    material.envMapIntensity = key === 'glass' ? .9 : .2;
+    material.needsUpdate = true;
     return;
   }
   material.map = surface(assets, key === 'dark' ? 'alloy' : key === 'bone' ? 'limestone' : key);
@@ -238,6 +257,17 @@ export function verticalEnvironmentPlacements(map: GameMap, volumes: RoomVolumes
     const fixtures = first.header || run.length < 3 ? new Set<number>()
       : evenly(run.length, run.length >= 17 ? 3 : run.length >= 10 ? 2 : 1);
     const tall = first.ceiling > BASE_CEILING;
+    // Alternate the two constructions symmetrically about the run centre:
+    // the middle bay (or pair) uses one, the next bays out the other, so a
+    // wall reads as a composed elevation rather than a single repeat.
+    const flip = variety < .5;
+    const variant = (i: number, role: 'relief' | 'upper') => {
+      const fromCentre = Math.round(Math.abs(i - (run.length - 1) / 2) / (role === 'relief' ? 2 : 3));
+      return (fromCentre % 2 === 0) !== flip ? role : `${role}2`;
+    };
+    // A raised wall seen from outside (over a courtyard's 6 m walls) is capped
+    // by the identity's string course, turned outward, at the roofline.
+    const coping = tall && !first.outdoor;
     run.forEach((face, i) => {
       const px = (face.x + .5) * CELL + face.dx * CELL / 2;
       const pz = (face.z + .5) * CELL + face.dz * CELL / 2;
@@ -248,16 +278,17 @@ export function verticalEnvironmentPlacements(map: GameMap, volumes: RoomVolumes
         push(`${art}_trim`, placement);
         if (controls.has(`${face.x},${face.z},${face.dx},${face.dz}`)) return;
         if (fixtures.has(i)) push(`${art}_fixture`, { ...placement, color: undefined });
-        else if (relief(i)) push(`${art}_relief`, placement);
+        else if (relief(i)) push(`${art}_${variant(i, 'relief')}`, placement);
       }
       if (face.outdoor) return;
       if (crown(i)) push(`${art}_crown`, { ...placement, y: face.ceiling - BASE_CEILING });
+      if (coping) push(`${art}_course`, { ...placement, y: face.ceiling - .35, yaw: placement.yaw + Math.PI, color: undefined });
       if (!tall || face.ceiling < 9) return;
       push(`${art}_course`, { ...placement, y: UPPER_REGISTER_Y });
       // The upper register continues the bay rhythm below it, so piers and
       // ribs read as one tall order rather than a second stacked wall.
       if (upper(i)) {
-        push(`${art}_upper`, { ...placement, y: UPPER_REGISTER_Y, scaleY: (face.ceiling - UPPER_REGISTER_Y - 1.2) / 4 });
+        push(`${art}_${variant(i, 'upper')}`, { ...placement, y: UPPER_REGISTER_Y, scaleY: (face.ceiling - UPPER_REGISTER_Y - 1.2) / 4 });
       }
     });
   }
@@ -305,4 +336,64 @@ export function addCampaignEnvironment(
     instanceArchitecturePart(group, assets.environmentKit, `${artId}_${role}`, parts, material => bindKitMaterial(material, assets, artId));
   }
   parent.add(group);
+}
+
+/** A rising slab clipped at the corridor ceiling never shows above a roof,
+ * even from a courtyard; the doorhead housing hides it below that line. */
+export const DOOR_CEILING_CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), BASE_CEILING);
+
+/** Locked doors show red; others take the identity's luminaire colour. */
+export function doorStatusColor(art: CampaignArtId, locked: boolean): number {
+  return locked ? 0xff2a1a : CAMPAIGN_ENVIRONMENT_PALETTES[art].fixture;
+}
+
+function cloneKitModule(assets: EnvironmentAssets, name: string, art: CampaignArtId, status?: number, clip = false): THREE.Group | null {
+  const kit = assets.environmentKit;
+  const module = kit.getObjectByName(name);
+  if (!module) return null;
+  kit.updateMatrixWorld(true);
+  const group = cloneOwnedModel(module);
+  const copy = group.children[0];
+  // Keep the module's authored placement relative to the kit root.
+  new THREE.Matrix4().copy(kit.matrixWorld).invert().multiply(module.matrixWorld)
+    .decompose(copy.position, copy.quaternion, copy.scale);
+  group.traverse(node => {
+    if (!(node instanceof THREE.Mesh)) return;
+    node.castShadow = false;
+    for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+      bindKitMaterial(material, assets, art);
+      if (material instanceof THREE.MeshStandardMaterial && material.name === 'env.lamp.status' && status !== undefined) {
+        material.color.set(status);
+        material.emissive.set(status);
+      }
+      if (clip) material.clippingPlanes = [DOOR_CEILING_CLIP];
+      applyRadialFog(material);
+    }
+  });
+  return group;
+}
+
+/** Frame a door (or the arena seal) with its identity's doorhead, and dress
+ * the moving slab with its leaf hardware. Collision is unchanged: the frame
+ * stays within the corridor walls' clearance and above the slab. */
+export function addDoorAssembly(
+  parent: THREE.Group, assets: EnvironmentAssets, art: CampaignArtId,
+  at: { x: number; z: number; axis: 'x' | 'z' }, status: number, slab?: THREE.Mesh,
+): void {
+  const yaw = at.axis === 'x' ? Math.PI / 2 : 0;
+  const head = cloneKitModule(assets, `${art}_doorhead`, art, status);
+  if (head) {
+    head.name = `door-head-${art}`;
+    head.position.set(at.x, 0, at.z);
+    head.rotation.y = yaw;
+    parent.add(head);
+  }
+  if (!slab) return;
+  for (const material of Array.isArray(slab.material) ? slab.material : [slab.material]) material.clippingPlanes = [DOOR_CEILING_CLIP];
+  const leaf = cloneKitModule(assets, `${art}_doorleaf`, art, undefined, true);
+  if (leaf) {
+    leaf.name = `door-leaf-${art}`;
+    leaf.rotation.y = yaw;
+    slab.add(leaf);
+  }
 }

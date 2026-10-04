@@ -145,6 +145,38 @@ describe('room vertical grammar', () => {
     }
   });
 
+  it('frames doors without narrowing the doorway or blocking the slab', () => {
+    const vertex = new THREE.Vector3();
+    const origin = new THREE.Matrix4().copy(kit.matrixWorld).invert();
+    for (const id of CAMPAIGN_ART_IDS) {
+      for (const role of ['doorhead', 'doorleaf', 'relief2', 'upper2']) {
+        const module = kit.getObjectByName(`${id}_${role}`);
+        expect(module, `${id}_${role}`).toBeDefined();
+        module!.traverse(node => {
+          if (!(node instanceof THREE.Mesh)) return;
+          const m = new THREE.Matrix4().multiplyMatrices(origin, node.matrixWorld);
+          const positions = node.geometry.getAttribute('position');
+          for (let i = 0; i < positions.count; i++) {
+            vertex.fromBufferAttribute(positions, i).applyMatrix4(m);
+            if (role === 'doorhead') {
+              // Below the housing only the jambs exist, within wall clearance.
+              if (vertex.y < 4.19) expect(Math.abs(vertex.x), `${id} jamb`).toBeGreaterThanOrEqual(2.8);
+              expect(vertex.y).toBeLessThanOrEqual(6.001);
+            } else if (role === 'doorleaf') {
+              expect(Math.abs(vertex.z), `${id} leaf depth`).toBeLessThanOrEqual(.36);
+              expect(Math.abs(vertex.z), `${id} leaf inside slab`).toBeGreaterThan(.2);
+              expect(Math.abs(vertex.y)).toBeLessThanOrEqual(2.16);
+            } else if (role === 'relief2' && vertex.y < 4.3) {
+              expect(vertex.z, `${id} relief2`).toBeLessThanOrEqual(.18001);
+            } else if (role === 'upper2') {
+              expect(vertex.y).toBeLessThanOrEqual(4.15);
+            }
+          }
+        });
+      }
+    }
+  });
+
   it('keeps every overhead piece above the combat volume', () => {
     const campaigns = CAMPAIGN.map(c => [c.map, CAMPAIGN_ART_IDS.find(id => c.id.endsWith(id))!] as const);
     for (const [map, artId] of [...mazes().map(m => [m, undefined] as const), ...campaigns]) {

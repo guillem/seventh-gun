@@ -25,13 +25,15 @@ URL). Where they disagree with this block, this block wins.
   continuity and Safari audio-start fixes; the room vertical grammar on all
   seven campaign maps and seeded solo mazes. Simulation, maps, balance,
   network and `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
-  28,653,356 bytes before compression, label `vertical-01`.
+  29,398,872 bytes before compression, label `vertical-02`.
+- **Active programme:** hand-built, light-baked Blender areas for every
+  campaign map, like the Foundry opening (user's goal, 2026-10-04). Plan and
+  progress: "Authored areas programme" below.
 
 ### Waiting on the user
 
-- Review of the campaign-wide room vertical grammar (see below). Proposed
-  next steps: module variants for repetition, then one authored hero room
-  (Blender + optional lightmap) piloted on one map.
+- Review of the door/variant pass and, when pushed, the first authored-area
+  pilot (see "Authored areas programme").
 - Review of the current preview build. The refinement, continuity and Safari
   passes answered earlier user reports; no verdict on the result is recorded.
 - Native Safari retest of the seed-field/audio start fix (automation disabled).
@@ -45,6 +47,54 @@ URL). Where they disagree with this block, this block wins.
   [TESTING](TESTING.md#release-smoke-checks). Independent of this branch.
 
 The consolidated backlog is in [ROADMAP](ROADMAP.md#backlog).
+
+## Authored areas programme — plan, 2026-10-04
+
+User verdict on the campaign rollout: better overall, but details are off
+(doors too short with a gap on top). Asked to fix that and every issue found,
+with the final goal of several hand-made Blender areas in every map, like the
+Foundry opening, "because they look incredibly better".
+
+- **Phase A — done (this entry's commit):** door assemblies, plate heads,
+  variants, copings, the door-use input bug, the E2E cursor leak. Below.
+- **Phase B — runtime and pipeline:** replace the hard-coded `foundryCell`
+  with an area registry (`src/render/authoredAreas.ts`); per-map lazy loading
+  of area GLB + lightmap (never in the boot pack), awaited by UI starts via
+  `prepareWorld`, next map prefetched; until loaded, the grammar renders the
+  cells (sync debug starts and failed loads degrade). Area materials scale
+  map ambient/hemisphere light (shader patch) so bakes are not double-lit;
+  each area declares its practical/actor light positions. Generalise
+  `build_foundry.py` into a shared Blender library. Gate: Foundry frames
+  unchanged, all hashes unchanged.
+- **Phase C — areas:** pilot one area (Gullet arena), measure bake time,
+  bytes and look, push for review; then 2–3 areas per map. Areas cover whole
+  rooms plus their mouths, with boundaries in 6 m corridor cells; avoid secret
+  rooms and remote controls unless handled explicitly.
+
+## Doors, variants, input fix and E2E cursor — 2026-10-04
+
+- Doors: per-identity `doorhead` (housing 4.2–6 m, jambs within clearance) and
+  `doorleaf` on the slab; red status lens when locked; slabs clipped at the
+  6 m ceiling. Secret plates get a plain wall head; the seal sits under a
+  doorhead. Details in `art/modern/vertical/README.md`.
+- `relief2` / `upper2` variants per identity, alternating about each run's
+  centre; outward copings on raised walls. Ward ceilings ceramic.
+- **Door-use bug (real gameplay bug):** the game polls input once per
+  animation frame but steps the simulation at 60 Hz. On displays above 60 Hz
+  many frames run no step, and polling cleared the E (use) and weapon-switch
+  edges, so presses were randomly lost. `game.ts` now holds those edges until
+  a step consumes them. This was the "entrance door" E2E flake: without the
+  fix 6/16 runs fail in hardware Chrome at 120 Hz, with it 16/16 pass. (The
+  earlier "identical before and after the rollout" comparison is void: it ran
+  against a reused preview server, `reuseExistingServer: true`.)
+- **E2E cursor leak:** with the installed Chrome (`PLAYWRIGHT_CHANNEL=chrome`)
+  on macOS, the game's `requestPointerLock()` captured the developer's real
+  cursor even headless. All specs now import `test` from
+  `tests/helpers/test.ts`, which stubs pointer lock in every context. No test
+  asserted a real lock.
+- Local: typecheck, 465 unit tests (Node 24), production build, full E2E in
+  hardware Chrome 113 passed / 13 skipped. All 19 review views keep their grid
+  hashes; draw calls are 24–67% below the pre-grammar build.
 
 ## Room vertical grammar on the whole campaign — 2026-10-04
 
