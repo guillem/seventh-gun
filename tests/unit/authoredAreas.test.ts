@@ -81,7 +81,7 @@ describe('authored area registry', () => {
     expect(existsSync(new URL(`../../public/modern/areas/${area.id}/irradiance.webp`, import.meta.url))).toBe(true);
   });
 
-  it.each(lazyAreas.map(area => [area.id, area] as const))('%s has no coplanar floor inlays (z-fighting)', async (_, area) => {
+  it.each(lazyAreas.map(area => [area.id, area] as const))('%s has no coplanar floor inlays (z-fighting)', { timeout: 30_000 }, async (_, area) => {
     const model = await loadModel(area.id);
     // Upward faces near the floor, bucketed by height (1 mm): two of them
     // overlapping at one height flicker as the camera moves.
@@ -118,7 +118,7 @@ describe('authored area registry', () => {
     expect([...new Set(clashes)]).toEqual([]);
   });
 
-  it.each(lazyAreas.map(area => [area.id, area] as const))('%s has the exact floor, bake UVs and no new low obstacle', async (_, area) => {
+  it.each(lazyAreas.map(area => [area.id, area] as const))('%s has the exact floor, bake UVs and no new low obstacle', { timeout: 30_000 }, async (_, area) => {
     const map = mapFor(area.mapSeed);
     const model = await loadModel(area.id);
     const inside = (x: number, z: number) => area.rects.some(([x0, z0, x1, z1]) => x >= x0 && x < x1 && z >= z0 && z < z1);
@@ -127,16 +127,17 @@ describe('authored area registry', () => {
     let floorArea = 0;
     const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
     const ab = new THREE.Vector3(), ac = new THREE.Vector3();
+    let badUv: string | undefined, offFloor: number | undefined, obstacle: string | undefined;
     model.traverse(node => {
       if (!(node instanceof THREE.Mesh)) return;
       const pos = node.geometry.getAttribute('position');
       const uv = node.geometry.getAttribute('uv1');
       expect(uv, 'light-bake UV set').toBeDefined();
+      // Collect, then assert once: per-vertex expect() calls made the dense
+      // ossuary take seconds and time out on CI.
       for (let i = 0; i < uv.count; i++) {
-        expect(uv.getX(i)).toBeGreaterThanOrEqual(0);
-        expect(uv.getX(i)).toBeLessThanOrEqual(1);
-        expect(uv.getY(i)).toBeGreaterThanOrEqual(0);
-        expect(uv.getY(i)).toBeLessThanOrEqual(1);
+        const [u, w] = [uv.getX(i), uv.getY(i)];
+        if (u < 0 || u > 1 || w < 0 || w > 1) badUv ??= `${(node.material as THREE.Material).name} uv ${u},${w}`;
       }
       const name = (node.material as THREE.Material).name;
       if (name === 'area.floor') {
@@ -146,7 +147,7 @@ describe('authored area registry', () => {
           b.fromBufferAttribute(pos, indices.getX(i + 1)).applyMatrix4(node.matrixWorld);
           c.fromBufferAttribute(pos, indices.getX(i + 2)).applyMatrix4(node.matrixWorld);
           floorArea += ab.subVectors(b, a).cross(ac.subVectors(c, a)).length() / 2;
-          expect(Math.abs(a.y)).toBeLessThan(1e-4);
+          if (Math.abs(a.y) >= 1e-4) offFloor ??= a.y;
         }
         return;
       }
@@ -164,10 +165,13 @@ describe('authored area registry', () => {
           const pz = Math.max(z0 - a.z, 0, a.z - z0 - 2);
           distanceToWall = Math.min(distanceToWall, Math.hypot(px, pz));
         }
-        expect(distanceToWall, `${area.id}: low obstacle at ${a.toArray().map(v => v.toFixed(2)).join(',')}`).toBeLessThanOrEqual(.18);
+        if (distanceToWall > .18) obstacle ??= `${area.id}: low obstacle at ${a.toArray().map(v => v.toFixed(2)).join(',')} (${distanceToWall.toFixed(3)} m from a wall)`;
       }
     });
     // Meshopt quantises positions (a few mm over the whole mesh's extent).
+    expect(badUv).toBeUndefined();
+    expect(offFloor).toBeUndefined();
+    expect(obstacle).toBeUndefined();
     expect(Math.abs(floorArea - cells * 4)).toBeLessThan(Math.max(.05, cells * 4 * 2e-4));
     // Taller than a 6 m corridor (catches empty or flat exports).
     expect(new THREE.Box3().setFromObject(model).max.y).toBeGreaterThan(6.5);
