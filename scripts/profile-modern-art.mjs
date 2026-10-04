@@ -100,6 +100,9 @@ try {
       viewport: { width: config.width, height: config.height },
       deviceScaleFactor: config.scale, isMobile: config.touch, hasTouch: config.touch,
     });
+    // A real lock captures the developer's cursor with installed Chrome on
+    // macOS, even headless; entry/exit still run through the game's own UI.
+    await context.addInitScript(() => { Element.prototype.requestPointerLock = () => Promise.resolve(); });
     const page = await context.newPage();
     const errors = [];
     const previewTelemetryErrors = [];

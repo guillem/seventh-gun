@@ -1,0 +1,167 @@
+{
+  "base": "http://localhost:4173",
+  "label": "after",
+  "capturedAt": "2026-10-04T08:07:53.741Z",
+  "doors": [
+    {
+      "map": 1,
+      "id": 0,
+      "locked": false,
+      "x": 29,
+      "z": 87,
+      "yaw": -90
+    },
+    {
+      "map": 1,
+      "id": 1,
+      "locked": false,
+      "x": 107,
+      "z": 87,
+      "yaw": -90
+    },
+    {
+      "map": 2,
+      "id": 0,
+      "locked": false,
+      "x": 29,
+      "z": 21,
+      "yaw": -90
+    },
+    {
+      "map": 2,
+      "id": 1,
+      "locked": false,
+      "x": 73,
+      "z": 69,
+      "yaw": -90
+    },
+    {
+      "map": 2,
+      "id": 2,
+      "locked": false,
+      "x": 47,
+      "z": 93,
+      "yaw": -180
+    },
+    {
+      "map": 3,
+      "id": 0,
+      "locked": false,
+      "x": 21,
+      "z": 89,
+      "yaw": -90
+    },
+    {
+      "map": 3,
+      "id": 1,
+      "locked": false,
+      "x": 69,
+      "z": 89,
+      "yaw": -90
+    },
+    {
+      "map": 3,
+      "id": 2,
+      "locked": false,
+      "x": 105,
+      "z": 89,
+      "yaw": -90
+    },
+    {
+      "map": 4,
+      "id": 0,
+      "locked": false,
+      "x": 29,
+      "z": 19,
+      "yaw": -90
+    },
+    {
+      "map": 4,
+      "id": 1,
+      "locked": false,
+      "x": 109,
+      "z": 19,
+      "yaw": -90
+    },
+    {
+      "map": 4,
+      "id": 2,
+      "locked": false,
+      "x": 31,
+      "z": 91,
+      "yaw": -90
+    },
+    {
+      "map": 5,
+      "id": 0,
+      "locked": false,
+      "x": 87,
+      "z": 137,
+      "yaw": -180
+    },
+    {
+      "map": 5,
+      "id": 1,
+      "locked": false,
+      "x": 111,
+      "z": 109,
+      "yaw": -180
+    },
+    {
+      "map": 5,
+      "id": 2,
+      "locked": false,
+      "x": 103,
+      "z": 53,
+      "yaw": -180
+    },
+    {
+      "map": 6,
+      "id": 0,
+      "locked": false,
+      "x": 29,
+      "z": 87,
+      "yaw": -90
+    },
+    {
+      "map": 6,
+      "id": 1,
+      "locked": false,
+      "x": 77,
+      "z": 87,
+      "yaw": -90
+    },
+    {
+      "map": 6,
+      "id": 2,
+      "locked": true,
+      "x": 101,
+      "z": 55,
+      "yaw": -180
+    },
+    {
+      "map": 7,
+      "id": 0,
+      "locked": false,
+      "x": 89,
+      "z": 23,
+      "yaw": -180
+    },
+    {
+      "map": 7,
+      "id": 1,
+      "locked": false,
+      "x": 89,
+      "z": 97,
+      "yaw": -180
+    },
+    {
+      "map": 7,
+      "id": 2,
+      "locked": false,
+      "x": 89,
+      "z": 133,
+      "yaw": -180
+    }
+  ]
+}

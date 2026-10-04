@@ -254,7 +254,7 @@
     },
     "spire_doorleaf": {
       "meshes": 2,
-      "triangles": 224
+      "triangles": 368
     },
     "spire_fixture": {
       "meshes": 2,
@@ -337,7 +337,7 @@
       "triangles": 80
     }
   },
-  "bytes": 1817548,
+  "bytes": 1827636,
   "authoring": "Original offline Blender assemblies; runtime instancing only",
   "limits": {
     "wallReliefMetres": 0.18,

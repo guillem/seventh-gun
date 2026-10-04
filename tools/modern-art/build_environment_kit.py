@@ -405,7 +405,9 @@ def main():
     r=module('spire','doorleaf')
     for x in [-1.5,1.5]:
         both(lambda s: box('Panel field',(x,0,s*.27),(2.6,3.9,.04),pale,r,.01))
-        both(lambda s: box('Panel bead',(x,0,s*.3),(2.3,3.6,.02),dark,r,0))
+        # A thin bronze bead frames each field; the field itself stays stone.
+        for bx,by,bw,bh in [(x,1.8,2.3,.05),(x,-1.8,2.3,.05),(x-1.13,0,.05,3.6),(x+1.13,0,.05,3.6)]:
+            both(lambda s: box('Panel bead',(bx,by,s*.3),(bw,bh,.02),iron,r,0))
 
     r=module('ward','doorhead')
     jambs(trim_metal,r,.16,1.0)

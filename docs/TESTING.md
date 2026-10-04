@@ -251,5 +251,7 @@ with the installed Chrome on macOS (`PLAYWRIGHT_CHANNEL=chrome`), a real lock
 grabs and recentres the developer's cursor even in headless mode. Use the
 debug API instead of pointer lock (see AGENTS.md). Note that
 `reuseExistingServer: true` makes Playwright test whatever already serves
-port 4173: stop a stale `npm run preview` before running E2E.
+port 4173: stop a stale `npm run preview` before running E2E. The art capture
+scripts (`tools/modern-art/capture_*.mjs`, `scripts/*-modern-art.mjs`) stub
+pointer lock the same way.
 

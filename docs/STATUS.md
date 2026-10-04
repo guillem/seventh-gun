@@ -24,8 +24,10 @@ URL). Where they disagree with this block, this block wins.
   environment modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes; the room vertical grammar on all
   seven campaign maps and seeded solo mazes. Simulation, maps, balance,
-  network and `GEN_VERSION` are unchanged from `main`. Runtime pack: 92 files /
-  29,398,872 bytes before compression, label `vertical-02`.
+  network and `GEN_VERSION` are unchanged from `main`. Boot pack: 92 files /
+  29,408,960 bytes before compression, label `vertical-02`; authored areas add
+  files under `public/modern/areas/` loaded only for their map
+  (`runtime-manifest.json` lists both).
 - **Active programme:** hand-built, light-baked Blender areas for every
   campaign map, like the Foundry opening (user's goal, 2026-10-04). Plan and
   progress: "Authored areas programme" below.
@@ -63,6 +65,15 @@ Foundry opening, "because they look incredibly better".
   fallback, ambient scaling, area practicals, `tools/modern-art/area_lib.py`
   and `export_area_layout.mjs`, unit + E2E tests. Recipe:
   `art/modern/areas/README.md`.
+- **Door review pass:** every campaign door captured closed and open
+  (`art/modern/vertical/doors/`, `tools/modern-art/capture_doors.mjs`). Slabs
+  read as black voids because the door surface used the near-black alloy
+  image; doors now use a mid-value specimen per identity. The Spire leaf's
+  bead was a filled box and is now a thin frame. Open slabs vanish into the
+  housing on every map. The Foundry opening is pixel-identical at the
+  entrance; in the hall only Door 1's new frame and a restyled room seen
+  through a side passage differ (vs `67c2ab7`). Foundry corridors outside
+  the hall stay dim: that map's global light is tuned for the bake.
 - **Phase C — started:** pilot `gullet-arena` delivered for review (3.2 MB GLB
   + 0.46 MB lightmap, loaded only for the Gullet; full bake 48 s). Next: the
   user's verdict, then 2–3 areas per map. Mesh compression (Draco/meshopt) is

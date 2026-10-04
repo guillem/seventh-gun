@@ -59,16 +59,27 @@ function surface(assets: EnvironmentAssets, name: string): THREE.Texture {
   return assets.surfaces[name] ?? assets.concrete;
 }
 
+/** Door slabs take a mid-value specimen per identity: the alloy image is
+ * near-black, which made every closed door read as a void in its frame. */
+const DOOR_SPECIMEN: Record<CampaignArtId, string> = {
+  foundry: 'steel', gullet: 'organic', catacombs: 'limestone', pit: 'steel',
+  spire: 'limestone', ward: 'ceramic', sanctum: 'steel',
+};
+const DOOR_COLOR: Record<CampaignArtId, number> = {
+  foundry: 0x9a9890, gullet: 0x8a6a62, catacombs: 0x7c8282, pit: 0x8e7c66,
+  spire: 0xb8a988, ward: 0xc8d4d4, sanctum: 0x5c6870,
+};
+
 export function campaignEnvironmentSurface(
   kind: 'wall' | 'floor' | 'ceil' | 'door', artId: CampaignArtId, assets: EnvironmentAssets,
 ): THREE.MeshStandardMaterial {
   const palette = CAMPAIGN_ENVIRONMENT_PALETTES[artId];
-  const specimen = kind === 'floor' ? palette.floor : kind === 'ceil' ? palette.ceiling : kind === 'door' ? 'alloy' : palette.wall;
+  const specimen = kind === 'floor' ? palette.floor : kind === 'ceil' ? palette.ceiling : kind === 'door' ? DOOR_SPECIMEN[artId] : palette.wall;
   const metal = specimen === 'alloy';
   const ceramic = specimen === 'ceramic';
   const material = new THREE.MeshStandardMaterial({
     map: surface(assets, specimen),
-    color: kind === 'floor' ? palette.floorColor : kind === 'ceil' ? palette.ceilingColor ?? 0x9da7a6 : kind === 'door' ? 0xaab9bf : palette.wallColor,
+    color: kind === 'floor' ? palette.floorColor : kind === 'ceil' ? palette.ceilingColor ?? 0x9da7a6 : kind === 'door' ? DOOR_COLOR[artId] : palette.wallColor,
     roughness: metal ? .64 : ceramic ? .49 : specimen === 'organic' ? .68 : .9,
     // Door slabs are painted plate: fully metallic alloy reflected the dark
     // environment and read as a black void in the doorway.
