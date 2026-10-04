@@ -10,26 +10,26 @@
       47
     ]
   ],
-  "bakeSize": 1024,
+  "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 6.882461071014404,
+  "bakePeak": 21.082746505737305,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 44184,
-  "glbBytes": 934756,
-  "glbUncompressedBytes": 3850088,
+  "meshFaces": 97381,
+  "glbBytes": 2776696,
+  "glbUncompressedBytes": 11212280,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 114010,
+  "irradianceBytes": 61266,
   "lights": [
     {
-      "name": "Sconce glow",
+      "name": "Niche candle glow",
       "kind": "AREA",
       "position": [
-        8.9,
-        3.4,
-        82.35
+        8.6,
+        4.6,
+        82.45
       ],
       "target": [
-        8.9,
+        8.6,
         0.2,
         85
       ],
@@ -38,19 +38,19 @@
         0.66,
         0.34
       ],
-      "power": 45,
-      "size": 0.3
+      "power": 60,
+      "size": 0.35
     },
     {
-      "name": "Sconce glow",
+      "name": "Niche candle glow",
       "kind": "AREA",
       "position": [
-        13.100000000000001,
-        3.4,
-        82.35
+        13.399999999999999,
+        4.6,
+        82.45
       ],
       "target": [
-        13.100000000000001,
+        13.399999999999999,
         0.2,
         85
       ],
@@ -59,19 +59,19 @@
         0.66,
         0.34
       ],
-      "power": 45,
-      "size": 0.3
+      "power": 60,
+      "size": 0.35
     },
     {
-      "name": "Sconce glow",
+      "name": "Niche candle glow",
       "kind": "AREA",
       "position": [
-        8.9,
-        3.4,
-        93.65
+        8.6,
+        4.6,
+        93.55
       ],
       "target": [
-        8.9,
+        8.6,
         0.2,
         91
       ],
@@ -80,19 +80,19 @@
         0.66,
         0.34
       ],
-      "power": 45,
-      "size": 0.3
+      "power": 60,
+      "size": 0.35
     },
     {
-      "name": "Sconce glow",
+      "name": "Niche candle glow",
       "kind": "AREA",
       "position": [
-        13.100000000000001,
-        3.4,
-        93.65
+        13.399999999999999,
+        4.6,
+        93.55
       ],
       "target": [
-        13.100000000000001,
+        13.399999999999999,
         0.2,
         91
       ],
@@ -101,8 +101,8 @@
         0.66,
         0.34
       ],
-      "power": 45,
-      "size": 0.3
+      "power": 60,
+      "size": 0.35
     },
     {
       "name": "Retable candles",

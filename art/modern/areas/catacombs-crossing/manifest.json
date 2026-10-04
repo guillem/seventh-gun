@@ -12,13 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 14.794487953186035,
+  "bakePeak": 17.68004035949707,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 27562,
-  "glbBytes": 491672,
-  "glbUncompressedBytes": 2259996,
+  "meshFaces": 31548,
+  "glbBytes": 581080,
+  "glbUncompressedBytes": 2660044,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 280174,
+  "irradianceBytes": 178578,
   "lights": [
     {
       "name": "Oculus shaft",

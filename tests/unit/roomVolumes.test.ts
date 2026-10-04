@@ -149,7 +149,7 @@ describe('room vertical grammar', () => {
     const vertex = new THREE.Vector3();
     const origin = new THREE.Matrix4().copy(kit.matrixWorld).invert();
     for (const id of CAMPAIGN_ART_IDS) {
-      for (const role of ['doorhead', 'doorleaf', 'relief2', 'upper2']) {
+      for (const role of ['doorhead', 'doorleaf', 'relief2', 'upper2', 'relief3', 'upper3']) {
         const module = kit.getObjectByName(`${id}_${role}`);
         expect(module, `${id}_${role}`).toBeDefined();
         module!.traverse(node => {
@@ -166,9 +166,9 @@ describe('room vertical grammar', () => {
               expect(Math.abs(vertex.z), `${id} leaf depth`).toBeLessThanOrEqual(.36);
               expect(Math.abs(vertex.z), `${id} leaf inside slab`).toBeGreaterThan(.2);
               expect(Math.abs(vertex.y)).toBeLessThanOrEqual(2.16);
-            } else if (role === 'relief2' && vertex.y < 4.3) {
+            } else if (role.startsWith('relief') && vertex.y < 4.3) {
               expect(vertex.z, `${id} relief2`).toBeLessThanOrEqual(.18001);
-            } else if (role === 'upper2') {
+            } else if (role.startsWith('upper')) {
               expect(vertex.y).toBeLessThanOrEqual(4.15);
             }
           }

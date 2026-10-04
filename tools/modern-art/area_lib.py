@@ -307,7 +307,9 @@ class Area:
         for side in 'nswe':
             for a, b in self.openings(side):
                 mid = (a + b) / 2
-                self.wall_box('Portal lintel', side, mid, top + .35, b - a + .8, .7, depth, mat)
+                # Dropped 5 cm below the opening's closure so their undersides
+                # are not coplanar.
+                self.wall_box('Portal lintel', side, mid, top + .3, b - a + .8, .7, depth, mat)
                 for t in (a - .25, b + .25):
                     self.wall_box('Portal jamb', side, t, top / 2 + .2, .5, top + .4, .16, mat)
 
@@ -387,6 +389,25 @@ class Area:
         mesh.free()
         ob.data.update()
 
+    def _drop_floor_undersides(self, ob):
+        """Remove downward faces lying on the floor (inlay and wall-base
+        bottoms). They are never seen, but materials are double-sided, so
+        they z-fight with the floor they rest on."""
+        mesh = bmesh.new()
+        mesh.from_mesh(ob.data)
+        rot = ob.matrix_world.to_3x3()
+        doomed = []
+        for face in mesh.faces:
+            n = rot @ face.normal
+            # Blender Z is game up.
+            if n.length and n.z / n.length < -.99 and all((ob.matrix_world @ v.co).z < .025 for v in face.verts):
+                doomed.append(face)
+        if doomed:
+            bmesh.ops.delete(mesh, geom=doomed, context='FACES_ONLY')
+            mesh.to_mesh(ob.data)
+            ob.data.update()
+        mesh.free()
+
     # ------------------------------------------------------------ output
     def finish(self, practicals=(), uv_scale=3, floor_uv_scale=7, bake_albedo=.5):
         bpy.ops.object.select_all(action='DESELECT')
@@ -396,6 +417,7 @@ class Area:
             for mod in list(ob.modifiers):
                 bpy.ops.object.modifier_apply(modifier=mod.name)
             self._trim_shared(ob)
+            self._drop_floor_undersides(ob)
         bpy.context.view_layer.objects.active = self.meshes[0]
         bpy.ops.object.join()
         hero = bpy.context.object
@@ -416,7 +438,7 @@ class Area:
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.remove_doubles(threshold=.00001)
-        bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=.004, area_weight=.5)
+        bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=.006, area_weight=.5)
         bpy.ops.object.mode_set(mode='OBJECT')
 
         size = self.opt.size

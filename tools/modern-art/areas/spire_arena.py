@@ -85,8 +85,8 @@ for cx, cz in [(CX - 7, CZ - 5), (CX + 7, CZ - 5), (CX - 7, CZ + 5), (CX + 7, CZ
     area.light('Ring lamp glow', (cx, 9.0, cz), (cx, 0, cz), (1, .8, .5), 320, 1.4)
 
 # Floor: concentric marble rings around a gilt centre (flat inlays).
-for r, m in [(9.5, marble), (8.8, inlay), (5.5, marble), (4.8, inlay), (1.6, sun)]:
-    common.disc(area, 'Floor ring', (CX, .004 + (9.5 - r) * .001, CZ), r, m, samples=48)
+for k, (r, m) in enumerate([(9.5, marble), (8.8, inlay), (5.5, marble), (4.8, inlay), (1.6, sun)]):
+    common.disc(area, 'Floor ring', (CX, .003 + k * .003, CZ), r, m, samples=48)
 
 # One runtime light per area (actors only; the bake lights surfaces),
 # so ordinary rooms keep theirs within the map's 12-light budget.

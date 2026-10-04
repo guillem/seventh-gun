@@ -10,15 +10,15 @@
       12
     ]
   ],
-  "bakeSize": 1024,
+  "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 5.559020042419434,
+  "bakePeak": 5.573584079742432,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 4064,
-  "glbBytes": 118472,
-  "glbUncompressedBytes": 486668,
+  "meshFaces": 4009,
+  "glbBytes": 117324,
+  "glbUncompressedBytes": 478648,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 74520,
+  "irradianceBytes": 164576,
   "lights": [
     {
       "name": "Lantern light",

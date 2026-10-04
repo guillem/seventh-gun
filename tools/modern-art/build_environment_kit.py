@@ -498,6 +498,78 @@ def main():
     for x in [-.45,.45]: box('Containment rib',(x,2,.15),(.22,4,.3),dark,r,.02)
     box('Rib energy',(0,2,.05),(.5,3.8,.02),teal,r,0)
 
+    # Third constructions per identity (relief3 / upper3), same limits.
+    r=module('foundry','relief3')
+    box('Riveted plate',(0,1.9,.05),(1.6,2.6,.08),iron,r)
+    beam('Plate brace',(-.7,.7),(.7,3.1),.1,.06,dark,r)
+    for x in [-.72,.72]:
+        for y in [.7,1.9,3.1]: h.cylinder('Plate rivet',(x,y,.09),(x,y,.115),.03,dark,r,segments=6)
+    h.cylinder('Pressure gauge',(0,3.6,.03),(0,3.6,.14),.2,dark,r,segments=16)
+    h.cylinder('Gauge face',(0,3.6,.14),(0,3.6,.16),.16,iron,r,segments=16)
+    r=module('foundry','upper3')
+    box('Louvre frame',(0,2,.1),(1.5,3.6,.2),dark,r)
+    for y in [.5+.3*i for i in range(11)]: box('Louvre blade',(0,y,.24),(1.3,.06,.12),iron,r)
+
+    r=module('gullet','relief3')
+    for x,ph in [(-.5,0),(0,1.3),(.45,2.4)]:
+        pipe('Vein cluster',[(x,.2,.05),(x+.15*math.sin(ph),1.4,.09),(x-.1*math.sin(ph),2.8,.08),(x,4.0,.05)],.06,tissue,r)
+    for x,y in [(-.3,1.2),(.25,2.1),(-.1,3.1),(.4,3.5)]:
+        h.ellipsoid('Polyp',(x,y,.08),(.13,.16,.08),tissue,r,segments=10,rings=5)
+    r=module('gullet','upper3')
+    for x in [-.6,-.2,.2,.6]:
+        pipe('Hanging fold',[(x,4,.1),(x*1.1,2.6,.22),(x*.9,1.2,.3),(x,0,.18)],.12,tissue,r)
+
+    r=module('catacombs','relief3')
+    box('Cross field',(0,2.2,.04),(1.3,2.8,.06),stone,r,.02)
+    box('Cross upright',(0,2.3,.1),(.22,2.0,.08),cut,r,.015)
+    box('Cross arm',(0,2.8,.1),(.9,.22,.08),cut,r,.015)
+    arch('Shallow niche',.9,.6,.5,.08,.14,stone,r,8)
+    r=module('catacombs','upper3')
+    arch('Blind lancet',1.4,1.0,2.6,.16,.18,stone,r,12)
+    box('Lancet shadow',(0,1.8,.03),(1.0,2.4,.03),dark,r)
+    box('Lancet sill',(0,.35,.12),(1.6,.18,.24),stone,r,.015)
+
+    r=module('pit','relief3')
+    box('Rock mesh',(0,2.6,.03),(1.7,4.8,.04),dark,r)
+    for x in [-.6,0,.6]:
+        for y in [.9,2.2,3.5]:
+            box('Bolt plate',(x,y,.08),(.24,.24,.05),iron,r)
+            h.cylinder('Bolt',(x,y,.1),(x,y,.15),.04,iron,r,segments=6)
+    h.cylinder('Cable reel',(0,1.5,.03),(0,1.5,.16),.45,timber,r,segments=16)
+    r=module('pit','upper3')
+    for k in range(8):
+        box('Crib timber',(0,.25+k*.48,.18+(k%2)*.06),(1.7 if k%2 else 1.3,.22,.3),timber,r,.01)
+
+    r=module('spire','relief3')
+    arch('Statue niche',1.0,2.6,.5,.12,.16,pale,r,10)
+    box('Niche field',(0,1.9,.02),(.8,1.6,.03),dark,r)
+    h.ellipsoid('Urn',(0,1.6,.1),(.22,.35,.07),iron,r,segments=12,rings=6)
+    box('Niche plinth',(0,.9,.08),(1.0,.25,.15),pale,r,.01)
+    r=module('spire','upper3')
+    for k in range(16):
+        a=2*math.pi*k/16
+        ob=box('Rose spoke',(math.cos(a)*.35,2.2+math.sin(a)*.35,.12),(.06,.7,.04),pale,r,0)
+        ob.rotation_euler.y=-a+math.pi/2
+    pipe('Rose ring',[(math.cos(2*math.pi*k/20)*.72,2.2+math.sin(2*math.pi*k/20)*.72,.12) for k in range(21)],.07,pale,r)
+    h.ellipsoid('Rose glass',(0,2.2,.02),(.65,.65,.02),gold,r,segments=16,rings=4)
+
+    r=module('ward','relief3')
+    box('Glass cabinet',(0,2.2,.06),(1.5,1.9,.11),ceramic,r,.02)
+    for x in [-.36,.36]: box('Cabinet glass',(x,2.25,.12),(.62,1.6,.02),glass,r,0)
+    for y in [1.75,2.25,2.75]: box('Cabinet shelf',(0,y,.08),(1.3,.03,.1),trim_metal,r,0)
+    r=module('ward','upper3')
+    box('Grille frame',(0,2,.06),(1.3,3.4,.1),ceramic,r,.02)
+    for y in [.5+.22*i for i in range(14)]: box('Grille bar',(0,y,.12),(1.1,.05,.04),trim_metal,r,0)
+
+    r=module('sanctum','relief3')
+    for x,y in [(-.45,.9),(.45,.9),(0,1.75),(-.45,2.6),(.45,2.6),(0,3.45)]:
+        h.cylinder('Hex shield',(x,y,.02),(x,y,.12),.42,dark,r,segments=6)
+        h.cylinder('Hex core',(x,y,.12),(x,y,.15),.12,teal,r,segments=6)
+    r=module('sanctum','upper3')
+    h.cylinder('Energy column',(0,0,.25),(0,4,.25),.18,teal,r,segments=10)
+    for y in [.4,1.3,2.2,3.1]: h.cylinder('Column ring',(0,y,.25),(0,y+.2,.25),.3,dark,r,segments=10)
+    box('Column back',(0,2,.05),(.6,4,.1),dark,r)
+
     # Continuous wall-to-floor connections and courses give large flat rooms
     # construction scale. Each saved section remains inside its two-metre wall
     # cell and below the original 0.18m relief allowance; none is new cover.

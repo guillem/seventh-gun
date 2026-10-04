@@ -81,6 +81,43 @@ describe('authored area registry', () => {
     expect(existsSync(new URL(`../../public/modern/areas/${area.id}/irradiance.webp`, import.meta.url))).toBe(true);
   });
 
+  it.each(lazyAreas.map(area => [area.id, area] as const))('%s has no coplanar floor inlays (z-fighting)', async (_, area) => {
+    const model = await loadModel(area.id);
+    // Upward faces near the floor, bucketed by height (1 mm): two of them
+    // overlapping at one height flicker as the camera moves.
+    const buckets = new Map<number, { name: string; tri: [number, number][] }[]>();
+    const v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    const e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), n = new THREE.Vector3();
+    model.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const pos = node.geometry.getAttribute('position'), index = node.geometry.index!;
+      for (let i = 0; i < index.count; i += 3) {
+        for (let k = 0; k < 3; k++) v[k].fromBufferAttribute(pos, index.getX(i + k)).applyMatrix4(node.matrixWorld);
+        n.crossVectors(e1.subVectors(v[1], v[0]), e2.subVectors(v[2], v[0]));
+        if (n.length() < 1e-6 || n.normalize().y < .999 || v[0].y > .05) continue;
+        if (Math.abs(v[1].y - v[0].y) > .0008 || Math.abs(v[2].y - v[0].y) > .0008) continue;
+        const key = Math.round(v[0].y * 1000);
+        const list = buckets.get(key) ?? [];
+        buckets.set(key, list);
+        list.push({ name: (node.material as THREE.Material).name, tri: v.map(p => [p.x, p.z] as [number, number]) });
+      }
+    });
+    const inside = (p: [number, number], t: [number, number][]) => {
+      const s = (a: [number, number], b: [number, number], c: [number, number]) => (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1]);
+      const d = [s(p, t[0], t[1]), s(p, t[1], t[2]), s(p, t[2], t[0])];
+      return !(d.some(x => x < -1e-6) && d.some(x => x > 1e-6));
+    };
+    const clashes: string[] = [];
+    for (const [height, list] of buckets) {
+      for (const a of list) {
+        const centre: [number, number] = [(a.tri[0][0] + a.tri[1][0] + a.tri[2][0]) / 3, (a.tri[0][1] + a.tri[1][1] + a.tri[2][1]) / 3];
+        const other = list.find(b => b.name !== a.name && inside(centre, b.tri));
+        if (other) clashes.push(`${height} mm: ${a.name} / ${other.name}`);
+      }
+    }
+    expect([...new Set(clashes)]).toEqual([]);
+  });
+
   it.each(lazyAreas.map(area => [area.id, area] as const))('%s has the exact floor, bake UVs and no new low obstacle', async (_, area) => {
     const map = mapFor(area.mapSeed);
     const model = await loadModel(area.id);

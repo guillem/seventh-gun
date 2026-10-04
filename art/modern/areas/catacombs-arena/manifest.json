@@ -12,13 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 5.5739970207214355,
+  "bakePeak": 5.683837890625,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 27049,
-  "glbBytes": 599508,
-  "glbUncompressedBytes": 2697376,
+  "meshFaces": 26935,
+  "glbBytes": 569660,
+  "glbUncompressedBytes": 2586888,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 298110,
+  "irradianceBytes": 222192,
   "lights": [
     {
       "name": "Lancet light",

@@ -1,207 +1,207 @@
 {
   "fileCount": 132,
-  "bytes": 43104308,
+  "bytes": 44825608,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
       "path": "modern/areas/catacombs-arena/environment.glb",
-      "bytes": 599508,
-      "sha256": "4179f71bdf561c124144f8c9b750190c54f1cff24d1f3c3d549b9a8c06cbb177"
+      "bytes": 569660,
+      "sha256": "49b614a577ce93d84bd25aff3439fe2b1e812eba4f1ca398e0e8fa871e567e09"
     },
     {
       "path": "modern/areas/catacombs-arena/irradiance.webp",
-      "bytes": 298110,
-      "sha256": "ca70b78764d970720d099cdb0e5a5cbe08a89fb43fd93a50780c508d41b92ec7"
+      "bytes": 222192,
+      "sha256": "1ae442c8f3038ddef639bd4fa75685681407011da9539592f1ab4f27b4389208"
     },
     {
       "path": "modern/areas/catacombs-crossing/environment.glb",
-      "bytes": 491672,
-      "sha256": "03b57e1c64f9a9d73475c8dd5aab8d559c9c363cdc2f99f49140c6bffdf991d6"
+      "bytes": 581080,
+      "sha256": "3dd5611f1e304bb104c3048d962bf1e81728c66c6380c09648cd13f38431e883"
     },
     {
       "path": "modern/areas/catacombs-crossing/irradiance.webp",
-      "bytes": 280174,
-      "sha256": "282e863ff0464f4658f28743e4e6f0047a0e0c9440aa7f00c7a6993edee89424"
+      "bytes": 178578,
+      "sha256": "7e9c1d5a6c106a97bf57d05228a73c4fa3233ffca9f17dffc68ba0d4624e4f88"
     },
     {
       "path": "modern/areas/catacombs-start/environment.glb",
-      "bytes": 934756,
-      "sha256": "d4cae135dc1a4bfea84010845005ff96f6b7e1607a839a9e4e027361e79c0b03"
+      "bytes": 2776696,
+      "sha256": "19b41e636f0c2532eace6cc52a3d3c01f38f3125ab1a71d2dce1205b35a051e8"
     },
     {
       "path": "modern/areas/catacombs-start/irradiance.webp",
-      "bytes": 114010,
-      "sha256": "de5bf83e2fd112b5252a15e3daca61698cd660400b874f016f2d3e20b7b41baf"
+      "bytes": 61266,
+      "sha256": "91caaa1904937f53215e750900592f5f9de0a987a5f4386f31e1325aac17803d"
     },
     {
       "path": "modern/areas/foundry-arena/environment.glb",
-      "bytes": 427512,
-      "sha256": "99cb134accbabc2cc19fa93e9e4630a79880c2b58be206f0dd8bda9df9e1dfc8"
+      "bytes": 419996,
+      "sha256": "726fd680808e674340944a9248d4bbfb8f4aa5e5a89dd568e0a058dd18b1874b"
     },
     {
       "path": "modern/areas/foundry-arena/irradiance.webp",
-      "bytes": 504036,
-      "sha256": "e59dc489d5bdc5a50ce25c14e01c12917c4a01d173e7b2e7c8cd4e5421d9c0c0"
+      "bytes": 340268,
+      "sha256": "172d30924c66b429f21470254315ec1856d9a509933a29c924e8a47e338ee3d4"
     },
     {
       "path": "modern/areas/foundry-spur/environment.glb",
-      "bytes": 153464,
-      "sha256": "c33955c6789b7b140ebd7f8929ae02fe55e2928e12be431423d64b8dea0f6165"
+      "bytes": 151040,
+      "sha256": "5fbba02329af397dfd2320585de0efcc756596c4e2a65a32815f444b178bc1fa"
     },
     {
       "path": "modern/areas/foundry-spur/irradiance.webp",
-      "bytes": 67820,
-      "sha256": "31ff82bfa1050ba13d0a7c9e972ec321f943259ff7d14fc9486bab5052d0a0a5"
+      "bytes": 152124,
+      "sha256": "8b8410ccbf2c304413e1203343c4d9673091861741d68a223df73887495dc500"
     },
     {
       "path": "modern/areas/gullet-arena/environment.glb",
-      "bytes": 721308,
-      "sha256": "3361ac4573728d1f0d3fa91920d9e3435caef7fdac5b3f281bdc653b7ef8c356"
+      "bytes": 701804,
+      "sha256": "29ef7c61d743dc6d52babdbc57d20a4742dc39d68199b8605ca383e486fd4441"
     },
     {
       "path": "modern/areas/gullet-arena/irradiance.webp",
-      "bytes": 502808,
-      "sha256": "af391a66839c7cfd075ce926a2e0cc4a2cd94511b8ee6e73c1050e31421d7989"
+      "bytes": 363898,
+      "sha256": "956c8be633a470e86bef754d39dfbfd497545fda827fb04ea6dbd3799da8d829"
     },
     {
       "path": "modern/areas/gullet-crop/environment.glb",
-      "bytes": 776120,
-      "sha256": "872d8ce5478113e691fd5ed310dc64f8956e27e19cab80f44c554224259dd38e"
+      "bytes": 768360,
+      "sha256": "4dbbc2f792b6f345130a0e4226e69e871bdc54d3484e29a7548bb862a57b71d4"
     },
     {
       "path": "modern/areas/gullet-crop/irradiance.webp",
-      "bytes": 331280,
-      "sha256": "2de65a00545b53c16146603c2fbbdc891d9e5740e008479b592fe7243193839e"
+      "bytes": 281324,
+      "sha256": "ee608911af00372a7df76018769ab47dce9195a2d27614e266fa737c37f7b452"
     },
     {
       "path": "modern/areas/gullet-start/environment.glb",
-      "bytes": 426660,
-      "sha256": "f2c8f5d4017edb709e5f24bd4e27ee7b8e8a3031ad664fd564fb09f0bc76e018"
+      "bytes": 435240,
+      "sha256": "f12c1f02c2d214589ade01ab84de555e4ba213a27545d64d98ea4720a8ab8250"
     },
     {
       "path": "modern/areas/gullet-start/irradiance.webp",
-      "bytes": 136490,
-      "sha256": "5ae0f4a8d98133d044c4e91844c5ddd05a170105fe734afb595e0545a4f64801"
+      "bytes": 271190,
+      "sha256": "c9a7a4a3b3dc9559043b0fc191a8d77fdbb157068bc2bfe24b25327326c9be12"
     },
     {
       "path": "modern/areas/pit-arena/environment.glb",
-      "bytes": 175800,
-      "sha256": "6d856684af54e546812e1cfbb3a054a6d61fa327d0e833157c0a9ccffa132a29"
+      "bytes": 174168,
+      "sha256": "085a381cd387dc2af90cfc25315788d481ecf24390a033b247c9cd24a5de417a"
     },
     {
       "path": "modern/areas/pit-arena/irradiance.webp",
-      "bytes": 425952,
-      "sha256": "2164a2a246863f04c9f69337a207aea20b48aba921ef9f416df94120ff3edefa"
+      "bytes": 373770,
+      "sha256": "bc582d42b2053b8843a29fda66c0294fc3bd213b3b7486d6f0635f304e0603f7"
     },
     {
       "path": "modern/areas/pit-gallery/environment.glb",
-      "bytes": 206644,
-      "sha256": "ffcbc15c7df760ee9964c7efba020cc13151ab86e2bca052b07ee67788a45329"
+      "bytes": 205084,
+      "sha256": "97afd6be1218424a98782e8db202f9ef57974a0b1c1301fcb25568e4966610d9"
     },
     {
       "path": "modern/areas/pit-gallery/irradiance.webp",
-      "bytes": 342266,
-      "sha256": "cb2988738b0b213d4083a3b8e29f3528bf22a774dc96418d8c4a5ee9b6a6a04c"
+      "bytes": 279080,
+      "sha256": "277bed943fbadcf1f1618f26be7918406bf42c3c04cc47b9d71ca3c3023c89cd"
     },
     {
       "path": "modern/areas/pit-start/environment.glb",
-      "bytes": 118472,
-      "sha256": "c63f48af0cdc556bc41a18be900b0a2e9258766d319e53269d9bbd315c2715c1"
+      "bytes": 117324,
+      "sha256": "255be5bef24969ee1f5fe9160d6ae1af36d28f95b213b2df2e7485a6ab9fa47b"
     },
     {
       "path": "modern/areas/pit-start/irradiance.webp",
-      "bytes": 74520,
-      "sha256": "513a9c12438ec6b8367db388d3f9ad85b13691704a23646791fbecaa11bbe2c4"
+      "bytes": 164576,
+      "sha256": "d5501f6b6e43b84e4719f36fca5b2b5f6f841c24080806a0d4a06af07a1356b6"
     },
     {
       "path": "modern/areas/sanctum-arena/environment.glb",
-      "bytes": 420424,
-      "sha256": "0a514e7333d364f09b5787ea8c70332f1b67edae6d82efec8b176cea328d9f8f"
+      "bytes": 412816,
+      "sha256": "3d8624a496e4e5f213c1874191c70564eeda85c4e8e3cf6a35054daa5f556baf"
     },
     {
       "path": "modern/areas/sanctum-arena/irradiance.webp",
-      "bytes": 551290,
-      "sha256": "64e516d862ba46815785d1a655d598031ec84f69a441dd4eb8219dac9866a1a3"
+      "bytes": 439684,
+      "sha256": "7f9fe211d8ab82fe962e147a86d95dab82d82dd7edca2e149cf1ffdf7c348931"
     },
     {
       "path": "modern/areas/sanctum-chamber/environment.glb",
-      "bytes": 541740,
-      "sha256": "bb8db338c16a4e129fc8bdd7eb67353f60e1d3f6bc3401336091a25a4283c434"
+      "bytes": 532732,
+      "sha256": "bc6a4c37e19a2a7f9a47cd61ccef5e1ba01ecf8d0e239f1606f10e6cf6dce66e"
     },
     {
       "path": "modern/areas/sanctum-chamber/irradiance.webp",
-      "bytes": 548216,
-      "sha256": "7fde2d598710a920350014f9b53e24a596ab7501b77e1496741bd5babb0d1e93"
+      "bytes": 420680,
+      "sha256": "1ac62793021769dd8a0e2eba6f7760feb0ffa25a7da2cfe982bd7a651a10e447"
     },
     {
       "path": "modern/areas/sanctum-start/environment.glb",
-      "bytes": 378324,
-      "sha256": "71f79ab62e65611fa80fc8959a1c9f3ea216411725bd2047779d4e61a64ec702"
+      "bytes": 374032,
+      "sha256": "3744420b1e2b967ec39773acdc053c2253aa36a57c91f87248c20b531c08c135"
     },
     {
       "path": "modern/areas/sanctum-start/irradiance.webp",
-      "bytes": 168440,
-      "sha256": "aad9712e0ab17806f63775ecfa14896ede58c25de97b1c5bea78ae35036b4914"
+      "bytes": 359002,
+      "sha256": "131845ad35fa278097da33669653e28871f035d86279f37e56d0a5987934b1cf"
     },
     {
       "path": "modern/areas/spire-arena/environment.glb",
-      "bytes": 257064,
-      "sha256": "670154389a4d9e0ebb2bfe0d34d9777a1e0cd5457dbe94932ebebaba87b31f4c"
+      "bytes": 252928,
+      "sha256": "f973d71c383004e658fe2ddf9fbf6d2f6eb9aecf1805b747fe6c75702b540956"
     },
     {
       "path": "modern/areas/spire-arena/irradiance.webp",
-      "bytes": 411380,
-      "sha256": "3e73d3a241e6fe564db0543ba7d9ee05d3b7312020a33f9a3ec145325cea2ccf"
+      "bytes": 325556,
+      "sha256": "fb9d5ec91136c5531604dcd85cf5872fb5c5a05e459d7e5582c651da19d5eddf"
     },
     {
       "path": "modern/areas/spire-nave/environment.glb",
-      "bytes": 337316,
-      "sha256": "fd0124ec940d53082dad0d8185abd66b12c0fb6080c8c2abb69182890cf23086"
+      "bytes": 330916,
+      "sha256": "9a1b5d748b17cba1dce820642f9375ef3d475f6996faaf02e8941f900c132fea"
     },
     {
       "path": "modern/areas/spire-nave/irradiance.webp",
-      "bytes": 590664,
-      "sha256": "5b31e6e647dc1e39e82e4b794a73269c7e158d801a1924856a73cd9584d54837"
+      "bytes": 490762,
+      "sha256": "aaa33901b8de6560acfa2c0ce1a067a03006dd6f92395d63383ae3af5305e383"
     },
     {
       "path": "modern/areas/spire-start/environment.glb",
-      "bytes": 213900,
-      "sha256": "747d41e4bc73b870c5ed5a53a00348035f6cbf52ef7d0852d5725ef2f20fc9a9"
+      "bytes": 211568,
+      "sha256": "78d8d40f5ae3a2d68fa00a994ac6b1ca04d062536e272f770c0dfd300fe0c7df"
     },
     {
       "path": "modern/areas/spire-start/irradiance.webp",
-      "bytes": 99670,
-      "sha256": "ad104f4e5ae973d225ade6ccecfb152204108da117aa6c6dbd77d880ca980961"
+      "bytes": 219020,
+      "sha256": "d35233b0ef9eb1fe7d8019ba5f9fd1e70f359a9171229234a220fa98142bb26a"
     },
     {
       "path": "modern/areas/ward-arena/environment.glb",
-      "bytes": 197852,
-      "sha256": "8c24bcfc73a28b0102256c4cc6f7ba37cd656bf4f6415ff3b521791277eeaf05"
+      "bytes": 193240,
+      "sha256": "dd169ed73fc6bd5066b0c2b6f8b8055428fb37150ace7e076d3b43a0e3aacbd8"
     },
     {
       "path": "modern/areas/ward-arena/irradiance.webp",
-      "bytes": 199366,
-      "sha256": "e6d1667a8a14aaf63dfb7afedf393149a9bb9a08468d5112760d5eb454be7de9"
+      "bytes": 165520,
+      "sha256": "9b5119e371cbecfe41fa2960e085b4591e9a3ad24e3e8d8f11f98ea20f415540"
     },
     {
       "path": "modern/areas/ward-atrium/environment.glb",
-      "bytes": 183272,
-      "sha256": "540c17ebdd9b627a698b1b117b59416b6d407f3d3adc25f786cf7086b3044970"
+      "bytes": 180200,
+      "sha256": "98a7449decd316704a3a943d8ad250eb12953412a260d586b6ae01e943fb097e"
     },
     {
       "path": "modern/areas/ward-atrium/irradiance.webp",
-      "bytes": 258582,
-      "sha256": "c8268e7d094bc4cb945bffb883b96c5473d03d827765fb36f75d2308bd8598be"
+      "bytes": 213102,
+      "sha256": "9f26430d6783058a87645e213ba6bc6f1939715ca01a1fb2496f39757b6ad18f"
     },
     {
       "path": "modern/areas/ward-start/environment.glb",
-      "bytes": 130384,
-      "sha256": "2a9ad7854af08146867c21a792311efd03224e31bb65d48bd333589c128d5a30"
+      "bytes": 128352,
+      "sha256": "be21de4f5e5b59c19e34bb7c6e0f1c417799c8b8480ecfd93b86642a0c9a3180"
     },
     {
       "path": "modern/areas/ward-start/irradiance.webp",
-      "bytes": 98082,
-      "sha256": "1bbd2947d3f0281a58226b54c309236ca75c34f0e6850fe47a0df57cb3b3e5b8"
+      "bytes": 224544,
+      "sha256": "44bf394e20311c92fd22f09081fcdfbfb9653cd287702fb2cca6eeb3ae669a0f"
     },
     {
       "path": "modern/audio/bile.mp3",
@@ -550,8 +550,8 @@
     },
     {
       "path": "modern/roster/environment/kit.glb",
-      "bytes": 1827636,
-      "sha256": "bb9cae90c78c73964893a21762df44d3c0240d56660fa83ebdad9a51f84f679e"
+      "bytes": 2180912,
+      "sha256": "98ddeaf89a38ad90a80117c6fb4e59500b93b2a70fe147058257c5cbfb4b7c36"
     },
     {
       "path": "modern/roster/materials/alloy.webp",

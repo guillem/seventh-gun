@@ -12,13 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 16.2384090423584,
+  "bakePeak": 15.7081880569458,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 5411,
-  "glbBytes": 183272,
-  "glbUncompressedBytes": 777732,
+  "meshFaces": 5315,
+  "glbBytes": 180200,
+  "glbUncompressedBytes": 764100,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 258582,
+  "irradianceBytes": 213102,
   "lights": [
     {
       "name": "Roof daylight",

@@ -166,3 +166,164 @@ def rock_skin(area, side, y0, y1, mat, depth_low=.14, depth_high=.9, step=.5, se
             a, b = i * cols + j, i * cols + j + 1
             faces.append((a, b, b + cols, a + cols))
     return area.mesh('Rock face', verts, faces, mat, smooth=True)
+
+
+class Ossuary:
+    """Ossuary wall dressing in the manner of real charnel walls: courses of
+    stacked long-bone ends with bands of skulls and skull motifs set into
+    them. Every skull varies (size, turn, tilt, tint, jaw, damage); a few are
+    missing. All geometry is batched into one mesh per material and stays
+    within `max_depth` of the wall (the 0.18 m relief limit below 4.3 m)."""
+
+    def __init__(self, area, tints, socket, backing, seed=0, max_depth=.17):
+        import random as _random
+        self.area, self.tints, self.socket, self.backing = area, tints, socket, backing
+        self.rng = _random.Random(seed)
+        self.max_depth = max_depth
+        self.batches = {}
+
+    # Geometry accumulation ------------------------------------------------
+    def _batch(self, mat):
+        return self.batches.setdefault(mat.name, (mat, [], []))
+
+    def _ellipsoid(self, mat, centre, axes, radii, segments=8, rings=5):
+        _, verts, faces = self._batch(mat)
+        right, up, fwd = axes
+        base = len(verts)
+        verts.append(tuple(centre[i] - up[i] * radii[1] for i in range(3)))
+        for r in range(1, rings):
+            phi = -math.pi / 2 + math.pi * r / rings
+            for s in range(segments):
+                th = 2 * math.pi * s / segments
+                x, y, z = math.cos(phi) * math.cos(th), math.sin(phi), math.cos(phi) * math.sin(th)
+                verts.append(tuple(centre[i] + right[i] * radii[0] * x + up[i] * radii[1] * y + fwd[i] * radii[2] * z for i in range(3)))
+        verts.append(tuple(centre[i] + up[i] * radii[1] for i in range(3)))
+        top = len(verts) - 1
+        for s in range(segments):
+            n = (s + 1) % segments
+            faces.append((base, base + 1 + n, base + 1 + s))
+            for r in range(rings - 2):
+                a = base + 1 + r * segments
+                faces.append((a + s, a + n, a + segments + n, a + segments + s))
+            last = base + 1 + (rings - 2) * segments
+            faces.append((last + s, last + n, top))
+
+    def _bone_end(self, mat, centre, fwd, right, up, radius, length, sides=5):
+        """A long-bone end seen end-on: a capped prism pointing into the room."""
+        _, verts, faces = self._batch(mat)
+        base = len(verts)
+        for ring_depth in (0, -length):
+            for k in range(sides):
+                a = 2 * math.pi * k / sides + .3
+                c, s = math.cos(a) * radius, math.sin(a) * radius
+                verts.append(tuple(centre[i] + right[i] * c + up[i] * s + fwd[i] * ring_depth for i in range(3)))
+        faces.append(tuple(base + k for k in range(sides)))
+        for k in range(sides):
+            n = (k + 1) % sides
+            faces.append((base + k, base + sides + k, base + sides + n, base + n))
+
+    # Pieces -----------------------------------------------------------------
+    def frame(self, side):
+        nx, nz = self.area.SIDES[side]
+        fwd = (nx, 0, nz)
+        right = (0, 0, 1) if side in 'we' else (1, 0, 0)
+        return fwd, right, (0, 1, 0)
+
+    def skull(self, side, t, y, scale=1.0, plain=False):
+        rng = self.rng
+        fwd, right, up = self.frame(side)
+        if not plain and rng.random() < .06:
+            return  # a missing skull leaves a dark gap
+        s = scale * rng.uniform(.84, 1.12)
+        yaw = rng.uniform(-.38, .38)
+        roll = rng.uniform(-.18, .18)
+        c, sn = math.cos(yaw), math.sin(yaw)
+        f2 = tuple(fwd[i] * c + right[i] * sn for i in range(3))
+        r2 = tuple(right[i] * c - fwd[i] * sn for i in range(3))
+        cr, sr = math.cos(roll), math.sin(roll)
+        u2 = tuple(up[i] * cr + r2[i] * sr for i in range(3))
+        r3 = tuple(r2[i] * cr - up[i] * sr for i in range(3))
+        axes = (r3, u2, f2)
+        tint = rng.choice(self.tints)
+        # The face's front must stay inside max_depth of the wall.
+        reach = .17 * s
+        centre_off = min(self.max_depth - reach, .07)
+        o = self.area.wall_point(side, t, y, centre_off)
+        at = lambda dr, du, df: tuple(o[i] + r3[i] * dr * s + u2[i] * du * s + f2[i] * df * s for i in range(3))
+        broken = rng.random() < .07
+        self._ellipsoid(tint, at(0, .02, -.01), axes, (.105 * s, .118 * s, .1 * s), 7, 4)
+        if broken:
+            self._ellipsoid(self.socket, at(.03, .05, .07), axes, (.05 * s, .04 * s, .03 * s), 6, 3)
+            return
+        self._ellipsoid(tint, at(0, -.06, .05), axes, (.085 * s, .065 * s, .06 * s), 6, 3)
+        for side_sign in (-1, 1):
+            self._ellipsoid(self.socket, at(side_sign * .04, -.03, .095), axes, (.026 * s, .03 * s, .018 * s), 6, 3)
+        self._ellipsoid(self.socket, at(0, -.075, .105), axes, (.012 * s, .02 * s, .012 * s), 5, 3)
+        if rng.random() < .2:
+            self._ellipsoid(tint, at(0, -.125, .04), axes, (.07 * s, .03 * s, .05 * s), 7, 3)
+
+    def bone_band(self, side, a0, a1, y0, y1, spacing=.15):
+        """Staggered long-bone ends filling [a0, a1] x [y0, y1] on a wall."""
+        rng = self.rng
+        fwd, right, up = self.frame(side)
+        self.area.wall_box('Ossuary backing', side, (a0 + a1) / 2, (y0 + y1) / 2, a1 - a0, y1 - y0, .02, self.backing, 0)
+        rows = max(1, int((y1 - y0) / (spacing * .9)))
+        for r in range(rows):
+            y = y0 + (r + .5) * (y1 - y0) / rows
+            t = a0 + spacing * (.5 if r % 2 else .95)
+            while t < a1 - spacing * .4:
+                radius = rng.uniform(.045, .06)
+                length = rng.uniform(.05, .1)
+                depth = .02 + length + rng.uniform(-.015, .015)
+                centre = self.area.wall_point(side, t + rng.uniform(-.012, .012), y + rng.uniform(-.012, .012), min(depth, self.max_depth))
+                self._bone_end(rng.choice(self.tints), centre, fwd, right, up, radius, length)
+                t += spacing * rng.uniform(.92, 1.08)
+
+    def skull_row(self, side, a0, a1, y, spacing=.25):
+        t = a0 + spacing * .5
+        while t < a1 - spacing * .4:
+            self.skull(side, t + self.rng.uniform(-.02, .02), y + self.rng.uniform(-.015, .015))
+            t += spacing * self.rng.uniform(.95, 1.05)
+
+    def motif(self, side, t, y, kind):
+        if kind == 'cross':
+            for du in (-.5, -.25, 0, .25, .5):
+                self.skull(side, t, y + du, .9, plain=True)
+            for dr in (-.26, .26):
+                self.skull(side, t + dr, y + .25, .9, plain=True)
+        else:
+            for k in range(8):
+                a = 2 * math.pi * k / 8
+                self.skull(side, t + math.cos(a) * .42, y + math.sin(a) * .42, .82, plain=True)
+            self.skull(side, t, y, 1.05, plain=True)
+
+    def wall(self, side, courses, motif_band=None, motif_spacing=3.2):
+        """Dress every solid stretch of a side. `courses` is a list of
+        ('bones', y0, y1) / ('skulls', y) entries; `motif_band` (y0, y1) gets
+        alternating crosses and rings of skulls set into bone ends."""
+        for a0, a1 in self.area.solid_spans(side, .15):
+            if a1 - a0 < .5:
+                continue
+            for course in courses:
+                if course[0] == 'bones':
+                    self.bone_band(side, a0, a1, course[1], course[2])
+                else:
+                    self.skull_row(side, a0, a1, course[1])
+            if motif_band:
+                y0, y1 = motif_band
+                n = int((a1 - a0) / motif_spacing)
+                centres = [a0 + (a1 - a0) * (k + .5) / n for k in range(n)] if n else []
+                cursor = a0
+                for k, c in enumerate(centres):
+                    self.bone_band(side, cursor, c - .65, y0, y1)
+                    # Motifs sit on a recessed dark field, as in real charnel walls.
+                    self.area.wall_box('Motif field', side, c, (y0 + y1) / 2, 1.3, y1 - y0, .02, self.backing, 0)
+                    self.motif(side, c, (y0 + y1) / 2, 'cross' if k % 2 == 0 else 'ring')
+                    cursor = c + .65
+                self.bone_band(side, cursor, a1, y0, y1)
+
+    def build(self):
+        for mat, verts, faces in self.batches.values():
+            if faces:
+                self.area.mesh('Ossuary ' + mat.name, verts, faces, mat, smooth=True)
+        self.batches = {}

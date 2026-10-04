@@ -177,7 +177,7 @@ for cx, cz, rx, rz, rot in [(124.5, 74, 2.6, 1.6, .4), (139, 86.5, 3.2, 1.8, -.3
         verts.append((cx + lx * math.cos(rot) - lz * math.sin(rot), .012, cz + lx * math.sin(rot) + lz * math.cos(rot)))
     area.mesh('Fluid pool', verts, [(0, (k + 1) % 24 + 1, k + 1) for k in range(24)], fluid)
 for x in RIBS:
-    area.box('Drain channel', (x, .006, ZC), (.32, .012, HALF * 2 - 1.2), channel, 0)
+    area.box('Drain channel', (x, .003, ZC), (.32, .006, HALF * 2 - 1.2), channel, 0)
 
 # Eye-level texture: a bone baseboard of small teeth, clustered pustules and
 # vertical membrane folds; all within 0.15 m of the wall face.

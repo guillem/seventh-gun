@@ -10,15 +10,15 @@
       9
     ]
   ],
-  "bakeSize": 1024,
+  "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 15.225485801696777,
+  "bakePeak": 15.450084686279297,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 20947,
-  "glbBytes": 378324,
-  "glbUncompressedBytes": 1761012,
+  "meshFaces": 20860,
+  "glbBytes": 374032,
+  "glbUncompressedBytes": 1747488,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 168440,
+  "irradianceBytes": 359002,
   "lights": [
     {
       "name": "Iris core",

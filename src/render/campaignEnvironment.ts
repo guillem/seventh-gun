@@ -268,13 +268,15 @@ export function verticalEnvironmentPlacements(map: GameMap, volumes: RoomVolumes
     const fixtures = first.header || run.length < 3 ? new Set<number>()
       : evenly(run.length, run.length >= 17 ? 3 : run.length >= 10 ? 2 : 1);
     const tall = first.ceiling > BASE_CEILING;
-    // Alternate the two constructions symmetrically about the run centre:
-    // the middle bay (or pair) uses one, the next bays out the other, so a
-    // wall reads as a composed elevation rather than a single repeat.
-    const flip = variety < .5;
+    // Cycle three constructions symmetrically about the run centre: the
+    // middle bay (or pair) uses one, the next bays out the next, and so on.
+    // Each run starts the cycle at a hashed phase, so neighbouring walls of
+    // one room do not repeat each other.
+    const phase = Math.floor(variety * 3);
+    const VARIANTS = ['', '2', '3'];
     const variant = (i: number, role: 'relief' | 'upper') => {
       const fromCentre = Math.round(Math.abs(i - (run.length - 1) / 2) / (role === 'relief' ? 2 : 3));
-      return (fromCentre % 2 === 0) !== flip ? role : `${role}2`;
+      return `${role}${VARIANTS[(fromCentre + phase) % 3]}`;
     };
     // A raised wall seen from outside (over a courtyard's 6 m walls) is capped
     // by the identity's string course, turned outward, at the roofline.

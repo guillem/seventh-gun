@@ -12,13 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 26.83262062072754,
+  "bakePeak": 26.385330200195312,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 11668,
-  "glbBytes": 257064,
-  "glbUncompressedBytes": 1154988,
+  "meshFaces": 11550,
+  "glbBytes": 252928,
+  "glbUncompressedBytes": 1138212,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 411380,
+  "irradianceBytes": 325556,
   "lights": [
     {
       "name": "Window light",

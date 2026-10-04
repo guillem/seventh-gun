@@ -90,7 +90,7 @@ for side in 'we':
         area.wall_box('Gable relief', side, t, 3.4, 1.8, 3.0, .12, bronze, .02)
 area.box('Nave runner', (CX, .006, CZ), (X1 - X0 - 3, .012, 3.0), marble, 0)
 for x in ribs[1:-1]:
-    common.disc(area, 'Marble roundel', (x, .011, CZ), .9, cream, samples=20)
+    common.disc(area, 'Marble roundel', (x, .017, CZ), .9, cream, samples=20)
 
 # One runtime light per area (actors only; the bake lights surfaces),
 # so ordinary rooms keep theirs within the map's 12-light budget.

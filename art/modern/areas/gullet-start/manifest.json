@@ -10,15 +10,15 @@
       13
     ]
   ],
-  "bakeSize": 1024,
+  "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 13.36121940612793,
+  "bakePeak": 13.511114120483398,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 23688,
-  "glbBytes": 426660,
-  "glbUncompressedBytes": 1848976,
+  "meshFaces": 23642,
+  "glbBytes": 435240,
+  "glbUncompressedBytes": 1878264,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 136490,
+  "irradianceBytes": 271190,
   "lights": [
     {
       "name": "Sphincter glow",

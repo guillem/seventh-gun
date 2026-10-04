@@ -12,13 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 15.806492805480957,
+  "bakePeak": 15.430123329162598,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 16062,
-  "glbBytes": 337316,
-  "glbUncompressedBytes": 1494336,
+  "meshFaces": 15963,
+  "glbBytes": 330916,
+  "glbUncompressedBytes": 1480028,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 590664,
+  "irradianceBytes": 490762,
   "lights": [
     {
       "name": "Clerestory light",

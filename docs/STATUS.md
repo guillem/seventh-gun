@@ -74,6 +74,21 @@ Foundry opening, "because they look incredibly better".
   entrance; in the hall only Door 1's new frame and a restyled room seen
   through a side passage differ (vs `67c2ab7`). Foundry corridors outside
   the hall stay dim: that map's global light is tuned for the bake.
+- **Variety and glitch pass (user report, 2026-10-04):** catacomb skulls were
+  identical in perfect rows, the chapel floor flickered, and the user saw
+  more glitches near ceilings. The chapel walls are now an ossuary built by
+  `Ossuary` in `tools/modern-art/areas/common.py`: stacked long-bone ends
+  banded with varied skulls (size, turn, tilt, tint, jaw, damage, a few
+  missing) and skull crosses/rings on dark fields; the crossing's loculi use
+  it too. Floor flicker: grave-slab borders shared the slabs' height; the
+  Gullet arena's channels, Spire floor rings and Pit debris did too; floor
+  inlay undersides are dropped by `area_lib`; a unit test now rejects
+  coplanar floor inlays. Ceiling candidates fixed: Sanctum portal lintels sat
+  on the opening closures at 6 m; every area now bakes at 2048 with wider
+  island margins (1024 bakes showed dark seam rings on ribs). The kit gains
+  `relief3` / `upper3` for every identity (98 modules), cycled in a hashed,
+  symmetric pattern per wall run. Areas now total 15,063,372 bytes (the chapel
+  GLB is 2.8 MB, mostly ~10k bone ends).
 - **After the 20 areas:** each area now has at most one runtime light (none
   in start rooms); before, three areas per map left ordinary rooms in the
   Gullet, Catacombs and Spire unlit (now unit-tested). CI's software-GL

@@ -40,6 +40,9 @@ sky = area.mat('lamp.sky', (.7, .8, .95), 0, .4, 1.5)
 area.floor(floor)
 area.walls(lambda x, z: WALL, stone, curb=ashlar)
 
+bone_tints = [area.mat('bone', (.58, .53, .43), 0, .7), area.mat('bone.pale', (.68, .63, .52), 0, .7), area.mat('bone.old', (.43, .38, .3), 0, .75)]
+oss = common.Ossuary(area, bone_tints, dark, dark, seed=37)
+
 # Each wall carries a great blind arch (moulding above the combat volume),
 # with a shallow recessed tympanum field.
 for side in 'nswe':
@@ -56,13 +59,14 @@ for side in 'nswe':
         t = mid - 5 + k * 2
         area.wall_box('Loculus', side, t, 8.6, 1.2, .62, .02, dark, 0, off=.08)
         for j in range(3):
-            x, y, z = area.wall_point(side, t - .35 + j * .35, 8.55, .16)
-            area.ellipsoid('Loculus skull', (x, y, z), (.1, .12, .1), ashlar, segments=8, rings=5)
+            oss.skull(side, t - .35 + j * .35, 8.55, .95, plain=True)
     for t in (mid - HALF + .9, mid + HALF - .9):
         if area.solid(side, t, .3):
             area.wall_box('Pilaster', side, t, 2.15, 1.0, 4.3, .16, ashlar, .02)
         area.wall_box('Pier capital', side, t, 4.8, 1.4, .6, .55, ashlar, .03)
     area.wall_box('Cornice', side, mid, WALL - .2, a1 - a0, .4, .5, ashlar, .02)
+
+oss.build()
 
 # Pendentives: curved triangles from each corner up to the dome's base ring.
 R = HALF

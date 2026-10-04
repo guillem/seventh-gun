@@ -113,10 +113,11 @@ area.wall_text('STOPE  9  -  BLASTING ZONE', 'e', CZ, 3.6, .5, ochre, off=.15)
 for k in range(40):
     x, z = rng.uniform(X0 + 2, X1 - 2), rng.uniform(Z0 + 2, Z1 - 2)
     r = rng.uniform(.3, .9)
-    common.disc(area, 'Debris patch', (x, .008, z), r, rock, samples=8)
+    # Each patch at its own height: overlapping patches must not be coplanar.
+    common.disc(area, 'Debris patch', (x, .003 + (k % 12) * .0012, z), r, rock, samples=8)
 for i in range(6):
     for j in range(4):
-        common.disc(area, 'Drill hole', (CX - 5 + i * 2, .011, CZ + 4 + j * 1.2), .07, rope, samples=8)
+        common.disc(area, 'Drill hole', (CX - 5 + i * 2, .018, CZ + 4 + j * 1.2), .07, rope, samples=8)
 
 # One runtime light per area (actors only; the bake lights surfaces),
 # so ordinary rooms keep theirs within the map's 12-light budget.
