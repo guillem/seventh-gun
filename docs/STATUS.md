@@ -74,7 +74,15 @@ Foundry opening, "because they look incredibly better".
   entrance; in the hall only Door 1's new frame and a restyled room seen
   through a side passage differ (vs `67c2ab7`). Foundry corridors outside
   the hall stay dim: that map's global light is tuned for the bake.
-- **Phase C — started:** pilot `gullet-arena` delivered for review (3.2 MB GLB
+- **Phase C — done (first pass):** 20 authored areas, three per map (start
+  room, a signature hall, the arena; the Foundry's start is the original
+  opening). Meshopt compression (`gltfpack`) cut the pilot from 3.25 to
+  0.72 MB; all 20 total 13,666,898 bytes, loaded per map. Designs, sizes and
+  captures: `art/modern/areas/README.md`. Grid hashes unchanged; footprint,
+  clearance, inlay and registry tests cover every area. Fixes found on the
+  way: long wall bands and lettering now avoid doorways; area metals capped
+  at 0.3 metalness (they read black); "bronze" uses a lit specimen.
+- **Phase C pilot (as first written):** pilot `gullet-arena` delivered for review (3.2 MB GLB
   + 0.46 MB lightmap, loaded only for the Gullet; full bake 48 s). Next: the
   user's verdict, then 2–3 areas per map. Mesh compression (Draco/meshopt) is
   a follow-up before many areas ship.

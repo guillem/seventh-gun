@@ -158,7 +158,10 @@ test.describe('modern art bootstrap', () => {
     });
     const gullet = ['gullet-arena', 'gullet-crop', 'gullet-start'];
     expect([...drawn].sort()).toEqual(gullet);
-    expect(requested.sort()).toEqual(gullet.flatMap(id => [`/modern/areas/${id}/environment.glb`, `/modern/areas/${id}/irradiance.webp`]));
+    const files = (ids: string[]) => ids.flatMap(id => [`/modern/areas/${id}/environment.glb`, `/modern/areas/${id}/irradiance.webp`]);
+    // This map's areas, plus the next map's (Catacombs) prefetched during play.
+    await expect.poll(() => requested.length).toBeGreaterThanOrEqual(12);
+    expect([...requested].sort()).toEqual([...files(gullet), ...files(['catacombs-arena', 'catacombs-crossing', 'catacombs-start'])].sort());
   });
 
   test('a failed area download falls back to the room grammar without blocking the start', async ({ page }) => {
