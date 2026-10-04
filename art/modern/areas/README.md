@@ -46,7 +46,7 @@ priority within the map's 12 stationary lights.
 Twenty lazily loaded areas, plus the original Foundry opening in the boot
 pack: every campaign map's start room (the Foundry's is the opening), one
 signature hall and its arena. 13,666,898 bytes in total, meshopt-compressed GLBs
-plus WebP lightmaps; a map downloads only its own (1.2–4.7 MB) when it starts,
+plus WebP lightmaps; a map downloads only its own (1.1–2.9 MB) when it starts,
 and prefetches the next map's during play.
 
 | Area | Map | Cells | GLB | Lightmap | Design |
