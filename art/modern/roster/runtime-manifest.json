@@ -1,6 +1,6 @@
 {
   "fileCount": 132,
-  "bytes": 43075858,
+  "bytes": 43104308,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -105,13 +105,13 @@
     },
     {
       "path": "modern/areas/pit-start/environment.glb",
-      "bytes": 117332,
-      "sha256": "5a340bad7cfcc7e777e4907b1095419cb1d30b942fbc44360d7d62aee9c1af55"
+      "bytes": 118472,
+      "sha256": "c63f48af0cdc556bc41a18be900b0a2e9258766d319e53269d9bbd315c2715c1"
     },
     {
       "path": "modern/areas/pit-start/irradiance.webp",
-      "bytes": 47210,
-      "sha256": "42c2c50dd3debf28622452f953cb90561772d56030a095c7e27216a260028673"
+      "bytes": 74520,
+      "sha256": "513a9c12438ec6b8367db388d3f9ad85b13691704a23646791fbecaa11bbe2c4"
     },
     {
       "path": "modern/areas/sanctum-arena/environment.glb",

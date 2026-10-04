@@ -56,12 +56,12 @@ while x < X1 - 1:
     x += 2.4
 
 # Hanging lanterns, lowest 4.9 m.
-for k, x in enumerate([X0 + 3.6, CX + .6, X1 - 2.4]):
+for k, x in enumerate([X0 + 2.2, X0 + 5.6, CX + 2.0, X1 - 2.0]):
     z = CZ + (.8 if k % 2 else -.8)
     area.pipe('Lantern wire', (x, ROOF - .3, z), (x, 5.3, z), .01, iron, sides=4)
     area.pipe('Lantern cage', (x, 4.95, z), (x, 5.3, z), .13, iron, sides=8)
     area.pipe('Lantern glass', (x, 5.0, z), (x, 5.25, z), .1, lantern, sides=8)
-    area.light('Lantern light', (x, 4.85, z), (x, 0, z), (1, .62, .3), 300, .3)
+    area.light('Lantern light', (x, 4.85, z), (x, 0, z), (1, .62, .3), 600, .3)
 
 # Rails in the floor (flat) and a painted shaft number.
 for dz in (-.55, .55):

@@ -12,24 +12,24 @@
   ],
   "bakeSize": 1024,
   "bakeSamples": 128,
-  "bakePeak": 2.2003707885742188,
+  "bakePeak": 5.559020042419434,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 4038,
-  "glbBytes": 117332,
-  "glbUncompressedBytes": 482168,
+  "meshFaces": 4064,
+  "glbBytes": 118472,
+  "glbUncompressedBytes": 486668,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 47210,
+  "irradianceBytes": 74520,
   "lights": [
     {
       "name": "Lantern light",
       "kind": "AREA",
       "position": [
-        15.6,
+        14.2,
         4.85,
         17.2
       ],
       "target": [
-        15.6,
+        14.2,
         0,
         17.2
       ],
@@ -38,19 +38,19 @@
         0.62,
         0.3
       ],
-      "power": 300,
+      "power": 600,
       "size": 0.3
     },
     {
       "name": "Lantern light",
       "kind": "AREA",
       "position": [
-        19.6,
+        17.6,
         4.85,
         18.8
       ],
       "target": [
-        19.6,
+        17.6,
         0,
         18.8
       ],
@@ -59,19 +59,19 @@
         0.62,
         0.3
       ],
-      "power": 300,
+      "power": 600,
       "size": 0.3
     },
     {
       "name": "Lantern light",
       "kind": "AREA",
       "position": [
-        23.6,
+        21.0,
         4.85,
         17.2
       ],
       "target": [
-        23.6,
+        21.0,
         0,
         17.2
       ],
@@ -80,7 +80,28 @@
         0.62,
         0.3
       ],
-      "power": 300,
+      "power": 600,
+      "size": 0.3
+    },
+    {
+      "name": "Lantern light",
+      "kind": "AREA",
+      "position": [
+        24.0,
+        4.85,
+        18.8
+      ],
+      "target": [
+        24.0,
+        0,
+        18.8
+      ],
+      "color": [
+        1,
+        0.62,
+        0.3
+      ],
+      "power": 600,
       "size": 0.3
     }
   ],
