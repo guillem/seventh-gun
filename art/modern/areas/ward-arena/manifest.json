@@ -1,0 +1,139 @@
+{
+  "id": "ward-arena",
+  "mapSeed": "campaign:06-ward",
+  "cells": 270,
+  "rects": [
+    [
+      59,
+      52,
+      77,
+      67
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 15.225461959838867,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 6359,
+  "glbBytes": 197852,
+  "glbUncompressedBytes": 892816,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 199366,
+  "lights": [
+    {
+      "name": "Canopy field",
+      "kind": "AREA",
+      "position": [
+        136.0,
+        11.7,
+        119.0
+      ],
+      "target": [
+        136.0,
+        0,
+        119.0
+      ],
+      "color": [
+        0.82,
+        0.93,
+        1
+      ],
+      "power": 1500,
+      "size": 8
+    },
+    {
+      "name": "Surgical lamp",
+      "kind": "AREA",
+      "position": [
+        139.8684561748121,
+        7.8999999999999995,
+        120.63555703769633
+      ],
+      "target": [
+        136.0,
+        0,
+        119.0
+      ],
+      "color": [
+        0.95,
+        0.98,
+        1
+      ],
+      "power": 900,
+      "size": 1.0
+    },
+    {
+      "name": "Surgical lamp",
+      "kind": "AREA",
+      "position": [
+        133.28755930792278,
+        7.3,
+        121.05004036349621
+      ],
+      "target": [
+        136.0,
+        0,
+        119.0
+      ],
+      "color": [
+        0.95,
+        0.98,
+        1
+      ],
+      "power": 900,
+      "size": 1.0
+    },
+    {
+      "name": "Surgical lamp",
+      "kind": "AREA",
+      "position": [
+        135.40823526465988,
+        8.5,
+        114.2366173261003
+      ],
+      "target": [
+        136.0,
+        0,
+        119.0
+      ],
+      "color": [
+        0.95,
+        0.98,
+        1
+      ],
+      "power": 900,
+      "size": 1.0
+    }
+  ],
+  "practicals": [
+    {
+      "x": 136.0,
+      "y": 7.9,
+      "z": 119.0,
+      "color": [
+        0.95,
+        0.98,
+        1
+      ],
+      "intensity": 28,
+      "distance": 28
+    },
+    {
+      "x": 126.0,
+      "y": 11.7,
+      "z": 119.0,
+      "color": [
+        0.82,
+        0.93,
+        1
+      ],
+      "intensity": 14,
+      "distance": 24
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 5,
+    "removedArea": 9.319299643317631,
+    "corridorHeight": 6.0
+  }
+}

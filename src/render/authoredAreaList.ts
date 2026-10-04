@@ -97,4 +97,24 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
       { x: 87, y: 7.8, z: 158, color: [1, 0.86, 0.62], intensity: 16, distance: 16 },
     ],
   },
+  {
+    id: 'ward-arena', mapSeed: 'campaign:06-ward', rects: [[59,52,77,67]],
+    practicals: [
+      { x: 136, y: 7.9, z: 119, color: [0.95, 0.98, 1], intensity: 28, distance: 28 },
+      { x: 126, y: 11.7, z: 119, color: [0.82, 0.93, 1], intensity: 14, distance: 24 },
+    ],
+  },
+  {
+    id: 'ward-atrium', mapSeed: 'campaign:06-ward', rects: [[18,36,32,50]],
+    practicals: [
+      { x: 50, y: 8, z: 86, color: [0.9, 0.96, 1], intensity: 24, distance: 26 },
+      { x: 44, y: 6.9, z: 80, color: [0.92, 0.97, 1], intensity: 14, distance: 16 },
+    ],
+  },
+  {
+    id: 'ward-start', mapSeed: 'campaign:06-ward', rects: [[6,40,13,47]],
+    practicals: [
+      { x: 19, y: 7, z: 87, color: [0.88, 0.96, 1], intensity: 18, distance: 18 },
+    ],
+  },
 ];

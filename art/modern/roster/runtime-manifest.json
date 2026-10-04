@@ -1,6 +1,6 @@
 {
-  "fileCount": 120,
-  "bytes": 39399886,
+  "fileCount": 126,
+  "bytes": 40467424,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -142,6 +142,36 @@
       "path": "modern/areas/spire-start/irradiance.webp",
       "bytes": 99670,
       "sha256": "ad104f4e5ae973d225ade6ccecfb152204108da117aa6c6dbd77d880ca980961"
+    },
+    {
+      "path": "modern/areas/ward-arena/environment.glb",
+      "bytes": 197852,
+      "sha256": "8c24bcfc73a28b0102256c4cc6f7ba37cd656bf4f6415ff3b521791277eeaf05"
+    },
+    {
+      "path": "modern/areas/ward-arena/irradiance.webp",
+      "bytes": 199366,
+      "sha256": "e6d1667a8a14aaf63dfb7afedf393149a9bb9a08468d5112760d5eb454be7de9"
+    },
+    {
+      "path": "modern/areas/ward-atrium/environment.glb",
+      "bytes": 183272,
+      "sha256": "540c17ebdd9b627a698b1b117b59416b6d407f3d3adc25f786cf7086b3044970"
+    },
+    {
+      "path": "modern/areas/ward-atrium/irradiance.webp",
+      "bytes": 258582,
+      "sha256": "c8268e7d094bc4cb945bffb883b96c5473d03d827765fb36f75d2308bd8598be"
+    },
+    {
+      "path": "modern/areas/ward-start/environment.glb",
+      "bytes": 130384,
+      "sha256": "2a9ad7854af08146867c21a792311efd03224e31bb65d48bd333589c128d5a30"
+    },
+    {
+      "path": "modern/areas/ward-start/irradiance.webp",
+      "bytes": 98082,
+      "sha256": "1bbd2947d3f0281a58226b54c309236ca75c34f0e6850fe47a0df57cb3b3e5b8"
     },
     {
       "path": "modern/audio/bile.mp3",

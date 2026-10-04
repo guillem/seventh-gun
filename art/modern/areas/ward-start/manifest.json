@@ -1,0 +1,127 @@
+{
+  "id": "ward-start",
+  "mapSeed": "campaign:06-ward",
+  "cells": 49,
+  "rects": [
+    [
+      6,
+      40,
+      13,
+      47
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 4.080708980560303,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 4056,
+  "glbBytes": 130384,
+  "glbUncompressedBytes": 561140,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 98082,
+  "lights": [
+    {
+      "name": "Ceiling field",
+      "kind": "AREA",
+      "position": [
+        19.0,
+        7.1,
+        87.0
+      ],
+      "target": [
+        19.0,
+        0,
+        87.0
+      ],
+      "color": [
+        0.88,
+        0.96,
+        1
+      ],
+      "power": 380,
+      "size": 6
+    },
+    {
+      "name": "Warning glow",
+      "kind": "AREA",
+      "position": [
+        19.0,
+        4.6,
+        80.4
+      ],
+      "target": [
+        19.0,
+        3,
+        82
+      ],
+      "color": [
+        1,
+        0.3,
+        0.2
+      ],
+      "power": 40,
+      "size": 0.2
+    },
+    {
+      "name": "Warning glow",
+      "kind": "AREA",
+      "position": [
+        19.0,
+        4.6,
+        93.6
+      ],
+      "target": [
+        19.0,
+        3,
+        92
+      ],
+      "color": [
+        1,
+        0.3,
+        0.2
+      ],
+      "power": 40,
+      "size": 0.2
+    },
+    {
+      "name": "Warning glow",
+      "kind": "AREA",
+      "position": [
+        12.4,
+        4.6,
+        87.0
+      ],
+      "target": [
+        14,
+        3,
+        87.0
+      ],
+      "color": [
+        1,
+        0.3,
+        0.2
+      ],
+      "power": 40,
+      "size": 0.2
+    }
+  ],
+  "practicals": [
+    {
+      "x": 19.0,
+      "y": 7.0,
+      "z": 87.0,
+      "color": [
+        0.88,
+        0.96,
+        1
+      ],
+      "intensity": 18,
+      "distance": 18
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369295055452951,
+    "corridorHeight": 6.0
+  }
+}
