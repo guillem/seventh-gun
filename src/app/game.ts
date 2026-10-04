@@ -48,6 +48,9 @@ const ALL_GUNS_LOADOUT: PlayerLoadout = {
   ammo: { bullets: 70, shells: 16, nails: 70, grenades: 8, cores: 10, void: 5 },
 };
 
+/** Delay before prefetching the next campaign map's authored areas. */
+const NEXT_AREAS_DELAY_MS = 3000;
+
 export class Game {
   private renderer: GameRenderer;
   private audio = new AudioEngine();
@@ -803,9 +806,10 @@ export class Game {
     this.entryLoadout = snapshotLoadout(loadout);
     this.screens.setRunKind('campaign');
     this.seed = cm.map.seed;
-    // Fetch the next map's areas while this one is played.
+    // Fetch the next map's areas while this one is played, once play has
+    // started: decoding them during world preparation competes with it.
     const next = campaignMap(cm.index + 1);
-    if (next) void loadAreasFor(next.map.seed);
+    if (next) window.setTimeout(() => { if (!this.disposed) void loadAreasFor(next.map.seed); }, NEXT_AREAS_DELAY_MS);
     this.sim = Sim.fromMap(cm.map, this.settings.difficulty, {
       loadout: snapshotLoadout(loadout),
       rngKey: `campaign:${cm.id}`,
