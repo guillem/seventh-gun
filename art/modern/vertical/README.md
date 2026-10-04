@@ -81,9 +81,11 @@ change. They are actual game frames, not concept renders.
 
 | View | Draws/frame | Triangles/frame | Grid hash |
 | --- | --- | --- | --- |
-| gullet-hall | 302 → 144 | 523,677 → 497,405 | `a31305c5` |
-| gullet-hall-up | 218 → 94 | 310,809 → 263,465 | `a31305c5` |
-| gullet-arena | 332 → 188 | 641,879 → 634,159 | `a31305c5` |
+| gullet-hall | 302 → 144 | 523,677 → 495,645 | `a31305c5` |
+| gullet-hall-up | 218 → 94 | 310,809 → 261,705 | `a31305c5` |
+| gullet-arena | 332 → 210 | 641,879 → 684,231 | `a31305c5` |
+| gullet-arena-heart | — → 193 | — → 905,595 | `a31305c5` |
+| gullet-arena-mouth | — → 130 | — → 347,853 | `a31305c5` |
 | seed-1984-catacombs | 619 → 279 | 728,599 → 739,939 | `62624244` |
 | seed-1984-ward | 832 → 498 | 1,190,451 → 1,175,867 | `62624244` |
 | seed-1986-spire | 1387 → 655 | 1,213,003 → 1,305,755 | `8f50b164` |

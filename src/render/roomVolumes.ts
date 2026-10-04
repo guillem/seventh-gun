@@ -4,7 +4,7 @@
 // from a render-local hash of the map seed and room id, never from src/sim RNG.
 import { CELL, WALL_H, type GameMap, type Room, type Theme } from '../sim/types';
 import { CAMPAIGN_ART_IDS, type CampaignArtId } from './campaignTextures';
-import { foundryCell } from './foundry';
+import { authoredCell } from './authoredAreas';
 
 /** Height of the original indoor wall and of every corridor. */
 export const BASE_CEILING = WALL_H;
@@ -67,9 +67,9 @@ export function cosmeticUnit(seed: string, key: string): number {
 
 function roomCeiling(map: GameMap, room: Room): number {
   if (room.outdoor || room.kind === 'secret') return BASE_CEILING;
-  // The authored Foundry opening has its own saved roof heights and bake.
+  // Authored areas (the Foundry opening, ...) carry their own roof heights.
   for (let z = room.z; z < room.z + room.h; z++) for (let x = room.x; x < room.x + room.w; x++) {
-    if (foundryCell(map, x, z)) return BASE_CEILING;
+    if (authoredCell(map, x, z)) return BASE_CEILING;
   }
   const area = room.w * room.h;
   if (Math.min(room.w, room.h) < 5 || area < 42) return BASE_CEILING;

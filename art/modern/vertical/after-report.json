@@ -1,7 +1,7 @@
 {
   "base": "http://localhost:4173",
   "label": "after",
-  "capturedAt": "2026-10-04T07:29:40.286Z",
+  "capturedAt": "2026-10-04T07:57:12.265Z",
   "views": [
     {
       "name": "gullet-hall",
@@ -14,7 +14,7 @@
       "pitch": -8,
       "frames": 61,
       "drawsPerFrame": 144,
-      "trianglesPerFrame": 497405,
+      "trianglesPerFrame": 495645,
       "mapHash": "a31305c5"
     },
     {
@@ -28,7 +28,7 @@
       "pitch": -30,
       "frames": 60,
       "drawsPerFrame": 94,
-      "trianglesPerFrame": 263465,
+      "trianglesPerFrame": 261705,
       "mapHash": "a31305c5"
     },
     {
@@ -40,9 +40,37 @@
       "z": 72,
       "yaw": -135,
       "pitch": -5,
-      "frames": 61,
-      "drawsPerFrame": 188,
-      "trianglesPerFrame": 634159,
+      "frames": 60,
+      "drawsPerFrame": 210,
+      "trianglesPerFrame": 684231,
+      "mapHash": "a31305c5"
+    },
+    {
+      "name": "gullet-arena-heart",
+      "run": {
+        "campaign": 2
+      },
+      "x": 133,
+      "z": 90,
+      "yaw": 0,
+      "pitch": -14,
+      "frames": 60,
+      "drawsPerFrame": 193,
+      "trianglesPerFrame": 905595,
+      "mapHash": "a31305c5"
+    },
+    {
+      "name": "gullet-arena-mouth",
+      "run": {
+        "campaign": 2
+      },
+      "x": 121,
+      "z": 89,
+      "yaw": -130,
+      "pitch": -10,
+      "frames": 60,
+      "drawsPerFrame": 130,
+      "trianglesPerFrame": 347853,
       "mapHash": "a31305c5"
     },
     {
@@ -96,7 +124,7 @@
       "z": 23,
       "yaw": -129.8055710922652,
       "pitch": -8,
-      "frames": 61,
+      "frames": 60,
       "drawsPerFrame": 241,
       "trianglesPerFrame": 619817,
       "mapHash": "ee306bc5"
@@ -124,7 +152,7 @@
       "z": 79,
       "yaw": -135,
       "pitch": -8,
-      "frames": 61,
+      "frames": 60,
       "drawsPerFrame": 234,
       "trianglesPerFrame": 674781,
       "mapHash": "cd52d505"
@@ -152,7 +180,7 @@
       "z": 11,
       "yaw": -118.61045966596521,
       "pitch": -8,
-      "frames": 60,
+      "frames": 61,
       "drawsPerFrame": 333,
       "trianglesPerFrame": 953107,
       "mapHash": "ad63b245"
@@ -194,7 +222,7 @@
       "z": 99,
       "yaw": -118.61045966596521,
       "pitch": -8,
-      "frames": 60,
+      "frames": 61,
       "drawsPerFrame": 168,
       "trianglesPerFrame": 427489,
       "mapHash": "6b5d8de5"
@@ -222,7 +250,7 @@
       "z": 75,
       "yaw": -135,
       "pitch": -8,
-      "frames": 61,
+      "frames": 60,
       "drawsPerFrame": 318,
       "trianglesPerFrame": 760007,
       "mapHash": "a5572565"
@@ -264,7 +292,7 @@
       "z": 59,
       "yaw": -149.03624346792648,
       "pitch": -8,
-      "frames": 60,
+      "frames": 61,
       "drawsPerFrame": 403,
       "trianglesPerFrame": 1128667,
       "mapHash": "ddb9ca05"

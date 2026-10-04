@@ -57,7 +57,17 @@ Foundry opening, "because they look incredibly better".
 
 - **Phase A — done (this entry's commit):** door assemblies, plate heads,
   variants, copings, the door-use input bug, the E2E cursor leak. Below.
-- **Phase B — runtime and pipeline:** replace the hard-coded `foundryCell`
+- **Phase B — done:** registry `src/render/authoredAreas.ts` (the Foundry
+  opening is its boot-pack entry; `foundryCell` call sites now use it), lazy
+  per-map loading awaited by UI campaign starts, next-map prefetch, grammar
+  fallback, ambient scaling, area practicals, `tools/modern-art/area_lib.py`
+  and `export_area_layout.mjs`, unit + E2E tests. Recipe:
+  `art/modern/areas/README.md`.
+- **Phase C — started:** pilot `gullet-arena` delivered for review (3.2 MB GLB
+  + 0.46 MB lightmap, loaded only for the Gullet; full bake 48 s). Next: the
+  user's verdict, then 2–3 areas per map. Mesh compression (Draco/meshopt) is
+  a follow-up before many areas ship.
+- **Phase B plan (as written):** replace the hard-coded `foundryCell`
   with an area registry (`src/render/authoredAreas.ts`); per-map lazy loading
   of area GLB + lightmap (never in the boot pack), awaited by UI starts via
   `prepareWorld`, next map prefetched; until loaded, the grammar renders the

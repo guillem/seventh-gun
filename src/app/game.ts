@@ -32,6 +32,7 @@ import {
 } from './mapShare';
 import { CAMPAIGN, campaignMap, snapshotLoadout } from '../campaign/index';
 import { campaignArtIdFromIndex } from '../render/campaignTextures';
+import { lastAddedAreas, loadAreasFor } from '../render/authoredAreas';
 import {
   applyMapWin, canContinue, isMapUnlocked, loadCampaignProgress,
   saveCampaignProgress, unlockedThrough,
@@ -161,7 +162,10 @@ export class Game {
   private wireUi(): void {
     this.screens.bindTitle({
       start: () => this.prepareWorld(() => this.startRun(this.screens.seedInput.value.trim() || randomSeed())),
-      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      retry: () => this.prepareWorld(async () => {
+        if (this.runKind === 'campaign') await this.campaignAreas(this.campaignIndex);
+        this.retryCurrent();
+      }),
       newMaze: () => this.prepareSecondary(),
       volume: (v) => { this.settings.volume = v; this.audio.setVolume(v); saveSettings(this.settings); },
       mute: () => {
@@ -179,12 +183,18 @@ export class Game {
       back: () => { this.cancelArenaJoin(); this.screens.showArenaJoin(false); this.screens.showTitle(true); },
     });
     this.screens.bindCampaign({
-      begin: () => this.prepareWorld(() => this.beginCampaign()),
-      continue: () => this.prepareWorld(() => this.continueCampaign()),
+      begin: () => this.prepareWorld(async () => { await this.campaignAreas(1); this.beginCampaign(); }),
+      continue: () => this.prepareWorld(async () => {
+        await this.campaignAreas(loadCampaignProgress()?.nextMap ?? 1);
+        this.continueCampaign();
+      }),
       back: () => this.closeCampaign(),
-      playMap: (n) => this.prepareWorld(() => this.playCampaignMap(n)),
+      playMap: (n) => this.prepareWorld(async () => { await this.campaignAreas(n); this.playCampaignMap(n); }),
     });
-    this.screens.bindIntermission(() => this.prepareWorld(() => this.continueFromIntermission()));
+    this.screens.bindIntermission(() => this.prepareWorld(async () => {
+      await this.campaignAreas(loadCampaignProgress()?.nextMap ?? this.campaignIndex + 1);
+      this.continueFromIntermission();
+    }));
     this.screens.bindCampaignWin(() => this.toTitle());
     this.screens.bindEditor(() => this.openEditor());
     this.screens.bindMapLog({
@@ -194,7 +204,10 @@ export class Game {
     });
     this.screens.bindPause({
       resume: () => this.resume(),
-      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      retry: () => this.prepareWorld(async () => {
+        if (this.runKind === 'campaign') await this.campaignAreas(this.campaignIndex);
+        this.retryCurrent();
+      }),
       newMaze: () => this.prepareSecondary(),
       quit: () => this.toTitle(),
       leaveArena: () => this.leaveArena(),
@@ -202,7 +215,10 @@ export class Game {
       sens: (v) => { this.settings.sensitivity = v; this.input.sensitivity = v; saveSettings(this.settings); },
     });
     this.screens.bindVictory({
-      retry: () => this.prepareWorld(() => this.retryCurrent()),
+      retry: () => this.prepareWorld(async () => {
+        if (this.runKind === 'campaign') await this.campaignAreas(this.campaignIndex);
+        this.retryCurrent();
+      }),
       newMaze: () => this.prepareSecondary(),
     });
     this.screens.bindCopyLink(() => { void this.copyShareLink(); });
@@ -760,6 +776,13 @@ export class Game {
     this.startCampaignMap(progress.nextMap, progress.loadout);
   }
 
+  /** Hand-built areas load per map, inside the world-loading screen. A failed
+   * download resolves too: the room grammar then draws those cells. */
+  private campaignAreas(n: number): Promise<void> {
+    const cm = campaignMap(n);
+    return cm ? loadAreasFor(cm.map.seed) : Promise.resolve();
+  }
+
   startCampaign(n = 1): void {
     const cm = campaignMap(n) ?? CAMPAIGN[0];
     this.startCampaignMap(cm.index, cm.incomingLoadout);
@@ -780,6 +803,9 @@ export class Game {
     this.entryLoadout = snapshotLoadout(loadout);
     this.screens.setRunKind('campaign');
     this.seed = cm.map.seed;
+    // Fetch the next map's areas while this one is played.
+    const next = campaignMap(cm.index + 1);
+    if (next) void loadAreasFor(next.map.seed);
     this.sim = Sim.fromMap(cm.map, this.settings.difficulty, {
       loadout: snapshotLoadout(loadout),
       rngKey: `campaign:${cm.id}`,
@@ -1428,6 +1454,10 @@ export class Game {
       startMap: (input: MapBlueprint | string) => {
         this.startMap(input);
       },
+      /** Resolves when campaign map n's authored areas are loaded (or failed). */
+      loadCampaignAreas: (n: number) => this.campaignAreas(n),
+      /** Authored areas drawn by the current world. */
+      authoredAreas: () => lastAddedAreas(),
       startCampaign: (n?: number) => {
         this.startCampaign(n ?? 1);
       },

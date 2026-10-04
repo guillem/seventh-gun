@@ -144,6 +144,36 @@ test.describe('modern art bootstrap', () => {
     expect(errors).toEqual([]);
   });
 
+  test('loads a campaign map\'s authored area on demand and draws it', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', request => { if (request.url().includes('/modern/areas/')) requested.push(new URL(request.url()).pathname); });
+    await gotoGame(page);
+    // Never part of the boot pack.
+    expect(requested).toEqual([]);
+    const drawn = await page.evaluate(async () => {
+      const game = (window as unknown as { __GAME__: { loadCampaignAreas: (n: number) => Promise<void>; startCampaign: (n: number) => void; authoredAreas: () => string[] } }).__GAME__;
+      await game.loadCampaignAreas(2);
+      game.startCampaign(2);
+      return game.authoredAreas();
+    });
+    expect(drawn).toEqual(['gullet-arena']);
+    expect(requested.sort()).toEqual(['/modern/areas/gullet-arena/environment.glb', '/modern/areas/gullet-arena/irradiance.webp']);
+  });
+
+  test('a failed area download falls back to the room grammar without blocking the start', async ({ page }) => {
+    await page.route('**/modern/areas/gullet-arena/environment.glb', route => route.fulfill({ status: 503, body: 'unavailable' }));
+    await gotoGame(page);
+    const result = await page.evaluate(async () => {
+      const game = (window as unknown as { __GAME__: { loadCampaignAreas: (n: number) => Promise<void>; startCampaign: (n: number) => void; authoredAreas: () => string[]; state: () => { kind?: string; campaign?: { map: number } } } }).__GAME__;
+      await game.loadCampaignAreas(2);
+      game.startCampaign(2);
+      return { drawn: game.authoredAreas(), state: game.state() };
+    });
+    expect(result.drawn).toEqual([]);
+    expect(result.state.kind).toBe('campaign');
+    expect(result.state.campaign?.map).toBe(2);
+  });
+
   test('the authored entrance door still blocks, opens and lets the player reach the hall', async ({ page }) => {
     await gotoGame(page);
     await page.evaluate(() => {

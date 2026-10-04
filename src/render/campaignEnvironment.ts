@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { CELL, WALL_H, type GameMap } from '../sim/types';
 import { findExposedWallFace, reachableFloorCells } from '../sim/blueprint';
 import type { CampaignArtId } from './campaignTextures';
-import { foundryCell } from './foundry';
+import { authoredCell } from './authoredAreas';
 import { batchArchitecture, instanceArchitecturePart, type ArchitecturePlacement } from './modernWorld';
 import { cloneOwnedModel } from './modernAssets';
 import { applyRadialFog } from './radialFog';
@@ -151,7 +151,7 @@ export function campaignEnvironmentPlacements(map: GameMap, artId: CampaignArtId
   const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
   const outdoor = (x: number, z: number) => map.rooms.some(room => room.outdoor && x >= room.x && x < room.x + room.w && z >= room.z && z < room.z + room.h);
   for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
-    if (!walkable(x, z) || foundryCell(map, x, z)) continue;
+    if (!walkable(x, z) || authoredCell(map, x, z)) continue;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       if (walkable(x + dx, z + dz)) continue;
       const px = (x + .5) * CELL + dx * CELL / 2;
@@ -185,7 +185,7 @@ export function wallRuns(map: GameMap, volumes: RoomVolumes): WallFace[][] {
   const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < map.w && z < map.h && map.grid[z * map.w + x] === 1;
   const groups = new Map<string, WallFace[]>();
   for (let z = 0; z < map.h; z++) for (let x = 0; x < map.w; x++) {
-    if (!walkable(x, z) || foundryCell(map, x, z)) continue;
+    if (!walkable(x, z) || authoredCell(map, x, z)) continue;
     const ceiling = volumes.ceilingAt(x, z);
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const open = walkable(x + dx, z + dz);

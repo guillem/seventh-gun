@@ -17,6 +17,8 @@ const VIEWS = [
   ['gullet-hall', { campaign: 2 }, 78, 32, -60, -8],
   ['gullet-hall-up', { campaign: 2 }, 80, 16, -50, -30],
   ['gullet-arena', { campaign: 2 }, 120, 72, -135, -5],
+  ['gullet-arena-heart', { campaign: 2 }, 133, 90, 0, -14],
+  ['gullet-arena-mouth', { campaign: 2 }, 121, 89, -130, -10],
   ['seed-1984-catacombs', { seed: '1984' }, 123, 47, -125, -10],
   ['seed-1984-ward', { seed: '1984' }, 26, 120, -135, -5],
   ['seed-1986-spire', { seed: '1986' }, 30, 58, -135, -10],
@@ -84,7 +86,14 @@ try {
   for (const [name, run, x, z, yaw, pitch] of VIEWS.filter(([name]) => !only || only.test(name))) {
     const key = JSON.stringify(run);
     if (key !== current) {
-      await page.evaluate(async r => { if (r.campaign) await window.__GAME__.startCampaign(r.campaign); else await window.__GAME__.startRun(r.seed); }, run);
+      await page.evaluate(async r => {
+        const g = window.__GAME__;
+        if (r.campaign) {
+          // Authored areas load per map, as the campaign UI does.
+          if (g.loadCampaignAreas) await g.loadCampaignAreas(r.campaign);
+          g.startCampaign(r.campaign);
+        } else g.startRun(r.seed);
+      }, run);
       await page.waitForTimeout(2500);
       current = key;
     }

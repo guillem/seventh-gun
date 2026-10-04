@@ -3,7 +3,7 @@ import { CELL, type GameMap, type Room, type RoomLight } from '../sim/types';
 import type { CampaignArtId } from './campaignTextures';
 import { environmentFixtures, CAMPAIGN_ENVIRONMENT_PALETTES } from './campaignEnvironment';
 import type { RoomVolumes } from './roomVolumes';
-import { foundryCell } from './foundry';
+import { authoredCell, readyAreaPracticals } from './authoredAreas';
 
 export const MODERN_PRACTICAL_LIGHT_LIMIT = 12;
 
@@ -63,7 +63,7 @@ export function selectModernPracticalLights(
     sources: map.lights.map((source, sourceIndex) => ({ source, sourceIndex }))
       .filter(({ source }) => source.roomId === room.id && source.intensity > 0 && source.radius > 0 &&
         [source.x, source.y, source.z, source.intensity, source.radius, ...source.color].every(Number.isFinite) &&
-        !foundryCell(map, Math.floor(source.x / CELL), Math.floor(source.z / CELL)))
+        !authoredCell(map, Math.floor(source.x / CELL), Math.floor(source.z / CELL)))
       .sort((a, b) => distanceSq(a.source, { x: room.cx, z: room.cz }) -
         distanceSq(b.source, { x: room.cx, z: room.cz }) || sourceOrder(a, b)),
     fixtures: fixtures.filter(fixture => contains(room, fixture)),
@@ -103,6 +103,14 @@ export function selectModernPracticalLights(
     });
   };
 
+  // Authored areas declare lights at their baked fixtures; they come first.
+  for (const light of readyAreaPracticals(map.seed)) {
+    if (selected.length >= budget) break;
+    selected.push({
+      roomId: -1, sourceIndex: -1, x: light.x, y: light.y, z: light.z,
+      color: light.color, intensity: light.intensity, distance: light.distance, decay: 1.6,
+    });
+  }
   for (const group of groups) add(group, group.sources[0]);
   // A second fixture serves large rooms only after geographic coverage; do not
   // spend the entire budget on the largest chamber while its side rooms go dark.

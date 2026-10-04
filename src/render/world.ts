@@ -18,7 +18,8 @@ import {
 } from './campaignDecor';
 import { applyRadialFog } from './radialFog';
 import { getModernAssets } from './modernAssets';
-import { addFoundryDoorHardware, addFoundryEnvironment, foundryCell } from './foundry';
+import { addFoundryDoorHardware, addFoundryEnvironment } from './foundry';
+import { addAuthoredAreas, authoredCell, authoredDoor } from './authoredAreas';
 import {
   addCampaignEnvironment, addDoorAssembly, campaignEnvironmentSurface, CAMPAIGN_ENVIRONMENT_PALETTES,
   DOOR_CEILING_CLIP, doorStatusColor,
@@ -149,7 +150,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
   for (let cz = 0; cz < map.h; cz++) {
     for (let cx = 0; cx < map.w; cx++) {
       if (map.grid[cz * map.w + cx] !== 1) continue;
-      if (modern && foundryCell(map, cx, cz)) continue;
+      if (modern && authoredCell(map, cx, cz)) continue;
       const { theme, outdoor } = roomThemeAt(map, cx, cz);
       const x0 = cx * CELL, x1 = x0 + CELL;
       const z0 = cz * CELL, z1 = z0 + CELL;
@@ -310,7 +311,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
     mesh.position.set(d.x, (WALL_H * 0.72) / 2, d.z);
     group.add(mesh);
     if (entranceDoor) addFoundryDoorHardware(mesh, modern.doorHardware);
-    else if (modern) {
+    else if (modern && !authoredDoor(map, d.id)) {
       const art = artAt(Math.floor(d.x / CELL), Math.floor(d.z / CELL));
       addDoorAssembly(group, modern, art, d, doorStatusColor(art, d.locked), mesh);
     }
@@ -470,6 +471,7 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
   if (modern) {
     addCampaignEnvironment(group, map, volumes.primaryArt, modern, volumes);
     if (map.seed === 'campaign:01-foundry') addFoundryEnvironment(group, modern.foundry);
+    addAuthoredAreas(group, map);
   } else if (camp && resolved) {
     applyCampaignDecor(group, map, resolved, camp, disposables);
   }
