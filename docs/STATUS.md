@@ -74,6 +74,14 @@ Foundry opening, "because they look incredibly better".
   entrance; in the hall only Door 1's new frame and a restyled room seen
   through a side passage differ (vs `67c2ab7`). Foundry corridors outside
   the hall stay dim: that map's global light is tuned for the bake.
+- **After the 20 areas:** each area now has at most one runtime light (none
+  in start rooms); before, three areas per map left ordinary rooms in the
+  Gullet, Catacombs and Spire unlit (now unit-tested). CI's software-GL
+  mobile start tests exceeded 20 s on `a59e59e`/`4f7afbe` (they were already
+  at 11-17 s): the next map's area prefetch now starts 3 s into play
+  (`258cc8b`). Render cost per area view: 52-641 draws, 0.04-1.87 M
+  triangles (whole visible scene); heaviest views hold 60 fps on the M5 Pro;
+  phones untested.
 - **Phase C — done (first pass):** 20 authored areas, three per map (start
   room, a signature hall, the arena; the Foundry's start is the original
   opening). Meshopt compression (`gltfpack`) cut the pilot from 3.25 to
