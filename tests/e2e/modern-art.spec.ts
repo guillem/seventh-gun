@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test';
 import { gotoGame, waitForGameReady } from '../helpers/boot';
 import { MODERN_SAMPLE_IDS } from '../../src/audio/samples';
 import { MODERN_ASSET_URLS } from '../../src/render/modernAssets';

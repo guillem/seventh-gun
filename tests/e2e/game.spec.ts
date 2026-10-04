@@ -1,7 +1,7 @@
 // E2E: boot, move, shoot/ammo, pickups, death lockout, win copy,
 // difficulty, seed reproducibility. Drives the ?e2e=1 debug API instead of
 // pointer lock (synthetic mousemove pointer-lock is flaky by design).
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test';
 import { gotoGame } from '../helpers/boot';
 import { encodeBlueprint } from '../../src/sim/mapcodec';
 import { stripCosmetics } from '../../src/sim/blueprint';

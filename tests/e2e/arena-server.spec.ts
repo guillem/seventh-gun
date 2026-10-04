@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test';
 import { gotoGame } from '../helpers/boot';
 import { PROTOCOL_V } from '../../src/net/protocol';
 

@@ -6,7 +6,7 @@
 //      pointer-events:auto, swallowed the click on RESUME
 // Both are DOM/pointer-level failures that unit tests cannot see: the button
 // handler was reachable in isolation and still unclickable in a real browser.
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test';
 import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';

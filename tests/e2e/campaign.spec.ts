@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test';
 import { gotoGame } from '../helpers/boot';
 
 const BASE = '/?e2e=1';

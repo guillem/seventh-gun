@@ -242,3 +242,14 @@ Run the Release workflow manually from `main` first: it performs every artifact
 check and a read-only `npm whoami` with that secret, but never publishes. Do not
 create the version tag until this validation passes. `npm whoami` proves only
 authentication: separately confirm the token's write and Bypass 2FA permissions.
+
+## Shared E2E fixture
+
+Specs import `test`/`expect` from `tests/helpers/test.ts`, not directly from
+`@playwright/test`. It stubs `requestPointerLock()` in every browser context:
+with the installed Chrome on macOS (`PLAYWRIGHT_CHANNEL=chrome`), a real lock
+grabs and recentres the developer's cursor even in headless mode. Use the
+debug API instead of pointer lock (see AGENTS.md). Note that
+`reuseExistingServer: true` makes Playwright test whatever already serves
+port 4173: stop a stale `npm run preview` before running E2E.
+
