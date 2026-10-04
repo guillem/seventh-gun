@@ -1,0 +1,412 @@
+{
+  "id": "gullet-crop",
+  "mapSeed": "campaign:02-gullet",
+  "cells": 143,
+  "rects": [
+    [
+      38,
+      6,
+      51,
+      17
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 11.360723495483398,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 39269,
+  "glbBytes": 776120,
+  "glbUncompressedBytes": 3372604,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 331280,
+  "lights": [
+    {
+      "name": "Sac cluster glow",
+      "kind": "AREA",
+      "position": [
+        83.0,
+        8.2,
+        20.0
+      ],
+      "target": [
+        83.0,
+        0,
+        20.0
+      ],
+      "color": [
+        1,
+        0.55,
+        0.3
+      ],
+      "power": 520,
+      "size": 2.0
+    },
+    {
+      "name": "Sac cluster glow",
+      "kind": "AREA",
+      "position": [
+        94.0,
+        8.2,
+        27.0
+      ],
+      "target": [
+        94.0,
+        0,
+        27.0
+      ],
+      "color": [
+        1,
+        0.55,
+        0.3
+      ],
+      "power": 520,
+      "size": 2.0
+    },
+    {
+      "name": "Sac cluster glow",
+      "kind": "AREA",
+      "position": [
+        90.0,
+        8.2,
+        18.0
+      ],
+      "target": [
+        90.0,
+        0,
+        18.0
+      ],
+      "color": [
+        1,
+        0.55,
+        0.3
+      ],
+      "power": 520,
+      "size": 2.0
+    },
+    {
+      "name": "Sac cluster glow",
+      "kind": "AREA",
+      "position": [
+        86.0,
+        8.2,
+        28.0
+      ],
+      "target": [
+        86.0,
+        0,
+        28.0
+      ],
+      "color": [
+        1,
+        0.55,
+        0.3
+      ],
+      "power": 520,
+      "size": 2.0
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        81.5,
+        2.4,
+        12.45
+      ],
+      "target": [
+        81.5,
+        0.3,
+        15
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        86.5,
+        2.4,
+        12.45
+      ],
+      "target": [
+        86.5,
+        0.3,
+        15
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        91.5,
+        2.4,
+        12.45
+      ],
+      "target": [
+        91.5,
+        0.3,
+        15
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        96.5,
+        2.4,
+        12.45
+      ],
+      "target": [
+        96.5,
+        0.3,
+        15
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        81.5,
+        2.4,
+        33.55
+      ],
+      "target": [
+        81.5,
+        0.3,
+        31
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        86.5,
+        2.4,
+        33.55
+      ],
+      "target": [
+        86.5,
+        0.3,
+        31
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        96.5,
+        2.4,
+        33.55
+      ],
+      "target": [
+        96.5,
+        0.3,
+        31
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        76.45,
+        2.4,
+        28.0
+      ],
+      "target": [
+        79,
+        0.3,
+        28.0
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        101.55,
+        2.4,
+        23.0
+      ],
+      "target": [
+        99,
+        0.3,
+        23.0
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Niche pool",
+      "kind": "AREA",
+      "position": [
+        101.55,
+        2.4,
+        28.0
+      ],
+      "target": [
+        99,
+        0.3,
+        28.0
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 34,
+      "size": 0.5
+    },
+    {
+      "name": "Acid glow",
+      "kind": "AREA",
+      "position": [
+        85.0,
+        0.6,
+        24.0
+      ],
+      "target": [
+        85.0,
+        3,
+        24.0
+      ],
+      "color": [
+        0.6,
+        0.95,
+        0.35
+      ],
+      "power": 60,
+      "size": 3.2
+    },
+    {
+      "name": "Acid glow",
+      "kind": "AREA",
+      "position": [
+        95.0,
+        0.6,
+        19.0
+      ],
+      "target": [
+        95.0,
+        3,
+        19.0
+      ],
+      "color": [
+        0.6,
+        0.95,
+        0.35
+      ],
+      "power": 60,
+      "size": 2.2
+    },
+    {
+      "name": "Acid glow",
+      "kind": "AREA",
+      "position": [
+        92.0,
+        0.6,
+        29.0
+      ],
+      "target": [
+        92.0,
+        3,
+        29.0
+      ],
+      "color": [
+        0.6,
+        0.95,
+        0.35
+      ],
+      "power": 60,
+      "size": 1.8
+    }
+  ],
+  "practicals": [
+    {
+      "x": 83.0,
+      "y": 8.2,
+      "z": 20.0,
+      "color": [
+        1,
+        0.5,
+        0.32
+      ],
+      "intensity": 26,
+      "distance": 22
+    },
+    {
+      "x": 94.0,
+      "y": 8.2,
+      "z": 27.0,
+      "color": [
+        1,
+        0.5,
+        0.32
+      ],
+      "intensity": 26,
+      "distance": 22
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 21,
+    "removedArea": 22.10793095519934,
+    "corridorHeight": 6.0
+  }
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { CAMPAIGN } from '../../src/campaign';
 import {
   areaReady, AUTHORED_AREAS, authoredCell, authoredDoor, readyAreaPracticals,
@@ -14,7 +15,7 @@ const mapFor = (seed: string) => CAMPAIGN.find(c => c.map.seed === seed)!.map;
 
 async function loadModel(id: string): Promise<THREE.Group> {
   const bytes = readFileSync(new URL(`../../public/modern/areas/${id}/environment.glb`, import.meta.url));
-  const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
+  const model = (await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
   model.updateMatrixWorld(true);
   return model;
 }
@@ -106,7 +107,8 @@ describe('authored area registry', () => {
         expect(distanceToWall, `${area.id}: low obstacle at ${a.toArray().map(v => v.toFixed(2)).join(',')}`).toBeLessThanOrEqual(.18);
       }
     });
-    expect(floorArea).toBeCloseTo(cells * 4, 3);
+    // Meshopt quantises positions (a few mm over the whole mesh's extent).
+    expect(Math.abs(floorArea - cells * 4)).toBeLessThan(Math.max(.05, cells * 4 * 2e-4));
     expect(new THREE.Box3().setFromObject(model).max.y).toBeGreaterThan(8);
   });
 });

@@ -12,11 +12,13 @@
   ],
   "bakeSize": 2048,
   "bakeSamples": 128,
-  "bakePeak": 31.460479736328125,
+  "bakePeak": 30.852407455444336,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
   "meshFaces": 38854,
-  "glbBytes": 3246768,
-  "irradianceBytes": 463448,
+  "glbBytes": 721308,
+  "glbUncompressedBytes": 3249088,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 502808,
   "lights": [
     {
       "name": "Wall gland pool",

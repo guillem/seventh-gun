@@ -156,8 +156,9 @@ test.describe('modern art bootstrap', () => {
       game.startCampaign(2);
       return game.authoredAreas();
     });
-    expect(drawn).toEqual(['gullet-arena']);
-    expect(requested.sort()).toEqual(['/modern/areas/gullet-arena/environment.glb', '/modern/areas/gullet-arena/irradiance.webp']);
+    const gullet = ['gullet-arena', 'gullet-crop', 'gullet-start'];
+    expect([...drawn].sort()).toEqual(gullet);
+    expect(requested.sort()).toEqual(gullet.flatMap(id => [`/modern/areas/${id}/environment.glb`, `/modern/areas/${id}/irradiance.webp`]));
   });
 
   test('a failed area download falls back to the room grammar without blocking the start', async ({ page }) => {
@@ -169,7 +170,8 @@ test.describe('modern art bootstrap', () => {
       game.startCampaign(2);
       return { drawn: game.authoredAreas(), state: game.state() };
     });
-    expect(result.drawn).toEqual([]);
+    expect(result.drawn).not.toContain('gullet-arena');
+    expect(result.drawn.length).toBeGreaterThan(0);
     expect(result.state.kind).toBe('campaign');
     expect(result.state.campaign?.map).toBe(2);
   });

@@ -1,0 +1,307 @@
+{
+  "id": "foundry-arena",
+  "mapSeed": "campaign:01-foundry",
+  "cells": 195,
+  "rects": [
+    [
+      54,
+      10,
+      69,
+      23
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 178.19244384765625,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 21202,
+  "glbBytes": 427948,
+  "glbUncompressedBytes": 2152300,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 456654,
+  "lights": [
+    {
+      "name": "Clerestory daylight",
+      "kind": "AREA",
+      "position": [
+        114,
+        16.8,
+        33.0
+      ],
+      "target": [
+        116,
+        0,
+        36.0
+      ],
+      "color": [
+        0.8,
+        0.88,
+        1
+      ],
+      "power": 900,
+      "size": 2.2
+    },
+    {
+      "name": "Clerestory daylight",
+      "kind": "AREA",
+      "position": [
+        123.0,
+        16.8,
+        33.0
+      ],
+      "target": [
+        125.0,
+        0,
+        36.0
+      ],
+      "color": [
+        0.8,
+        0.88,
+        1
+      ],
+      "power": 900,
+      "size": 2.2
+    },
+    {
+      "name": "Clerestory daylight",
+      "kind": "AREA",
+      "position": [
+        132,
+        16.8,
+        33.0
+      ],
+      "target": [
+        134,
+        0,
+        36.0
+      ],
+      "color": [
+        0.8,
+        0.88,
+        1
+      ],
+      "power": 900,
+      "size": 2.2
+    },
+    {
+      "name": "Ladle glow",
+      "kind": "AREA",
+      "position": [
+        119.0,
+        12.2,
+        35.0
+      ],
+      "target": [
+        119.0,
+        17.0,
+        35.0
+      ],
+      "color": [
+        1,
+        0.45,
+        0.14
+      ],
+      "power": 900,
+      "size": 1.4
+    },
+    {
+      "name": "Ladle underglow",
+      "kind": "AREA",
+      "position": [
+        120.6,
+        10.2,
+        35.0
+      ],
+      "target": [
+        121.0,
+        0,
+        35.0
+      ],
+      "color": [
+        1,
+        0.42,
+        0.12
+      ],
+      "power": 650,
+      "size": 0.8
+    },
+    {
+      "name": "Trough glow",
+      "kind": "AREA",
+      "position": [
+        119.0,
+        8.0,
+        20.7
+      ],
+      "target": [
+        119.0,
+        0,
+        24.7
+      ],
+      "color": [
+        1,
+        0.45,
+        0.14
+      ],
+      "power": 420,
+      "size": 1.6
+    },
+    {
+      "name": "Trough glow",
+      "kind": "AREA",
+      "position": [
+        125.0,
+        8.0,
+        20.7
+      ],
+      "target": [
+        125.0,
+        0,
+        24.7
+      ],
+      "color": [
+        1,
+        0.45,
+        0.14
+      ],
+      "power": 420,
+      "size": 1.6
+    },
+    {
+      "name": "Trough glow",
+      "kind": "AREA",
+      "position": [
+        131.0,
+        8.0,
+        20.7
+      ],
+      "target": [
+        131.0,
+        0,
+        24.7
+      ],
+      "color": [
+        1,
+        0.45,
+        0.14
+      ],
+      "power": 420,
+      "size": 1.6
+    },
+    {
+      "name": "Wall lamp pool",
+      "kind": "AREA",
+      "position": [
+        118.5,
+        3.3,
+        45.6
+      ],
+      "target": [
+        118.5,
+        0.4,
+        43
+      ],
+      "color": [
+        1,
+        0.58,
+        0.28
+      ],
+      "power": 90,
+      "size": 0.5
+    },
+    {
+      "name": "Wall lamp pool",
+      "kind": "AREA",
+      "position": [
+        127.5,
+        3.3,
+        45.6
+      ],
+      "target": [
+        127.5,
+        0.4,
+        43
+      ],
+      "color": [
+        1,
+        0.58,
+        0.28
+      ],
+      "power": 90,
+      "size": 0.5
+    },
+    {
+      "name": "Wall lamp pool",
+      "kind": "AREA",
+      "position": [
+        108.4,
+        3.3,
+        28.5
+      ],
+      "target": [
+        111,
+        0.4,
+        28.5
+      ],
+      "color": [
+        1,
+        0.58,
+        0.28
+      ],
+      "power": 90,
+      "size": 0.5
+    },
+    {
+      "name": "Wall lamp pool",
+      "kind": "AREA",
+      "position": [
+        108.4,
+        3.3,
+        37.5
+      ],
+      "target": [
+        111,
+        0.4,
+        37.5
+      ],
+      "color": [
+        1,
+        0.58,
+        0.28
+      ],
+      "power": 90,
+      "size": 0.5
+    }
+  ],
+  "practicals": [
+    {
+      "x": 120.6,
+      "y": 10.2,
+      "z": 35.0,
+      "color": [
+        1,
+        0.5,
+        0.22
+      ],
+      "intensity": 34,
+      "distance": 26
+    },
+    {
+      "x": 123.0,
+      "y": 15.0,
+      "z": 36.0,
+      "color": [
+        0.8,
+        0.88,
+        1
+      ],
+      "intensity": 18,
+      "distance": 26
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369295055452951,
+    "corridorHeight": 6.0
+  }
+}

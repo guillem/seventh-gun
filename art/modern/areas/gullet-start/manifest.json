@@ -1,0 +1,190 @@
+{
+  "id": "gullet-start",
+  "mapSeed": "campaign:02-gullet",
+  "cells": 42,
+  "rects": [
+    [
+      5,
+      7,
+      12,
+      13
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 13.36121940612793,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 23688,
+  "glbBytes": 426660,
+  "glbUncompressedBytes": 1848976,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 136490,
+  "lights": [
+    {
+      "name": "Sphincter glow",
+      "kind": "AREA",
+      "position": [
+        22.85,
+        6.6,
+        20.0
+      ],
+      "target": [
+        10,
+        1,
+        20.0
+      ],
+      "color": [
+        1,
+        0.25,
+        0.15
+      ],
+      "power": 260,
+      "size": 1.2
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        14.9,
+        2.6,
+        14.4
+      ],
+      "target": [
+        14.9,
+        0.4,
+        17
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        19.1,
+        2.6,
+        14.4
+      ],
+      "target": [
+        19.1,
+        0.4,
+        17
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        14.9,
+        2.6,
+        25.6
+      ],
+      "target": [
+        14.9,
+        0.4,
+        23
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        19.1,
+        2.6,
+        25.6
+      ],
+      "target": [
+        19.1,
+        0.4,
+        23
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        10.4,
+        2.6,
+        17.9
+      ],
+      "target": [
+        13,
+        0.4,
+        17.9
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    },
+    {
+      "name": "Gland pool",
+      "kind": "AREA",
+      "position": [
+        10.4,
+        2.6,
+        22.099999999999998
+      ],
+      "target": [
+        13,
+        0.4,
+        22.099999999999998
+      ],
+      "color": [
+        1,
+        0.5,
+        0.3
+      ],
+      "power": 30,
+      "size": 0.45
+    }
+  ],
+  "practicals": [
+    {
+      "x": 22.85,
+      "y": 6.6,
+      "z": 20.0,
+      "color": [
+        1,
+        0.4,
+        0.3
+      ],
+      "intensity": 18,
+      "distance": 18
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 4,
+    "removedArea": 5.319299643317631,
+    "corridorHeight": 6.0
+  }
+}

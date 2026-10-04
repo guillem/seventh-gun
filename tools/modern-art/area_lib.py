@@ -195,6 +195,98 @@ class Area:
                 if not self.walk(x + dx, z + dz):
                     yield x, z, dx, dz
 
+    # ------------------------------------------------------------ room frame
+    # Sides of a rectangular area: 'n' (z = z0, faces +z), 's' (z = z1, -z),
+    # 'w' (x = x0, +x), 'e' (x = x1, -x). Along-coordinates run in +x for n/s
+    # and +z for w/e, in world metres.
+    SIDES = {'n': (0, 1), 's': (0, -1), 'w': (1, 0), 'e': (-1, 0)}
+
+    def side_line(self, side):
+        x0, x1, z0, z1 = self.bounds()
+        return {'n': z0, 's': z1, 'w': x0, 'e': x1}[side]
+
+    def side_range(self, side):
+        x0, x1, z0, z1 = self.bounds()
+        return (x0, x1) if side in 'ns' else (z0, z1)
+
+    def openings(self, side):
+        """World spans [a, b) along a side that open into runtime cells."""
+        x0, x1, z0, z1 = [int(v / CELL) for v in self.bounds()]
+        nx, nz = self.SIDES[side]
+        spans = []
+        cells = range(x0, x1) if side in 'ns' else range(z0, z1)
+        for c in cells:
+            if side == 'n': x, z = c, z0
+            elif side == 's': x, z = c, z1 - 1
+            elif side == 'w': x, z = x0, c
+            else: x, z = x1 - 1, c
+            if (x, z) in self.cells and self.walk(x - nx, z - nz):
+                a0 = c * CELL
+                if spans and abs(spans[-1][1] - a0) < 1e-6:
+                    spans[-1][1] = a0 + CELL
+                else:
+                    spans.append([a0, a0 + CELL])
+        return [tuple(s) for s in spans]
+
+    def solid(self, side, t, margin=0.0):
+        """True when along-coordinate t on this side is solid wall."""
+        return all(not (a - margin <= t <= b + margin) for a, b in self.openings(side))
+
+    def wall_point(self, side, t, y, off):
+        """World point on a side at along t, height y, `off` metres into the room."""
+        nx, nz = self.SIDES[side]
+        line = self.side_line(side)
+        return (line + nx * off, y, t) if side in 'we' else (t, y, line + nz * off)
+
+    def wall_box(self, name, side, t, y, width, height, depth, mat, bevel=.01, off=0.0):
+        """Box flat against a wall: `depth` into the room starting at `off`."""
+        x, _, z = self.wall_point(side, t, y, off + depth / 2)
+        size = (depth, height, width) if side in 'we' else (width, height, depth)
+        return self.box(name, (x, y, z), size, mat, bevel)
+
+    def wall_tube(self, name, side, pts, r, mat):
+        """Tube through (t, y, off) wall-relative points."""
+        return self.tube(name, [self.wall_point(side, t, y, off) for t, y, off in pts], r, mat)
+
+    def wall_text(self, label, side, t, y, size, mat, off=.02):
+        """Painted lettering on a wall, reading from inside the room."""
+        curve = bpy.data.curves.new(label, 'FONT')
+        curve.body = label
+        curve.align_x = 'CENTER'
+        curve.align_y = 'CENTER'
+        curve.size = size
+        curve.extrude = .001
+        curve.resolution_u = 3
+        ob = bpy.data.objects.new(label, curve)
+        self.scene.collection.objects.link(ob)
+        ob.location = a.gv(self.wall_point(side, t, y, off))
+        # Text lies in Blender XY; stand it up and face it into the room.
+        yaw = {'n': 0, 's': math.pi, 'w': math.pi / 2, 'e': -math.pi / 2}[side]
+        ob.rotation_euler = (math.pi / 2, 0, yaw)
+        ob.data.materials.append(mat)
+        bpy.ops.object.select_all(action='DESELECT')
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        bpy.ops.object.convert(target='MESH')
+        self.meshes.append(bpy.context.object)
+        return bpy.context.object
+
+    def bays(self, side, spacing, margin=1.0, door_margin=.6):
+        """Evenly spaced along-coordinates on a side, avoiding openings."""
+        a, b = self.side_range(side)
+        n = max(1, int((b - a - 2 * margin) / spacing))
+        start = a + (b - a - (n - 1) * spacing) / 2
+        return [start + i * spacing for i in range(n) if self.solid(side, start + i * spacing, door_margin)]
+
+    def portal_frames(self, mat, top=6.0, depth=.35):
+        """A lintel over each opening above 6 m line and jamb pilasters."""
+        for side in 'nswe':
+            for a, b in self.openings(side):
+                mid = (a + b) / 2
+                self.wall_box('Portal lintel', side, mid, top + .35, b - a + .8, .7, depth, mat)
+                for t in (a - .25, b + .25):
+                    self.wall_box('Portal jamb', side, t, top / 2 + .2, .5, top + .4, .16, mat)
+
     # ------------------------------------------------------------ seams
     def _shared(self, axis, plane, direction, axes, bounds):
         self.shared_surfaces.setdefault((axis, plane, direction), []).append((axes, bounds))
@@ -358,10 +450,20 @@ class Area:
         bpy.ops.export_scene.gltf(filepath=str(self.dest / 'environment.glb'), export_format='GLB', use_selection=True,
                                   export_texcoords=True, export_normals=True, export_materials='EXPORT', export_extras=True,
                                   export_animations=False, export_cameras=False, export_lights=False)
+        # Meshopt compression (EXT_meshopt_compression). Texture coordinates
+        # stay float (-vtf) and unused-looking attributes are kept (-kv): the
+        # surface images and the lightmap are bound at runtime, not in the GLB.
+        raw = self.dest / 'environment.raw.glb'
+        (self.dest / 'environment.glb').replace(raw)
+        subprocess.run(['npx', '--no-install', 'gltfpack', '-i', str(raw), '-o', str(self.dest / 'environment.glb'),
+                        '-cc', '-km', '-kn', '-kv', '-vtf'], check=True, cwd=ROOT)
+        raw_bytes = raw.stat().st_size
+        raw.unlink()
         manifest = {'id': self.id, 'mapSeed': self.layout['seed'], 'cells': len(self.cells), 'rects': self.layout['rects'],
                     'bakeSize': size, 'bakeSamples': self.opt.samples, 'bakePeak': peak,
                     'bake': 'Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)',
                     'meshFaces': len(hero.data.polygons), 'glbBytes': (self.dest / 'environment.glb').stat().st_size,
+                    'glbUncompressedBytes': raw_bytes, 'compression': 'gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)',
                     'irradianceBytes': (self.dest / 'irradiance.webp').stat().st_size if (self.dest / 'irradiance.webp').exists() else None,
                     'lights': self.lights, 'practicals': list(practicals), 'seamCleanup': self.seam_cleanup}
         (self.source / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')

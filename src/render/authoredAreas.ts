@@ -5,9 +5,11 @@
 // synchronous debug start or a failed download degrades instead of blocking.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import type { GameMap } from '../sim/types';
 import { cloneOwnedModel, getModernAssets, type ModernAssets } from './modernAssets';
 import { applyRadialFogDeep } from './radialFog';
+import { LAZY_AUTHORED_AREAS } from './authoredAreaList';
 
 export interface AreaPractical {
   x: number; y: number; z: number;
@@ -37,14 +39,7 @@ export const AREA_AMBIENT_SCALE = 0.4;
 
 export const AUTHORED_AREAS: AuthoredAreaDef[] = [
   { id: 'foundry-opening', mapSeed: 'campaign:01-foundry', rects: [[6, 39, 52, 48]], boot: true, doors: [0] },
-  // tools/modern-art/areas/gullet_arena.py; practicals match its manifest.
-  {
-    id: 'gullet-arena', mapSeed: 'campaign:02-gullet', rects: [[59, 34, 73, 46]],
-    practicals: [
-      { x: 132.5, y: 10.1, z: 80, color: [1, .42, .3], intensity: 40, distance: 28 },
-      { x: 144, y: 12, z: 80, color: [.72, .84, 1], intensity: 22, distance: 30 },
-    ],
-  },
+  ...LAZY_AUTHORED_AREAS,
 ];
 
 interface LoadedArea { model: THREE.Group; lightmap: THREE.Texture }
@@ -136,7 +131,7 @@ export function loadAreasFor(seed: string): Promise<void> {
     if (!task) {
       task = (async () => {
         const [gltf, lightmap] = await Promise.all([
-          new GLTFLoader().loadAsync(areaUrl(area.id, 'environment.glb')),
+          new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(areaUrl(area.id, 'environment.glb')),
           new THREE.TextureLoader().loadAsync(areaUrl(area.id, 'irradiance.webp')),
         ]);
         lightmap.colorSpace = THREE.SRGBColorSpace;

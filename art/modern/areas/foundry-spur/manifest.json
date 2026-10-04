@@ -1,0 +1,202 @@
+{
+  "id": "foundry-spur",
+  "mapSeed": "campaign:01-foundry",
+  "cells": 72,
+  "rects": [
+    [
+      22,
+      26,
+      31,
+      34
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 9.134163856506348,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 4643,
+  "glbBytes": 153272,
+  "glbUncompressedBytes": 658012,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 68688,
+  "lights": [
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        48.5,
+        6.15,
+        56
+      ],
+      "target": [
+        48.5,
+        0,
+        56
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        53.0,
+        6.15,
+        56
+      ],
+      "target": [
+        53.0,
+        0,
+        56
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        57.5,
+        6.15,
+        56
+      ],
+      "target": [
+        57.5,
+        0,
+        56
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        48.5,
+        6.15,
+        64
+      ],
+      "target": [
+        48.5,
+        0,
+        64
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        53.0,
+        6.15,
+        64
+      ],
+      "target": [
+        53.0,
+        0,
+        64
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Batten light",
+      "kind": "AREA",
+      "position": [
+        57.5,
+        6.15,
+        64
+      ],
+      "target": [
+        57.5,
+        0,
+        64
+      ],
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "power": 160,
+      "size": 1.6
+    },
+    {
+      "name": "Booth glow",
+      "kind": "AREA",
+      "position": [
+        60.7,
+        6.2,
+        60.0
+      ],
+      "target": [
+        57,
+        0,
+        60.0
+      ],
+      "color": [
+        0.5,
+        0.9,
+        0.8
+      ],
+      "power": 140,
+      "size": 1.5
+    }
+  ],
+  "practicals": [
+    {
+      "x": 53.0,
+      "y": 6.0,
+      "z": 56,
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "intensity": 16,
+      "distance": 16
+    },
+    {
+      "x": 53.0,
+      "y": 6.0,
+      "z": 64,
+      "color": [
+        0.85,
+        0.92,
+        1
+      ],
+      "intensity": 16,
+      "distance": 16
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369317949873194,
+    "corridorHeight": 6.0
+  }
+}

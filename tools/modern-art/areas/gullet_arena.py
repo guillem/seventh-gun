@@ -162,7 +162,7 @@ for i in range(9):
     x = MOUTH[0] + .4 + i * (MOUTH[1] - MOUTH[0] - .8) / 8
     area.pipe('Jaw tooth', (x, 6.9, Z1 - .45), (x, 6.05, Z1 - .45), .14, bone, sides=8, r2=.01)
 for x in MOUTH:
-    area.box('Jaw hinge', (x, 5.0, Z1 - .08), (.7, 1.4, .14), bone, .03)
+    area.box('Jaw hinge', (x, 5.1, Z1 - .08), (.7, 1.4, .14), bone, .03)
 
 # Floor: flat fluid pools and drain channels set into the slab, 1.5 cm proud
 # at most; they change the material, never the walkable surface.
