@@ -1,0 +1,307 @@
+{
+  "id": "catacombs-arena",
+  "mapSeed": "campaign:03-catacombs",
+  "cells": 169,
+  "rects": [
+    [
+      75,
+      22,
+      88,
+      35
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 5.5739970207214355,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 27049,
+  "glbBytes": 599508,
+  "glbUncompressedBytes": 2697376,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 298110,
+  "lights": [
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        150.6,
+        11,
+        52.5
+      ],
+      "target": [
+        162,
+        0,
+        54.75
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        150.6,
+        11,
+        57.0
+      ],
+      "target": [
+        162,
+        0,
+        57.0
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        150.6,
+        11,
+        61.5
+      ],
+      "target": [
+        162,
+        0,
+        59.25
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        175.4,
+        11,
+        52.5
+      ],
+      "target": [
+        164,
+        0,
+        54.75
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        175.4,
+        11,
+        57.0
+      ],
+      "target": [
+        164,
+        0,
+        57.0
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Lancet light",
+      "kind": "AREA",
+      "position": [
+        175.4,
+        11,
+        61.5
+      ],
+      "target": [
+        164,
+        0,
+        59.25
+      ],
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "power": 380,
+      "size": 1.2
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        159.75,
+        1.8,
+        44.45
+      ],
+      "target": [
+        159.75,
+        0.1,
+        47.5
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        166.25,
+        1.8,
+        44.45
+      ],
+      "target": [
+        166.25,
+        0.1,
+        47.5
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        150.45,
+        1.8,
+        53.75
+      ],
+      "target": [
+        153.5,
+        0.1,
+        53.75
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        150.45,
+        1.8,
+        60.25
+      ],
+      "target": [
+        153.5,
+        0.1,
+        60.25
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        175.55,
+        1.8,
+        53.75
+      ],
+      "target": [
+        172.5,
+        0.1,
+        53.75
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    },
+    {
+      "name": "Rack glow",
+      "kind": "AREA",
+      "position": [
+        175.55,
+        1.8,
+        60.25
+      ],
+      "target": [
+        172.5,
+        0.1,
+        60.25
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 70,
+      "size": 0.6
+    }
+  ],
+  "practicals": [
+    {
+      "x": 150.8,
+      "y": 11,
+      "z": 57.0,
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "intensity": 18,
+      "distance": 26
+    },
+    {
+      "x": 175.2,
+      "y": 11,
+      "z": 57.0,
+      "color": [
+        0.62,
+        0.74,
+        0.95
+      ],
+      "intensity": 18,
+      "distance": 26
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 7,
+    "removedArea": 7.369317949873194,
+    "corridorHeight": 6.0
+  }
+}

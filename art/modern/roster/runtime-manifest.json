@@ -1,8 +1,38 @@
 {
-  "fileCount": 102,
-  "bytes": 33410188,
+  "fileCount": 108,
+  "bytes": 36135816,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
+    {
+      "path": "modern/areas/catacombs-arena/environment.glb",
+      "bytes": 599508,
+      "sha256": "4179f71bdf561c124144f8c9b750190c54f1cff24d1f3c3d549b9a8c06cbb177"
+    },
+    {
+      "path": "modern/areas/catacombs-arena/irradiance.webp",
+      "bytes": 298110,
+      "sha256": "ca70b78764d970720d099cdb0e5a5cbe08a89fb43fd93a50780c508d41b92ec7"
+    },
+    {
+      "path": "modern/areas/catacombs-crossing/environment.glb",
+      "bytes": 491672,
+      "sha256": "03b57e1c64f9a9d73475c8dd5aab8d559c9c363cdc2f99f49140c6bffdf991d6"
+    },
+    {
+      "path": "modern/areas/catacombs-crossing/irradiance.webp",
+      "bytes": 280174,
+      "sha256": "282e863ff0464f4658f28743e4e6f0047a0e0c9440aa7f00c7a6993edee89424"
+    },
+    {
+      "path": "modern/areas/catacombs-start/environment.glb",
+      "bytes": 935548,
+      "sha256": "60c1174230d2ba06045a34daf901781da5531efbaabf6708cabcc3a4b7fcd4b5"
+    },
+    {
+      "path": "modern/areas/catacombs-start/irradiance.webp",
+      "bytes": 120616,
+      "sha256": "90cdb43ab005752630b5f451c08d2c7c9312566f5b58d415e6306db20cf04145"
+    },
     {
       "path": "modern/areas/foundry-arena/environment.glb",
       "bytes": 427948,

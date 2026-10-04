@@ -1,0 +1,148 @@
+{
+  "id": "catacombs-start",
+  "mapSeed": "campaign:03-catacombs",
+  "cells": 42,
+  "rects": [
+    [
+      2,
+      41,
+      9,
+      47
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 6.0076422691345215,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 44184,
+  "glbBytes": 935548,
+  "glbUncompressedBytes": 3850088,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 120616,
+  "lights": [
+    {
+      "name": "Sconce glow",
+      "kind": "AREA",
+      "position": [
+        8.9,
+        3.4,
+        82.35
+      ],
+      "target": [
+        8.9,
+        0.2,
+        85
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 45,
+      "size": 0.3
+    },
+    {
+      "name": "Sconce glow",
+      "kind": "AREA",
+      "position": [
+        13.100000000000001,
+        3.4,
+        82.35
+      ],
+      "target": [
+        13.100000000000001,
+        0.2,
+        85
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 45,
+      "size": 0.3
+    },
+    {
+      "name": "Sconce glow",
+      "kind": "AREA",
+      "position": [
+        8.9,
+        3.4,
+        93.65
+      ],
+      "target": [
+        8.9,
+        0.2,
+        91
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 45,
+      "size": 0.3
+    },
+    {
+      "name": "Sconce glow",
+      "kind": "AREA",
+      "position": [
+        13.100000000000001,
+        3.4,
+        93.65
+      ],
+      "target": [
+        13.100000000000001,
+        0.2,
+        91
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 45,
+      "size": 0.3
+    },
+    {
+      "name": "Retable candles",
+      "kind": "AREA",
+      "position": [
+        17.1,
+        6.1,
+        88.0
+      ],
+      "target": [
+        12,
+        0,
+        88.0
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 220,
+      "size": 1.2
+    }
+  ],
+  "practicals": [
+    {
+      "x": 17.1,
+      "y": 6.1,
+      "z": 88.0,
+      "color": [
+        1,
+        0.66,
+        0.36
+      ],
+      "intensity": 16,
+      "distance": 18
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 4,
+    "removedArea": 5.819299643317631,
+    "corridorHeight": 6.0
+  }
+}

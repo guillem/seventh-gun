@@ -37,4 +37,24 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
       { x: 22.85, y: 6.6, z: 20, color: [1, 0.4, 0.3], intensity: 18, distance: 18 },
     ],
   },
+  {
+    id: 'catacombs-arena', mapSeed: 'campaign:03-catacombs', rects: [[75,22,88,35]],
+    practicals: [
+      { x: 150.8, y: 11, z: 57, color: [0.62, 0.74, 0.95], intensity: 18, distance: 26 },
+      { x: 175.2, y: 11, z: 57, color: [0.62, 0.74, 0.95], intensity: 18, distance: 26 },
+    ],
+  },
+  {
+    id: 'catacombs-crossing', mapSeed: 'campaign:03-catacombs', rects: [[38,38,50,50]],
+    practicals: [
+      { x: 88, y: 9.5, z: 88, color: [1, 0.68, 0.38], intensity: 30, distance: 24 },
+      { x: 88, y: 27.387, z: 88, color: [0.75, 0.82, 0.95], intensity: 14, distance: 26 },
+    ],
+  },
+  {
+    id: 'catacombs-start', mapSeed: 'campaign:03-catacombs', rects: [[2,41,9,47]],
+    practicals: [
+      { x: 17.1, y: 6.1, z: 88, color: [1, 0.66, 0.36], intensity: 16, distance: 18 },
+    ],
+  },
 ];

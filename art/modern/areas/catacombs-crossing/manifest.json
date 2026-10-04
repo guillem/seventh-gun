@@ -1,0 +1,181 @@
+{
+  "id": "catacombs-crossing",
+  "mapSeed": "campaign:03-catacombs",
+  "cells": 144,
+  "rects": [
+    [
+      38,
+      38,
+      50,
+      50
+    ]
+  ],
+  "bakeSize": 2048,
+  "bakeSamples": 128,
+  "bakePeak": 14.794487953186035,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 27562,
+  "glbBytes": 491672,
+  "glbUncompressedBytes": 2259996,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 280174,
+  "lights": [
+    {
+      "name": "Oculus shaft",
+      "kind": "AREA",
+      "position": [
+        88.0,
+        28.887447008744264,
+        88.0
+      ],
+      "target": [
+        90.0,
+        0,
+        89.0
+      ],
+      "color": [
+        0.75,
+        0.82,
+        0.95
+      ],
+      "power": 1800,
+      "size": 3.3728636625430455
+    },
+    {
+      "name": "Corona glow",
+      "kind": "AREA",
+      "position": [
+        88.0,
+        9.5,
+        88.0
+      ],
+      "target": [
+        88.0,
+        0,
+        88.0
+      ],
+      "color": [
+        1,
+        0.68,
+        0.36
+      ],
+      "power": 900,
+      "size": 3.0
+    },
+    {
+      "name": "Wall candle glow",
+      "kind": "AREA",
+      "position": [
+        84.5,
+        3.3,
+        76.4
+      ],
+      "target": [
+        84.5,
+        0.2,
+        79
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 50,
+      "size": 0.3
+    },
+    {
+      "name": "Wall candle glow",
+      "kind": "AREA",
+      "position": [
+        84.5,
+        3.3,
+        99.6
+      ],
+      "target": [
+        84.5,
+        0.2,
+        97
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 50,
+      "size": 0.3
+    },
+    {
+      "name": "Wall candle glow",
+      "kind": "AREA",
+      "position": [
+        76.4,
+        3.3,
+        84.5
+      ],
+      "target": [
+        79,
+        0.2,
+        84.5
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 50,
+      "size": 0.3
+    },
+    {
+      "name": "Wall candle glow",
+      "kind": "AREA",
+      "position": [
+        99.6,
+        3.3,
+        84.5
+      ],
+      "target": [
+        97,
+        0.2,
+        84.5
+      ],
+      "color": [
+        1,
+        0.66,
+        0.34
+      ],
+      "power": 50,
+      "size": 0.3
+    }
+  ],
+  "practicals": [
+    {
+      "x": 88.0,
+      "y": 9.5,
+      "z": 88.0,
+      "color": [
+        1,
+        0.68,
+        0.38
+      ],
+      "intensity": 30,
+      "distance": 24
+    },
+    {
+      "x": 88.0,
+      "y": 27.387447008744264,
+      "z": 88.0,
+      "color": [
+        0.75,
+        0.82,
+        0.95
+      ],
+      "intensity": 14,
+      "distance": 26
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 28,
+    "removedArea": 29.47727179949278,
+    "corridorHeight": 6.0
+  }
+}
