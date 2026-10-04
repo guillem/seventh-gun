@@ -47,7 +47,7 @@ while a < X1 - 1:
     vault.rib('Transverse rib', a, ashlar, r=.2, inset=.025)
     a += 2.4
 for side in 'ns':
-    area.wall_box('Impost cornice', side, CX, WALL - .1, X1 - X0, .3, .35, ashlar, .02)
+    area.wall_strip('Impost cornice', side, WALL - .1, .3, .35, ashlar, .02)
 
 # Ossuary walls: shallow ranks of skulls and long bones below 4.3 m (within
 # 0.16 m), deeper niches above.

@@ -132,3 +132,37 @@ def truss(area, a, b, depth, chord_mat, web_mat, panels=8, r=.07):
         p, q = (top[i], bot[i + 1]) if i % 2 == 0 else (bot[i], top[i + 1])
         area.pipe('Truss web', p, q, r, web_mat, sides=6)
         area.pipe('Truss post', top[i], bot[i], r * .8, web_mat, sides=6)
+
+
+def rock_skin(area, side, y0, y1, mat, depth_low=.14, depth_high=.9, step=.5, seed=0, skip_openings=True):
+    """Lumpy rock facing on a wall from y0 to y1. Below 4.3 m the bulge into
+    the room stays under `depth_low` (wall-relief limit); above, up to
+    `depth_high`. Openings are left clear up to 6.2 m."""
+    a0, a1 = area.side_range(side)
+    cols = int((a1 - a0) / step) + 1
+    rows = int((y1 - y0) / step) + 1
+    verts, faces = [], []
+
+    def bulge(t, y):
+        n = (math.sin(t * 1.7 + seed) * math.sin(y * 1.3 + seed * .7) + .6 * math.sin(t * 3.9 - y * 2.3 + seed)
+             + .35 * math.sin(t * 7.1 + y * 5.3))
+        n = (n + 1.95) / 3.9
+        limit = depth_low if y < 4.4 else depth_low + (depth_high - depth_low) * min(1, (y - 4.4) / 2)
+        return .02 + max(0, n) * limit
+
+    for i in range(rows):
+        y = y0 + (y1 - y0) * i / (rows - 1)
+        for j in range(cols):
+            t = a0 + (a1 - a0) * j / (cols - 1)
+            verts.append(area.wall_point(side, t, y, bulge(t, y)))
+    for i in range(rows - 1):
+        for j in range(cols - 1):
+            t = a0 + (a1 - a0) * (j + .5) / (cols - 1)
+            y = y0 + (y1 - y0) * (i + .5) / (rows - 1)
+            ta = a0 + (a1 - a0) * j / (cols - 1)
+            tb = a0 + (a1 - a0) * (j + 1) / (cols - 1)
+            if skip_openings and y < 6.2 and not (area.solid(side, ta, .05) and area.solid(side, tb, .05)):
+                continue
+            a, b = i * cols + j, i * cols + j + 1
+            faces.append((a, b, b + cols, a + cols))
+    return area.mesh('Rock face', verts, faces, mat, smooth=True)

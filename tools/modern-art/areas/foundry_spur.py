@@ -98,8 +98,7 @@ for side in 'nsw':
                 area.wall_box('Gauge', side, t - .7 + k * .7, 2.05, .4, .4, .12, paint, .005)
             area.wall_box('Board lamp', side, t, 1.35, .3, .1, .14, amber, 0)
 for side in 'nswe':
-    a0, a1 = area.side_range(side)
-    area.wall_box('Hazard dado', side, (a0 + a1) / 2, .55, a1 - a0, .12, .03, ochre, 0)
+    area.wall_strip('Hazard dado', side, .55, .12, .03, ochre)
 area.wall_text('PATTERN SHOP  /  02', 'w', CZ, 5.4, .45, paint)
 
 # Floor: painted walkway and drain gratings (flat).

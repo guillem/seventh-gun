@@ -228,6 +228,24 @@ class Area:
                     spans.append([a0, a0 + CELL])
         return [tuple(s) for s in spans]
 
+    def solid_spans(self, side, margin=0.0):
+        """Solid stretches [a, b] of a side between its openings."""
+        a0, a1 = self.side_range(side)
+        spans, start = [], a0
+        for a, b in sorted(self.openings(side)):
+            if a - margin > start:
+                spans.append((start, a - margin))
+            start = b + margin
+        if a1 > start:
+            spans.append((start, a1))
+        return spans
+
+    def wall_strip(self, name, side, y, height, depth, mat, bevel=0, margin=0.0, off=0.0):
+        """A long band along a side, broken at openings (below the 6 m line)."""
+        spans = self.solid_spans(side, margin) if y - height / 2 < CORRIDOR_HEIGHT else [self.side_range(side)]
+        for a, b in spans:
+            self.wall_box(name, side, (a + b) / 2, y, b - a, height, depth, mat, bevel, off)
+
     def solid(self, side, t, margin=0.0):
         """True when along-coordinate t on this side is solid wall."""
         return all(not (a - margin <= t <= b + margin) for a, b in self.openings(side))
@@ -249,7 +267,13 @@ class Area:
         return self.tube(name, [self.wall_point(side, t, y, off) for t, y, off in pts], r, mat)
 
     def wall_text(self, label, side, t, y, size, mat, off=.02):
-        """Painted lettering on a wall, reading from inside the room."""
+        """Painted lettering on a wall, reading from inside the room. Below
+        the 6 m line it moves to the widest solid stretch if it would
+        cross an opening."""
+        half = len(label) * size * .32
+        if y - size < CORRIDOR_HEIGHT and not (self.solid(side, t - half, .1) and self.solid(side, t + half, .1) and self.solid(side, t, .1)):
+            a0, b0 = max(self.solid_spans(side, .3), key=lambda span: span[1] - span[0])
+            t = (a0 + b0) / 2
         curve = bpy.data.curves.new(label, 'FONT')
         curve.body = label
         curve.align_x = 'CENTER'

@@ -1,6 +1,6 @@
 {
-  "fileCount": 108,
-  "bytes": 36135816,
+  "fileCount": 114,
+  "bytes": 37489892,
   "note": "Complete public/modern pack, before transport compression. Editable sources and review images excluded.",
   "files": [
     {
@@ -25,33 +25,33 @@
     },
     {
       "path": "modern/areas/catacombs-start/environment.glb",
-      "bytes": 935548,
-      "sha256": "60c1174230d2ba06045a34daf901781da5531efbaabf6708cabcc3a4b7fcd4b5"
+      "bytes": 934756,
+      "sha256": "d4cae135dc1a4bfea84010845005ff96f6b7e1607a839a9e4e027361e79c0b03"
     },
     {
       "path": "modern/areas/catacombs-start/irradiance.webp",
-      "bytes": 120616,
-      "sha256": "90cdb43ab005752630b5f451c08d2c7c9312566f5b58d415e6306db20cf04145"
+      "bytes": 114010,
+      "sha256": "de5bf83e2fd112b5252a15e3daca61698cd660400b874f016f2d3e20b7b41baf"
     },
     {
       "path": "modern/areas/foundry-arena/environment.glb",
-      "bytes": 427948,
-      "sha256": "6cc76304652fbdf99839541154dbfdc6189e51bc391abe3d57fe9ab472083247"
+      "bytes": 427512,
+      "sha256": "99cb134accbabc2cc19fa93e9e4630a79880c2b58be206f0dd8bda9df9e1dfc8"
     },
     {
       "path": "modern/areas/foundry-arena/irradiance.webp",
-      "bytes": 456654,
-      "sha256": "55b9529438d226b7908147b10ae97123a82eb77e86220f4334532b52174b2831"
+      "bytes": 504036,
+      "sha256": "e59dc489d5bdc5a50ce25c14e01c12917c4a01d173e7b2e7c8cd4e5421d9c0c0"
     },
     {
       "path": "modern/areas/foundry-spur/environment.glb",
-      "bytes": 153272,
-      "sha256": "2abebcd2bb60e20384a97a8a36c33eaced8c141d9a327df9ede8dc239ee6a1ac"
+      "bytes": 153464,
+      "sha256": "c33955c6789b7b140ebd7f8929ae02fe55e2928e12be431423d64b8dea0f6165"
     },
     {
       "path": "modern/areas/foundry-spur/irradiance.webp",
-      "bytes": 68688,
-      "sha256": "ae61fc40ca010ae5f5025f096e73b35962ef8a9a73af3ef3b0664d08ee18d8d2"
+      "bytes": 67820,
+      "sha256": "31ff82bfa1050ba13d0a7c9e972ec321f943259ff7d14fc9486bab5052d0a0a5"
     },
     {
       "path": "modern/areas/gullet-arena/environment.glb",
@@ -82,6 +82,36 @@
       "path": "modern/areas/gullet-start/irradiance.webp",
       "bytes": 136490,
       "sha256": "5ae0f4a8d98133d044c4e91844c5ddd05a170105fe734afb595e0545a4f64801"
+    },
+    {
+      "path": "modern/areas/pit-arena/environment.glb",
+      "bytes": 175800,
+      "sha256": "6d856684af54e546812e1cfbb3a054a6d61fa327d0e833157c0a9ccffa132a29"
+    },
+    {
+      "path": "modern/areas/pit-arena/irradiance.webp",
+      "bytes": 425952,
+      "sha256": "2164a2a246863f04c9f69337a207aea20b48aba921ef9f416df94120ff3edefa"
+    },
+    {
+      "path": "modern/areas/pit-gallery/environment.glb",
+      "bytes": 206644,
+      "sha256": "ffcbc15c7df760ee9964c7efba020cc13151ab86e2bca052b07ee67788a45329"
+    },
+    {
+      "path": "modern/areas/pit-gallery/irradiance.webp",
+      "bytes": 342266,
+      "sha256": "cb2988738b0b213d4083a3b8e29f3528bf22a774dc96418d8c4a5ee9b6a6a04c"
+    },
+    {
+      "path": "modern/areas/pit-start/environment.glb",
+      "bytes": 117332,
+      "sha256": "5a340bad7cfcc7e777e4907b1095419cb1d30b942fbc44360d7d62aee9c1af55"
+    },
+    {
+      "path": "modern/areas/pit-start/irradiance.webp",
+      "bytes": 47210,
+      "sha256": "42c2c50dd3debf28622452f953cb90561772d56030a095c7e27216a260028673"
     },
     {
       "path": "modern/audio/bile.mp3",

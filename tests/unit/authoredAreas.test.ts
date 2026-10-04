@@ -109,6 +109,7 @@ describe('authored area registry', () => {
     });
     // Meshopt quantises positions (a few mm over the whole mesh's extent).
     expect(Math.abs(floorArea - cells * 4)).toBeLessThan(Math.max(.05, cells * 4 * 2e-4));
-    expect(new THREE.Box3().setFromObject(model).max.y).toBeGreaterThan(8);
+    // Taller than a 6 m corridor (catches empty or flat exports).
+    expect(new THREE.Box3().setFromObject(model).max.y).toBeGreaterThan(6.5);
   });
 });

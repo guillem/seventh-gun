@@ -126,8 +126,7 @@ area.wall_text('POUR  /  03', 'w', CZ, 7.6, 1.1, paint)
 area.wall_text('POUR  /  03', 'e', CZ, 7.6, 1.1, paint)
 area.wall_text('CASTING FLOOR  -  KEEP CLEAR OF LADLE PATH', 's', CX, 5.4, .32, paint)
 for side in 'nswe':
-    a0, a1 = area.side_range(side)
-    area.wall_box('Hazard dado', side, (a0 + a1) / 2, .55, a1 - a0, .12, .03, ochre, 0)
+    area.wall_strip('Hazard dado', side, .55, .12, .03, ochre)
 
 # Floor: cast plates, a ladle path and cooling ingots (flat inlays).
 area.box('Ladle path', (GX, .006, CZ), (3.2, .012, Z1 - Z0 - 2), dark, 0)

@@ -1,0 +1,106 @@
+{
+  "id": "pit-start",
+  "mapSeed": "campaign:04-pit",
+  "cells": 42,
+  "rects": [
+    [
+      6,
+      6,
+      13,
+      12
+    ]
+  ],
+  "bakeSize": 1024,
+  "bakeSamples": 128,
+  "bakePeak": 2.2003707885742188,
+  "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
+  "meshFaces": 4038,
+  "glbBytes": 117332,
+  "glbUncompressedBytes": 482168,
+  "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
+  "irradianceBytes": 47210,
+  "lights": [
+    {
+      "name": "Lantern light",
+      "kind": "AREA",
+      "position": [
+        15.6,
+        4.85,
+        17.2
+      ],
+      "target": [
+        15.6,
+        0,
+        17.2
+      ],
+      "color": [
+        1,
+        0.62,
+        0.3
+      ],
+      "power": 300,
+      "size": 0.3
+    },
+    {
+      "name": "Lantern light",
+      "kind": "AREA",
+      "position": [
+        19.6,
+        4.85,
+        18.8
+      ],
+      "target": [
+        19.6,
+        0,
+        18.8
+      ],
+      "color": [
+        1,
+        0.62,
+        0.3
+      ],
+      "power": 300,
+      "size": 0.3
+    },
+    {
+      "name": "Lantern light",
+      "kind": "AREA",
+      "position": [
+        23.6,
+        4.85,
+        17.2
+      ],
+      "target": [
+        23.6,
+        0,
+        17.2
+      ],
+      "color": [
+        1,
+        0.62,
+        0.3
+      ],
+      "power": 300,
+      "size": 0.3
+    }
+  ],
+  "practicals": [
+    {
+      "x": 19.6,
+      "y": 4.85,
+      "z": 18.8,
+      "color": [
+        1,
+        0.62,
+        0.32
+      ],
+      "intensity": 16,
+      "distance": 16
+    }
+  ],
+  "seamCleanup": {
+    "clippedFaces": 5,
+    "removedArea": 7.049995412135319,
+    "corridorHeight": 6.0
+  }
+}

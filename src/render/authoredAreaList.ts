@@ -57,4 +57,24 @@ export const LAZY_AUTHORED_AREAS: AuthoredAreaDef[] = [
       { x: 17.1, y: 6.1, z: 88, color: [1, 0.66, 0.36], intensity: 16, distance: 18 },
     ],
   },
+  {
+    id: 'pit-arena', mapSeed: 'campaign:04-pit', rects: [[42,62,56,74]],
+    practicals: [
+      { x: 102, y: 12, z: 134, color: [0.8, 0.86, 0.95], intensity: 22, distance: 30 },
+      { x: 98, y: 5.6, z: 125.55, color: [1, 0.82, 0.58], intensity: 24, distance: 22 },
+    ],
+  },
+  {
+    id: 'pit-gallery', mapSeed: 'campaign:04-pit', rects: [[18,4,32,13]],
+    practicals: [
+      { x: 42.98, y: 6.75, z: 8.95, color: [1, 0.82, 0.58], intensity: 26, distance: 24 },
+      { x: 52.34, y: 6.75, z: 8.95, color: [1, 0.82, 0.58], intensity: 26, distance: 24 },
+    ],
+  },
+  {
+    id: 'pit-start', mapSeed: 'campaign:04-pit', rects: [[6,6,13,12]],
+    practicals: [
+      { x: 19.6, y: 4.85, z: 18.8, color: [1, 0.62, 0.32], intensity: 16, distance: 16 },
+    ],
+  },
 ];

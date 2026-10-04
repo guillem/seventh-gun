@@ -12,13 +12,13 @@
   ],
   "bakeSize": 1024,
   "bakeSamples": 128,
-  "bakePeak": 9.134163856506348,
+  "bakePeak": 9.35300350189209,
   "bake": "Cycles CPU diffuse direct+indirect, colour excluded; sRGB OETF of linear irradiance / 8 (runtime 8*pi)",
-  "meshFaces": 4643,
-  "glbBytes": 153272,
-  "glbUncompressedBytes": 658012,
+  "meshFaces": 4649,
+  "glbBytes": 153464,
+  "glbUncompressedBytes": 659044,
   "compression": "gltfpack -cc -km -kn -kv -vtf (EXT_meshopt_compression)",
-  "irradianceBytes": 68688,
+  "irradianceBytes": 67820,
   "lights": [
     {
       "name": "Batten light",
