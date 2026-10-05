@@ -243,8 +243,6 @@ export class PickupRenderer {
         spin.rotation.y += dt * (p.kind === 'gun' ? 1.4 : 2.2);
         spin.position.y = baseY + Math.sin(this.time * 2.4 + p.id) * 0.08;
       }
-      const crate = mesh.children.find(c => c instanceof THREE.Mesh && (c.material as THREE.MeshLambertMaterial)?.color?.r === 0.29) as THREE.Mesh | undefined;
-      if (crate && p.kind === 'ammo') crate.rotation.y = Math.sin(this.time * 0.8 + p.id) * 0.2;
     }
   }
 

@@ -340,6 +340,7 @@ export class GameRenderer {
   }
 
   fireVisual(gunId: number, yaw: number, pitch: number, px: number, pz: number): void {
+    // Flash sizes by gun id; the renderer owns these (WeaponDef has no hint).
     const sizes = [0.5, 1.6, 0.8, 0.7, 1.1, 0.9, 1.8];
     const colors = GUN_FLASH;
     // make sure the flash attaches to the gun actually firing (switch this frame?)
