@@ -18,10 +18,11 @@
   {
     "id": "carapace",
     "source": "art/modern/roster/materials/carapace.png",
-    "runtime": "public/modern/roster/materials/carapace.webp",
+    "runtime": null,
     "sourceSHA256": "66421f695c788fe6f0fcad4267b32e3e35bd03cac9cf41b877d973651ccbc27d",
     "runtimeSHA256": "483b5b921d614f0e8b45dd6ad895886345872c859a3d747d12028a0b36ae38ef",
-    "runtimeBytes": 375370
+    "runtimeBytes": 375370,
+    "retired": "Never bound to a runtime material; delivery dropped from public/modern on 2026-10-05. Source and prompt kept; runtimeSHA256 records the retired delivery."
   },
   {
     "id": "ceramic",

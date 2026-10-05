@@ -21,7 +21,7 @@ import { getModernAssets } from './modernAssets';
 import { addFoundryDoorHardware, addFoundryEnvironment } from './foundry';
 import { addAuthoredAreas, authoredCell, authoredDoor } from './authoredAreas';
 import {
-  addCampaignEnvironment, addDoorAssembly, campaignEnvironmentSurface, CAMPAIGN_ENVIRONMENT_PALETTES,
+  addCampaignEnvironment, addDoorAssembly, campaignEnvironmentSurface,
   DOOR_CEILING_CLIP, doorStatusColor,
 } from './campaignEnvironment';
 import { planRoomVolumes, type RoomVolumes } from './roomVolumes';
@@ -118,7 +118,8 @@ export function buildWorld(map: GameMap, artId?: CampaignArtId, volumes: RoomVol
   // Saved specimens span four metres, with continuous UVs across grid cells.
   // This avoids restarting a complete texture image at every two-metre tile.
   const textureSpan = modern ? 4 : CELL;
-  const camp: CampaignTextureLib | null = resolved ? getCampaignTextures(resolved) : null;
+  // Modern mode binds saved materials, so the canvas campaign pack is never built.
+  const camp: CampaignTextureLib | null = resolved && !modern ? getCampaignTextures(resolved) : null;
   const group = new THREE.Group();
   const disposables: THREE.BufferGeometry[] = [];
   const closedSecretCells = new Set<number>();

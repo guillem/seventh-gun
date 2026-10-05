@@ -12,7 +12,9 @@ Blender normal maps provide restrained micro-surface relief where appropriate.
 cwebp -q 88 -resize 1024 1024 SOURCE.png -o DELIVERY.webp
 ```
 
-Weapon metal, glove leather, sleeve fabric and organic armor use separate files.
+Weapon metal, glove leather and sleeve fabric use separate files. The organic
+armor (`carapace`) original is kept, but its delivery was retired on 2026-10-05:
+no runtime material ever bound it (see `retired` in `manifest.json`).
 Basalt, organic tissue, ceramic, limestone and alloy form the campaign palette.
 The separate 2048×1024 sky is an LDR equirectangular background (quality90),
 not an HDR lighting probe. Its original and exact prompt are retained.

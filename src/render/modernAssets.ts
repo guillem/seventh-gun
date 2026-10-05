@@ -23,7 +23,6 @@ export const MODERN_ASSET_URLS = {
   weaponMetal: '/modern/roster/materials/weapon-metal.webp',
   glove: '/modern/roster/materials/glove.webp',
   fabric: '/modern/roster/materials/fabric.webp',
-  carapace: '/modern/roster/materials/carapace.webp',
   basalt: '/modern/roster/materials/basalt.webp',
   organic: '/modern/roster/materials/organic.webp',
   ceramic: '/modern/roster/materials/ceramic.webp',
@@ -73,7 +72,6 @@ export interface ModernAssets {
   weaponMetal: THREE.Texture;
   glove: THREE.Texture;
   fabric: THREE.Texture;
-  carapace: THREE.Texture;
   flash: THREE.Texture;
   smoke: THREE.Texture;
   sky: THREE.Texture;
@@ -156,10 +154,10 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
       environmentKit: model('environmentKit'), support: model('support'),
       surfaces: Object.fromEntries(['basalt', 'organic', 'ceramic', 'limestone', 'alloy', 'concrete', 'steel', 'entranceFloor']
         .map(id => [id, texture(id)])),
-      weaponMetal: texture('weaponMetal'), glove: texture('glove'), fabric: texture('fabric'), carapace: texture('carapace'),
+      weaponMetal: texture('weaponMetal'), glove: texture('glove'), fabric: texture('fabric'),
       flash: texture('flash'), smoke: texture('smoke'), sky: texture('sky'),
     };
-    for (const map of [assets.weaponMetal, assets.glove, assets.fabric, assets.carapace, ...Object.values(assets.surfaces)]) {
+    for (const map of [assets.weaponMetal, assets.glove, assets.fabric, ...Object.values(assets.surfaces)]) {
       map.flipY = false;
     }
     for (const map of [assets.flash, assets.smoke]) {
