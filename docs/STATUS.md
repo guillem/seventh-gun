@@ -1,6 +1,6 @@
 # STATUS
 
-## Current state — 2026-10-04
+## Current state — 2026-10-05
 
 Read this block first; the dated sections below are a newest-first log. Older
 entries are kept as written, so some of their claims are superseded (the CI
@@ -20,14 +20,16 @@ URL). Where they disagree with this block, this block wins.
   Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
 - **CI** is green on this branch since run 37143784123 (`ea51a0c`): typecheck,
   unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
-- **Art scope delivered:** all seven weapons, six species, support props, 56
-  environment modules over seven maps, forty sound samples; rendering
+- **Art scope delivered:** all seven weapons, six species, support props, 98
+  environment kit modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes; the room vertical grammar on all
-  seven campaign maps and seeded solo mazes. Simulation, maps, balance,
-  network and `GEN_VERSION` are unchanged from `main`. Boot pack: 92 files /
-  29,408,960 bytes before compression, label `vertical-02`; authored areas add
-  files under `public/modern/areas/` loaded only for their map
-  (`runtime-manifest.json` lists both).
+  seven campaign maps and seeded solo mazes; three light-baked authored areas
+  per map (the Foundry opening in the boot pack plus 20 loaded per map).
+  Simulation, maps, balance, network and `GEN_VERSION` are unchanged from
+  `main`. Boot pack:
+  91 files / 29,386,866 bytes before compression, label `vertical-02`;
+  authored areas add 40 files / 15,063,372 bytes under `public/modern/areas/`,
+  loaded only for their map (`runtime-manifest.json` lists both).
 - **Active programme:** hand-built, light-baked Blender areas for every
   campaign map, like the Foundry opening (user's goal, 2026-10-04). Plan and
   progress: "Authored areas programme" below.

@@ -116,8 +116,9 @@ Art experiment (this branch):
   seed-field audio start fix.
 - Performance: a Foundry frame is about 800 draws, 570k triangles and 24 lights
   with only frustum culling. No occlusion culling or LOD yet.
-- Only the Foundry opening has a baked lightmap; the other six maps use
-  real-time lighting. Fixed practical lights are unshadowed and can bleed.
+- Baked lightmaps cover only the authored areas, three per map (the Foundry
+  opening in the boot pack plus 20 loaded per map); the rest of every map
+  uses real-time lighting. Fixed practical lights are unshadowed and can bleed.
 - Licensing and credit for the generated images and Runway audio.
 - When the experiment ends: `npx wrangler delete --name seventh-gun-art`, then
   check whether an `art` DNS record remains in the zone.
