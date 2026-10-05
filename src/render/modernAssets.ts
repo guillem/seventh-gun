@@ -243,7 +243,7 @@ export function preloadModernAssets(progress: (loaded: number, total: number) =>
   return loading;
 }
 
-function disposeCachedModel(root: THREE.Object3D): void {
+export function disposeCachedModel(root: THREE.Object3D): void {
   const skeletons = new Set<THREE.Skeleton>();
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();

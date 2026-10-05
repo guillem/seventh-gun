@@ -780,7 +780,7 @@ export class Game {
   }
 
   /** Hand-built areas load per map, inside the world-loading screen. A failed
-   * download resolves too: the room grammar then draws those cells. */
+   * or stalled download resolves too: the room grammar then draws those cells. */
   private campaignAreas(n: number): Promise<void> {
     const cm = campaignMap(n);
     return cm ? loadAreasFor(cm.map.seed) : Promise.resolve();

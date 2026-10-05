@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import type { GameMap } from '../sim/types';
-import { cloneOwnedModel, getModernAssets, type ModernAssets } from './modernAssets';
+import { cloneOwnedModel, disposeCachedModel, getModernAssets, type ModernAssets } from './modernAssets';
 import { applyRadialFogDeep } from './radialFog';
 import { LAZY_AUTHORED_AREAS } from './authoredAreaList';
 
@@ -129,19 +129,32 @@ export function scaleAmbient(material: THREE.Material, scale = AREA_AMBIENT_SCAL
   material.customProgramCacheKey = () => `${previousKey()}|areaAmbient${scale}`;
 }
 
+/** How long a start waits for its areas. Downloads still running then carry
+ * on, and a finished area is drawn by the next world build of its map. */
+export const AREA_WAIT_MS = 20_000;
+
 /** Fetch every area of a map once. Failures are logged and leave the cells
- * to the runtime grammar; they never block a start. */
-export function loadAreasFor(seed: string): Promise<void> {
+ * to the runtime grammar; a failure or a stall past AREA_WAIT_MS never
+ * blocks a start. */
+export function loadAreasFor(seed: string, waitMs = AREA_WAIT_MS): Promise<void> {
   const assets = getModernAssets();
   if (!assets) return Promise.resolve();
-  return Promise.all(areasForMap(seed).filter(area => !areaReady(area)).map(area => {
+  const all = Promise.all(areasForMap(seed).filter(area => !areaReady(area)).map(area => {
     let task = loading.get(area.id);
     if (!task) {
       task = (async () => {
-        const [gltf, lightmap] = await Promise.all([
+        const [model, irradiance] = await Promise.allSettled([
           new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(areaUrl(area.id, 'environment.glb')),
           new THREE.TextureLoader().loadAsync(areaUrl(area.id, 'irradiance.webp')),
         ]);
+        // Free whichever half arrived, so a retry starts clean.
+        if (model.status === 'rejected' || irradiance.status === 'rejected') {
+          if (model.status === 'fulfilled') disposeCachedModel(model.value.scene);
+          if (irradiance.status === 'fulfilled') irradiance.value.dispose();
+          throw model.status === 'rejected' ? model.reason : (irradiance as PromiseRejectedResult).reason;
+        }
+        const gltf = model.value;
+        const lightmap = irradiance.value;
         lightmap.colorSpace = THREE.SRGBColorSpace;
         lightmap.flipY = false;
         lightmap.channel = 1;
@@ -164,6 +177,14 @@ export function loadAreasFor(seed: string): Promise<void> {
     }
     return task;
   })).then(() => undefined);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const stalled = new Promise<void>(resolve => {
+    timer = setTimeout(() => {
+      console.warn(`Authored areas for ${seed} still loading after ${waitMs} ms; starting with the runtime grammar`);
+      resolve();
+    }, waitMs);
+  });
+  return Promise.race([all, stalled]).finally(() => clearTimeout(timer));
 }
 
 /** Add every ready lazily-loaded area of this map (the Foundry opening is
