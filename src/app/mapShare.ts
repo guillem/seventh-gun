@@ -1,7 +1,7 @@
 // Browser share helpers: deflate-raw, hash URLs, clipboard. Not in src/sim/.
 import { stripCosmetics, type MapBlueprint } from '../sim/blueprint';
 import {
-  COMPRESS_AFTER, FLAG_COMPRESSED, decodeBlueprint, encodeBlueprint,
+  COMPRESS_AFTER, FLAG_COMPRESSED, encodeBlueprint,
   packBlueprint, unpackBlueprint, unwrapEncoded, wrapEncoded,
 } from '../sim/mapcodec';
 
@@ -14,15 +14,22 @@ async function streamTransform(
 ): Promise<Uint8Array> {
   const stream = new Ctor(format);
   const writer = stream.writable.getWriter();
-  await writer.write(data);
-  await writer.close();
   const reader = stream.readable.getReader();
   const chunks: Uint8Array[] = [];
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (value) chunks.push(value);
-  }
+  // Write and read concurrently: once the output buffers fill, a write that
+  // is awaited before reading starts never resolves.
+  const write = (async () => {
+    await writer.write(data);
+    await writer.close();
+  })();
+  const read = (async () => {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+  })();
+  await Promise.all([write, read]);
   let len = 0;
   for (const c of chunks) len += c.length;
   const out = new Uint8Array(len);
@@ -31,12 +38,12 @@ async function streamTransform(
   return out;
 }
 
-async function deflateRaw(data: Uint8Array): Promise<Uint8Array> {
+export async function deflateRaw(data: Uint8Array): Promise<Uint8Array> {
   if (typeof CompressionStream === 'undefined') return data;
   return streamTransform(CompressionStream, 'deflate-raw', data);
 }
 
-async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
+export async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
   if (typeof DecompressionStream === 'undefined') {
     throw new Error('DecompressionStream is not available');
   }
@@ -80,10 +87,6 @@ export async function decodeShareCode(code: string): Promise<MapBlueprint> {
     raw = await inflateRaw(body);
   }
   return unpackBlueprint(flags, raw);
-}
-
-export function decodeShareCodeSync(code: string): MapBlueprint {
-  return decodeBlueprint(code);
 }
 
 export async function copyText(text: string): Promise<boolean> {
