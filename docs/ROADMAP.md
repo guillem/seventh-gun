@@ -120,5 +120,24 @@ Art experiment (this branch):
   opening in the boot pack plus 20 loaded per map); the rest of every map
   uses real-time lighting. Fixed practical lights are unshadowed and can bleed.
 - Licensing and credit for the generated images and Runway audio.
+- Unmeasured performance candidates from the 2026-10-05 code review; profile
+  before doing any of them:
+  - Hidden enemies still sample their animation mixers: `Renderer.update`
+    calls `enemies.update()` before the visibility pass
+    (`src/render/renderer.ts`). Sample only visible rigs, keeping debug
+    visibility and death poses intact.
+  - `cloneOwnedModel()` (`src/render/modernAssets.ts`) clones geometry for
+    every enemy, pickup and weapon copy. Sharing immutable geometry needs
+    shared disposal ownership; skeletons and mutable materials stay per
+    instance.
+  - `getTextures()` (`src/render/textures.ts`) eagerly paints the whole retro
+    library, though modern mode needs only a few shared effects (shadow,
+    decals). Split it into lazily built resources; keep the procedural paths
+    unit tests use.
+- `foundryCell()` (`src/render/foundry.ts`) survives only in tests, duplicating
+  the authored-area registry's coverage; fold those tests into the registry.
+- The modern-art E2E "decodes recordings on gesture…" times out locally on
+  macOS (desktop project) at the `__audioProbe.decoded` check, before and after
+  `bbdba7c`; CI's llvmpipe shards are the reference.
 - When the experiment ends: `npx wrangler delete --name seventh-gun-art`, then
   check whether an `art` DNS record remains in the zone.

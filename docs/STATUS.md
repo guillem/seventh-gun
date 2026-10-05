@@ -34,6 +34,19 @@ URL). Where they disagree with this block, this block wins.
   campaign map, like the Foundry opening (user's goal, 2026-10-04). Plan and
   progress: "Authored areas programme" below.
 
+### Latest — code review batch, 2026-10-05
+
+A Codex review (dead code, stale docs, performance) was checked against the
+code; every claim held. Fixed: map-share compression streams stalled on large
+incompressible input (now read and write concurrently, unit-tested); area
+loading freed nothing when one half failed and had no timeout (now disposes
+the arrived half and waits at most `AREA_WAIT_MS`, 20 s, unit-tested); modern
+mode no longer builds the canvas campaign texture pack; the unused
+`carapace.webp` (375 KB) left the boot pack; unused `muzzleSize`, dead crate
+sway, `decodeShareCodeSync` and an import removed; ROADMAP/STATUS figures
+corrected. The unmeasured performance items and the `foundryCell` test cleanup
+are in the [ROADMAP backlog](ROADMAP.md#backlog).
+
 ### Waiting on the user
 
 - Review of the door/variant pass and, when pushed, the first authored-area
