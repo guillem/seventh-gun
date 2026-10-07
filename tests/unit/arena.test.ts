@@ -247,6 +247,22 @@ describe('arena sim (server-authoritative)', () => {
     expect(a.frags).toBe(0);
   });
 
+  it('a huge finite client yaw still takes damage instead of hanging the tick', () => {
+    const sim = new ArenaSim('arena-test-yaw');
+    const a = sim.join('A') as any;
+    const b = sim.join('B') as any;
+    // Past ~1e16 a `while (rel > PI) rel -= 2PI` wrap never terminates.
+    queue(sim, a, 1, [inputTick({ yaw: 1e300 })]);
+    sim.step(STEP_DT);
+    expect(a.yaw).toBe(1e300);
+    sim.takeEvents();
+    a.protectUntil = 0;
+    (sim as any).damagePlayer(a, b.id, 0, 10, b.x, b.z);
+    const hurt = sim.takeEvents().find((e) => e.t === 'playerHurt') as { fromAngle: number } | undefined;
+    expect(hurt).toBeDefined();
+    expect(Math.abs(hurt!.fromAngle)).toBeLessThanOrEqual(Math.PI);
+  });
+
   it('idle kick emits kick after 120s of no move/look/fire', () => {
     const sim = new ArenaSim('arena-test-5');
     const a = sim.join('A') as any;

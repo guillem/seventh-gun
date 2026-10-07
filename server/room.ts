@@ -255,6 +255,7 @@ export class ArenaRoom {
   }
 
   private broadcast(msg: ServerMessage): void {
-    for (const st of [...this.socks.values()]) this.send(st.sock, msg);
+    // Unjoined sockets get nothing: they cannot use it, and it is free egress.
+    for (const st of [...this.socks.values()]) if (st.playerId != null) this.send(st.sock, msg);
   }
 }

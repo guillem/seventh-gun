@@ -107,6 +107,13 @@ Product (`main`):
   `GEN_VERSION` bump. Until then run unit tests on Node 22/24.
 - `SOCKET_IDLE_S` (15 s, `server/room.ts`) drops a client whose page is busy
   building a world on a machine without a GPU. Server change; user decides.
+- Arena hardening left from the 2026-10-07 security review
+  (`docs/grok_pi_security_review.md`, findings 2–5): per-IP connection and
+  join caps (one host can fill all 10 slots of the only room); a total socket
+  ceiling; reuse the arena map across empty-room gaps; Node origin check
+  against a configured hostname instead of `Host`, shared with the Worker;
+  an art-only Cloudflare token for `deploy-art.yml`. The cap needs the client
+  address passed into `ArenaRoom`; user decides scope.
 - First npm publication, then trusted publishing and token revocation
   (TESTING.md "Release smoke checks"). Needs the user's npm credential.
 - Real Safari and physical phone testing (Chromium emulation only so far).

@@ -210,6 +210,21 @@ describe('ArenaRoom', () => {
     expect(room.sim).not.toBeNull();
   });
 
+  it('broadcasts snapshots and events to joined sockets only', () => {
+    let now = 0;
+    const sched = scheduler(() => now);
+    const room = new ArenaRoom(() => now, () => 'seed-bcast', sched);
+    const a = new FakeSock();
+    room.onOpen(a);
+    room.onMessage(a, JSON.stringify({ v: 3, t: 'join', name: 'A' }));
+    const lurker = new FakeSock();
+    room.onOpen(lurker);
+    for (let i = 0; i < 6; i++) { now += 1000 / 60; sched.fire(); }
+    const kinds = (sock: FakeSock) => sock.sent.map((text) => (decodeServer(text) as { t: string }).t);
+    expect(kinds(a)).toContain('snap');
+    expect(kinds(lurker)).toEqual([]);
+  });
+
   it('duplicate JOIN from one socket does not create a ghost player', () => {
     let now = 0;
     const sched = scheduler(() => now);

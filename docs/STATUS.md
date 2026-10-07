@@ -34,7 +34,18 @@ URL). Where they disagree with this block, this block wins.
   campaign map, like the Foundry opening (user's goal, 2026-10-04). Plan and
   progress: "Authored areas programme" below.
 
-### Latest — code review batch, 2026-10-05
+### Latest — arena security fixes, 2026-10-08
+
+From the 2026-10-07 security review (`docs/grok_pi_security_review.md`),
+checked against the code. Fixed: a huge finite client yaw hung the room on
+the next hit, because angle wraps looped on 2π (now `wrapAngle` in
+`src/sim/aim.ts`, also used by the solo sim; regression in `arena.test.ts`);
+`broadcast` no longer sends to sockets that never joined; the Node adapter
+terminates a peer with more than 1 MiB of unread outbound data. Server yaw is
+left unwrapped so client prediction keeps matching. The remaining findings
+are in the [ROADMAP backlog](ROADMAP.md#backlog).
+
+### Code review batch, 2026-10-05
 
 A Codex review (dead code, stale docs, performance) was checked against the
 code; every claim held. Fixed: map-share compression streams stalled on large

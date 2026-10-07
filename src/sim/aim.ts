@@ -28,3 +28,11 @@ export function threePitchFromLook(pitch: number): number {
 export function lookPitchFromThree(rotX: number): number {
   return -rotX;
 }
+
+/**
+ * Angle wrapped to [-π, π]. Never loop on 2π here: yaw comes from the client,
+ * and past ~1e16 subtracting 2π no longer changes the value.
+ */
+export function wrapAngle(a: number): number {
+  return a >= -Math.PI && a <= Math.PI ? a : Math.atan2(Math.sin(a), Math.cos(a));
+}

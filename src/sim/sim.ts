@@ -17,7 +17,7 @@ import {
 import {
   isSolidCell, moveCircle, pushCircleOut, hasLineOfSight, findPath, roomAt,
 } from './physics';
-import { aimDirFromLook } from './aim';
+import { aimDirFromLook, wrapAngle } from './aim';
 import { damageAtRange, integrateProjectile, spreadDir, splashFactors, sweepHitscan } from './combat';
 import {
   applyPowerup, createPowerupState, outgoingMul, stepPowerups, wardActive,
@@ -626,9 +626,7 @@ export class Sim {
     if (this.phase !== 'playing') return;
     const p = this.player;
     const ang = Math.atan2(fromX - p.x, fromZ - p.z);
-    let rel = ang - (p.yaw + Math.PI);
-    while (rel > Math.PI) rel -= Math.PI * 2;
-    while (rel < -Math.PI) rel += Math.PI * 2;
+    const rel = wrapAngle(ang - (p.yaw + Math.PI));
     if (wardActive(this.powerups)) {
       this.events.push({ t: 'playerShielded', fromAngle: rel });
       return;
@@ -689,9 +687,7 @@ export class Sim {
     const d = Math.hypot(dx, dz);
     if (d > e.def.sightRange) return false;
     const ang = Math.atan2(dx, dz);
-    let diff = ang - e.yaw;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
+    const diff = wrapAngle(ang - e.yaw);
     if (Math.abs(diff) > e.def.sightFov) return false;
     return hasLineOfSight(this, e.x, e.z, p.x, p.z);
   }

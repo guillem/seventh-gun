@@ -71,11 +71,21 @@ export function originAllowed(req: IncomingMessage, allowed: string[]): boolean 
   return allowed.includes(origin);
 }
 
+/**
+ * Outbound bytes a peer may leave unread before it is dropped. A healthy
+ * client drains snapshots every frame; one that stops reading would otherwise
+ * queue them in this process without bound.
+ */
+export const MAX_OUTBOUND_BUFFER_BYTES = 1 << 20;
+
 /** ws WebSocket -> the two methods ArenaRoom actually needs. */
 export function toRoomSocket(ws: WebSocket): RoomSocket {
   return {
     send(text) {
-      if (ws.readyState === ws.OPEN) ws.send(text);
+      if (ws.readyState !== ws.OPEN) return;
+      // terminate() fires 'close', which runs the room's normal leave path.
+      if (ws.bufferedAmount > MAX_OUTBOUND_BUFFER_BYTES) ws.terminate();
+      else ws.send(text);
     },
     close(code, reason) {
       try {

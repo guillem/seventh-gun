@@ -2,7 +2,7 @@
 // ArenaRoom. The room itself is covered by room.test.ts.
 import { describe, it, expect } from 'vitest';
 import type { IncomingMessage } from 'node:http';
-import { originAllowed, safePathname, toRoomSocket } from '../../server/node/main';
+import { MAX_OUTBOUND_BUFFER_BYTES, originAllowed, safePathname, toRoomSocket } from '../../server/node/main';
 
 const req = (headers: Record<string, string>) => ({ headers }) as unknown as IncomingMessage;
 
@@ -50,6 +50,14 @@ describe('toRoomSocket', () => {
     const { ws, calls } = fakeWs(1);
     toRoomSocket(ws as never).send('hello');
     expect(calls.sent).toEqual(['hello']);
+  });
+
+  it('terminates a peer that has stopped reading instead of queueing without bound', () => {
+    const { ws, calls } = fakeWs(1);
+    const sock = toRoomSocket(Object.assign(ws, { bufferedAmount: MAX_OUTBOUND_BUFFER_BYTES + 1 }) as never);
+    sock.send('snapshot');
+    expect(calls.sent).toEqual([]);
+    expect(calls.terminated).toBe(1);
   });
 
   it('drops sends on a socket that is closing, instead of throwing', () => {
