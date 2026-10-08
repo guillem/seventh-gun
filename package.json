@@ -50,6 +50,7 @@
     "deploy": "npm run build && wrangler deploy",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
+    "check": "npm run typecheck && npm run test:unit",
     "test:e2e": "playwright test",
     "test:e2e:desktop": "playwright test --project=desktop",
     "test:e2e:mobile": "playwright test --project=mobile"

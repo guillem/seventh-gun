@@ -3,10 +3,11 @@ name: CI / Deploy
 # Netlify auto-deploys the static client on its own. This gates the Cloudflare
 # Worker (arena server + assets) on the suite actually passing, which Netlify
 # does not do. Pull requests run the checks only; nothing deploys from a PR.
+# BRANCH-ONLY (codex/experimental-modern-art): no pull_request trigger here, so
+# the draft PR runs no checks — deploy-art.yml already builds every push, and
+# the local run is the test gate. main keeps its own copy with PR checks.
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
 

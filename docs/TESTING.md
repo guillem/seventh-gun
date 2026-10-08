@@ -149,6 +149,11 @@ builds don't advertise it).
 
 ### E2E in CI (software rendering)
 
+**Not run on the art branch since 2026-10-08**: its CI only builds, deploys and
+smoke-checks; tests run locally before pushing (`npm run check` plus the
+touched E2E specs). The notes below explain the llvmpipe setup, kept should the sharded job
+(in the git history of `deploy-art.yml`) return.
+
 GitHub runners have no GPU, so WebGL is software-rendered. Playwright's
 bundled headless shell uses SwiftShader, whose x64 Linux build JIT-compiles
 shaders with Subzero. With this branch's renderer that is too slow to finish:

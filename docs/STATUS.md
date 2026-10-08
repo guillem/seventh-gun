@@ -18,8 +18,10 @@ URL). Where they disagree with this block, this block wins.
 - **Art review targets:** <https://art.seventhgun.com> (own Worker and arena,
   auto-deployed by `deploy-art.yml` on every push to this branch) and the
   Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
-- **CI** is green on this branch since run 37143784123 (`ea51a0c`): typecheck,
-  unit tests, six llvmpipe E2E shards, deploy-target check, deploy, smoke.
+- **CI** (since 2026-10-08) runs no tests on this branch: build, deploy-target
+  check, deploy, smoke. Tests run locally before pushing (AGENTS.md). The
+  six-shard llvmpipe E2E job (last green with the full suite at `6e343d9`)
+  is in git history and described in TESTING.md "E2E in CI".
 - **Art scope delivered:** all seven weapons, six species, support props, 98
   environment kit modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes; the room vertical grammar on all

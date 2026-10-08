@@ -9,10 +9,14 @@ This overrides the normal merge-after-preview workflow below for this branch.
 See `docs/EXPERIMENTAL-ART.md` and `docs/STATUS.md` for scope and progress.
 On this branch `wrangler.jsonc` names a separate Worker, `seventh-gun-art`, served
 at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy it via
-`.github/workflows/deploy-art.yml` (branch-only) after tests and
-`scripts/check-art-deploy-target.mjs`; see `docs/EXPERIMENTAL-ART.md`.
-CI runs E2E on Mesa llvmpipe (`E2E_GL=llvmpipe`) in six shards, because the
-default SwiftShader cannot render this branch in time; see `docs/TESTING.md`.
+`.github/workflows/deploy-art.yml` (branch-only): build, deploy-target guard
+(`scripts/check-art-deploy-target.mjs`), deploy, smoke check. **CI runs no
+tests on this branch; the local run is the gate.** Before pushing: `npm run
+check` (typecheck + unit), and only the E2E specs for what you touched (e.g.
+`npx playwright test tests/e2e/modern-art.spec.ts`). Then push and move on: do
+not watch or poll the Actions run; a failed deploy emails the user. To confirm
+a deploy when it matters, `node scripts/smoke-deployment.mjs https://art.seventhgun.com`.
+Docs-only pushes do not deploy. See `docs/TESTING.md`.
 On this branch the "everything procedural" line below does not hold: the game
 loads saved Blender GLBs, generated images and Runway audio from
 `public/modern/`, with sources and provenance under `art/modern/` and build
