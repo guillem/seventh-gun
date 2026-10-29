@@ -1,0 +1,102 @@
+/* Shared stylesheet for the static text pages (/about, /guide, /faq,
+   /changelog, /press).
+
+   Deliberately dependency-free and unminified: these pages exist to be read
+   by people who want the facts and by crawlers that never execute the game's
+   JavaScript. Nothing here is imported by the game bundle, so changing it
+   cannot affect gameplay. Palette matches index.html's :root. */
+
+:root {
+  --ink: #d8d4c8;
+  --dim: #9aa08e;
+  --faint: #6e7264;
+  --accent: #ffc850;
+  --blood: #c22a2a;
+  --bg: #08060a;
+  --panel: #11130f;
+  --line: #2c302a;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  padding: 0 20px 72px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.7 'Courier New', ui-monospace, monospace;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap { max-width: 720px; margin: 0 auto; }
+
+/* Header: brand plus the same four links on every page, so any entry point
+   reaches the rest of the text without going back through the game. */
+.site-nav {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px;
+  padding: 26px 0 22px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 34px;
+}
+.brand {
+  font-size: 20px; letter-spacing: 0.14em; text-decoration: none;
+  color: var(--ink); margin-right: auto;
+}
+.brand span { color: var(--blood); }
+.site-nav a.nav-link {
+  color: var(--faint); text-decoration: none; font-size: 12px;
+  letter-spacing: 0.16em;
+}
+.site-nav a.nav-link:hover, .site-nav a.nav-link[aria-current] { color: var(--accent); }
+
+h1 {
+  font-size: clamp(26px, 5vw, 38px); line-height: 1.15;
+  letter-spacing: 0.04em; margin: 0 0 10px;
+  color: #e8e4c8; text-shadow: 0 0 22px rgba(255, 90, 40, 0.28);
+}
+h2 {
+  font-size: 19px; letter-spacing: 0.1em; margin: 40px 0 12px;
+  color: #e8e4c8; border-bottom: 1px solid var(--line); padding-bottom: 6px;
+}
+h3 { font-size: 15px; letter-spacing: 0.08em; margin: 26px 0 6px; color: var(--accent); }
+p { margin: 0 0 14px; }
+.lead { color: var(--dim); font-size: 17px; }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(255, 200, 80, 0.3); }
+a:hover { border-bottom-color: var(--accent); }
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+li { margin: 0 0 6px; }
+code, kbd {
+  font-family: inherit; background: #1a1d17; border: 1px solid var(--line);
+  border-radius: 3px; padding: 1px 5px; font-size: 0.92em; color: #ffe9a0;
+}
+kbd { color: var(--ink); }
+
+table { border-collapse: collapse; width: 100%; margin: 0 0 18px; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--dim); font-weight: normal; letter-spacing: 0.08em; font-size: 12px; text-transform: uppercase; }
+td.num { text-align: right; white-space: nowrap; color: #ffe9a0; }
+td:first-child { white-space: nowrap; }
+
+.note {
+  background: var(--panel); border-left: 3px solid var(--accent);
+  padding: 12px 16px; margin: 0 0 20px; color: var(--dim); font-size: 14px;
+}
+.cta {
+  display: inline-block; margin: 6px 10px 24px 0; padding: 12px 22px;
+  background: #4a2820; border: 2px solid #a05040; border-radius: 5px;
+  color: #ffd9c0; letter-spacing: 0.1em; font-size: 15px;
+}
+.cta:hover { background: #63321f; border-bottom-color: #a05040; }
+.cta.secondary { background: #33372f; border-color: #6a7062; color: var(--ink); }
+
+.faq dt { margin: 24px 0 4px; color: #e8e4c8; font-size: 16px; }
+.faq dd { margin: 0 0 4px; color: var(--dim); }
+
+footer {
+  margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
+  color: var(--faint); font-size: 12px; letter-spacing: 0.06em;
+}
+footer a { color: var(--faint); border-bottom: 1px dotted #3a3f36; }
+footer a:hover { color: var(--accent); }

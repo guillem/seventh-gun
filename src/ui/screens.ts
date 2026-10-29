@@ -135,6 +135,15 @@ export class Screens {
             WASD move · mouse look · click fire · E use · 1-7 / wheel guns · TAB map · ESC pause<br/>
             Find all seven guns. The Seventh unseals the arena. Clear it to win.
           </div>
+          <!-- Readable pages, mirrored from the pre-boot #intro block in
+               index.html. They are the only crawl path from the game to the
+               text, so keep both lists in sync. -->
+          <div class="title-links">
+            <a href="/about/">ABOUT</a>
+            <a href="/guide/">GUIDE</a>
+            <a href="/faq/">FAQ</a>
+            <a href="/press/">PRESS</a>
+          </div>
         </div>
         <div class="volume-row">
           <button id="mute-btn" class="small">SOUND: ON</button>

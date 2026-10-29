@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API — SEVENTH GUN</title>
+<meta name="description" content="Three read-only JSON endpoints for Seventh Gun: list the campaign maps, describe any seed's maze including an ASCII floorplan, and get the canonical play URL. No key, CORS open." />
+<link rel="canonical" href="https://seventhgun.com/api/" />
+<link rel="stylesheet" href="/pages.css" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="API — SEVENTH GUN" />
+<meta property="og:description" content="Read-only JSON: campaign maps, a seed's maze as data plus ASCII floorplan, and canonical play URLs." />
+<meta property="og:url" content="https://seventhgun.com/api/" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-nav">
+  <a class="brand" href="/">SEVENTH<span>GUN</span></a>
+  <a class="nav-link" href="/about/">ABOUT</a>
+  <a class="nav-link" href="/guide/">GUIDE</a>
+  <a class="nav-link" href="/faq/">FAQ</a>
+  <a class="nav-link" href="/press/">PRESS</a>
+</header>
+
+<main>
+<h1>API</h1>
+
+<p class="lead">Three read-only JSON endpoints. No key, no cookies, no writes,
+CORS open. They exist because a browser agent cannot play a 3D shooter, but it
+can read a maze.</p>
+
+<div class="note">Everything here is derived from the same generator the game
+runs, so a seed described by <code>/api/maze</code> is the seed the player will
+walk into. Responses are deterministic: same URL, same body, until the
+generator version changes.</div>
+
+<h2>GET /api/maps</h2>
+
+<p>The seven authored campaign maps, in order, with title, subtitle, theme and
+intermission lines.</p>
+
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td>count</td><td>Always 7</td></tr>
+  <tr><td>maps[].index</td><td>Play order, 1-based</td></tr>
+  <tr><td>maps[].id</td><td>Stable id, e.g. <code>01-foundry</code></td></tr>
+  <tr><td>maps[].title</td><td>Display name, e.g. <code>THE FOUNDRY</code></td></tr>
+  <tr><td>maps[].subtitle</td><td>One-line flavour, e.g. <code>steel remembers the screaming</code></td></tr>
+  <tr><td>maps[].playUrl</td><td>All seven are played from the same URL; progress is client-side</td></tr>
+</table>
+
+<h2>GET /api/maze?seed=&amp;difficulty=</h2>
+
+<p>Describes the maze a seed produces. <code>seed</code> defaults to
+<code>nightjar</code>; <code>difficulty</code> is <code>easy</code>,
+<code>normal</code> (default) or <code>hard</code>. Seeds are up to 64
+printable characters; anything else is a 400.</p>
+
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td>summary</td><td>One sentence an assistant can quote directly</td></tr>
+  <tr><td>stats</td><td>Rooms, spurs, doors, enemies, medikits, ammo boxes</td></tr>
+  <tr><td>enemiesByType</td><td>Counts per enemy type</td></tr>
+  <tr><td>rooms[]</td><td>id, kind, theme, outdoor flag, cell rect, route distance from the start</td></tr>
+  <tr><td>guns[]</td><td>Which gun sits in which room, and where</td></tr>
+  <tr><td>doors[]</td><td>Door cells, and whether a door is the locked vault door</td></tr>
+  <tr><td>floorplan[]</td><td>88 strings of 88 characters: the walkable grid, one char per cell</td></tr>
+  <tr><td>playUrl</td><td>Canonical link that presets this seed in the game</td></tr>
+</table>
+
+<h3>Floorplan legend</h3>
+<table>
+  <tr><td><code>#</code></td><td>wall</td><td><code>' '</code></td><td>floor</td></tr>
+  <tr><td><code>+</code></td><td>door</td><td><code>L</code></td><td>locked door</td></tr>
+  <tr><td><code>=</code></td><td>arena seal</td><td><code>S</code></td><td>player start</td></tr>
+  <tr><td><code>o</code></td><td>loot spur centre</td><td><code>A</code></td><td>arena</td></tr>
+  <tr><td><code>X</code></td><td>antechamber</td><td><code>V</code></td><td>vault</td></tr>
+  <tr><td><code>g</code></td><td>gun pickup</td><td><code>k</code></td><td>vault key</td></tr>
+</table>
+
+<p>Example, truncated. These numbers are the real response for that seed, not
+illustrative ones; if they drift from <code>/api/maze</code> the page is
+wrong.</p>
+
+<pre style="overflow-x:auto;background:#11130f;border:1px solid #2c302a;padding:12px 14px;font-size:13px;color:#c8c4a8"><code>GET /api/maze?seed=nightjar&amp;difficulty=normal
+
+{
+  "seed": "nightjar",
+  "difficulty": "normal",
+  "generatorVersion": 4,
+  "summary": "74 enemies across 12 rooms and 1 loot spur, 2 doors, 11 medikits and 17 ammo boxes on Normal.",
+  "stats": { "spineRooms": 12, "spurs": 1, "doors": 2, "enemies": 74,
+             "medikits": 11, "ammoBoxes": 17 },
+  "playUrl": "https://seventhgun.com/?seed=nightjar",
+  "floorplan": [
+    "###########...",
+    "..."
+  ]
+}</code></pre>
+
+<h2>GET /api/share?seed=&amp;difficulty=</h2>
+
+<p>Just the canonical play URL, for tools that need the link but not the
+layout. Prefer this to composing a URL by hand: encoding and host stay
+correct.</p>
+
+<h2>Using it from an agent</h2>
+
+<ol>
+  <li>Read <code>/api/maps</code> if the question is about the campaign.</li>
+  <li>Call <code>/api/maze</code> for a seed, then describe the run from
+      <code>summary</code>, <code>stats</code> and <code>guns</code> rather than
+      from the floorplan, which is for orientation only.</li>
+  <li>Hand the player <code>playUrl</code>. Do not invent seed links.</li>
+</ol>
+
+<p>Custom maps are <em>not</em> available here: they live in the URL fragment
+(<code>#m=SGMAP.v1.…</code>), which never reaches a server. They only work when
+opened in a browser.</p>
+
+<h2>Policy</h2>
+
+<ul>
+  <li>GET and HEAD only. POST, PUT and DELETE return 405.</li>
+  <li>Cached at the edge: <code>s-maxage</code> is a day for the stable
+      endpoints, an hour for <code>/api/maze</code>.</li>
+  <li>No rate limiting is applied. Be reasonable; a maze costs a few
+      milliseconds of CPU, and repeated requests for the same URL are served
+      from the edge cache.</li>
+  <li>These endpoints are served by the Cloudflare Worker. Self-hosted Node
+      builds (Docker, <code>npx</code>, static tarball) serve the text pages
+      but not <code>/api/*</code>.</li>
+  <li><code>/api/maze</code> is excluded from <a href="/robots.txt">robots.txt</a>
+      because its seed space is unbounded, which is not a crawl budget you
+      should spend.</li>
+</ul>
+</main>
+
+<footer>
+  <a href="/">Play</a> &middot; <a href="/about/">About</a> &middot;
+  <a href="/guide/">Guide</a> &middot; <a href="/faq/">FAQ</a> &middot;
+  <a href="/press/">Press</a> &middot; <a href="/changelog/">Changelog</a> &middot;
+  <a href="https://github.com/guillem/seventh-gun">Source</a>
+</footer>
+
+</div>
+</body>
+</html>
