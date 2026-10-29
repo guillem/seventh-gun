@@ -7,7 +7,65 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <title>SEVENTH GUN</title>
+  <title>SEVENTH GUN — a seeded 90s-style browser FPS</title>
+
+  <!-- Everything below is for crawlers, link unfurlers and answer engines.
+       The game itself is a canvas, so this head block and the /about /guide
+       /faq /press pages are the only text these systems can read. Keep the
+       description and the JSON-LD facts true to docs/GAME-DESIGN.md; agents
+       quote them back verbatim. -->
+  <meta name="description" content="A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Procedural mazes, seven guns, a seven-map campaign, optional arena. Free, no install, no account." />
+  <link rel="canonical" href="https://seventhgun.com/" />
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SEVENTH GUN" />
+  <meta property="og:title" content="SEVENTH GUN — a seeded 90s-style browser FPS" />
+  <meta property="og:description" content="Procedural mazes, seven guns that each change how you fight, and a seven-map campaign. Runs in any WebGL browser, free and without an install." />
+  <meta property="og:url" content="https://seventhgun.com/" />
+  <meta property="og:image" content="https://seventhgun.com/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SEVENTH GUN title card: seeded mazes, seven guns, 7-map campaign" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image:alt" content="SEVENTH GUN title card: seeded mazes, seven guns, 7-map campaign" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Seventh Gun",
+    "alternateName": "SEVENTH GUN",
+    "url": "https://seventhgun.com/",
+    "description": "A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Every maze, texture, sound and enemy is generated from a seed; the seven campaign maps are authored.",
+    "image": "https://seventhgun.com/og.png",
+    "screenshot": "https://seventhgun.com/og.png",
+    "genre": ["First-person shooter", "Roguelike"],
+    "gamePlatform": ["Web browser"],
+    "playMode": ["SinglePlayer", "MultiPlayer"],
+    "applicationCategory": "Game",
+    "operatingSystem": "WebGL-capable browser (desktop or mobile)",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Guillem Cantallops Ramis"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "sameAs": [
+      "https://github.com/guillem/seventh-gun",
+      "https://art.seventhgun.com/"
+    ],
+    "softwareVersion": "0.1.0"
+  }
+  </script>
+
   <style>
     :root {
       --safe-top: env(safe-area-inset-top, 0px);

@@ -1,0 +1,44 @@
+# seventhgun.com crawl policy.
+#
+# The game itself is a canvas, so these rules mostly govern the text pages
+# (/about, /guide, /faq, /changelog, /press) and the read-only /api.
+#
+# /api/maze is excluded because ?seed= makes its URL space unbounded: crawling
+# it would spend crawl budget on pages nobody links to. The rest of /api is
+# cheap, deterministic and useful to agents, so it stays open.
+
+User-agent: *
+Allow: /
+Disallow: /api/maze
+
+# Retrieval and answer crawlers: explicitly allowed. These are how the game
+# gets described and recommended inside AI answers, so blocking them would
+# remove the only visibility a browser game can have.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+# Training crawlers: allowed. The source is MIT-licensed and already public on
+# GitHub, so blocking training would cost citations without protecting
+# anything.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://seventhgun.com/sitemap.xml
