@@ -39,6 +39,8 @@ const MIME: Record<string, string> = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.ico': 'image/x-icon',
@@ -153,10 +155,19 @@ export function serve(opts: ServeOptions = {}): RunningServer {
 
       // Resolve inside clientDir only — normalize() collapses any ../ traversal.
       const rel = normalize(pathname).replace(/^(\.\.[/\\])+/, '');
-      const file = join(clientDir, rel);
-      if (file.startsWith(clientDir) && existsSync(file) && statSync(file).isFile()) {
-        sendFile(res, file, pathname.startsWith('/assets/'));
-        return;
+      const direct = join(clientDir, rel);
+      // Directory indexes and extensionless paths, because every other target
+      // does this: Cloudflare assets and Netlify both serve /about/ from
+      // about/index.html and /about from about.html. Without it the static
+      // text pages fell through to the SPA shell on self-host.
+      const candidates = pathname.endsWith('/')
+        ? [join(direct, 'index.html')]
+        : [direct, `${direct}.html`, join(direct, 'index.html')];
+      for (const file of candidates) {
+        if (file.startsWith(clientDir) && existsSync(file) && statSync(file).isFile()) {
+          sendFile(res, file, pathname.startsWith('/assets/'));
+          return;
+        }
       }
 
       // SPA fallback, matching the Worker's not_found_handling.

@@ -70,8 +70,9 @@ and pause buttons sit above the HUD on the right.</p>
       key-gated.</li>
   <li>Gun 7, the Seventh, waits in the antechamber. Picking it up shatters the
       seal on the finale arena.</li>
-  <li>Clear the arena to win. Enemies keep coming until the seal breaks, so
-      there is no way to sneak past the fight.</li>
+  <li>Clear the arena to win. Its enemies are placed when the maze is
+      generated, so there is no way to sneak past the fight &mdash; the room is
+      the last thing between you and the end.</li>
 </ol>
 
 <p>On Normal a generated maze holds 55&ndash;75 enemies across an 88&times;88
@@ -81,7 +82,11 @@ under a 4.2-unit ceiling. A full run takes roughly 20 to 30 minutes.</p>
 <h2>Seeds</h2>
 
 <p>A seed is a short string. The same seed on the same skill level produces
-identical geometry, enemies and loot, on any machine, forever.</p>
+identical geometry, enemies and loot, on any machine — for as long as the
+generator version stays the same. The version is stamped into the API as
+<code>generatorVersion</code>, and a generator change deliberately rebuilds
+every maze, so a seed saved today still plays, but a generator upgrade is a
+new map.</p>
 
 <ul>
   <li>Type a seed in the <kbd>SEED</kbd> field, or press <kbd>RND</kbd> for a
