@@ -115,6 +115,17 @@ npm ci && npm run build && npx wrangler deploy
 This is the supported deployment path. Configure the account and domain in the
 Cloudflare dashboard before using it.
 
+## The site, for crawlers and agents
+
+The game is a canvas, so the readable part of the site lives beside it.
+`/about/`, `/guide/`, `/faq/`, `/press/`, `/changelog/` and `/api/` are static
+HTML in `public/`, copied into every build; `/api/maze`, `/api/maps` and
+`/api/share` return JSON, including an ASCII floorplan for any seed, so an
+assistant can describe a run instead of guessing at pixels. The old SPA
+fallback answered `/robots.txt` with the game itself, which is also fixed.
+[AGENT-VISIBILITY.md](docs/AGENT-VISIBILITY.md) has the layers, the trap and
+the maintenance rules.
+
 ## Under the hood
 
 - **Vite + TypeScript + Three.js**, native-resolution WebGL, procedural
