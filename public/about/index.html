@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About — SEVENTH GUN</title>
+<meta name="description" content="What Seventh Gun is: a seeded, late-1990s-style first-person shooter that runs entirely in the browser. Generated mazes, seven guns, a seven-map campaign, an optional arena." />
+<link rel="canonical" href="https://seventhgun.com/about/" />
+<link rel="stylesheet" href="/pages.css" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="About — SEVENTH GUN" />
+<meta property="og:description" content="A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Generated mazes, seven guns, a seven-map campaign." />
+<meta property="og:url" content="https://seventhgun.com/about/" />
+<meta property="og:image" content="https://seventhgun.com/og.png" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-nav">
+  <a class="brand" href="/">SEVENTH<span>GUN</span></a>
+  <a class="nav-link" href="/about/" aria-current="page">ABOUT</a>
+  <a class="nav-link" href="/guide/">GUIDE</a>
+  <a class="nav-link" href="/faq/">FAQ</a>
+  <a class="nav-link" href="/press/">PRESS</a>
+</header>
+
+<main>
+<h1>About Seventh Gun</h1>
+
+<p class="lead">A seeded, late-1990s-style first-person shooter that runs
+entirely in the browser. Every maze, texture, sound and enemy is generated
+from a seed; the seven campaign maps are authored by hand.</p>
+
+<a class="cta" href="/">PLAY IN YOUR BROWSER</a>
+<a class="cta secondary" href="/guide/">READ THE GUIDE</a>
+
+<h2>The idea</h2>
+
+<p>Seventh Gun is a shooter in the Wolfenstein and Doom lineage, built for a
+browser tab instead of a CD. There is nothing to install, no account, no
+launcher, no asset download: the whole game is a few hundred kilobytes of
+JavaScript and WebGL, and everything you see is computed at load time from
+a short text seed.</p>
+
+<p>The seed is the point. Type <code>nightjar</code> on Normal and you get
+one maze; type it again tomorrow, on another machine, and you get the exact
+same rooms, the same enemy placement, the same loot. That turns a run into
+something you can hand to another person as a word, and it turns the game
+into a small roguelike rather than a fixed campaign you memorise.</p>
+
+<p>On top of that sits an authored campaign of seven maps, each with its own
+name, palette and voice, where the guns you pick up stay with you and your
+health resets. A separate arena mode runs small-team deathmatch on a
+generated 96&times;96 grid for up to ten players.</p>
+
+<h2>Facts</h2>
+
+<table>
+  <tr><th>Genre</th><td>First-person shooter, retro-styled, seeded mazes</td></tr>
+  <tr><th>Platform</th><td>Any WebGL-capable browser, desktop or mobile</td></tr>
+  <tr><th>Price</th><td>Free. No purchase, no ads, no in-game currency</td></tr>
+  <tr><th>Install</th><td>None. One URL, no download, no account</td></tr>
+  <tr><th>Modes</th><td>Seeded maze runs, seven-map campaign, map editor, multiplayer arena</td></tr>
+  <tr><th>Players</th><td>Single-player; arena up to 10</td></tr>
+  <tr><th>Session</th><td>20&ndash;30 minutes per run on Normal</td></tr>
+  <tr><th>Engine</th><td>TypeScript and three.js, fixed 1/60&nbsp;s timestep</td></tr>
+  <tr><th>Storage</th><td>Browser local storage only: progress, map log, settings</td></tr>
+  <tr><th>License</th><td>MIT, source on <a href="https://github.com/guillem/seventh-gun">GitHub</a></td></tr>
+  <tr><th>Author</th><td>Guillem Cantallops Ramis</td></tr>
+</table>
+
+<h2>The seven guns</h2>
+
+<p>Each gun changes how you fight rather than just how much damage you deal.
+You start with the pistol and pick the rest up along the route; the seventh
+is always waiting in the antechamber, and picking it up breaks the seal on
+the finale arena.</p>
+
+<table>
+  <tr><th>#</th><th>Gun</th><th>Ammo</th><th>Damage</th><th>Rate</th><th>Character</th></tr>
+  <tr><td class="num">1</td><td>Viper Pistol</td><td>bullets</td><td class="num">13</td><td class="num">3.3/s</td><td>Perfect-accuracy hitscan. The gun you trust when you have nothing else.</td></tr>
+  <tr><td class="num">2</td><td>Ripjaw Shotgun</td><td>shells</td><td class="num">8&times;9</td><td class="num">0.95/s</td><td>Eight pellets in a 5.7&deg; cone, brutal up close, useless past 26&nbsp;u.</td></tr>
+  <tr><td class="num">3</td><td>Hornet Chaingun</td><td>bullets</td><td class="num">8</td><td class="num">10.5/s</td><td>Spreads as you hold it. Sustained fire is a commitment.</td></tr>
+  <tr><td class="num">4</td><td>Spiker</td><td>nails</td><td class="num">17</td><td class="num">4.5/s</td><td>Lobs nail projectiles that you have to lead.</td></tr>
+  <tr><td class="num">5</td><td>Bile Launcher</td><td>grenades</td><td class="num">90 splash</td><td class="num">0.87/s</td><td>Arcing grenades, 5&nbsp;u blast, and 25% of the damage is yours if it lands short.</td></tr>
+  <tr><td class="num">6</td><td>Sunlance</td><td>cores</td><td class="num">130</td><td class="num">0.95/s</td><td>A piercing hitscan beam. Punches through a line of enemies.</td></tr>
+  <tr><td class="num">7</td><td>The Seventh</td><td>void</td><td class="num">160 splash</td><td class="num">0.74/s</td><td>A slow void orb, 8&nbsp;u blast, multi-kill. It erases packs, and it can erase you.</td></tr>
+</table>
+
+<h2>Two builds, one game</h2>
+
+<p>There are two deployments of the same game. <a
+href="https://seventhgun.com/">seventhgun.com</a> is the classic look.
+<a href="https://art.seventhgun.com/">art.seventhgun.com</a> is an
+experimental art build with a different rendering treatment, kept as a
+separate Worker and deployed from its own branch. Gameplay, seeds and maps
+are the same; if you are writing about the game, refer to the classic build
+and mention the experimental one as an alternative look.</p>
+
+<h2>What it is not</h2>
+
+<p>No accounts, no telemetry, no analytics pipeline, no store. No mobile app.
+No paid tier. The source is MIT-licensed, so running your own copy, including
+the optional Node or Docker arena server, is supported and documented in the
+repository.</p>
+</main>
+
+<footer>
+  <a href="/">Play</a> &middot; <a href="/guide/">Guide</a> &middot;
+  <a href="/faq/">FAQ</a> &middot; <a href="/changelog/">Changelog</a> &middot;
+  <a href="/press/">Press</a> &middot;
+  <a href="https://github.com/guillem/seventh-gun">Source</a>
+</footer>
+
+</div>
+</body>
+</html>

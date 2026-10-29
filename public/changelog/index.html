@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Changelog — SEVENTH GUN</title>
+<meta name="description" content="What changed in Seventh Gun, newest first. One entry per tagged release, with the current build listed even though its tag is pending." />
+<link rel="canonical" href="https://seventhgun.com/changelog/" />
+<link rel="stylesheet" href="/pages.css" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Changelog — SEVENTH GUN" />
+<meta property="og:description" content="What changed in Seventh Gun, newest first." />
+<meta property="og:url" content="https://seventhgun.com/changelog/" />
+<meta property="og:image" content="https://seventhgun.com/og.png" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-nav">
+  <a class="brand" href="/">SEVENTH<span>GUN</span></a>
+  <a class="nav-link" href="/about/">ABOUT</a>
+  <a class="nav-link" href="/guide/">GUIDE</a>
+  <a class="nav-link" href="/faq/">FAQ</a>
+  <a class="nav-link" href="/press/">PRESS</a>
+</header>
+
+<main>
+<h1>Changelog</h1>
+
+<p class="lead">One entry per release, newest first. The repository's commit
+history is the complete record; this page covers what a player would notice.</p>
+
+<h2>0.1.0 <span style="color:var(--faint);font-size:13px;letter-spacing:0.1em">current build</span></h2>
+
+<p>The first playable release. Everything below is in the build at
+<a href="https://seventhgun.com/">seventhgun.com</a> now.</p>
+
+<ul>
+  <li>Seeded maze runs: 88&times;88 cells, 12&ndash;14 spine rooms plus loot
+      spurs, 55&ndash;75 enemies on Normal, deterministic from a short seed.</li>
+  <li>Seven guns with distinct behaviour, from the hitscan pistol to the void
+      cannon that breaks the arena seal.</li>
+  <li>Seven authored campaign maps with progression, persistent guns between
+      maps and health reset on entry.</li>
+  <li>Three difficulty levels that scale the whole economy, not just health.</li>
+  <li>Multiplayer arena: generated 96&times;96 map, up to ten players, on
+      Cloudflare Workers or a self-hosted Node server.</li>
+  <li>Map editor with a compact <code>SGMAP.v1</code> share code.</li>
+  <li>Map log of past runs per browser, seed links and copy-link sharing.</li>
+  <li>Touch controls for phones and tablets.</li>
+  <li>MIT-licensed source, Docker image, and an <code>npx</code>-able package.</li>
+</ul>
+
+<p style="color:var(--dim)">Known gaps: human pacing validation of the 20&ndash;30
+minute target is still pending, and there is no gamepad support.</p>
+
+<h2>Unreleased</h2>
+
+<p>Site work rather than game work: a crawl policy, a sitemap, structured data,
+link previews, these text pages, and a read-only JSON API so agents can read a
+seed's layout instead of guessing at a canvas. See
+<a href="/api/">/api/</a>.</p>
+</main>
+
+<footer>
+  <a href="/">Play</a> &middot; <a href="/about/">About</a> &middot;
+  <a href="/guide/">Guide</a> &middot; <a href="/faq/">FAQ</a> &middot;
+  <a href="/press/">Press</a> &middot;
+  <a href="https://github.com/guillem/seventh-gun">Source</a>
+</footer>
+
+</div>
+</body>
+</html>

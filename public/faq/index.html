@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FAQ — SEVENTH GUN</title>
+<meta name="description" content="Short answers about Seventh Gun: price, platforms, run length, multiplayer, offline play, seeds, saves, the map editor, and what the experimental art build is." />
+<link rel="canonical" href="https://seventhgun.com/faq/" />
+<link rel="stylesheet" href="/pages.css" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="FAQ — SEVENTH GUN" />
+<meta property="og:description" content="Price, platforms, run length, multiplayer, offline play, seeds, saves and the map editor." />
+<meta property="og:url" content="https://seventhgun.com/faq/" />
+<meta property="og:image" content="https://seventhgun.com/og.png" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Seventh Gun free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The game is free to play, with no ads, no in-game currency and no paid tier. There is nothing to buy and no account to create." } },
+    { "@type": "Question", "name": "Do I need to install anything?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. It runs in the browser at seventhgun.com and loads in a few hundred kilobytes, so there is no download, launcher or asset pack." } },
+    { "@type": "Question", "name": "Does it work on a phone or tablet?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. On touch devices a floating stick appears under your left thumb to move, dragging on the right side looks around, and FIRE, USE, MAP and pause buttons sit above the HUD." } },
+    { "@type": "Question", "name": "How long does a run take?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Roughly 20 to 30 minutes for a generated maze on Normal. The campaign is seven maps played in sequence, so it is longer overall." } },
+    { "@type": "Question", "name": "How many guns are there?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Seven: the Viper Pistol, Ripjaw Shotgun, Hornet Chaingun, Spiker, Bile Launcher, Sunlance and the Seventh. You always start with the pistol and find the rest during the run." } },
+    { "@type": "Question", "name": "Is there multiplayer?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, an arena mode for up to ten players on a generated 96x96 map, with no monsters and no jump. It needs the game's optional arena server, which runs on Cloudflare Workers or a self-hosted Node process." } },
+    { "@type": "Question", "name": "Can I play offline?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not from seventhgun.com. The source is MIT-licensed and can be built and served locally, which works offline once loaded, but the hosted game needs a network connection to fetch its bundle." } },
+    { "@type": "Question", "name": "How do seeds work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A seed is a short string that determines the entire maze: geometry, enemies and loot. The same seed and skill level always produce the identical run on any machine, so a seed is a shareable challenge." } },
+    { "@type": "Question", "name": "Can I share a specific run with someone?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. A URL like https://seventhgun.com/?seed=nightjar presets the seed, and COPY LINK after a run gives you that URL. The MAP LOG on the title screen remembers every seed you have played." } },
+    { "@type": "Question", "name": "Can I make my own maps?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The built-in editor lets you draw a map, title it, test it and export it as a compact SGMAP.v1 code, which plays when pasted after #m= in the game URL." } },
+    { "@type": "Question", "name": "Does it save my progress?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Progress, settings and the map log are stored in your browser's local storage. They survive reloads but not clearing site data, a different browser, or private windows." } },
+    { "@type": "Question", "name": "What do I need to play it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A browser with WebGL, on any desktop or mobile operating system. Keyboard and mouse, or touch; there is no gamepad support." } },
+    { "@type": "Question", "name": "Is it open source?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, MIT licensed. The full source, including the optional arena server, is on GitHub at github.com/guillem/seventh-gun." } },
+    { "@type": "Question", "name": "What is art.seventhgun.com?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The same game with an experimental art treatment instead of the classic look. It is a separate build deployed from its own branch; gameplay, seeds and maps are identical." } },
+    { "@type": "Question", "name": "Why does it look like a 1997 game?",
+      "acceptedAnswer": { "@type": "Answer", "text": "That is the intent. Seventh Gun is deliberately built in the Wolfenstein and Doom lineage: chunky textures, a fixed 1/60 second simulation step, and guns that are distinct in feel rather than in spreadsheets." } }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-nav">
+  <a class="brand" href="/">SEVENTH<span>GUN</span></a>
+  <a class="nav-link" href="/about/">ABOUT</a>
+  <a class="nav-link" href="/guide/">GUIDE</a>
+  <a class="nav-link" href="/faq/" aria-current="page">FAQ</a>
+  <a class="nav-link" href="/press/">PRESS</a>
+</header>
+
+<main>
+<h1>FAQ</h1>
+
+<p class="lead">Short answers. Longer ones live in the <a href="/guide/">guide</a>.</p>
+
+<h2>Is Seventh Gun free?</h2>
+<p>Yes. Free to play, no ads, no in-game currency, no paid tier. Nothing to
+buy and no account to create.</p>
+
+<h2>Do I need to install anything?</h2>
+<p>No. It runs in the browser at <a href="https://seventhgun.com/">seventhgun.com</a>
+and loads in a few hundred kilobytes, so there is no download, launcher or
+asset pack.</p>
+
+<h2>Does it work on a phone or tablet?</h2>
+<p>Yes. On touch devices a floating stick appears under your left thumb to
+move, dragging on the right side looks around, and <kbd>FIRE</kbd>,
+<kbd>USE</kbd>, <kbd>MAP</kbd> and pause buttons sit above the HUD.</p>
+
+<h2>How long does a run take?</h2>
+<p>Roughly 20 to 30 minutes for a generated maze on Normal. The campaign is
+seven maps played in sequence, so it is longer overall.</p>
+
+<h2>How many guns are there?</h2>
+<p>Seven: Viper Pistol, Ripjaw Shotgun, Hornet Chaingun, Spiker, Bile
+Launcher, Sunlance and the Seventh. You always start with the pistol and find
+the rest during the run. The <a href="/about/">about page</a> lists them with
+damage and fire rate.</p>
+
+<h2>Is there multiplayer?</h2>
+<p>Yes, an arena mode for up to ten players on a generated 96&times;96 map,
+with no monsters and no jump. It needs the game's optional arena server, which
+runs on Cloudflare Workers or a self-hosted Node process.</p>
+
+<h2>Can I play offline?</h2>
+<p>Not from seventhgun.com. The source is MIT-licensed and can be built and
+served locally, which works offline once loaded, but the hosted game needs a
+network connection to fetch its bundle.</p>
+
+<h2>How do seeds work?</h2>
+<p>A seed is a short string that determines the entire maze: geometry, enemies
+and loot. The same seed and skill level always produce the identical run on
+any machine, so a seed is a shareable challenge. The layout is generated
+before difficulty is applied, so the same seed is the same maze on every skill
+level.</p>
+
+<h2>Can I share a specific run with someone?</h2>
+<p>Yes. <code>https://seventhgun.com/?seed=nightjar</code> presets the seed,
+and <kbd>COPY LINK</kbd> after a run gives you that URL. The <kbd>MAP LOG</kbd>
+on the title screen remembers every seed you have played.</p>
+
+<h2>Can I make my own maps?</h2>
+<p>Yes. The built-in editor lets you draw a map, title it, test it and export
+it as a compact <code>SGMAP.v1</code> code, which plays when pasted after
+<code>#m=</code> in the game URL.</p>
+
+<h2>Does it save my progress?</h2>
+<p>Progress, settings and the map log are stored in your browser's local
+storage. They survive reloads, but not clearing site data, a different browser
+or a private window.</p>
+
+<h2>What do I need to play it?</h2>
+<p>A browser with WebGL, on any desktop or mobile operating system. Keyboard
+and mouse, or touch. There is no gamepad support.</p>
+
+<h2>Is it open source?</h2>
+<p>Yes, MIT licensed. The full source, including the optional arena server, is
+on <a href="https://github.com/guillem/seventh-gun">GitHub</a>.</p>
+
+<h2>What is art.seventhgun.com?</h2>
+<p>The same game with an experimental art treatment instead of the classic
+look. It is a separate build deployed from its own branch; gameplay, seeds and
+maps are identical.</p>
+
+<h2>Why does it look like a 1997 game?</h2>
+<p>That is the intent. Seventh Gun is deliberately built in the Wolfenstein and
+Doom lineage: chunky textures, a fixed 1/60 second simulation step, and guns
+that are distinct in feel rather than in spreadsheets.</p>
+
+<h2>Something is broken. Where do I report it?</h2>
+<p>Open an issue at <a href="https://github.com/guillem/seventh-gun/issues">github.com/guillem/seventh-gun/issues</a>.
+Include your browser, whether you were on desktop or touch, and the seed if the
+run itself misbehaved.</p>
+</main>
+
+<footer>
+  <a href="/">Play</a> &middot; <a href="/about/">About</a> &middot;
+  <a href="/guide/">Guide</a> &middot; <a href="/changelog/">Changelog</a> &middot;
+  <a href="/press/">Press</a> &middot;
+  <a href="https://github.com/guillem/seventh-gun">Source</a>
+</footer>
+
+</div>
+</body>
+</html>
