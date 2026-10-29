@@ -625,6 +625,20 @@ first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
 integration and rollout gates. A local passing build is not a publication.
 
+## Agent visibility — 2026-10-29
+
+The site had nothing a crawler could read: a 10.9 kB shell with a canvas, and
+the SPA fallback answering `/robots.txt`, `/sitemap.xml` and `/llms.txt` with
+the game HTML at 200. Now `/about/ /guide/ /faq/ /press/ /changelog/ /api/` are
+static pages in `public/`, `index.html` carries OG cards and `VideoGame`
+JSON-LD, `public/og.png` unfurls links, and `server/api.ts` serves read-only
+JSON (`/api/maze` includes an ASCII floorplan, so an agent can read a seed).
+`smoke-deployment.mjs` asserts robots content-type and both API payloads, so a
+regression fails the deploy gate. Live on seventhgun.com from main (PR #35).
+Ported to this branch with the canonical kept on seventhgun.com, no sitemap of
+its own (`/sitemap.xml` 301s to the primary), and the intro handing over to the
+art loader. See [AGENT-VISIBILITY.md](AGENT-VISIBILITY.md).
+
 ## Product
 
 Seeded mazes, seven authored campaign maps, an editor, 15 campaign secrets,

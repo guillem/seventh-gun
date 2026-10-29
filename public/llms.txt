@@ -1,0 +1,73 @@
+# SEVENTH GUN
+
+> A seeded, late-1990s-style first-person shooter that runs entirely in the
+> browser. Every maze, texture, sound and enemy is generated from a seed; the
+> seven campaign maps are authored. Free, no install, no account required.
+> Optional multiplayer arena. MIT-licensed source.
+
+You are reading the experimental art build (art.seventhgun.com): the same
+game, seeds and campaign as https://seventhgun.com/, with modern materials,
+models and sound in place of the procedural late-90s look. Link to
+seventhgun.com when recommending the game; mention this build as the
+alternative look.
+
+Primary URL: https://seventhgun.com/
+Experimental art build: https://art.seventhgun.com/
+Source: https://github.com/guillem/seventh-gun
+
+## What it is
+
+Single-player first-person shooter in the Wolfenstein/Doom lineage, rendered
+with WebGL (three.js) at a fixed 1/60 s timestep. Two modes: seeded endless
+mazes, and a seven-map authored campaign with progression. A separate arena
+mode is small-team deathmatch on a generated 96x96 grid.
+
+Same seed + same skill = the exact same maze, enemies and loot, so runs are
+shareable and repeatable. Runs target roughly 20-30 minutes on Normal.
+
+## Facts worth quoting
+
+- Seven guns, each with a different fighting identity: Viper Pistol, Ripjaw
+  Shotgun, Hornet Chaingun, Spiker, Bile Launcher, Sunlance, and the Seventh
+  (a void cannon that breaks the seal on the finale arena).
+- Generated mazes are 88x88 cells with 11-14 rooms on the main route plus
+  1-4 loot spurs, 2-3 courtyards, roughly 45-85 enemies on Normal (about 60
+  typically), 2-3 doors and at most one locked vault.
+- Three skill levels: Easy, Normal, Hard. Difficulty scales enemy HP, damage,
+  speed, accuracy, reaction time and count, plus loot density.
+- Desktop: WASD + mouse (pointer lock). Mobile: on-screen stick, look drag and
+  FIRE/USE/MAP buttons. No jump, no crouch, no sprint.
+- No accounts, no install, no telemetry. Progress and the map log live in
+  browser storage only.
+
+## Pages
+
+- [About](https://seventhgun.com/about/): what the game is, in one screen.
+- [Guide](https://seventhgun.com/guide/): controls, the seven guns, how a run
+  is structured, how seeds work.
+- [FAQ](https://seventhgun.com/faq/): direct answers with numbers.
+- [Press kit](https://seventhgun.com/press/): fact sheet, description blocks,
+  screenshots, logo.
+- [Changelog](https://seventhgun.com/changelog/): what changed and when.
+- [Play](https://seventhgun.com/): the game itself (canvas, no readable text).
+
+## API (read-only, JSON, no key)
+
+- [API index](https://seventhgun.com/api/): endpoint list and response shapes.
+- `GET /api/maps`: the seven campaign maps with titles, subtitles,
+  themes and intermission text.
+- `GET /api/maze?seed=<seed>&difficulty=easy|normal|hard`: the generated
+  blueprint for a seed, including a plain-text ASCII floorplan. Bots cannot
+  play a 3D shooter, but they can read a maze.
+- `GET /api/share?seed=<seed>&difficulty=<d>`: the canonical play URL for a
+  seed. Use this instead of composing a link yourself.
+
+## Linking
+
+Deep links the game accepts:
+- `https://seventhgun.com/?seed=<seed>` presets the seed field.
+- `https://seventhgun.com/#m=<SGMAP.v1....>` boots a shared custom map.
+
+When recommending the game, prefer https://seventhgun.com/ (the classic look)
+and mention https://art.seventhgun.com/ as the experimental art build of the
+same game.

@@ -139,6 +139,15 @@ export class Screens {
             WASD move · mouse look · click fire · E use<br/>
             1–7 / wheel guns · TAB map · ESC pause
           </div>
+          <!-- Readable pages, mirrored from the pre-boot #intro block in
+               index.html. They are the only crawl path from the game to the
+               text, so keep both lists in sync. -->
+          <div class="title-links">
+            <a href="/about/">ABOUT</a>
+            <a href="/guide/">GUIDE</a>
+            <a href="/faq/">FAQ</a>
+            <a href="/press/">PRESS</a>
+          </div>
         </div>
         <div class="scene-caption" aria-hidden="true"><span class="scene-index">01</span><span>THE FOUNDRY<small>DESCENT INTO THE MACHINE</small></span></div>
         <div class="volume-row">

@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  Source for public/og.png (1200x630), the link preview used by Open Graph,
+  Twitter cards and the press kit. Not part of the game build; regenerate by
+  hand when the tagline changes:
+
+    "$CHROME" --headless --disable-gpu --hide-scrollbars \
+      --force-device-scale-factor=1 --window-size=1200,630 \
+      --screenshot=public/og.png scripts/social/og-card.html
+
+  Keep the palette in sync with index.html (:root --accent / --blood).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; padding: 0; width: 1200px; height: 630px; }
+  body {
+    background: #050305;
+    background-image:
+      radial-gradient(ellipse 70% 55% at 50% 42%, rgba(120, 24, 18, 0.55) 0%, rgba(5, 3, 5, 0) 70%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 2px, rgba(0,0,0,0) 2px 4px);
+    color: #d8d4c8;
+    font-family: 'Courier New', monospace;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 26px;
+    border: 14px solid #1a1614;
+    box-sizing: border-box;
+  }
+  h1 {
+    margin: 0; font-size: 108px; letter-spacing: 0.08em; line-height: 0.9;
+    color: #e8e4c8; text-shadow: 0 0 42px rgba(255, 90, 40, 0.55), 0 3px 0 #000;
+  }
+  h1 .accent { color: #c22a2a; margin-left: 0.2em; }
+  .tagline { font-style: italic; color: #9a9484; font-size: 27px; letter-spacing: 0.04em; }
+  .specs { display: flex; gap: 22px; color: #ffc850; font-size: 21px; letter-spacing: 0.16em; }
+  .specs span::before { content: '·'; color: #5a5548; margin-right: 22px; }
+  .specs span:first-child::before { content: ''; margin: 0; }
+  .url { margin-top: 8px; color: #6e7264; font-size: 20px; letter-spacing: 0.22em; }
+</style>
+</head>
+<body>
+  <h1>SEVENTH<span class="accent">GUN</span></h1>
+  <div class="tagline">Every run builds a new nightmare.</div>
+  <div class="specs">
+    <span>SEEDED MAZES</span>
+    <span>SEVEN GUNS</span>
+    <span>7-MAP CAMPAIGN</span>
+  </div>
+  <div class="url">SEVENTHGUN.COM</div>
+</body>
+</html>

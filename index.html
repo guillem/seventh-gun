@@ -7,7 +7,65 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <title>SEVENTH GUN</title>
+  <title>SEVENTH GUN — a seeded 90s-style browser FPS</title>
+
+  <!-- Everything below is for crawlers, link unfurlers and answer engines.
+       The game itself is a canvas, so this head block and the /about /guide
+       /faq /press pages are the only text these systems can read. Keep the
+       description and the JSON-LD facts true to docs/GAME-DESIGN.md; agents
+       quote them back verbatim. -->
+  <meta name="description" content="A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Procedural mazes, seven guns, a seven-map campaign, optional arena. Free, no install, no account." />
+  <link rel="canonical" href="https://seventhgun.com/" />
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SEVENTH GUN" />
+  <meta property="og:title" content="SEVENTH GUN — a seeded 90s-style browser FPS" />
+  <meta property="og:description" content="Procedural mazes, seven guns that each change how you fight, and a seven-map campaign. Runs in any WebGL browser, free and without an install." />
+  <meta property="og:url" content="https://seventhgun.com/" />
+  <meta property="og:image" content="https://seventhgun.com/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SEVENTH GUN title card: seeded mazes, seven guns, 7-map campaign" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image:alt" content="SEVENTH GUN title card: seeded mazes, seven guns, 7-map campaign" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Seventh Gun",
+    "alternateName": "SEVENTH GUN",
+    "url": "https://seventhgun.com/",
+    "description": "A seeded, late-1990s-style first-person shooter that runs entirely in the browser. Every maze, texture, sound and enemy is generated from a seed; the seven campaign maps are authored.",
+    "image": "https://seventhgun.com/og.png",
+    "screenshot": "https://seventhgun.com/og.png",
+    "genre": ["First-person shooter", "Roguelike"],
+    "gamePlatform": ["Web browser"],
+    "playMode": ["SinglePlayer", "MultiPlayer"],
+    "applicationCategory": "Game",
+    "operatingSystem": "WebGL-capable browser (desktop or mobile)",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Guillem Cantallops Ramis"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "sameAs": [
+      "https://github.com/guillem/seventh-gun",
+      "https://art.seventhgun.com/"
+    ],
+    "softwareVersion": "0.1.0"
+  }
+  </script>
+
   <style>
     :root {
       --safe-top: env(safe-area-inset-top, 0px);
@@ -44,6 +102,31 @@
       background: radial-gradient(ellipse at center, rgba(20,8,10,0.88) 0%, rgba(5,3,5,0.97) 75%);
     }
     .hidden { display: none !important; }
+
+    /* Pre-boot placeholder (see <main id="intro">). Same gradient and gap as
+       .screen, and one stacking level below #screens, so the handover to the
+       real title screen cannot flicker or double up even if removal fails. */
+    #intro {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; padding: 24px;
+      background: radial-gradient(ellipse at center, rgba(20,8,10,0.88) 0%, rgba(5,3,5,0.97) 75%);
+    }
+    .intro-lead {
+      max-width: 46ch; margin: 0; text-align: center;
+      color: #8a8578; font-size: 14px; line-height: 1.7;
+    }
+    .intro-loading { margin: 0; color: #4a4d44; font-size: 11px; letter-spacing: 0.2em; }
+    .intro-links, .title-links {
+      display: flex; flex-wrap: wrap; gap: 18px; justify-content: center;
+    }
+    .intro-links a, .title-links a {
+      color: #6e7264; text-decoration: none; font-size: 11.5px;
+      letter-spacing: 0.18em; border-bottom: 1px dotted #565b50; padding-bottom: 2px;
+    }
+    .intro-links a:hover, .title-links a:hover {
+      color: var(--accent); border-bottom-color: var(--accent);
+    }
 
     .title-art { text-align: center; }
     .title-art h1 {
@@ -249,6 +332,37 @@
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
+
+  <!-- Server-rendered placeholder, removed by src/main.ts as soon as the game
+       has drawn its own title screen. It exists so that a reader without
+       JavaScript — a crawler, a text browser, an agent that refuses to run a
+       900 kB bundle — gets the title, the pitch and the links to the readable
+       pages instead of an empty black rectangle. It is styled to match the
+       title screen exactly, so the swap is invisible. -->
+  <main id="intro">
+    <div class="title-art">
+      <h1>SEVENTH<span class="accent">GUN</span></h1>
+      <div class="subtitle">a nightmare maze of flesh and steel</div>
+    </div>
+    <p class="intro-lead">
+      A seeded, late-1990s-style first-person shooter that runs entirely in the
+      browser. Every maze, texture, sound and enemy is generated from a seed;
+      seven guns, seven authored campaign maps, an optional multiplayer arena.
+      Free, no install, no account.
+    </p>
+    <p class="intro-lead">
+      This is the experimental art build. The classic game is at
+      <a href="https://seventhgun.com/">seventhgun.com</a>.
+    </p>
+    <nav class="intro-links" aria-label="More about the game">
+      <a href="/about/">ABOUT</a>
+      <a href="/guide/">GUIDE</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/press/">PRESS</a>
+    </nav>
+    <p class="intro-loading">Loading the maze&hellip;</p>
+  </main>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
