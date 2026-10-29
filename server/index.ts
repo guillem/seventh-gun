@@ -52,7 +52,7 @@ export default {
 
     // Read-only JSON. Returns null for anything that is not one of its three
     // routes, so /api/ (the docs page) still comes from static assets.
-    const api = handleApi(req);
+    const api = await handleApi(req);
     if (api) return api;
 
     if (url.pathname === '/arena') {

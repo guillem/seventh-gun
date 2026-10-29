@@ -233,11 +233,44 @@ function mapsResponse(origin: string) {
 }
 
 /**
+ * Serve from the Workers cache when there is one, otherwise build.
+ *
+ * The `s-maxage` header only tells *downstream* caches what to do; a Worker
+ * response is not edge-cached unless it is put there. Without this, every
+ * request for the same seed ran generateMap again, which is exactly the CPU
+ * cost the header implied was being avoided.
+ *
+ * The cache key carries GEN_VERSION, so a generator change cannot serve a
+ * layout from the previous version. Keys are origin-scoped because playUrl is
+ * derived from the request host.
+ */
+async function cached(request: Request, build: () => Response): Promise<Response> {
+  // `caches.default` is a Workers extension, not part of the DOM CacheStorage
+  // type, and it is absent under Node (unit tests), so it has to be probed.
+  const store = (globalThis as { caches?: { default?: Cache } }).caches?.default;
+  if (!store) return build();
+
+  const url = new URL(request.url);
+  url.searchParams.set('__gen', String(GEN_VERSION));
+  const key = new Request(url.toString(), { method: 'GET' });
+
+  const hit = await store.match(key);
+  if (hit) return hit;
+
+  const fresh = build();
+  // Best effort: a cache failure must never fail the request.
+  try {
+    await store.put(key, fresh.clone());
+  } catch { /* ignore */ }
+  return fresh;
+}
+
+/**
  * Router for the three JSON endpoints. Returns null when the path is not ours,
  * so the Worker can fall through to static assets (which is how /api/ serves
  * the HTML documentation page).
  */
-export function handleApi(request: Request): Response | null {
+export async function handleApi(request: Request): Promise<Response | null> {
   const url = new URL(request.url);
   if (!(API_ROUTES as readonly string[]).includes(url.pathname)) return null;
 
@@ -248,37 +281,42 @@ export function handleApi(request: Request): Response | null {
     return problem(405, 'Only GET is supported.');
   }
 
+  const badDifficulty = () =>
+    problem(400, `difficulty must be one of: ${DIFFICULTY_ORDER.join(', ')}.`);
+
   switch (url.pathname) {
     case '/api/maps':
-      return json(mapsResponse(url.origin), 200, 86400);
+      return cached(request, () => json(mapsResponse(url.origin), 200, 86400));
 
     case '/api/share': {
       const seed = normaliseSeed(url.searchParams.get('seed'));
       if (seed === null) return problem(400, `Pass ?seed=<1-${MAX_SEED} printable characters>.`);
       const difficulty = parseDifficulty(url.searchParams.get('difficulty'));
-      if (difficulty === null) {
-        return problem(400, `difficulty must be one of: ${DIFFICULTY_ORDER.join(', ')}.`);
-      }
-      return json(
-        {
-          seed,
-          difficulty,
-          playUrl: `${url.origin}/?seed=${encodeURIComponent(seed)}`,
-          deepLinkNote:
-            'Seeds are preset by ?seed=. Custom maps use #m=<SGMAP.v1.…> instead; the fragment is never sent to this API.',
-        },
-        200,
-        86400,
+      if (difficulty === null) return badDifficulty();
+      return cached(request, () =>
+        json(
+          {
+            seed,
+            difficulty,
+            playUrl: `${url.origin}/?seed=${encodeURIComponent(seed)}`,
+            deepLinkNote:
+              'Seeds are preset by ?seed=. Custom maps use #m=<SGMAP.v1.…> instead; the fragment is never sent to this API.',
+          },
+          200,
+          86400,
+        ),
       );
     }
 
     case '/api/maze': {
-      const seed = normaliseSeed(url.searchParams.get('seed')) ?? DEFAULT_SEED;
+      // Absent seed means "give me the default"; a seed that is present but
+      // unusable is the caller's mistake and must not silently become nightjar.
+      const rawSeed = url.searchParams.get('seed');
+      const seed = rawSeed === null ? DEFAULT_SEED : normaliseSeed(rawSeed);
+      if (seed === null) return problem(400, `Pass ?seed=<1-${MAX_SEED} printable characters>.`);
       const difficulty = parseDifficulty(url.searchParams.get('difficulty'));
-      if (difficulty === null) {
-        return problem(400, `difficulty must be one of: ${DIFFICULTY_ORDER.join(', ')}.`);
-      }
-      return json(mazeResponse(seed, difficulty, url.origin), 200, 3600);
+      if (difficulty === null) return badDifficulty();
+      return cached(request, () => json(mazeResponse(seed, difficulty, url.origin), 200, 3600));
     }
 
     default:

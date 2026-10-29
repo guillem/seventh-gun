@@ -44,6 +44,12 @@ why `run_worker_first` lists the three API routes by name. **Adding a route to
 asset.** `/api/` itself is intentionally not listed: it is the HTML docs page
 and must keep coming from assets.
 
+The same trap exists in the Node adapter (`server/node/main.ts`), which used
+to resolve exact files only: `/about/` and `/robots.txt` fell through to the
+game shell and `.txt`/`.xml` went out as `application/octet-stream`. It now
+resolves directory indexes and extensionless `.html`, and `nodeStatic.test.ts`
+covers it. The Node build does **not** serve `/api/*`; only the Worker does.
+
 ## Two hosts
 
 - `seventhgun.com` — the production Worker (`seventh-gun`), custom domain set
@@ -101,7 +107,11 @@ description they give is right.
   (`src/ui/screens.ts` and `index.html`). They are the only crawl path from
   the game to the text.
 - **The API is GET-only and read-only.** Anything mutable belongs to the arena
-  route, not here.
+  route, not here. Responses go through `cached()` (Workers `caches.default`),
+  because `s-maxage` alone does not edge-cache a Worker response.
+- **`robots.txt` repeats every rule in every group.** RFC 9309 matches one
+  group, not a merge, so a named bot group that lists only `Allow: /` would
+  lose the `/api/maze` exclusion.
 
 ## Not done, on purpose
 

@@ -79,15 +79,19 @@ printable characters; anything else is a 400.</p>
   <tr><td><code>g</code></td><td>gun pickup</td><td><code>k</code></td><td>vault key</td></tr>
 </table>
 
-<p>Example, truncated:</p>
+<p>Example, truncated. These numbers are the real response for that seed, not
+illustrative ones; if they drift from <code>/api/maze</code> the page is
+wrong.</p>
 
 <pre style="overflow-x:auto;background:#11130f;border:1px solid #2c302a;padding:12px 14px;font-size:13px;color:#c8c4a8"><code>GET /api/maze?seed=nightjar&amp;difficulty=normal
 
 {
   "seed": "nightjar",
   "difficulty": "normal",
-  "summary": "63 enemies across 14 rooms and 4 loot spurs, 3 doors, 9 medikits and 7 ammo boxes on Normal.",
-  "stats": { "spineRooms": 14, "spurs": 4, "doors": 3, "enemies": 63, ... },
+  "generatorVersion": 4,
+  "summary": "74 enemies across 12 rooms and 1 loot spur, 2 doors, 11 medikits and 17 ammo boxes on Normal.",
+  "stats": { "spineRooms": 12, "spurs": 1, "doors": 2, "enemies": 74,
+             "medikits": 11, "ammoBoxes": 17 },
   "playUrl": "https://seventhgun.com/?seed=nightjar",
   "floorplan": [
     "###########...",
@@ -122,7 +126,11 @@ opened in a browser.</p>
   <li>Cached at the edge: <code>s-maxage</code> is a day for the stable
       endpoints, an hour for <code>/api/maze</code>.</li>
   <li>No rate limiting is applied. Be reasonable; a maze costs a few
-      milliseconds of CPU.</li>
+      milliseconds of CPU, and repeated requests for the same URL are served
+      from the edge cache.</li>
+  <li>These endpoints are served by the Cloudflare Worker. Self-hosted Node
+      builds (Docker, <code>npx</code>, static tarball) serve the text pages
+      but not <code>/api/*</code>.</li>
   <li><code>/api/maze</code> is excluded from <a href="/robots.txt">robots.txt</a>
       because its seed space is unbounded, which is not a crawl budget you
       should spend.</li>
