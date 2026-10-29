@@ -7,9 +7,10 @@
 # it would spend crawl budget on pages nobody links to. The rest of /api is
 # cheap, deterministic and useful to agents, so it stays open.
 #
-# RFC 9309 §2.2.1: a crawler obeys the *single* group whose User-agent matches
-# it, most specific first. It does not merge groups, so the named groups below
-# repeat the exclusion instead of inheriting it from the wildcard group.
+# RFC 9309 §2.2.1: a crawler picks the most specific group that names it and
+# ignores the wildcard group entirely. `*` is only the fallback for crawlers
+# with no group of their own, so the named groups below repeat the exclusion
+# rather than inheriting it.
 
 User-agent: *
 Allow: /

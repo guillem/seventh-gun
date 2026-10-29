@@ -7,6 +7,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
+import { request } from 'node:http';
 import { serve, type RunningServer } from '../../server/node/main';
 
 const SHELL = '<!doctype html><canvas id="game-canvas"></canvas>';
@@ -58,7 +59,26 @@ describe('node static routing', () => {
   });
 
   it('does not escape the client directory', async () => {
-    const res = await fetch(`${base}/../../etc/passwd`);
-    expect(await res.text()).toContain('game-canvas');
+    // fetch() normalizes the path client-side, so this has to go out on a raw
+    // socket or the server is never actually asked for a traversal.
+    for (const path of ['/../../etc/passwd', '/about/../../../etc/passwd', '/%2e%2e/%2e%2e/etc/passwd']) {
+      const body = await rawGet(path);
+      expect(body, path).toContain('game-canvas');
+      expect(body, path).not.toContain('root:');
+    }
   });
 });
+
+function rawGet(path: string): Promise<string> {
+  const { hostname, port } = new URL(base);
+  return new Promise((resolve, reject) => {
+    const req = request({ hostname, port, path, method: 'GET' }, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve(data));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
