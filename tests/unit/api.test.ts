@@ -185,4 +185,18 @@ describe('edge cache', () => {
     expect(first.seed).toBe('cachetest');
     expect(cache.puts).toBe(1);
   });
+
+  it('still answers when the cache lookup itself throws', async () => {
+    // A cache outage must degrade to "generate it", not to a failed request.
+    (globalThis as { caches?: unknown }).caches = {
+      default: {
+        match: async () => { throw new Error('cache down'); },
+        put: async () => { throw new Error('cache down'); },
+      },
+    };
+
+    const res = await get('/api/maze?seed=cachebroken');
+    expect(res.status).toBe(200);
+    expect((await body(res)).seed).toBe('cachebroken');
+  });
 });

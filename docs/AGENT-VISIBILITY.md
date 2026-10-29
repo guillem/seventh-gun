@@ -109,9 +109,10 @@ description they give is right.
 - **The API is GET-only and read-only.** Anything mutable belongs to the arena
   route, not here. Responses go through `cached()` (Workers `caches.default`),
   because `s-maxage` alone does not edge-cache a Worker response.
-- **`robots.txt` repeats every rule in every group.** RFC 9309 matches one
-  group, not a merge, so a named bot group that lists only `Allow: /` would
-  lose the `/api/maze` exclusion.
+- **`robots.txt` repeats every rule in every group.** RFC 9309 applies the
+  most specific group that names a crawler and treats `*` as a fallback, so a
+  named bot group listing only `Allow: /` would lose the `/api/maze`
+  exclusion.
 
 ## Not done, on purpose
 

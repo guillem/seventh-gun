@@ -254,7 +254,12 @@ async function cached(request: Request, build: () => Response): Promise<Response
   url.searchParams.set('__gen', String(GEN_VERSION));
   const key = new Request(url.toString(), { method: 'GET' });
 
-  const hit = await store.match(key);
+  // A broken cache must never fail a request: if the lookup throws, behave as
+  // a miss. Only the generator's own output is allowed to decide the response.
+  let hit: Response | undefined;
+  try {
+    hit = await store.match(key);
+  } catch { /* treat as a miss */ }
   if (hit) return hit;
 
   const fresh = build();
