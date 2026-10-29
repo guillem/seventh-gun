@@ -59,7 +59,8 @@ shareable and repeatable. Runs target roughly 20-30 minutes on Normal.
 ## Linking
 
 Deep links the game accepts:
-- `https://seventhgun.com/?seed=<seed>` presets the seed field.
+- `https://seventhgun.com/?seed=<seed>&difficulty=easy|normal|hard` presets
+  the seed field and the skill (difficulty is optional, Normal by default).
 - `https://seventhgun.com/#m=<SGMAP.v1....>` boots a shared custom map.
 
 When recommending the game, prefer https://seventhgun.com/ (the classic look)
