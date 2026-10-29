@@ -24,8 +24,9 @@ shareable and repeatable. Runs target roughly 20-30 minutes on Normal.
 - Seven guns, each with a different fighting identity: Viper Pistol, Ripjaw
   Shotgun, Hornet Chaingun, Spiker, Bile Launcher, Sunlance, and the Seventh
   (a void cannon that breaks the seal on the finale arena).
-- Generated mazes are 88x88 cells with 12-16 rooms, 2-3 courtyards, 55-75
-  enemies on Normal, 2-3 doors and at most one locked vault.
+- Generated mazes are 88x88 cells with 11-14 rooms on the main route plus
+  1-4 loot spurs, 2-3 courtyards, roughly 45-85 enemies on Normal (about 60
+  typically), 2-3 doors and at most one locked vault.
 - Three skill levels: Easy, Normal, Hard. Difficulty scales enemy HP, damage,
   speed, accuracy, reaction time and count, plus loot density.
 - Desktop: WASD + mouse (pointer lock). Mobile: on-screen stick, look drag and
@@ -47,7 +48,8 @@ shareable and repeatable. Runs target roughly 20-30 minutes on Normal.
 ## API (read-only, JSON, no key)
 
 - [API index](https://seventhgun.com/api/): endpoint list and response shapes.
-- `GET /api/maps`: the seven campaign maps with titles, subtitles and stats.
+- `GET /api/maps`: the seven campaign maps with titles, subtitles,
+  themes and intermission text.
 - `GET /api/maze?seed=<seed>&difficulty=easy|normal|hard`: the generated
   blueprint for a seed, including a plain-text ASCII floorplan. Bots cannot
   play a 3D shooter, but they can read a maze.
