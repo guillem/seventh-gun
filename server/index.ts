@@ -1,5 +1,6 @@
 import { ArenaRoom } from './room';
 import { intervalScheduler } from './scheduler';
+import { handleApi } from './api';
 
 export interface Env {
   ARENA: DurableObjectNamespace;
@@ -48,6 +49,12 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     if (url.pathname === '/health') return new Response('ok');
+
+    // Read-only JSON. Returns null for anything that is not one of its three
+    // routes, so /api/ (the docs page) still comes from static assets.
+    const api = handleApi(req);
+    if (api) return api;
+
     if (url.pathname === '/arena') {
       if (!originAllowed(req, env)) return new Response('forbidden', { status: 403 });
       return env.ARENA.get(env.ARENA.idFromName('global')).fetch(req);

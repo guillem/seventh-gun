@@ -21,6 +21,28 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
     throw new Error('JavaScript entry is empty or has the wrong content type');
   }
 
+  // Crawl surface. The SPA fallback used to answer /robots.txt, /sitemap.xml
+  // and /llms.txt with the game HTML at 200, which is worse than a 404: the
+  // content type is the only thing that tells a crawler it failed.
+  const robots = await get('/robots.txt');
+  if (!/^text\/plain/.test(robots.headers.get('content-type') ?? '')) {
+    throw new Error('robots.txt is not text/plain: the SPA fallback is answering it');
+  }
+  if (!(await robots.text()).includes('Sitemap:')) throw new Error('robots.txt has no Sitemap line');
+
+  // Read-only agent API. Both are pure functions of the URL, so they must
+  // answer identically on a workers.dev host and on the custom domain.
+  const maps = await get('/api/maps');
+  const mapsJson = await maps.json().catch(() => { throw new Error('/api/maps did not return JSON'); });
+  if (mapsJson.count !== 7) throw new Error(`/api/maps: expected 7 campaign maps, got ${mapsJson.count}`);
+
+  const maze = await get('/api/maze?seed=smoke');
+  const mazeJson = await maze.json().catch(() => { throw new Error('/api/maze did not return JSON'); });
+  if (!Array.isArray(mazeJson.floorplan) || mazeJson.floorplan.length !== 88) {
+    throw new Error('/api/maze: floorplan missing or the wrong height');
+  }
+  const site = `robots ok, ${mapsJson.count} maps, ${mazeJson.stats.enemies} enemies at seed "smoke"`;
+
   const wsUrl = new URL('/arena', base);
   wsUrl.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
   return await new Promise((resolve, reject) => {
@@ -44,7 +66,7 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
         const message = JSON.parse(String(data));
         if (message.v !== 3) throw new Error('Unexpected arena protocol version');
         if (message.t === 'full') {
-          finish(null, { asset: assetUrl.pathname, arena: 'full', snapshots: 'not checked: room at capacity' });
+          finish(null, { site, asset: assetUrl.pathname, arena: 'full', snapshots: 'not checked: room at capacity' });
           return;
         }
         if (message.t === 'welcome') {
@@ -57,7 +79,7 @@ export async function smokeDeployment(baseUrl, { timeoutMs = 8000 } = {}) {
           const tick = message.snapshot?.tick;
           if (!Number.isInteger(tick)) throw new Error('Invalid snapshot tick');
           if (firstTick === null) firstTick = tick;
-          else if (tick > firstTick) finish(null, { asset: assetUrl.pathname, firstTick, tick });
+          else if (tick > firstTick) finish(null, { site, asset: assetUrl.pathname, firstTick, tick });
         }
       } catch (error) { finish(error); }
     });
