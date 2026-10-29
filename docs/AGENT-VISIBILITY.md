@@ -57,14 +57,25 @@ covers it. The Node build does **not** serve `/api/*`; only the Worker does.
 - `art.seventhgun.com` — a separate Worker (`seventh-gun-art`) deployed only
   from `codex/experimental-modern-art`, a branch that is never merged.
 
-On `main` the canonical points at `seventhgun.com`, and `sameAs` lists the art
-host as an alternative. The art branch should, when it is next touched, carry
-its own `description` and `og:title` and either drop the canonical or point it
-at itself — two hosts serving identical text with one canonical is correct,
-two hosts with no canonical compete for the same query.
+Both hosts declare the canonical on `seventhgun.com`, page by page, so search
+engines fold the art build into the primary site instead of ranking two copies
+against each other. On this branch (`codex/experimental-modern-art`) that means:
 
-The art build also needs the `public/` text pages and robots/sitemap copied or
-kept in sync; they are not, today, because the branch predates them.
+- `index.html` and every `public/*/index.html` keep `canonical` and `og:url`
+  on `seventhgun.com`. Do not point them at `art.seventhgun.com`.
+- No `public/sitemap.xml`: a sitemap may only list its own host's URLs, and
+  listing non-canonical ones is a mixed signal. `public/_redirects` 301s
+  `/sitemap.xml` to the primary sitemap so the SPA fallback cannot answer it,
+  and `robots.txt` names that sitemap.
+- `llms.txt` and the no-JS `#intro` say plainly that this is the experimental
+  art build and link back to `seventhgun.com`.
+- The `#intro` placeholder is removed when the art loader (`#art-loading`)
+  is appended, not after `new Game()`: the loader is what a JS reader sees
+  while the asset pack downloads.
+- The API is identical; `playUrl` comes from the request origin, so links
+  from this host play this build.
+
+Text pages are shared with `main`. When one changes there, cherry-pick it here.
 
 ## Verifying
 

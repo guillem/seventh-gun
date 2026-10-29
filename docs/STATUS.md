@@ -634,9 +634,11 @@ static pages in `public/`, `index.html` carries OG cards and `VideoGame`
 JSON-LD, `public/og.png` unfurls links, and `server/api.ts` serves read-only
 JSON (`/api/maze` includes an ASCII floorplan, so an agent can read a seed).
 `smoke-deployment.mjs` asserts robots content-type and both API payloads, so a
-regression fails the deploy gate. Verified locally under `wrangler dev`; not
-deployed. The art Worker still needs its own canonical and its own copy of the
-text pages. See [AGENT-VISIBILITY.md](AGENT-VISIBILITY.md).
+regression fails the deploy gate. Live on seventhgun.com from main (PR #35).
+Ported to this branch with the canonical kept on seventhgun.com, no sitemap of
+its own (`/sitemap.xml` 301s to the primary), and the intro handing over to the
+art loader. See [AGENT-VISIBILITY.md](AGENT-VISIBILITY.md).
+
 ## Product
 
 Seeded mazes, seven authored campaign maps, an editor, 15 campaign secrets,

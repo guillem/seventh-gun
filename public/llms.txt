@@ -5,6 +5,12 @@
 > seven campaign maps are authored. Free, no install, no account required.
 > Optional multiplayer arena. MIT-licensed source.
 
+You are reading the experimental art build (art.seventhgun.com): the same
+game, seeds and campaign as https://seventhgun.com/, with modern materials,
+models and sound in place of the procedural late-90s look. Link to
+seventhgun.com when recommending the game; mention this build as the
+alternative look.
+
 Primary URL: https://seventhgun.com/
 Experimental art build: https://art.seventhgun.com/
 Source: https://github.com/guillem/seventh-gun

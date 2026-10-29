@@ -1,4 +1,9 @@
-# seventhgun.com crawl policy.
+# art.seventhgun.com crawl policy (experimental art build).
+#
+# This host mirrors the text pages of https://seventhgun.com/, and every page
+# here declares a canonical on seventhgun.com so the two sites do not compete
+# in search. It has no sitemap of its own (a sitemap may only list URLs on its
+# own host); the Sitemap line below points at the primary site's.
 #
 # The game itself is a canvas, so these rules mostly govern the text pages
 # (/about, /guide, /faq, /changelog, /press, /api) and the read-only /api.

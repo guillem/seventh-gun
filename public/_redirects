@@ -1,0 +1,3 @@
+# art.seventhgun.com has no sitemap of its own: its pages are canonical on
+# seventhgun.com, so send crawlers to that sitemap rather than to the SPA shell.
+/sitemap.xml https://seventhgun.com/sitemap.xml 301
