@@ -94,6 +94,11 @@ export function parseDifficulty(raw: string | null): Difficulty | null {
   return (DIFFICULTY_ORDER as string[]).includes(value) ? (value as Difficulty) : null;
 }
 
+/** The link that opens the title screen with this seed and skill preselected. */
+function playUrl(origin: string, seed: string, difficulty: Difficulty): string {
+  return `${origin}/?seed=${encodeURIComponent(seed)}&difficulty=${difficulty}`;
+}
+
 function cellOf(world: number): number {
   return Math.floor(world / CELL);
 }
@@ -170,7 +175,7 @@ function mazeResponse(seed: string, difficulty: Difficulty, origin: string) {
     grid: { width: GRID_W, height: GRID_H, cellSize: CELL, units: 'cells' },
     // Deliberately derived from the request host, so a self-hosted or
     // workers.dev deployment links to itself rather than to production.
-    playUrl: `${origin}/?seed=${encodeURIComponent(seed)}`,
+    playUrl: playUrl(origin, seed, difficulty),
     // An assistant will quote this sentence verbatim, so it is written to be
     // read aloud and pluralised properly.
     summary:
@@ -303,9 +308,9 @@ export async function handleApi(request: Request): Promise<Response | null> {
           {
             seed,
             difficulty,
-            playUrl: `${url.origin}/?seed=${encodeURIComponent(seed)}`,
+            playUrl: playUrl(url.origin, seed, difficulty),
             deepLinkNote:
-              'Seeds are preset by ?seed=. Custom maps use #m=<SGMAP.v1.…> instead; the fragment is never sent to this API.',
+              'Seed and skill are preset by ?seed= and ?difficulty=. Custom maps use #m=<SGMAP.v1.…> instead; the fragment is never sent to this API.',
           },
           200,
           86400,
