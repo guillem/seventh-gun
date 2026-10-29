@@ -13,6 +13,11 @@ loader.setAttribute('aria-live', 'polite');
 loader.innerHTML = '<div class="boot-mark">VII</div><p class="boot-label">SEVENTH GUN</p><h1>Preparing the Foundry</h1><p class="boot-status">Loading world materials and models…</p><progress max="5" value="0" aria-label="Loading game assets"></progress>';
 document.body.appendChild(loader);
 
+// index.html ships a server-rendered intro (title, pitch, links to the text
+// pages) for readers that never run this bundle. Anyone who does run it gets
+// the art loader instead, which takes over the screen from here on.
+document.getElementById('intro')?.remove();
+
 async function start(): Promise<void> {
   try {
     await Promise.all([

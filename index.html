@@ -103,6 +103,31 @@
     }
     .hidden { display: none !important; }
 
+    /* Pre-boot placeholder (see <main id="intro">). Same gradient and gap as
+       .screen, and one stacking level below #screens, so the handover to the
+       real title screen cannot flicker or double up even if removal fails. */
+    #intro {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; padding: 24px;
+      background: radial-gradient(ellipse at center, rgba(20,8,10,0.88) 0%, rgba(5,3,5,0.97) 75%);
+    }
+    .intro-lead {
+      max-width: 46ch; margin: 0; text-align: center;
+      color: #8a8578; font-size: 14px; line-height: 1.7;
+    }
+    .intro-loading { margin: 0; color: #4a4d44; font-size: 11px; letter-spacing: 0.2em; }
+    .intro-links, .title-links {
+      display: flex; flex-wrap: wrap; gap: 18px; justify-content: center;
+    }
+    .intro-links a, .title-links a {
+      color: #6e7264; text-decoration: none; font-size: 11.5px;
+      letter-spacing: 0.18em; border-bottom: 1px dotted #565b50; padding-bottom: 2px;
+    }
+    .intro-links a:hover, .title-links a:hover {
+      color: var(--accent); border-bottom-color: var(--accent);
+    }
+
     .title-art { text-align: center; }
     .title-art h1 {
       font-size: clamp(42px, 9vw, 96px);
@@ -307,6 +332,33 @@
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
+
+  <!-- Server-rendered placeholder, removed by src/main.ts as soon as the game
+       has drawn its own title screen. It exists so that a reader without
+       JavaScript — a crawler, a text browser, an agent that refuses to run a
+       900 kB bundle — gets the title, the pitch and the links to the readable
+       pages instead of an empty black rectangle. It is styled to match the
+       title screen exactly, so the swap is invisible. -->
+  <main id="intro">
+    <div class="title-art">
+      <h1>SEVENTH<span class="accent">GUN</span></h1>
+      <div class="subtitle">a nightmare maze of flesh and steel</div>
+    </div>
+    <p class="intro-lead">
+      A seeded, late-1990s-style first-person shooter that runs entirely in the
+      browser. Every maze, texture, sound and enemy is generated from a seed;
+      seven guns, seven authored campaign maps, an optional multiplayer arena.
+      Free, no install, no account.
+    </p>
+    <nav class="intro-links" aria-label="More about the game">
+      <a href="/about/">ABOUT</a>
+      <a href="/guide/">GUIDE</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/press/">PRESS</a>
+    </nav>
+    <p class="intro-loading">Loading the maze&hellip;</p>
+  </main>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

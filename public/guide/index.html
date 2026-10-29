@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guide: controls, guns, seeds and runs — SEVENTH GUN</title>
+<meta name="description" content="How to play Seventh Gun: desktop and mobile controls, all seven guns with damage and fire rate, how a seeded run is structured, difficulty levels, the campaign, the arena and the map editor." />
+<link rel="canonical" href="https://seventhgun.com/guide/" />
+<link rel="stylesheet" href="/pages.css" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Guide — SEVENTH GUN" />
+<meta property="og:description" content="Controls, the seven guns, seeded runs, difficulty, campaign, arena and editor." />
+<meta property="og:url" content="https://seventhgun.com/guide/" />
+<meta property="og:image" content="https://seventhgun.com/og.png" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="site-nav">
+  <a class="brand" href="/">SEVENTH<span>GUN</span></a>
+  <a class="nav-link" href="/about/">ABOUT</a>
+  <a class="nav-link" href="/guide/" aria-current="page">GUIDE</a>
+  <a class="nav-link" href="/faq/">FAQ</a>
+  <a class="nav-link" href="/press/">PRESS</a>
+</header>
+
+<main>
+<h1>Guide</h1>
+
+<p class="lead">Everything you need to survive a run: controls, the seven
+guns, how the maze is laid out, what the difficulty settings actually change,
+and how seeds and shared maps work.</p>
+
+<a class="cta" href="/">PLAY</a>
+
+<h2>Controls</h2>
+
+<h3>Desktop</h3>
+<table>
+  <tr><th>Input</th><th>Action</th></tr>
+  <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Move, relative to where you are looking</td></tr>
+  <tr><td>Mouse</td><td>Look. Click the canvas once to capture the pointer; <kbd>ESC</kbd> releases it</td></tr>
+  <tr><td>Left click (or hold)</td><td>Fire</td></tr>
+  <tr><td><kbd>1</kbd>&ndash;<kbd>7</kbd> or mouse wheel</td><td>Switch gun</td></tr>
+  <tr><td><kbd>E</kbd></td><td>Open doors, use the vault key</td></tr>
+  <tr><td><kbd>TAB</kbd> or <kbd>M</kbd></td><td>Full map. Pauses combat in maze and campaign runs</td></tr>
+  <tr><td><kbd>ESC</kbd></td><td>Pause. In the arena it opens the menu instead</td></tr>
+</table>
+
+<p>There is no jump, no crouch and no sprint. Movement is one speed, 6.5
+units per second, so positioning is about corners and doorways rather than
+mobility tricks.</p>
+
+<h3>Phone and tablet</h3>
+<p>A floating stick appears under your left thumb to move. Drag on the right
+side of the screen to look. <kbd>FIRE</kbd>, <kbd>USE</kbd>, <kbd>MAP</kbd>
+and pause buttons sit above the HUD on the right.</p>
+
+<h2>A run, start to finish</h2>
+
+<ol>
+  <li>You spawn with the Viper Pistol, 70 bullets and 100 HP.</li>
+  <li>The maze is a spine of 12&ndash;14 rooms from your start to the antechamber,
+      with 3&ndash;4 loot spurs hanging off it and up to two alternate links.
+      Corridors are three cells wide; a cell is two world units.</li>
+  <li>Guns 2 to 6 sit along the route in strictly increasing order, so a
+      detour always pays something better than what you already carry.</li>
+  <li>Two or three doors stand between you and the end. At most one is locked,
+      and the key only ever guards a vault spur &mdash; the arena is never
+      key-gated.</li>
+  <li>Gun 7, the Seventh, waits in the antechamber. Picking it up shatters the
+      seal on the finale arena.</li>
+  <li>Clear the arena to win. Enemies keep coming until the seal breaks, so
+      there is no way to sneak past the fight.</li>
+</ol>
+
+<p>On Normal a generated maze holds 55&ndash;75 enemies across an 88&times;88
+cell grid, with two or three open courtyards under the sky dome and the rest
+under a 4.2-unit ceiling. A full run takes roughly 20 to 30 minutes.</p>
+
+<h2>Seeds</h2>
+
+<p>A seed is a short string. The same seed on the same skill level produces
+identical geometry, enemies and loot, on any machine, forever.</p>
+
+<ul>
+  <li>Type a seed in the <kbd>SEED</kbd> field, or press <kbd>RND</kbd> for a
+      random one.</li>
+  <li><code>https://seventhgun.com/?seed=nightjar</code> presets the field, so
+      you can link a specific run.</li>
+  <li>After a run, <kbd>COPY LINK</kbd> gives you the shareable URL, and
+      <kbd>MAP LOG</kbd> on the title screen lists every seed you have played
+      with its time, skill and outcome. The log lives in this browser only.</li>
+  <li>The layout is generated before difficulty is applied, so the same seed
+      is the same maze on Easy, Normal and Hard &mdash; only enemies, damage
+      and loot change. Racing a friend across difficulties is a fair
+      comparison of skill, not of map luck.</li>
+</ul>
+
+<h2>Difficulty</h2>
+
+<p>Difficulties scale the whole economy, not just health bars. Normal is the
+reference balance.</p>
+
+<table>
+  <tr><th>What changes</th><th>Easy</th><th>Normal</th><th>Hard</th></tr>
+  <tr><td>Enemy health</td><td class="num">0.75&times;</td><td class="num">1&times;</td><td class="num">1.3&times;</td></tr>
+  <tr><td>Enemy damage</td><td class="num">0.6&times;</td><td class="num">1&times;</td><td class="num">1.4&times;</td></tr>
+  <tr><td>Enemy speed</td><td class="num">0.9&times;</td><td class="num">1&times;</td><td class="num">1.1&times;</td></tr>
+  <tr><td>Enemy count</td><td class="num">0.72&times;</td><td class="num">1&times;</td><td class="num">1.22&times;</td></tr>
+  <tr><td>Enemy accuracy</td><td>looser</td><td>baseline</td><td>tighter, faster reactions</td></tr>
+  <tr><td>Your damage</td><td class="num">1.35&times;</td><td class="num">1&times;</td><td class="num">0.85&times;</td></tr>
+  <tr><td>Medikits</td><td class="num">35 HP, 1.5&times; many</td><td class="num">25 HP</td><td class="num">18 HP, 0.75&times; many</td></tr>
+  <tr><td>Ammo drops</td><td class="num">1.35&times;</td><td class="num">1&times;</td><td class="num">0.85&times;</td></tr>
+</table>
+
+<p>Easy if you die in the first minute, Hard if you do not.</p>
+
+<h2>The campaign</h2>
+
+<p>Seven authored maps, played in order. The guns you collect stay with you
+between maps; your health resets at the start of each one. Map 1 is always
+open, and each win unlocks the next. Progress is saved in this browser, so
+<kbd>CONTINUE</kbd> picks up where you left off.</p>
+
+<table>
+  <tr><th>#</th><th>Map</th><th>Subtitle</th></tr>
+  <tr><td class="num">1</td><td>The Foundry</td><td>steel remembers the screaming</td></tr>
+  <tr><td class="num">2</td><td>The Gullet</td><td>it swallows light</td></tr>
+  <tr><td class="num">3</td><td>The Catacombs</td><td>names worn off the stone</td></tr>
+  <tr><td class="num">4</td><td>The Pit</td><td>the floor is a mouth</td></tr>
+  <tr><td class="num">5</td><td>The Spire</td><td>stairs that do not end</td></tr>
+  <tr><td class="num">6</td><td>The Ward</td><td>the lock was a prayer</td></tr>
+  <tr><td class="num">7</td><td>The Sanctum</td><td>the last room is a throat</td></tr>
+</table>
+
+<h2>Arena</h2>
+
+<p>Small-team deathmatch on a generated 96&times;96 grid, up to ten players,
+no monsters and no jump. You spawn with the pistol and 70 bullets; gun, ammo
+and medikit pads are spread across the map. Spawn protection lasts two
+seconds or until your first shot. Respawn is 25 seconds, 40 for the Seventh,
+12 for ammo and 20 for medikits. <kbd>TAB</kbd> shows the scoreboard,
+<kbd>M</kbd> the map, and the fight continues while a menu is open &mdash;
+you stay vulnerable. Idle players are dropped after two minutes.</p>
+
+<h2>Map editor</h2>
+
+<p>The editor lets you draw a map by hand, set its title and seed, test it, and
+export it as a compact <code>SGMAP.v1.</code> code. A code pasted into
+<code>https://seventhgun.com/#m=&lt;code&gt;</code> boots straight into that
+map, which is how custom maps are shared.</p>
+
+<h2>Practical advice</h2>
+
+<ul>
+  <li>Take every spur. The gun order is monotonic, so a detour can only
+      improve your loadout.</li>
+  <li>Doors are chokepoints. Back into one and the chaingun's spread stops
+      mattering.</li>
+  <li>The Bile Launcher and the Seventh both hurt you. In a corridor, the
+      splash is your enemy as much as theirs.</li>
+  <li>The vault is optional loot, never a route. If the fight is going badly,
+      skip it.</li>
+  <li>Nothing in the arena is key-gated. If you are lost, head for the sky.</li>
+</ul>
+</main>
+
+<footer>
+  <a href="/">Play</a> &middot; <a href="/about/">About</a> &middot;
+  <a href="/faq/">FAQ</a> &middot; <a href="/changelog/">Changelog</a> &middot;
+  <a href="/press/">Press</a> &middot;
+  <a href="https://github.com/guillem/seventh-gun">Source</a>
+</footer>
+
+</div>
+</body>
+</html>
