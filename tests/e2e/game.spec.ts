@@ -328,6 +328,17 @@ test.describe('desktop', () => {
     expect(hard.enemiesAlive).not.toBe(normal.enemiesAlive); // different economy
   });
 
+  test('?seed= and ?difficulty= preset the title screen without saving the skill', async ({ page }) => {
+    await page.goto(`${BASE}&seed=shared-link&difficulty=hard`);
+    await expect(page.locator('#seed-input')).toHaveValue('shared-link');
+    await expect(page.locator('#diff-row button.active')).toHaveAttribute('data-diff', 'hard');
+    const saved = await page.evaluate(() => JSON.stringify(localStorage));
+    expect(saved).not.toContain('"difficulty":"hard"');
+
+    await page.goto(`${BASE}&difficulty=impossible`);
+    await expect(page.locator('#diff-row button.active')).toHaveAttribute('data-diff', 'normal');
+  });
+
   test('same seed => identical map hash across runs', async ({ page }) => {
     await page.goto(BASE);
     const hashes = await page.evaluate(async () => {

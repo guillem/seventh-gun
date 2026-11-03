@@ -93,6 +93,39 @@ Outside the repo, the remaining check is the one that actually matters: ask
 three assistants "a free browser FPS I can play right now" and see whether the
 description they give is right.
 
+## Rate limit (dashboard, not in this repo)
+
+Every `/api/*` call runs the Worker and counts toward the Free plan's daily
+request quota, which the arena shares. A cache hit still counts. A bot looping
+on the API could therefore starve the arena for the rest of the day; static
+assets would keep serving. One zone-level WAF rate-limiting rule guards
+against this. It lives in the Cloudflare dashboard (seventhgun.com → Security
+rules), because wrangler's OAuth token cannot edit WAF rules:
+
+| Setting    | Value                                                                  |
+| ---------- | ---------------------------------------------------------------------- |
+| Name       | `api burst`                                                            |
+| Expression | `(http.request.uri.path in {"/api/maze" "/api/maps" "/api/share"})`    |
+| Counting   | IP (fixed on Free)                                                     |
+| Rate       | 20 requests / 10 seconds                                               |
+| Action     | Block for 10 seconds (fixed on Free), answered as 429                  |
+
+It covers both `seventhgun.com` and `art.seventhgun.com` (same zone), not the
+`*.workers.dev` hosts, which bypass zone rules. Counters lag by a second or
+two, so a burst gets about 20–40 requests through before blocking starts.
+Verified 2026-10-29: API paths return 429 after a burst, and pages and the
+arena are unaffected.
+
+Rules for this:
+
+- **A new route in `API_ROUTES` goes into this expression too**, as well as
+  into `run_worker_first` in `wrangler.jsonc`.
+- **In the dashboard, enter each path as its own value** (press Enter after
+  each). A comma-separated list typed into one box becomes one literal string
+  and the rule silently matches nothing; the first version of this rule did
+  exactly that.
+- The deploy smoke checks make two API calls per host, far below the limit.
+
 ## Maintenance rules
 
 - **Numbers must stay true to `docs/GAME-DESIGN.md`.** The pages state enemy

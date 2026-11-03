@@ -12,8 +12,9 @@ Single source of truth: `src/sim/weapons.ts`, `src/sim/enemyTypes.ts`,
 ## Map economy (Normal)
 
 - 88×88 cells. Spine of 12–14 rooms + arena (15×13..16×14) + antechamber +
-  3–4 loot spurs + up to 2 alternate links. 2–3 doors, ≤1 locked (vault spur
-  only — the arena is never key-gated). 2–3 courtyards. 55–75 enemies.
+  1–4 loot spurs + up to 2 alternate links. 2–3 doors, ≤1 locked (vault spur
+  only — the arena is never key-gated). 2–3 courtyards. ~45–85 enemies
+  (median ~62 over the 300-seed sweep).
   Guns 2–6 spaced along the route (BFS order, strictly increasing), gun 7 in
   the antechamber; picking it up shatters the arena seal
   (`sealBreak: { type:'gun', gun:7 }`). Authored / URL maps may unseal with

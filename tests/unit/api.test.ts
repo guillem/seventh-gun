@@ -89,7 +89,7 @@ describe('/api/maze', () => {
     expect(data.rooms.length).toBeGreaterThan(10);
     expect(data.guns.length).toBeGreaterThan(0);
     expect(data.guns.every((g: { gun: number }) => g.gun >= 2 && g.gun <= 7)).toBe(true);
-    expect(data.playUrl).toBe(`${BASE}/?seed=nightjar`);
+    expect(data.playUrl).toBe(`${BASE}/?seed=nightjar&difficulty=normal`);
     expect(data.summary).toContain(`${data.stats.enemies} enemies`);
 
     expect(data.floorplan).toHaveLength(GRID_H);
@@ -139,7 +139,7 @@ describe('/api/maze', () => {
 describe('/api/share', () => {
   it('returns the canonical play URL', async () => {
     const data = await body(await get('/api/share?seed=two%20words&difficulty=easy'));
-    expect(data.playUrl).toBe(`${BASE}/?seed=two%20words`);
+    expect(data.playUrl).toBe(`${BASE}/?seed=two%20words&difficulty=easy`);
     expect(data.difficulty).toBe('easy');
   });
 

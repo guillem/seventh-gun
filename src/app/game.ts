@@ -13,6 +13,7 @@ import { AudioEngine } from '../audio/audio';
 import { Hud, exploredPct } from '../ui/hud';
 import { Screens, loadSettings, saveSettings, randomSeed, type Settings } from '../ui/screens';
 import { InputManager } from './input';
+import { DIFFICULTY_ORDER } from '../sim/difficulty';
 import {
   loadMapLog,
   prependMapLog,
@@ -97,11 +98,17 @@ export class Game {
     this.wireUi();
     this.wireInput();
 
-    // ?seed= support
+    // ?seed= and ?difficulty= support
     const url = new URL(window.location.href);
     const urlSeed = url.searchParams.get('seed');
     if (urlSeed) this.screens.seedInput.value = urlSeed;
     else this.screens.seedInput.value = randomSeed();
+    // A shared link preselects its skill for this page load only: it is not
+    // saved, so following someone's Hard link does not change your default.
+    const urlDiff = url.searchParams.get('difficulty')?.trim().toLowerCase();
+    if (urlDiff && (DIFFICULTY_ORDER as string[]).includes(urlDiff)) {
+      this.settings.difficulty = urlDiff as Difficulty;
+    }
     this.screens.setVolumeSlider(this.settings.volume);
     this.screens.setSensSlider(this.settings.sensitivity);
     this.screens.setMuteLabel(this.settings.muted);
