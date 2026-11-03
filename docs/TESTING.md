@@ -1,5 +1,18 @@
 # TESTING
 
+## Browser security
+
+Playwright 1.64.1 drives **Google Chrome Stable** for both desktop and mobile
+emulation. Install Chrome if absent (`npx playwright install chrome`) and keep
+it updated. CI installs current Chrome Stable for each test job.
+
+The browser preflight rejects versions below **156.0.8078.79**, the security
+baseline checked on 2026-11-03; review this floor after new Chrome security
+updates. Playwright's bundled Chromium 156.0.8078.4 predates those fixes, so
+it is not used and there is no fallback to an old cached browser. This is a
+dated baseline, not a guarantee against future CVEs. Local validation uses
+Chrome 156.0.8078.80 in a separate temporary profile.
+
 ## Unit (vitest, `npm test`)
 
 Run the unit suite on Node 22 or 24, as CI does. On Node 26 the campaign
