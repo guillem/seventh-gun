@@ -32,7 +32,11 @@ URL). Where they disagree with this block, this block wins.
 - **Validation:** typechecks and 557 unit tests pass on Node 24.22.1.
   Full Chrome 156.0.8078.80 desktop/mobile suite: 119 passed, 13 existing
   project-specific skips. Artwork, game/server code and deployment targets
-  are unchanged. Hosted preview and deployment verification pending.
+  are unchanged. Clean `npm ci`, production build and art target guard pass.
+  Hosted preview of code commit `4d21982` passed desktop/mobile Chrome checks:
+  gameplay renders, 95 modern assets load and no page errors occur.
+  Deployment and final live verification are tracked in
+  [security PR #42](https://github.com/guillem/seventh-gun/pull/42).
 - **Art scope delivered:** all seven weapons, six species, support props, 98
   environment kit modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes; the room vertical grammar on all
