@@ -5,6 +5,22 @@ first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
 integration and rollout gates. A local passing build is not a publication.
 
+## Dependency security — 2026-11-03
+
+The ten audit findings from the browser update are resolved: Vitest 4.1.12
+removes the vulnerable Tinypool dependency and fixes mock-handling flaws;
+Vite 6.4.5, Cloudflare's Vite plugin 1.67.0, Wrangler 4.157.0 and the refreshed
+lockfile remove the remaining vulnerable dependencies. `npm audit` reports
+zero findings on 2026-11-03. Unit discovery now includes only this checkout's
+`tests/unit/**/*.test.ts`, excluding old nested worktrees and dependencies.
+
+Local Node 24 validation: 353 unit tests, all three typechecks, production
+build and 90 browser tests passed (12 existing platform skips). One map-key
+browser test passed on retry, then passed ten consecutive runs with retries
+disabled. No test assertions or generator behavior were changed. Deployment
+is authorized for this repair; the PR preview and main CI/deployment results
+are the remaining rollout gates. No npm package publication is requested.
+
 ## Browser security — 2026-11-03
 
 Playwright is upgraded to 1.64.1. Desktop/mobile tests and CI/release setup
