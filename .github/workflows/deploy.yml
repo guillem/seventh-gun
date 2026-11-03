@@ -32,10 +32,10 @@ jobs:
 
       - run: npm ci
 
-      # Only chromium: the mobile project in playwright.config.ts is an
-      # emulated viewport, not a separate engine, so it needs no extra browser.
-      - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
+      # Both desktop and mobile emulation use current stable Chrome, rather
+      # than the older Chromium build pinned by Playwright.
+      - name: Install current Chrome Stable
+        run: npx playwright install --with-deps --force chrome
 
       # Both tsconfigs — the server has its own and is not covered by the root.
       - name: Typecheck

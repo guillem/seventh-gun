@@ -5,6 +5,20 @@ first tagged package release is pending npm publishing authorization.
 See [REPAIR-PLAN.md](REPAIR-PLAN.md) and the linked PR/workflow results for
 integration and rollout gates. A local passing build is not a publication.
 
+## Browser security — 2026-11-03
+
+Playwright is upgraded to 1.64.1. Desktop/mobile tests and CI/release setup
+use Google Chrome Stable, with a preflight rejecting versions older than
+156.0.8078.79. Local Chrome is 156.0.8078.80. OSV reports no known advisories
+for @playwright/test, playwright or playwright-core 1.64.1. Node 24 validation
+passed the CI unit command (706 tests, including nested review-worktree tests),
+typecheck/build and 90 browser tests (12 existing platform skips), using
+Chrome 156.0.8078.80. The broad `npm test` also picks up unrelated nested
+worktree dependency tests; the CI command `npm run test:unit` passes.
+The wider npm audit still reports 10 unrelated findings (2 critical, 7 high,
+1 moderate); these dependencies were not changed by this browser update.
+No production deployment or package release requested.
+
 ## Agent visibility — 2026-10-29
 
 The site had nothing a crawler could read: a 10.9 kB shell with a canvas, and

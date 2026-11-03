@@ -2,12 +2,15 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  globalSetup: './scripts/browser.mjs',
   timeout: 30000,
   retries: 1,
   workers: 1,
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',
+    // Stable Chrome receives security updates independently of Playwright.
+    channel: 'chrome',
   },
   projects: [
     {
