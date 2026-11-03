@@ -1,4 +1,4 @@
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { softwareGl } from './softwareGl';
 
 /** Print the WebGL renderer every run, and refuse to start when E2E_GL asked
@@ -7,11 +7,11 @@ import { softwareGl } from './softwareGl';
  * later as a cancelled job full of timeouts. */
 export default async function globalSetup(): Promise<void> {
   const gl = softwareGl();
-  const browser = await chromium.launch({
-    channel: process.env.PLAYWRIGHT_CHANNEL || gl.channel,
+  const browser = await launchBrowser({
     args: gl.args,
   });
   try {
+    console.log(`[e2e] Chrome ${browser.version()} (stable channel)`);
     const page = await browser.newPage();
     const renderer = await page.evaluate(() => {
       const context = document.createElement('canvas').getContext('webgl2');
@@ -21,7 +21,7 @@ export default async function globalSetup(): Promise<void> {
     console.log(`[e2e] WebGL renderer: ${renderer}`);
     if (gl.expectRenderer && !renderer.includes(gl.expectRenderer)) {
       throw new Error(
-        `E2E_GL=${process.env.E2E_GL} expected a "${gl.expectRenderer}" WebGL renderer but Chromium reported "${renderer}". ` +
+        `E2E_GL=${process.env.E2E_GL} expected a "${gl.expectRenderer}" WebGL renderer but Chrome reported "${renderer}". ` +
         'E2E_GL is for Linux with Mesa EGL installed (Ubuntu: libegl1 libegl-mesa0 libgl1-mesa-dri); unset it elsewhere.',
       );
     }

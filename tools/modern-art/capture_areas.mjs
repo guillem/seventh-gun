@@ -2,7 +2,7 @@
 // view at eye level and an upward view across the room. Installed Chrome,
 // pointer lock stubbed.
 //   node tools/modern-art/capture_areas.mjs <baseURL> [idRegex]
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 
 const base = process.argv[2] ?? 'http://localhost:4173';
@@ -10,7 +10,7 @@ const only = process.argv[3] ? new RegExp(process.argv[3]) : null;
 const areas = readdirSync('art/modern/areas')
   .filter(id => existsSync(`art/modern/areas/${id}/manifest.json`) && (!only || only.test(id)))
   .map(id => JSON.parse(readFileSync(`art/modern/areas/${id}/manifest.json`, 'utf8')));
-const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu'] });
+const browser = await launchBrowser({ args: ['--use-angle=metal', '--enable-gpu'] });
 const results = [];
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();

@@ -1,27 +1,42 @@
 # STATUS
 
-## Current state — 2026-10-05
+## Current state — 2026-11-03
 
 Read this block first; the dated sections below are a newest-first log. Older
 entries are kept as written, so some of their claims are superseded (the CI
 timeouts, "remote main remains `8bf93b3`", workers.dev as the only production
 URL). Where they disagree with this block, this block wins.
 
-- **Branch** `codex/experimental-modern-art`, draft
-  [PR #32](https://github.com/guillem/seventh-gun/pull/32). Never merge, tag or
-  release it. It is behind `origin/main` by PR #33 and #34 (docs, and a
-  production-only deploy guard). Merging `main` in is deliberately deferred:
-  do it only when `main` has code wanted on the art build, and keep this
-  branch's `wrangler.jsonc`, `deploy.yml` and `deploy-art.yml` when it happens.
-- **Production** is `main` (`e1e2acb`) on the `seventh-gun` Worker at
-  <https://seventhgun.com>; `www` redirects there. Netlify stays a static mirror.
-- **Art review targets:** <https://art.seventhgun.com> (own Worker and arena,
-  auto-deployed by `deploy-art.yml` on every push to this branch) and the
-  Netlify preview <https://deploy-preview-32--seventh-gun.netlify.app/>.
-- **CI** (since 2026-10-08) runs no tests on this branch: build, deploy-target
-  check, deploy, smoke. Tests run locally before pushing (AGENTS.md). The
-  six-shard llvmpipe E2E job (last green with the full suite at `6e343d9`)
-  is in git history and described in TESTING.md "E2E in CI".
+- **Art environment:** `codex/experimental-modern-art` serves
+  <https://art.seventhgun.com> and the separate `seventh-gun-art` Worker/arena.
+  Treat it as a second production environment. Fix PRs target this branch;
+  its art-to-main [PR #32](https://github.com/guillem/seventh-gun/pull/32)
+  remains draft and must not be merged. Keep its artwork and deploy targets
+  separate from `main`; no tags or package publications from this branch.
+- **Main environment:** `main` serves <https://seventhgun.com> on the
+  `seventh-gun` Worker; its static Netlify mirror is separate from art previews.
+- **CI:** unit tests, build/typecheck, art deploy-target guard, deploy and live
+  smoke checks. Full browser testing runs locally before dependency/browser
+  updates, with installed stable Chrome and a checked security baseline.
+  The historical six-shard llvmpipe job remains in git history.
+- **Security update (2026-11-03):** updated Playwright to 1.64.1, Vitest to
+  4.1.12 (removing vulnerable Tinypool), Vite to 6.4.5, Cloudflare Vite plugin
+  to 1.67.0 and Wrangler to 4.157.0. Resolved Sharp 0.35.5, Undici 7.30.1 and
+  source-map-js 1.2.2. Audit findings fell from 10 (2 critical, 7 high,
+  1 moderate) to zero. The art-only gltfpack dependency is retained.
+- **Browser automation:** the suite and art capture/inspection scripts use
+  `scripts/browser.mjs` or explicit `channel: chrome`, with version checks
+  before project pages load. The security floor is 156.0.8078.79, from the
+  2026-10-29 security release; revisit it when Google ships security fixes.
+  No bundled Chromium fallback. Optional Mesa rendering arguments remain.
+- **Validation:** typechecks and 557 unit tests pass on Node 24.22.1.
+  Full Chrome 156.0.8078.80 desktop/mobile suite: 119 passed, 13 existing
+  project-specific skips. Artwork, game/server code and deployment targets
+  are unchanged. Clean `npm ci`, production build and art target guard pass.
+  Hosted preview of code commit `4d21982` passed desktop/mobile Chrome checks:
+  gameplay renders, 95 modern assets load and no page errors occur.
+  Deployment and final live verification are tracked in
+  [security PR #42](https://github.com/guillem/seventh-gun/pull/42).
 - **Art scope delivered:** all seven weapons, six species, support props, 98
   environment kit modules over seven maps, forty sound samples; rendering
   continuity and Safari audio-start fixes; the room vertical grammar on all

@@ -1,13 +1,13 @@
 // Local Vite-only visual diagnosis. The served renderer module is instrumented
 // in this isolated browser, without changing the application/debug API.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:5176';
 const output = resolve(process.argv[3] ?? 'art/modern/roster/stability-review');
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const report = { base, capturedAt: new Date().toISOString(), errors: [], captures: [], limitation: 'Fixed debug poses with a temporary browser-only renderer probe; not a performance measurement.' };
 page.on('pageerror', error => report.errors.push(error.message));

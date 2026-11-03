@@ -1,13 +1,13 @@
 // Actual gameplay evidence for the mood/coplanarity refinement. The debug API
 // freezes AI and positions the camera; it does not replace game rendering.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:5176';
 const output = resolve(process.argv[3] ?? 'art/modern/refinement/lighting');
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 const report = { base, capturedAt: new Date().toISOString(), captures: [], errors: [],
   limitations: ['Actual client at fixed debug camera positions with frozen AI.',
     'Debug DPR1/antialiasing-off capture, not a frame-rate measurement.',

@@ -1,7 +1,7 @@
 // Actual-client visual QA for the complete experimental roster. Requires the
 // e2e debug API for camera placement/freeze; no renderer replacement or faked
 // assets. Uses installed Chrome and records its real WebGL renderer string.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -36,7 +36,7 @@ const report = {
     'Enemy identity is verified from the returned placed.type; fallback species cause failure instead of mislabeled evidence.',
   ], devices: [], campaigns: [], species: [], failure: null,
 };
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 
 async function settle(page) {
   await page.waitForTimeout(650); // complete the authored 450 ms equip clip

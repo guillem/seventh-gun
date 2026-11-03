@@ -1,11 +1,11 @@
 // Real game captures at the entrance, close to its moving door, and after entry.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 const base = process.argv[2] ?? 'http://127.0.0.1:5175';
 const out = resolve(process.argv[3] ?? '/private/tmp/seventh-entrance-review');
 await mkdir(out, { recursive: true });
-const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
+const browser = await launchBrowser();
 const report = { base, capturedAt: new Date().toISOString(), views: [] };
 try {
   for (const [name, width, height, touch] of [['desktop', 1440, 900, false], ['mobile', 390, 844, true]]) {

@@ -1,7 +1,7 @@
 // Closed and open captures of every campaign door (and its frame), using the
 // real client in installed Chrome. Pointer lock is stubbed.
 //   node tools/modern-art/capture_doors.mjs <baseURL> <label> [outDir]
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -9,7 +9,7 @@ const base = process.argv[2] ?? 'http://localhost:4173';
 const label = process.argv[3] ?? 'after';
 const output = resolve(process.argv[4] ?? 'art/modern/vertical/doors');
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu'] });
+const browser = await launchBrowser({ args: ['--use-angle=metal', '--enable-gpu'] });
 const report = { base, label, capturedAt: new Date().toISOString(), doors: [] };
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();

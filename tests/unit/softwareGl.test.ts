@@ -6,9 +6,8 @@ describe('E2E software rasterizer selection', () => {
     expect(softwareGl({})).toEqual({ args: [] });
   });
 
-  it('selects new-headless Chromium on Mesa llvmpipe and names the renderer to verify', () => {
+  it('selects Mesa llvmpipe arguments and names the renderer to verify', () => {
     const gl = softwareGl({ E2E_GL: 'llvmpipe' });
-    expect(gl.channel).toBe('chromium');
     expect(gl.args).toEqual(['--use-gl=angle', '--use-angle=gl-egl', '--ignore-gpu-blocklist']);
     expect(gl.expectRenderer).toBe('llvmpipe');
   });
