@@ -12,7 +12,7 @@ use Google Chrome Stable, with a preflight rejecting versions older than
 156.0.8078.79. Local Chrome is 156.0.8078.80. OSV reports no known advisories
 for @playwright/test, playwright or playwright-core 1.64.1. Node 24 validation
 passed the CI unit command (706 tests, including nested review-worktree tests),
-typecheck/build and 88 browser tests (12 existing platform skips), using
+typecheck/build and 90 browser tests (12 existing platform skips), using
 Chrome 156.0.8078.80. The broad `npm test` also picks up unrelated nested
 worktree dependency tests; the CI command `npm run test:unit` passes.
 The wider npm audit still reports 10 unrelated findings (2 critical, 7 high,
