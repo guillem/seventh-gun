@@ -1,8 +1,8 @@
 // Normal-mode input and rendering probe; no production/debug API changes.
 // Start a dev/preview server, then:
-// PLAYWRIGHT_CHANNEL=chrome node scripts/profile-modern-art.mjs [url] [output]
+// node scripts/profile-modern-art.mjs [url] [output]
 // Set PROFILE_CAMPAIGNS=1 for all seven campaign entry views on desktop/portrait.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -34,11 +34,11 @@ if (profileCampaigns) {
     { name: 'portrait', width: 390, height: 844, scale: 3, touch: true },
   ].map(device => ({ ...device, name: `campaign-${campaign.id}-${device.name}`, campaign })));
 }
-const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
+const browser = await launchBrowser();
 const report = {
   base: base.href,
   mode: profileCampaigns ? 'campaign-entry-views' : 'default-four-scenarios',
-  browserChannel: process.env.PLAYWRIGHT_CHANNEL || 'bundled-chromium',
+  browserChannel: 'chrome',
   capturedAt: new Date().toISOString(),
   limitations: [
     'Mobile uses the desktop GPU with a mobile viewport and touch input; this is not physical-phone performance.',

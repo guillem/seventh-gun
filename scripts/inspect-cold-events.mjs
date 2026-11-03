@@ -1,5 +1,5 @@
 // Local browser-only probes; normal AA/DPR/composer, a fresh context each run.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile, unlink } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -13,7 +13,7 @@ if (baseline) for (const file of baselineFiles) {
   await writeFile(new URL(`../src/render/__${file}Baseline.ts`, import.meta.url), execFileSync('git', ['show', `${baselineRef}:src/render/${file}.ts`]));
 }
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: portrait ? { width: 390, height: 844 } : { width: 1440, height: 900 }, deviceScaleFactor: 2, isMobile: portrait, hasTouch: portrait });
 const report = { base, baseline, ...(baseline ? { baselineRef } : {}), portrait, capturedAt: new Date().toISOString(), errors: [], stages: [], limitations: ['One local Apple GPU/browser run, not a universal frame-time guarantee; portrait uses the same desktop GPU.', 'Browser-only instrumentation exposes the normal running game and counts WebGL calls; no GPU synchronization queries.', 'Baseline overrides renderer/FX/lighting TypeScript from baselineRef but uses the current assets; comparison measures rendering behavior, not geometry before/after.'] };
 page.on('pageerror', e => report.errors.push(e.message));

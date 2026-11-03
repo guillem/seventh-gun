@@ -5,7 +5,8 @@
 // URL at an unfixed build. No source replacement or baseline checkout is made.
 // LATE_DECODE_MS=7000 optionally checks a recording completing after fallback.
 // CASE_FILTER=normal-1984-click selects matching case IDs for focused checks.
-import { chromium, webkit } from '@playwright/test';
+import { webkit } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -112,7 +113,7 @@ async function inspectCase(engine, scenario, reportPath) {
   const wallStart = Date.now();
   try {
     await save('launching');
-    browser = engine === 'chromium' ? await chromium.launch({ channel: 'chrome' }) : await webkit.launch();
+    browser = engine === 'chromium' ? await launchBrowser() : await webkit.launch();
     report.browserVersion = browser.version();
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
     const page = await context.newPage();

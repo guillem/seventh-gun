@@ -23,9 +23,8 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',
-    // Optional local hardware browser; E2E_GL (CI) picks the software
-    // rasterizer, see tests/helpers/softwareGl.ts.
-    channel: process.env.PLAYWRIGHT_CHANNEL || gl.channel,
+    // Stable Chrome receives security updates independently of Playwright.
+    channel: 'chrome',
     launchOptions: { args: gl.args },
   },
   projects: [

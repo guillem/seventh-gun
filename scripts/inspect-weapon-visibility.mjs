@@ -1,14 +1,14 @@
 // Observe actual fragment visibility with normal AA/DPR and real game frames.
 // Browser-only main-module instrumentation exposes the running instance; the
 // delivered app/debug API is unchanged. This is not a performance benchmark.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 const base = process.argv[2] ?? 'http://127.0.0.1:5176';
 const output = resolve(process.argv[3] ?? 'art/modern/roster/weapon-visibility');
 const portrait = process.env.PORTRAIT === '1';
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: portrait ? { width: 390, height: 844 } : { width: 1440, height: 900 }, deviceScaleFactor: 2,
   isMobile: portrait, hasTouch: portrait });
 const cdp = portrait ? await page.context().newCDPSession(page) : null;

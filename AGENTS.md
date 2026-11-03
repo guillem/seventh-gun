@@ -1,22 +1,21 @@
 # SEVENTH GUN — agent instructions
 
-## Active experimental branch
+## Separate art production environment
 
-`codex/experimental-modern-art` is a user-requested art experiment. Keep all
-development on that branch, leave its PR in draft, and use Netlify Deploy
-Previews for review. **Do not merge, tag, publish, or deploy production.**
-This overrides the normal merge-after-preview workflow below for this branch.
-See `docs/EXPERIMENTAL-ART.md` and `docs/STATUS.md` for scope and progress.
-On this branch `wrangler.jsonc` names a separate Worker, `seventh-gun-art`, served
-at <https://art.seventhgun.com> with its own arena. Pushes to this branch deploy it via
-`.github/workflows/deploy-art.yml` (branch-only): build, deploy-target guard
-(`scripts/check-art-deploy-target.mjs`), deploy, smoke check. **CI runs no
-tests on this branch; the local run is the gate.** Before pushing: `npm run
-check` (typecheck + unit), and only the E2E specs for what you touched (e.g.
-`npx playwright test tests/e2e/modern-art.spec.ts`). Then push and move on: do
-not watch or poll the Actions run; a failed deploy emails the user. To confirm
-a deploy when it matters, `node scripts/smoke-deployment.mjs https://art.seventhgun.com`.
-Docs-only pushes do not deploy. See `docs/TESTING.md`.
+`codex/experimental-modern-art` serves <https://art.seventhgun.com> on the
+separate `seventh-gun-art` Worker and arena. Treat it as a second production
+environment. Use a fix branch and PR targeting `codex/experimental-modern-art`;
+keep the art-to-main PR #32 in draft. Never merge the art branch into `main`,
+tag it, publish a package, or deploy the main Worker from this branch.
+
+Pushes to this branch deploy via `.github/workflows/deploy-art.yml`: unit
+tests, build/typecheck, art deploy-target guard, deployment and live smoke
+checks. Before a dependency or browser update, run `npm run check` and the
+full browser suite locally with current stable Chrome; for narrower changes,
+run the affected browser specs. Verify the deployment when shipping a fix.
+Use the shared Chrome launcher and version preflight; do not fall back to
+Playwright's bundled Chromium. See `docs/TESTING.md` and `docs/STATUS.md`.
+
 On this branch the "everything procedural" line below does not hold: the game
 loads saved Blender GLBs, generated images and Runway audio from
 `public/modern/`, with sources and provenance under `art/modern/` and build
@@ -51,7 +50,7 @@ npm run preview      # serve dist/ on :4173 (what e2e tests drive)
 
 ```bash
 npm test             # vitest unit suite (sim: mapgen sweep, weapons, determinism, arch guards)
-npm run test:e2e     # playwright (desktop chromium + mobile chromium projects)
+npm run test:e2e     # playwright (desktop Chrome + mobile Chrome projects)
 ```
 
 E2E builds and serves the Cloudflare local preview (`dist/client` + worker)
@@ -86,8 +85,9 @@ debug API. Arena: `joinArena`, `leaveArena`, `arena()`.
 Three targets, one client build.
 
 > **On this branch** `wrangler.jsonc` names `seventh-gun-art` (art.seventhgun.com),
-> not production. Production is `seventh-gun`, deployed only from `main` by
-> `deploy.yml`; this branch deploys only the art Worker via `deploy-art.yml`.
+> a separate production environment. The main Worker is `seventh-gun`,
+> deployed only from `main` by `deploy.yml`; this branch deploys only the art
+> Worker via `deploy-art.yml`.
 
 - **Cloudflare Workers is production** (`wrangler.jsonc`, Worker name `seventh-gun`).
   Never add a Cloudflare payment method. `run_worker_first` is only `/arena` and `/health`.

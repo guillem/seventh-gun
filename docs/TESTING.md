@@ -1,5 +1,11 @@
 # TESTING
 
+Browser automation uses installed stable Google Chrome (`channel: chrome`),
+with the shared `scripts/browser.mjs` version preflight. Install or update
+Chrome before testing; do not install bundled Chromium. The preflight rejects
+versions below the documented security floor rather than falling back.
+
+
 ## Unit (vitest, `npm test`)
 
 - `tests/unit/mapgen.test.ts` — 300-seed sweep: connectivity, guns ordered
@@ -149,10 +155,12 @@ builds don't advertise it).
 
 ### E2E in CI (software rendering)
 
-**Not run on the art branch since 2026-10-08**: its CI only builds, deploys and
-smoke-checks; tests run locally before pushing (`npm run check` plus the
-touched E2E specs). The notes below explain the llvmpipe setup, kept should the sharded job
-(in the git history of `deploy-art.yml`) return.
+**As of 2026-11-03**, art CI runs unit tests, builds/typechecks, verifies the
+art-only deployment target, deploys and smoke-checks both art URLs. Browser
+tests run locally before pushing: the full suite for dependency/browser
+updates, affected specs for narrower changes. The timing measurements below
+are historical; the current browser is stable Chrome, not bundled Chromium.
+The former sharded browser job remains in git history.
 
 GitHub runners have no GPU, so WebGL is software-rendered. Playwright's
 bundled headless shell uses SwiftShader, whose x64 Linux build JIT-compiles
@@ -170,14 +178,14 @@ The time is spent in the rasterizer, not in JavaScript: a CPU profile of a
 1.9 s Foundry frame shows 13 ms of script. A Foundry frame is 797 draws,
 573k triangles, 24 unrolled lights and 17 post-processing passes.
 
-So CI sets `E2E_GL=llvmpipe` (`tests/helpers/softwareGl.ts`): full Chromium in
+For Linux software rendering, set `E2E_GL=llvmpipe` (`tests/helpers/softwareGl.ts`): stable Chrome in
 new-headless mode with `--use-gl=angle --use-angle=gl-egl
 --ignore-gpu-blocklist`, on Mesa's EGL (`libegl1 libegl-mesa0
 libgl1-mesa-dri`). `tests/helpers/globalSetup.ts` prints the WebGL renderer at
 the start of every run and aborts if `E2E_GL` was set but the browser did not
 report llvmpipe; a silent fallback to SwiftShader would otherwise surface as a
-job full of timeouts. Unset (any local run) nothing changes: the bundled
-default, or a hardware browser with `PLAYWRIGHT_CHANNEL=chrome`. No game or
+job full of timeouts. With E2E_GL unset, stable Chrome uses the local GPU.
+No game or
 render code differs between CI and players.
 
 CI-only limits in `playwright.config.ts` (`CI` set): 120 s per test, 20 s per
@@ -185,7 +193,7 @@ expect, `forbidOnly`, stop after 10 failures, and a 17-minute global timeout so
 a slow run ends with its report inside the workflow's 20-minute step limit.
 Explicit `test.setTimeout` calls are floors: `Math.max(test.info().timeout, n)`.
 
-`.github/workflows/deploy-art.yml` runs the suite as six shards. Playwright
+The former `.github/workflows/deploy-art.yml` browser job ran the suite as six shards. Playwright
 shards by spec file and project, which gives desktop and mobile
 {arena\*, campaign}, {editor, game} and {modern-art} one runner each. Each
 shard builds and serves its own Worker preview, so arena specs never share a
@@ -252,7 +260,7 @@ authentication: separately confirm the token's write and Bypass 2FA permissions.
 
 Specs import `test`/`expect` from `tests/helpers/test.ts`, not directly from
 `@playwright/test`. It stubs `requestPointerLock()` in every browser context:
-with the installed Chrome on macOS (`PLAYWRIGHT_CHANNEL=chrome`), a real lock
+with the installed Chrome on macOS, a real lock
 grabs and recentres the developer's cursor even in headless mode. Use the
 debug API instead of pointer lock (see AGENTS.md). Note that
 `reuseExistingServer: true` makes Playwright test whatever already serves

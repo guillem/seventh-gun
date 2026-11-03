@@ -1,12 +1,12 @@
 // Repeatable visual evidence for the experimental branch, using its real client.
-import { chromium } from '@playwright/test';
+import { launchBrowser } from './browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:5175';
 const output = resolve(process.argv[3] ?? '/private/tmp/seventh-gun-art-review');
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const report = { base, capturedAt: new Date().toISOString(), devices: [] };
 try {
   for (const [name, width, height, touch] of [['desktop', 1440, 900, false], ['mobile', 390, 844, true]]) {

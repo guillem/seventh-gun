@@ -1,8 +1,8 @@
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 const output = 'art/modern/refinement/husk-review';
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const report = { errors: [], views: [] };
 page.on('pageerror', error => report.errors.push(error.message));

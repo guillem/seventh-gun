@@ -3,7 +3,7 @@
 // WebGL runs on the GPU; the counts are for comparison between two builds on
 // the same machine, not device benchmarks.
 //   node tools/modern-art/capture_vertical_pilot.mjs <baseURL> <label> [outDir] [nameRegex]
-import { chromium } from '@playwright/test';
+import { launchBrowser } from '../../scripts/browser.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -46,7 +46,7 @@ VIEWS.push(
 );
 const only = process.argv[5] ? new RegExp(process.argv[5]) : null;
 
-const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu'] });
+const browser = await launchBrowser({ args: ['--use-angle=metal', '--enable-gpu'] });
 const report = { base, label, capturedAt: new Date().toISOString(), views: [] };
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
